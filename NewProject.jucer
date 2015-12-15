@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="eoLPJP" name="AttributesInterface" projectType="guiapp" version="0.01"
+              bundleIdentifier="edu.CMU.AttributesInterface" includeBinaryInAppConfig="1"
+              jucerVersion="4.0.2" companyName="Carnegie Mellon University"
+              companyWebsite="graphics.cs.cmu.edu" companyEmail="eshimizu@cs.cmu.edu">
+  <MAINGROUP id="upFVKV" name="AttributesInterface">
+    <GROUP id="{E33A23C0-94A8-8A6D-0624-83F1C8438329}" name="Source">
+      <GROUP id="{4DA39040-8D72-1165-28A1-9B56CCADE37F}" name="GUI">
+        <FILE id="EzqHGX" name="MainMenu.cpp" compile="1" resource="0" file="Source/MainMenu.cpp"/>
+        <FILE id="xzEXk8" name="MainMenu.h" compile="0" resource="0" file="Source/MainMenu.h"/>
+        <FILE id="GBS5TL" name="SceneViewer.cpp" compile="1" resource="0" file="Source/SceneViewer.cpp"/>
+        <FILE id="aBaNr3" name="SceneViewer.h" compile="0" resource="0" file="Source/SceneViewer.h"/>
+        <FILE id="Tkchfq" name="StatusBar.cpp" compile="1" resource="0" file="Source/StatusBar.cpp"/>
+        <FILE id="W4ppjI" name="StatusBar.h" compile="0" resource="0" file="Source/StatusBar.h"/>
+        <FILE id="npobNN" name="TopComponentContainer.h" compile="0" resource="0"
+              file="Source/TopComponentContainer.h"/>
+      </GROUP>
+      <GROUP id="{2AE89FBF-419D-C3BF-F7EF-2317DD7C267B}" name="attributes">
+        <FILE id="QeMzB3" name="AttributeControls.cpp" compile="1" resource="0"
+              file="Source/AttributeControls.cpp"/>
+        <FILE id="aiCieQ" name="AttributeControls.h" compile="0" resource="0"
+              file="Source/AttributeControls.h"/>
+        <FILE id="chc7qJ" name="SearchResultsViewer.cpp" compile="1" resource="0"
+              file="Source/SearchResultsViewer.cpp"/>
+        <FILE id="sft1RZ" name="SearchResultsViewer.h" compile="0" resource="0"
+              file="Source/SearchResultsViewer.h"/>
+      </GROUP>
+      <GROUP id="{871C22ED-7245-60E2-E1B3-4883318453AC}" name="params">
+        <FILE id="BXTwuH" name="ParamControls.cpp" compile="1" resource="0"
+              file="Source/ParamControls.cpp"/>
+        <FILE id="jVNQkx" name="ParamControls.h" compile="0" resource="0" file="Source/ParamControls.h"/>
+      </GROUP>
+      <FILE id="td8B4o" name="globals.cpp" compile="1" resource="0" file="Source/globals.cpp"/>
+      <FILE id="JItWbO" name="globals.h" compile="0" resource="0" file="Source/globals.h"/>
+      <FILE id="t34q1y" name="MainComponent.cpp" compile="1" resource="0"
+            file="Source/MainComponent.cpp"/>
+      <FILE id="ogXLds" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      <FILE id="rO2tGW" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <VS2015 targetFolder="Builds/VisualStudio2015" externalLibraries="LumiverseCore.lib&#10;LumiverseShowControl.lib&#10;libjson.lib&#10;clp.lib&#10;ai.lib&#10;libpng16_static.lib&#10;ftd2xx.lib&#10;zlibstatic.lib">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
+                       isDebug="1" optimisation="1" targetName="AttributesInterfaceDebug"
+                       headerPath="C:\lib\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\lib\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include"
+                       libraryPath="C:\lib\Lumiverse\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib"
+                       useRuntimeLibDLL="1"/>
+        <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
+                       isDebug="0" optimisation="3" targetName="AttributesInterface"
+                       libraryPath="C:\lib\Lumiverse\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib"
+                       headerPath="C:\lib\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\lib\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include"
+                       useRuntimeLibDLL="1"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_video" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
+        <MODULEPATH id="juce_opengl" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
+        <MODULEPATH id="juce_cryptography" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_basics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
+      </MODULEPATHS>
+    </VS2015>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_video" showAllCode="1" useLocalCopy="1"/>
+  </MODULES>
+  <JUCEOPTIONS/>
+</JUCERPROJECT>
