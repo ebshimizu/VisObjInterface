@@ -14,6 +14,7 @@ static ApplicationCommandManager* _manager;
 static Rig* _rig;
 static StatusBar* _status;
 static Recorder* _recorder;
+static GlobalSettings* _globalSettings;
 
 ApplicationCommandManager* getApplicationCommandManager() {
   if (_manager == nullptr) {
@@ -35,6 +36,9 @@ void cleanUpGlobals() {
 
   if (_recorder != nullptr)
     delete _recorder;
+
+  if (_globalSettings != nullptr)
+    delete _globalSettings;
 }
 
 Rig* getRig() {
@@ -54,6 +58,21 @@ DocumentWindow* getAppTopLevelWindow()
   return nullptr;
 }
 
+ArnoldAnimationPatch * getAnimationPatch()
+{
+  // Find the patch, we search for the first ArnoldAnimationPatch we can find.
+  Rig* rig = getRig();
+
+  ArnoldAnimationPatch* p = nullptr;
+  for (const auto& kvp : rig->getPatches()) {
+    if (kvp.second->getType() == "ArnoldAnimationPatch") {
+      p = (ArnoldAnimationPatch*)kvp.second;
+    }
+  }
+
+  return p;
+}
+
 StatusBar* getStatusBar() {
   if (_status == nullptr) {
     _status = new StatusBar();
@@ -62,9 +81,27 @@ StatusBar* getStatusBar() {
   return _status;
 }
 
+GlobalSettings * getGlobalSettings()
+{
+  if (_globalSettings == nullptr) {
+    _globalSettings = new GlobalSettings();
+  }
+
+  return _globalSettings;
+}
+
 Recorder* getRecorder() {
   if (_recorder == nullptr)
     _recorder = new  Recorder();
 
   return _recorder;
+}
+
+GlobalSettings::GlobalSettings()
+{
+  _thumbnailRenderSamples = 1;
+}
+
+GlobalSettings::~GlobalSettings()
+{
 }

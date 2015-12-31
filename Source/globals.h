@@ -20,11 +20,26 @@
 using namespace Lumiverse;
 using namespace Lumiverse::ShowControl;
 
+// A container for various things that the entire application may want to access
+// TODO: at some point, have this load from a file
+class GlobalSettings
+{
+public:
+  GlobalSettings();
+  //GlobalSettings(string filename);
+  ~GlobalSettings();
+
+  int _thumbnailRenderSamples;
+};
+
 // Gets the application command manager for this application.
 ApplicationCommandManager* getApplicationCommandManager();
 
 // Get status bar object
 StatusBar* getStatusBar();
+
+// Gets the global settings object
+GlobalSettings* getGlobalSettings();
 
 // Gets the lumiverse Rig object present in the entire application
 Rig* getRig();
@@ -33,6 +48,9 @@ Rig* getRig();
 Recorder* getRecorder();
 
 DocumentWindow* getAppTopLevelWindow();
+
+// Returns the animation patch from the rig, if one exists.
+ArnoldAnimationPatch* getAnimationPatch();
 
 // Deletes all global variables, should be called on application destroy
 void cleanUpGlobals();
@@ -46,7 +64,9 @@ enum command {
 
   // Render
   ARNOLD_RENDER = 0x2000,
-  RENDER_SETTINGS = 0x2001
+
+  // Edit
+  SETTINGS = 0x3000
 
   // Window
 };

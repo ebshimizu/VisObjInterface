@@ -322,6 +322,9 @@
     <ClCompile Include="..\..\Source\SceneViewer.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\SettingsEditor.cpp">
+      <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\StatusBar.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
@@ -1570,6 +1573,9 @@
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SceneViewer.h">
+      <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SettingsEditor.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\StatusBar.h">

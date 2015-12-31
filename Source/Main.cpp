@@ -80,6 +80,7 @@ public:
 
             getApplicationCommandManager()->registerAllCommandsForTarget(cmp);
             getRecorder()->log(SYSTEM, "Interface ready.");
+            getGlobalSettings();
         }
 
         ~MainWindow() {

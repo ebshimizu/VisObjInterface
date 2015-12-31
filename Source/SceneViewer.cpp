@@ -103,12 +103,7 @@ void SceneViewer::renderScene() {
   Rig* rig = getRig();
 
   // Find the patch, we search for the first ArnoldAnimationPatch we can find.
-  ArnoldAnimationPatch* p;
-  for (const auto& kvp : rig->getPatches()) {
-    if (kvp.second->getType() == "ArnoldAnimationPatch") {
-      p = (ArnoldAnimationPatch*)kvp.second;
-    }
-  }
+  ArnoldAnimationPatch* p = getAnimationPatch();
 
   if (p == nullptr) {
     getRecorder()->log(RENDER, "Render failed. Could not find ArnoldAnimationPatch.");
@@ -123,7 +118,7 @@ void SceneViewer::renderScene() {
   uint8* bufptr = Image::BitmapData(_currentRender, Image::BitmapData::readWrite).getPixelPointer(0,0);
 
   //p->renderSingleFrameToBuffer(rig->getDeviceRaw(), bufptr);
-  p->setSamples(1);
+  //p->setSamples(1);
   (new RenderBackgroundThread(p, bufptr))->runThread();
 
   repaint();

@@ -46,6 +46,9 @@ private:
   // Refrehses the parameter controls
   void refreshParams();
 
+  // Opens the settings window
+  void openSettings();
+
   // Private vars
   File _parentDir;
   String _showName;
@@ -68,6 +71,8 @@ private:
   ScopedPointer<ParamControls> _params;
   ScopedPointer<AttributeControls> _attrs;
   ScopedPointer<SceneViewer> _viewer;
+
+  SafePointer<DocumentWindow> _settingsWindow;
 
   //==============================================================================
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)

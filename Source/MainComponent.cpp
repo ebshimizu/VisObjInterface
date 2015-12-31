@@ -8,6 +8,7 @@
 
 #include "MainComponent.h"
 #include "globals.h"
+#include "SettingsEditor.h"
 
 //==============================================================================
 MainContentComponent::MainContentComponent()
@@ -39,6 +40,8 @@ MainContentComponent::MainContentComponent()
 
 MainContentComponent::~MainContentComponent()
 {
+  if (_settingsWindow != nullptr)
+    delete _settingsWindow;
 }
 
 void MainContentComponent::paint (Graphics& g)
@@ -71,7 +74,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
 {
   // Add new commands to handle here.
   const CommandID ids[] = {
-    command::OPEN, command::REFRESH_PARAMS, command::ARNOLD_RENDER, command::RENDER_SETTINGS
+    command::OPEN, command::REFRESH_PARAMS, command::ARNOLD_RENDER, command::SETTINGS
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -92,9 +95,8 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Render", "Renders the current scene with the current settings", "Render", 0);
     result.addDefaultKeypress('r', ModifierKeys::noModifiers);
     break;
-  case command::RENDER_SETTINGS:
-    result.setInfo("Render Settings...", "Opens the render settings window", "Render", 0);
-    result.addDefaultKeypress('r', ModifierKeys::commandModifier);
+  case command::SETTINGS:
+    result.setInfo("Settings...", "Opens the application settings window", "Edit", 0);
     break;
   default:
     return;
@@ -113,8 +115,8 @@ bool MainContentComponent::perform(const InvocationInfo & info)
   case command::ARNOLD_RENDER:
     _viewer->renderScene();
     break;
-  case command::RENDER_SETTINGS:
-    //openRenderSettings();
+  case command::SETTINGS:
+    openSettings();
     break;
   default:
     return false;
@@ -165,4 +167,19 @@ void MainContentComponent::loadComponents()
 void MainContentComponent::refreshParams()
 {
   _params->refreshParams();
+}
+
+void MainContentComponent::openSettings()
+{
+  if (_settingsWindow != nullptr)
+    return;
+
+  _settingsWindow = new SettingsWindow();
+  juce::Rectangle<int> area(50, 50, 400, 600);
+
+  _settingsWindow->setBounds(area);
+
+  _settingsWindow->setResizable(true, false);
+  _settingsWindow->setUsingNativeTitleBar(true);
+  _settingsWindow->setVisible(true);
 }

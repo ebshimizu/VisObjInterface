@@ -137,6 +137,7 @@
     <ClCompile Include="..\..\Source\MainMenu.cpp"/>
     <ClCompile Include="..\..\Source\Recorder.cpp"/>
     <ClCompile Include="..\..\Source\SceneViewer.cpp"/>
+    <ClCompile Include="..\..\Source\SettingsEditor.cpp"/>
     <ClCompile Include="..\..\Source\StatusBar.cpp"/>
     <ClCompile Include="..\..\Source\AttributeControls.cpp"/>
     <ClCompile Include="..\..\Source\SearchResultsViewer.cpp"/>
@@ -1266,6 +1267,7 @@
     <ClInclude Include="..\..\Source\MainMenu.h"/>
     <ClInclude Include="..\..\Source\Recorder.h"/>
     <ClInclude Include="..\..\Source\SceneViewer.h"/>
+    <ClInclude Include="..\..\Source\SettingsEditor.h"/>
     <ClInclude Include="..\..\Source\StatusBar.h"/>
     <ClInclude Include="..\..\Source\TopComponentContainer.h"/>
     <ClInclude Include="..\..\Source\AttributeControls.h"/>
