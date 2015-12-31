@@ -135,6 +135,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\MainMenu.cpp"/>
+    <ClCompile Include="..\..\Source\Recorder.cpp"/>
     <ClCompile Include="..\..\Source\SceneViewer.cpp"/>
     <ClCompile Include="..\..\Source\StatusBar.cpp"/>
     <ClCompile Include="..\..\Source\AttributeControls.cpp"/>
@@ -1263,6 +1264,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\MainMenu.h"/>
+    <ClInclude Include="..\..\Source\Recorder.h"/>
     <ClInclude Include="..\..\Source\SceneViewer.h"/>
     <ClInclude Include="..\..\Source\StatusBar.h"/>
     <ClInclude Include="..\..\Source\TopComponentContainer.h"/>

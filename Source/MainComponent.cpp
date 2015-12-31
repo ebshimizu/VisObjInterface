@@ -51,15 +51,15 @@ void MainContentComponent::resized()
   // This is called when the MainContentComponent is resized.
   // If you add any child components, this is where you should
   // update their positions.
-  auto bounds = getLocalBounds();
+  auto lbounds = getLocalBounds();
 
-  getStatusBar()->setBounds(bounds.removeFromBottom(26));
+  getStatusBar()->setBounds(lbounds.removeFromBottom(26));
 
   Component* comps[] = { nullptr, _hbar, _search };
-  _horizResizer.layOutComponents(comps, 3, 0, 0, bounds.getWidth(), bounds.getHeight(), true, true);
+  _horizResizer.layOutComponents(comps, 3, 0, 0, lbounds.getWidth(), lbounds.getHeight(), true, true);
 
   Component* comps2[] = { _params, _vbar1, _viewer, _vbar2, _attrs };
-  _vertResizer.layOutComponents(comps2, 5, 0, 0, bounds.getWidth(), _horizResizer.getItemCurrentAbsoluteSize(0), false, true);
+  _vertResizer.layOutComponents(comps2, 5, 0, 0, lbounds.getWidth(), _horizResizer.getItemCurrentAbsoluteSize(0), false, true);
 }
 
 ApplicationCommandTarget * MainContentComponent::getNextCommandTarget()
@@ -71,7 +71,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
 {
   // Add new commands to handle here.
   const CommandID ids[] = {
-    command::open
+    command::OPEN, command::REFRESH_PARAMS, command::ARNOLD_RENDER, command::RENDER_SETTINGS
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -81,22 +81,88 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
 {
   // Add new command descriptions here
   switch (commandID) {
-  case command::open:
+  case command::OPEN:
     result.setInfo("Open...", "Opens a Lumiverse file", "File", 0);
     result.addDefaultKeypress('o', ModifierKeys::commandModifier);
     break;
+  case command::REFRESH_PARAMS:
+    result.setInfo("Refresh Parameter Controls", "Internal: refreshes parameter control panel", "Internal", 0);
+    break;
+  case command::ARNOLD_RENDER:
+    result.setInfo("Render", "Renders the current scene with the current settings", "Render", 0);
+    result.addDefaultKeypress('r', ModifierKeys::noModifiers);
+    break;
+  case command::RENDER_SETTINGS:
+    result.setInfo("Render Settings...", "Opens the render settings window", "Render", 0);
+    result.addDefaultKeypress('r', ModifierKeys::commandModifier);
+    break;
+  default:
+    return;
   }
 }
 
 bool MainContentComponent::perform(const InvocationInfo & info)
 {
   switch (info.commandID) {
-  case command::open:
-    // openRig();
+  case command::OPEN:
+    openRig();
+    break;
+  case command::REFRESH_PARAMS:
+    refreshParams();
+    break;
+  case command::ARNOLD_RENDER:
+    _viewer->renderScene();
+    break;
+  case command::RENDER_SETTINGS:
+    //openRenderSettings();
     break;
   default:
     return false;
   }
 
   return true;
+}
+
+void MainContentComponent::openRig() {
+  FileChooser fc("Load Show (pick a .rig.json or .playback.json file)", File::getCurrentWorkingDirectory(),
+    "*.rig.json;*.playback.json", true);
+
+  if (fc.browseForFileToOpen()) {
+    File selected = fc.getResult();
+    String fileName = selected.getFileName();
+    fileName = fileName.upToFirstOccurrenceOf(".", false, false);
+
+    _parentDir = selected.getParentDirectory();
+
+    File rig = _parentDir.getChildFile(fileName + ".rig.json");
+    File playback = _parentDir.getChildFile(fileName + ".playback.json");
+
+    bool res = getRig()->load(rig.getFullPathName().toStdString());
+
+    if (res) {
+      getStatusBar()->setStatusMessage("Loaded file \"" + rig.getFullPathName() + "\" successfully.");
+      getRecorder()->log(SYSTEM, "Loaded file \"" + rig.getFullPathName().toStdString() + "\" successfully.");
+
+      getRig()->init();
+
+      loadComponents();
+
+      _showName = fileName.toStdString();
+      getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);
+    }
+    else {
+      getStatusBar()->setStatusMessage("Error loading \"" + rig.getFullPathName() + "\"");
+      getRecorder()->log(SYSTEM, "Failed to load \"" + rig.getFullPathName().toStdString() + "\"");
+    }
+  }
+}
+
+void MainContentComponent::loadComponents()
+{
+  _params->initProperties();
+}
+
+void MainContentComponent::refreshParams()
+{
+  _params->refreshParams();
 }

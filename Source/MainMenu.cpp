@@ -25,7 +25,7 @@ MainMenu::~MainMenu()
 }
 
 StringArray MainMenu::getMenuBarNames() {
-  const char* names[] = { "File", "Edit", "Window", nullptr };
+  const char* names[] = { "File", "Edit", "Render", nullptr };
   return StringArray(names);
 }
 
@@ -35,7 +35,15 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& menuNam
   PopupMenu menu;
 
   if (topLevelMenuIndex == 0) {
-    menu.addCommandItem(cm, command::open);
+    menu.addCommandItem(cm, command::OPEN);
+  }
+  else if (topLevelMenuIndex == 1) {
+    // Edit
+  }
+  else if (topLevelMenuIndex == 2) {
+    menu.addCommandItem(cm, command::ARNOLD_RENDER);
+    menu.addSeparator();
+    menu.addCommandItem(cm, command::RENDER_SETTINGS);
   }
 
   return menu;

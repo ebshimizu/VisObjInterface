@@ -37,6 +37,19 @@ public:
   virtual bool perform(const InvocationInfo& info) override;
 
 private:
+  // Open a Lumiverse file
+  void openRig();
+
+  // Initializes the components in the interface after loading a rig
+  void loadComponents();
+
+  // Refrehses the parameter controls
+  void refreshParams();
+
+  // Private vars
+  File _parentDir;
+  String _showName;
+
   // Top/bottom split
   StretchableLayoutManager _horizResizer;
 

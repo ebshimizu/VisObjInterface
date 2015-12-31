@@ -15,6 +15,7 @@
 #include "LumiverseCore.h"
 #include "LumiverseShowControl/LumiverseShowControl.h"
 #include "StatusBar.h"
+#include "Recorder.h"
 
 using namespace Lumiverse;
 using namespace Lumiverse::ShowControl;
@@ -28,18 +29,25 @@ StatusBar* getStatusBar();
 // Gets the lumiverse Rig object present in the entire application
 Rig* getRig();
 
+// Get the action logging object
+Recorder* getRecorder();
+
+DocumentWindow* getAppTopLevelWindow();
+
 // Deletes all global variables, should be called on application destroy
 void cleanUpGlobals();
 
 enum command {
   // File
-  open = 0x0001,
-  close = 0x0002,
-  save = 0x0003,
-  saveAs = 0x0004
+  OPEN = 0x0001,
 
   // Internal
+  REFRESH_PARAMS = 0x1000,
+
   // Render
+  ARNOLD_RENDER = 0x2000,
+  RENDER_SETTINGS = 0x2001
+
   // Window
 };
 

@@ -9,6 +9,8 @@
       <GROUP id="{4DA39040-8D72-1165-28A1-9B56CCADE37F}" name="GUI">
         <FILE id="EzqHGX" name="MainMenu.cpp" compile="1" resource="0" file="Source/MainMenu.cpp"/>
         <FILE id="xzEXk8" name="MainMenu.h" compile="0" resource="0" file="Source/MainMenu.h"/>
+        <FILE id="LxBlMk" name="Recorder.cpp" compile="1" resource="0" file="Source/Recorder.cpp"/>
+        <FILE id="b149rl" name="Recorder.h" compile="0" resource="0" file="Source/Recorder.h"/>
         <FILE id="GBS5TL" name="SceneViewer.cpp" compile="1" resource="0" file="Source/SceneViewer.cpp"/>
         <FILE id="aBaNr3" name="SceneViewer.h" compile="0" resource="0" file="Source/SceneViewer.h"/>
         <FILE id="Tkchfq" name="StatusBar.cpp" compile="1" resource="0" file="Source/StatusBar.cpp"/>

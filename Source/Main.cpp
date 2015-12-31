@@ -79,6 +79,7 @@ public:
             setMenuBar(_menu, 0);
 
             getApplicationCommandManager()->registerAllCommandsForTarget(cmp);
+            getRecorder()->log(SYSTEM, "Interface ready.");
         }
 
         ~MainWindow() {

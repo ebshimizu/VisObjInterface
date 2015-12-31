@@ -316,6 +316,9 @@
     <ClCompile Include="..\..\Source\MainMenu.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Recorder.cpp">
+      <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\SceneViewer.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
@@ -1561,6 +1564,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\MainMenu.h">
+      <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Recorder.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SceneViewer.h">

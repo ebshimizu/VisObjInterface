@@ -13,6 +13,7 @@
 static ApplicationCommandManager* _manager;
 static Rig* _rig;
 static StatusBar* _status;
+static Recorder* _recorder;
 
 ApplicationCommandManager* getApplicationCommandManager() {
   if (_manager == nullptr) {
@@ -31,6 +32,9 @@ void cleanUpGlobals() {
 
   if (_status != nullptr)
     delete _status;
+
+  if (_recorder != nullptr)
+    delete _recorder;
 }
 
 Rig* getRig() {
@@ -41,10 +45,26 @@ Rig* getRig() {
   return _rig;
 }
 
+DocumentWindow* getAppTopLevelWindow()
+{
+  for (int i = TopLevelWindow::getNumTopLevelWindows(); --i >= 0;)
+    if (DocumentWindow* win = dynamic_cast<DocumentWindow*> (TopLevelWindow::getTopLevelWindow(i)))
+      return win;
+
+  return nullptr;
+}
+
 StatusBar* getStatusBar() {
   if (_status == nullptr) {
     _status = new StatusBar();
   }
 
   return _status;
+}
+
+Recorder* getRecorder() {
+  if (_recorder == nullptr)
+    _recorder = new  Recorder();
+
+  return _recorder;
 }

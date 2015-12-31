@@ -12,6 +12,26 @@
 #define SCENEVIEWER_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "globals.h"
+
+//==============================================================================
+// Render thread class
+
+class RenderBackgroundThread : public ThreadWithProgressWindow
+{
+public:
+  RenderBackgroundThread(ArnoldAnimationPatch* p, uint8* bufptr);
+  ~RenderBackgroundThread();
+
+  void run() override;
+  void threadComplete(bool userPressedCancel) override;
+
+private:
+  void renderLoop();
+
+  ArnoldAnimationPatch* _p;
+  uint8* _bufptr;
+};
 
 //==============================================================================
 /*
@@ -19,14 +39,19 @@
 class SceneViewer    : public Component
 {
 public:
-    SceneViewer();
-    ~SceneViewer();
+  SceneViewer();
+  ~SceneViewer();
 
-    void paint (Graphics&);
-    void resized();
+  void paint (Graphics&);
+  void resized();
+
+  // Does a synchronous render of the current scene specified in the Rig
+  void renderScene();
 
 private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SceneViewer)
+  Image _currentRender;
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SceneViewer)
 };
 
 
