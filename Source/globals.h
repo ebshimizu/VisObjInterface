@@ -66,7 +66,10 @@ enum command {
   ARNOLD_RENDER = 0x2000,
 
   // Edit
-  SETTINGS = 0x3000
+  SETTINGS = 0x3000,
+
+  // Explore
+  SEARCH = 0x4000
 
   // Window
 };

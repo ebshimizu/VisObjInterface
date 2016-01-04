@@ -74,7 +74,8 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
 {
   // Add new commands to handle here.
   const CommandID ids[] = {
-    command::OPEN, command::REFRESH_PARAMS, command::ARNOLD_RENDER, command::SETTINGS
+    command::OPEN, command::REFRESH_PARAMS, command::ARNOLD_RENDER, command::SETTINGS,
+    command::SEARCH
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -98,6 +99,10 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::SETTINGS:
     result.setInfo("Settings...", "Opens the application settings window", "Edit", 0);
     break;
+  case command::SEARCH:
+    result.setInfo("Search", "Performs an exploratory search with the current attribute constraints", "Explore", 0);
+    result.addDefaultKeypress('f', ModifierKeys::commandModifier);
+    break;
   default:
     return;
   }
@@ -117,6 +122,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::SETTINGS:
     openSettings();
+    break;
+  case command::SEARCH:
+    search();
     break;
   default:
     return false;
@@ -182,4 +190,10 @@ void MainContentComponent::openSettings()
   _settingsWindow->setResizable(true, false);
   _settingsWindow->setUsingNativeTitleBar(true);
   _settingsWindow->setVisible(true);
+}
+
+void MainContentComponent::search()
+{
+  // DEBUG: Temporary test to check if called
+  getRecorder()->log(SYSTEM, "Exploratory search called.");
 }

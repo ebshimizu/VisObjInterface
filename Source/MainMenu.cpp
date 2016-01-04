@@ -25,7 +25,7 @@ MainMenu::~MainMenu()
 }
 
 StringArray MainMenu::getMenuBarNames() {
-  const char* names[] = { "File", "Edit", "Render", nullptr };
+  const char* names[] = { "File", "Edit", "Render", "Explore", nullptr };
   return StringArray(names);
 }
 
@@ -42,6 +42,9 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& menuNam
   }
   else if (topLevelMenuIndex == 2) {
     menu.addCommandItem(cm, command::ARNOLD_RENDER);
+  }
+  else if (topLevelMenuIndex == 3) {
+    menu.addCommandItem(cm, command::SEARCH);
   }
 
   return menu;

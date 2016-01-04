@@ -88,10 +88,18 @@ AttributeControls::AttributeControls()
   _componentView = new Viewport();
   _componentView->setViewedComponent(_container);
   addAndMakeVisible(_componentView);
+
+  _search = new TextButton("Search", "Perform a search with the current attribute constraints");
+  _search->addListener(this);
+  addAndMakeVisible(_search);
 }
 
 AttributeControls::~AttributeControls()
 {
+  delete _container;
+  _componentView->setViewedComponent(nullptr);
+  delete _componentView;
+  delete _search;
 }
 
 void AttributeControls::paint (Graphics& g)
@@ -103,6 +111,16 @@ void AttributeControls::resized()
 {
   auto bounds = getLocalBounds();
 
+  _search->setBounds(bounds.removeFromBottom(30).removeFromRight(150).reduced(5));
+
   _container->setWidth(_componentView->getMaximumVisibleWidth());
   _componentView->setBounds(bounds);
+}
+
+void AttributeControls::buttonClicked(Button * b)
+{
+  if (b->getName() == "Search") {
+    // perform a search action
+    getApplicationCommandManager()->invokeDirectly(SEARCH, true);
+  }
 }

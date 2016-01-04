@@ -49,6 +49,11 @@ private:
   // Opens the settings window
   void openSettings();
 
+  // The big search function. This function does the following:
+  // - Performs a number of searches using particular sets of constraints (edits)
+  // - Groups results (if any) and presents them to the user
+  void search();
+
   // Private vars
   File _parentDir;
   String _showName;

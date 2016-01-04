@@ -117,9 +117,10 @@ void SceneViewer::renderScene() {
   _currentRender = Image(Image::ARGB, width, height, true);
   uint8* bufptr = Image::BitmapData(_currentRender, Image::BitmapData::readWrite).getPixelPointer(0,0);
 
-  //p->renderSingleFrameToBuffer(rig->getDeviceRaw(), bufptr);
-  //p->setSamples(1);
+
+  getRecorder()->log(RENDER, "Render started.");
   (new RenderBackgroundThread(p, bufptr))->runThread();
+  getRecorder()->log(RENDER, "Render finished.");
 
   repaint();
 }

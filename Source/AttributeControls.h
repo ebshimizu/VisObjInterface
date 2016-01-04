@@ -40,7 +40,7 @@ private:
 //==============================================================================
 /*
 */
-class AttributeControls : public Component
+class AttributeControls : public Component, public Button::Listener
 {
 public:
   AttributeControls();
@@ -48,10 +48,14 @@ public:
 
   void paint (Graphics&);
   void resized();
+  
+  virtual void buttonClicked(Button* b) override;
 
 private:
   AttributeControlsList* _container;
   Viewport* _componentView;
+
+  TextButton* _search;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AttributeControls)
 };
