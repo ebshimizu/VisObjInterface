@@ -29,6 +29,8 @@ Recorder::Recorder()
 
 Recorder::~Recorder()
 {
+  _file << "================================================================================\n";
+  _file.close();
 }
 
 void Recorder::setFilename(string filename)

@@ -42,6 +42,8 @@ MainContentComponent::~MainContentComponent()
 {
   if (_settingsWindow != nullptr)
     delete _settingsWindow;
+
+  getRecorder()->log(SYSTEM, "Interface shutting down.");
 }
 
 void MainContentComponent::paint (Graphics& g)
