@@ -31,7 +31,7 @@ void RenderBackgroundThread::run()
   thread r(&RenderBackgroundThread::renderLoop, this);
   r.detach();
 
-  float prog;
+  float prog = 0;
   setStatusMessage("Rendering...");
   while (prog < 1) {
     this_thread::sleep_for(std::chrono::milliseconds(20));

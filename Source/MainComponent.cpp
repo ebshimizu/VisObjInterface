@@ -35,7 +35,7 @@ MainContentComponent::MainContentComponent()
   _vertResizer.setItemLayout(3, 5, 5, 5);
   _vertResizer.setItemLayout(4, -0.2, -0.5, -0.25);
 
-  setSize (1920, 1080);
+  setSize (1280, 720);
 }
 
 MainContentComponent::~MainContentComponent()

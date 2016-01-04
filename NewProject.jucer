@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="eoLPJP" name="AttributesInterface" projectType="guiapp" version="0.01"
               bundleIdentifier="edu.CMU.AttributesInterface" includeBinaryInAppConfig="1"
-              jucerVersion="4.0.2" companyName="Carnegie Mellon University"
+              jucerVersion="4.1.0" companyName="Carnegie Mellon University"
               companyWebsite="graphics.cs.cmu.edu" companyEmail="eshimizu@cs.cmu.edu">
   <MAINGROUP id="upFVKV" name="AttributesInterface">
     <GROUP id="{E33A23C0-94A8-8A6D-0624-83F1C8438329}" name="Source">
@@ -23,6 +23,15 @@
               file="Source/TopComponentContainer.h"/>
       </GROUP>
       <GROUP id="{2AE89FBF-419D-C3BF-F7EF-2317DD7C267B}" name="attributes">
+        <GROUP id="{9D54FF1D-9ACE-EBC7-F1C5-BC6BB3FDA4C7}" name="attribute instances">
+          <FILE id="GGdIAz" name="TestAttribute.cpp" compile="1" resource="0"
+                file="Source/TestAttribute.cpp"/>
+          <FILE id="I0a1vF" name="TestAttribute.h" compile="0" resource="0" file="Source/TestAttribute.h"/>
+        </GROUP>
+        <FILE id="W6H6CR" name="AttributeControllerBase.cpp" compile="1" resource="0"
+              file="Source/AttributeControllerBase.cpp"/>
+        <FILE id="ufU21i" name="AttributeControllerBase.h" compile="0" resource="0"
+              file="Source/AttributeControllerBase.h"/>
         <FILE id="QeMzB3" name="AttributeControls.cpp" compile="1" resource="0"
               file="Source/AttributeControls.cpp"/>
         <FILE id="aiCieQ" name="AttributeControls.h" compile="0" resource="0"
@@ -50,13 +59,13 @@
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        isDebug="1" optimisation="1" targetName="AttributesInterfaceDebug"
-                       headerPath="C:\lib\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\lib\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include"
-                       libraryPath="C:\lib\Lumiverse\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib"
+                       headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include"
+                       libraryPath="C:\Program Files\Lumiverse\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib"
                        useRuntimeLibDLL="1"/>
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        isDebug="0" optimisation="3" targetName="AttributesInterface"
-                       libraryPath="C:\lib\Lumiverse\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib"
-                       headerPath="C:\lib\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\lib\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include"
+                       libraryPath="C:\Program Files\Lumiverse\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib"
+                       headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include"
                        useRuntimeLibDLL="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>

@@ -74,6 +74,8 @@ private:
 
   SafePointer<DocumentWindow> _settingsWindow;
 
+  TooltipWindow _tips;
+
   //==============================================================================
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
 };

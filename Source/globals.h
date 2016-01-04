@@ -71,4 +71,13 @@ enum command {
   // Window
 };
 
+// Flags for indicating what attributes should be considered
+// in the search step
+enum AttributeConstraint {
+  A_IGNORE,
+  A_LESS,
+  A_EQUAL,
+  A_MORE
+};
+
 #endif  // GLOBALS_H_INCLUDED
