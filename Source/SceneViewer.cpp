@@ -100,8 +100,6 @@ void SceneViewer::resized()
 
 void SceneViewer::renderScene() {
   // Renders a scene using Arnold through Lumiverse.
-  Rig* rig = getRig();
-
   // Find the patch, we search for the first ArnoldAnimationPatch we can find.
   ArnoldAnimationPatch* p = getAnimationPatch();
 

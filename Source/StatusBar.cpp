@@ -33,7 +33,7 @@ void StatusBar::paint (Graphics& g)
     g.fillAll(Colour(0xff8C0000));
 
   g.setColour(Colours::white);
-  g.drawHorizontalLine(0, 0.0, getLocalBounds().getWidth());
+  g.drawHorizontalLine(0, 0.0, (float) getLocalBounds().getWidth());
 
   g.setColour(Colours::white);
   g.setFont(Font(12.0f));

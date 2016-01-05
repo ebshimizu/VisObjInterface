@@ -29,6 +29,7 @@ FloatPropertySlider::~FloatPropertySlider()
 void FloatPropertySlider::setValue(double newValue)
 {
   getRig()->getDevice(_id)->setParam(_param, (float)newValue);
+  getApplicationCommandManager()->invokeDirectly(command::REFRESH_ATTR, true);
 }
 
 double FloatPropertySlider::getValue() const
@@ -37,17 +38,18 @@ double FloatPropertySlider::getValue() const
   return val->getVal();
 }
 
-void FloatPropertySlider::sliderDragStarted(Slider * s)
+void FloatPropertySlider::sliderDragStarted(Slider * /* s */)
 {
   stringstream ss;
   ss << _id << ":" << _param << " change start at " << getValue();
   getRecorder()->log(ACTION, ss.str());
 }
 
-void FloatPropertySlider::sliderDragEnded(Slider * s)
+void FloatPropertySlider::sliderDragEnded(Slider * /* s */)
 {
   stringstream ss;
   ss << _id << ":" << _param << " value changed to " << getValue();
+  getStatusBar()->setStatusMessage(ss.str());
   getRecorder()->log(ACTION, ss.str());
 }
 
@@ -66,6 +68,7 @@ OrientationPropertySlider::~OrientationPropertySlider()
 void OrientationPropertySlider::setValue(double newValue)
 {
   getRig()->getDevice(_id)->setParam(_param, (float)newValue);
+  getApplicationCommandManager()->invokeDirectly(command::REFRESH_ATTR, true);
 }
 
 double OrientationPropertySlider::getValue() const
@@ -85,6 +88,7 @@ void OrientationPropertySlider::sliderDragEnded(Slider * s)
 {
   stringstream ss;
   ss << _id << ":" << _param << " value changed to " << getValue();
+  getStatusBar()->setStatusMessage(ss.str());
   getRecorder()->log(ACTION, ss.str());
 }
 
@@ -102,6 +106,7 @@ void ColorPropertySlider::setValue(double newValue)
 {
   getRig()->getDevice(_id)->setColorChannel(_param, _channel, newValue);
   getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, false);
+  getApplicationCommandManager()->invokeDirectly(command::REFRESH_ATTR, true);
 }
 
 double ColorPropertySlider::getValue() const
@@ -110,17 +115,18 @@ double ColorPropertySlider::getValue() const
   return c->getColorChannel(_channel);
 }
 
-void ColorPropertySlider::sliderDragStarted(Slider * s)
+void ColorPropertySlider::sliderDragStarted(Slider * /* s */)
 {
   stringstream ss;
   ss << _id << ":" << _param << "." << _channel << " change start at " << getValue();
   getRecorder()->log(ACTION, ss.str());
 }
 
-void ColorPropertySlider::sliderDragEnded(Slider * s)
+void ColorPropertySlider::sliderDragEnded(Slider * /* s */)
 {
   stringstream ss;
   ss << _id << ":" << _param << "." << _channel << " value changed to " << getValue();
+  getStatusBar()->setStatusMessage(ss.str());
   getRecorder()->log(ACTION, ss.str());
 }
 
@@ -155,6 +161,7 @@ void HSVColorPropertySlider::setValue(double newValue)
 
   c->setHSV(hsv[0], hsv[1], hsv[2]);
   getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, false);
+  getApplicationCommandManager()->invokeDirectly(command::REFRESH_ATTR, true);
 }
 
 double HSVColorPropertySlider::getValue() const
@@ -181,6 +188,7 @@ void HSVColorPropertySlider::sliderDragEnded(Slider * s)
 {
   stringstream ss;
   ss << _id << ":" << _param << "." << _channel << " value changed to " << getValue();
+  getStatusBar()->setStatusMessage(ss.str());
   getRecorder()->log(ACTION, ss.str());
 }
 

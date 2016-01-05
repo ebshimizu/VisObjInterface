@@ -77,7 +77,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
   // Add new commands to handle here.
   const CommandID ids[] = {
     command::OPEN, command::REFRESH_PARAMS, command::ARNOLD_RENDER, command::SETTINGS,
-    command::SEARCH
+    command::SEARCH, command::REFRESH_ATTR
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -105,6 +105,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Search", "Performs an exploratory search with the current attribute constraints", "Explore", 0);
     result.addDefaultKeypress('f', ModifierKeys::commandModifier);
     break;
+  case command::REFRESH_ATTR:
+    result.setInfo("Refresh Attribute Controls", "Internal: refreshes the attribute control panel", "Internal", 0);
+    break;
   default:
     return;
   }
@@ -127,6 +130,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::SEARCH:
     search();
+    break;
+  case command::REFRESH_ATTR:
+    _attrs->repaint();
     break;
   default:
     return false;

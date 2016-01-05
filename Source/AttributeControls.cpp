@@ -46,10 +46,10 @@ void AttributeControlsList::resized() {
     return;
 
   int height = getBounds().getHeight() / numComponents;
-  auto bounds = getBounds();
+  auto lbounds = getBounds();
 
   for (const auto &kvp : _controls) {
-    kvp.second->setBounds(bounds.removeFromTop(height));
+    kvp.second->setBounds(lbounds.removeFromTop(height));
   }
 }
 
@@ -109,12 +109,12 @@ void AttributeControls::paint (Graphics& g)
 
 void AttributeControls::resized()
 {
-  auto bounds = getLocalBounds();
+  auto lbounds = getLocalBounds();
 
-  _search->setBounds(bounds.removeFromBottom(30).removeFromRight(150).reduced(5));
+  _search->setBounds(lbounds.removeFromBottom(30).removeFromRight(150).reduced(5));
 
+  _componentView->setBounds(lbounds);
   _container->setWidth(_componentView->getMaximumVisibleWidth());
-  _componentView->setBounds(bounds);
 }
 
 void AttributeControls::buttonClicked(Button * b)

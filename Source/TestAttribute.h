@@ -24,10 +24,21 @@ public:
   TestAttribute(String name);
   ~TestAttribute();
 
-  virtual double evaluateScene(set<Device*> devices) override;
+protected: 
+  virtual double evaluateScene(Device* key, Device* fill, Device* rim) override;
 
 private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TestAttribute)
+  double cctPenalty(double cct);
+  double duvPenalty(double duv);
+
+  // For the objective warm function, a 'warmest CCT'.
+  double _targetCCT = 1900;
+  double _keyWeight = 0.4;
+  double _fillWeight = 0.4;
+  double _rimWeight = 0.2;
+  double _warmMax = 100;
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TestAttribute)
 };
 
 

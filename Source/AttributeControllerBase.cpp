@@ -44,8 +44,8 @@ AttributeControllerBase::~AttributeControllerBase()
 
 void AttributeControllerBase::paint (Graphics& g)
 {
-  auto bounds = getLocalBounds();
-  auto top = bounds.removeFromTop(24);
+  auto lbounds = getLocalBounds();
+  auto top = lbounds.removeFromTop(24);
   top.reduce(2, 2);
 
   g.setColour(Colours::white);
@@ -57,14 +57,14 @@ void AttributeControllerBase::paint (Graphics& g)
 
 void AttributeControllerBase::resized()
 {
-  auto bounds = getLocalBounds();
+  auto lbounds = getLocalBounds();
 
   // top area for drawing
-  bounds.removeFromTop(24);
+  lbounds.removeFromTop(24);
   
-  int buttonWidth = bounds.getWidth() / 4;
+  int buttonWidth = lbounds.getWidth() / 4;
   for (int i = 0; i < 4; i++) {
-    _buttons[i]->setBounds(bounds.removeFromLeft(buttonWidth).reduced(2));
+    _buttons[i]->setBounds(lbounds.removeFromLeft(buttonWidth).reduced(2));
   }
 
 }
@@ -93,5 +93,35 @@ void AttributeControllerBase::buttonClicked(Button * b)
   }
   if (buttonName == "More") {
     _status = A_MORE;
+  }
+}
+
+double AttributeControllerBase::evaluateScene(set<Device*> devices)
+{
+  // Here we assume the explicit presence of just three lights: right, left, and rim.
+  // The key light is defined to be the light with the highest intensity between
+  // the right and left lights. The rim light is always the same light.
+
+  Rig* rig = getRig();
+  Device* key;
+  Device* fill;
+  Device* rim;
+
+  if (rig->getDevice("right") != nullptr && rig->getDevice("left") != nullptr && rig->getDevice("rim") != nullptr) {
+    if (rig->getDevice("right")->getIntensity()->getVal() > rig->getDevice("left")->getIntensity()->getVal()) {
+      key = rig->getDevice("right");
+      fill = rig->getDevice("left");
+    }
+    else {
+      key = rig->getDevice("left");
+      fill = rig->getDevice("right");
+    }
+    rim = rig->getDevice("rim");
+
+    return evaluateScene(key, fill, rim);
+  }
+  else {
+    // Rig missing proper fixtures
+    return -1;
   }
 }
