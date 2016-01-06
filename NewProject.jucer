@@ -36,6 +36,10 @@
               file="Source/AttributeControls.cpp"/>
         <FILE id="aiCieQ" name="AttributeControls.h" compile="0" resource="0"
               file="Source/AttributeControls.h"/>
+        <FILE id="g4ydIA" name="AttributeSearch.cpp" compile="1" resource="0"
+              file="Source/AttributeSearch.cpp"/>
+        <FILE id="Q4jtJF" name="AttributeSearch.h" compile="0" resource="0"
+              file="Source/AttributeSearch.h"/>
         <FILE id="chc7qJ" name="SearchResultsViewer.cpp" compile="1" resource="0"
               file="Source/SearchResultsViewer.cpp"/>
         <FILE id="sft1RZ" name="SearchResultsViewer.h" compile="0" resource="0"
