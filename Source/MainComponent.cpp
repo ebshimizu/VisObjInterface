@@ -9,6 +9,7 @@
 #include "MainComponent.h"
 #include "globals.h"
 #include "SettingsEditor.h"
+#include "AttributeSearch.h"
 
 //==============================================================================
 MainContentComponent::MainContentComponent()
@@ -202,6 +203,13 @@ void MainContentComponent::openSettings()
 
 void MainContentComponent::search()
 {
+  // Break out actual search alg into different function to prevent main from getting too cluttered.
+  Array<SearchResult> results = attributeSearch(_attrs->getActiveAttributes());
+
+  // cluster results
+  // render results
+  // display results in the explorer
+
   // DEBUG: Temporary test to check if called
   getRecorder()->log(SYSTEM, "Exploratory search called.");
 }

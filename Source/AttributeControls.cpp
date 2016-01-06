@@ -77,6 +77,19 @@ void AttributeControlsList::removeAttributeController(string name)
   setBounds(0, 0, _width, _height);
 }
 
+map<string, AttributeControllerBase*> AttributeControlsList::getActiveAttribues()
+{
+  map<string, AttributeControllerBase*> active;
+
+  for (const auto& kvp : _controls) {
+    if (kvp.second->getStatus() != A_IGNORE) {
+      active[kvp.first] = kvp.second;
+    }
+  }
+
+  return active;
+}
+
 //==============================================================================
 AttributeControls::AttributeControls()
 {
@@ -123,4 +136,9 @@ void AttributeControls::buttonClicked(Button * b)
     // perform a search action
     getApplicationCommandManager()->invokeDirectly(SEARCH, true);
   }
+}
+
+map<string, AttributeControllerBase*> AttributeControls::getActiveAttributes()
+{
+  return _container->getActiveAttribues();
 }

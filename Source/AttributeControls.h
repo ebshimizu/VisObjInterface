@@ -28,6 +28,8 @@ public:
   void addAttributeController(AttributeControllerBase* control);
   void removeAttributeController(string name);
 
+  map<string, AttributeControllerBase*> getActiveAttribues();
+
 private:
   int _width;
   int _height;
@@ -50,6 +52,8 @@ public:
   void resized();
   
   virtual void buttonClicked(Button* b) override;
+
+  map<string, AttributeControllerBase*> getActiveAttributes();
 
 private:
   AttributeControlsList* _container;

@@ -30,6 +30,10 @@ public:
   ~GlobalSettings();
 
   int _thumbnailRenderSamples;
+  double _searchDerivDelta;     // h, size of window for finite difference derivative
+  double _searchGDGamma;        // gamma, controls speed of gradient descent
+  double _minEditDist;          // Minimum attribute difference needed to be returned from an edit
+  int _numEditScenes;           // Number of scenes per edit that get returned to the search algorithm
 };
 
 // Gets the application command manager for this application.
