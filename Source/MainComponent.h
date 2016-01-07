@@ -39,6 +39,7 @@ public:
 private:
   // Open a Lumiverse file
   void openRig();
+  void openRig(String fname);
 
   // Initializes the components in the interface after loading a rig
   void loadComponents();

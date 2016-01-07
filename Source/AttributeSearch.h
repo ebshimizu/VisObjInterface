@@ -86,23 +86,32 @@ struct EditConstraint {
   EditParam _param;
 };
 
+// Results that eventually get returned to the UI layer
+// contains edit history for debug, attribute value, and scene
 struct SearchResult {
   Snapshot* _scene;
   Array<EditType> _editHistory;
   map<string, double> _attrVals;
 };
 
-Array<SearchResult> attributeSearch(map<string, AttributeControllerBase*> active);
+// Objective function type to be passed to performEdit.
+typedef function<double(Snapshot*)> attrObjFunc;
+
+// Entry point to the search algorithm
+Array<SearchResult> attributeSearch(map<string, AttributeControllerBase*> active, int editDepth = 1);
 
 // Given a current configuration, perform an edit on the configuration
-Array<Snapshot*> performEdit(EditType t, Snapshot* s, map<string, AttributeControllerBase*> active);
+Array<Snapshot*> performEdit(EditType t, Snapshot* orig, attrObjFunc f);
 
 // computes the numeric derivative for the particular lighting parameter and
 // specified attribute
-double numericDeriv(EditConstraint c, Snapshot* s, AttributeControllerBase* attr);
+double numericDeriv(EditConstraint c, Snapshot* s, attrObjFunc f);
 
 // updates the value for a Lumiverse parameter
-void setUpdatedValue(EditConstraint c, Snapshot* s);
+void setDeviceValue(EditConstraint c, double val, Snapshot* s);
+
+// Retrieves the current value for a Lumiverse parameter
+double getDeviceValue(EditConstraint c, Snapshot* s);
 
 // Given an EditLightType, get the corresponding light in the rig
 Device* getSpecifiedDevice(EditLightType l, Snapshot* s);

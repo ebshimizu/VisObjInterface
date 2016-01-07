@@ -32,8 +32,11 @@ public:
   int _thumbnailRenderSamples;
   double _searchDerivDelta;     // h, size of window for finite difference derivative
   double _searchGDGamma;        // gamma, controls speed of gradient descent
+  double _searchGDTol;          // Tolerance, how small difference should be to be equivalent to zero (stopping condition)
   double _minEditDist;          // Minimum attribute difference needed to be returned from an edit
   int _numEditScenes;           // Number of scenes per edit that get returned to the search algorithm
+
+  map<string, string> _commandLineArgs;
 };
 
 // Gets the application command manager for this application.

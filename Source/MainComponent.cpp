@@ -37,6 +37,10 @@ MainContentComponent::MainContentComponent()
   _vertResizer.setItemLayout(4, -0.2, -0.5, -0.25);
 
   setSize (1280, 720);
+
+  if (getGlobalSettings()->_commandLineArgs.count("preload") > 0) {
+    openRig(getGlobalSettings()->_commandLineArgs["preload"]);
+  }
 }
 
 MainContentComponent::~MainContentComponent()
@@ -149,30 +153,36 @@ void MainContentComponent::openRig() {
   if (fc.browseForFileToOpen()) {
     File selected = fc.getResult();
     String fileName = selected.getFileName();
-    fileName = fileName.upToFirstOccurrenceOf(".", false, false);
+    openRig(fileName);
+  }
+}
 
-    _parentDir = selected.getParentDirectory();
+void MainContentComponent::openRig(String fname)
+{
+  File selected = File(fname);
+  String fileName = fname.upToFirstOccurrenceOf(".", false, false);
 
-    File rig = _parentDir.getChildFile(fileName + ".rig.json");
-    File playback = _parentDir.getChildFile(fileName + ".playback.json");
+  _parentDir = selected.getParentDirectory();
 
-    bool res = getRig()->load(rig.getFullPathName().toStdString());
+  File rig = _parentDir.getChildFile(fileName + ".rig.json");
+  File playback = _parentDir.getChildFile(fileName + ".playback.json");
 
-    if (res) {
-      getStatusBar()->setStatusMessage("Loaded file \"" + rig.getFullPathName() + "\" successfully.");
-      getRecorder()->log(SYSTEM, "Loaded file \"" + rig.getFullPathName().toStdString() + "\" successfully.");
+  bool res = getRig()->load(rig.getFullPathName().toStdString());
 
-      getRig()->init();
+  if (res) {
+    getStatusBar()->setStatusMessage("Loaded file \"" + rig.getFullPathName() + "\" successfully.");
+    getRecorder()->log(SYSTEM, "Loaded file \"" + rig.getFullPathName().toStdString() + "\" successfully.");
 
-      loadComponents();
+    getRig()->init();
 
-      _showName = fileName.toStdString();
-      getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);
-    }
-    else {
-      getStatusBar()->setStatusMessage("Error loading \"" + rig.getFullPathName() + "\"");
-      getRecorder()->log(SYSTEM, "Failed to load \"" + rig.getFullPathName().toStdString() + "\"");
-    }
+    loadComponents();
+
+    _showName = fileName.toStdString();
+    getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);
+  }
+  else {
+    getStatusBar()->setStatusMessage("Error loading \"" + rig.getFullPathName() + "\"");
+    getRecorder()->log(SYSTEM, "Failed to load \"" + rig.getFullPathName().toStdString() + "\"");
   }
 }
 

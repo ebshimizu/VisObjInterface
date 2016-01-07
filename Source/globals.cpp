@@ -103,6 +103,8 @@ GlobalSettings::GlobalSettings()
   _searchDerivDelta = 1e-3;
   _minEditDist = 1;
   _numEditScenes = 3;
+  _searchGDTol = 1e-6;
+  _searchGDGamma = 0.5;
 }
 
 GlobalSettings::~GlobalSettings()

@@ -27,9 +27,26 @@ public:
     //==============================================================================
     void initialise (const String& commandLine) override
     {
-        // This method is where you should put your application's initialisation code..
+      // This method is where you should put your application's initialisation code..
 
-        mainWindow = new MainWindow (getApplicationName());
+      // process command line args
+      int start = 0;
+      int end = 0;
+      while (start <= commandLine.length()) {
+        end = commandLine.indexOf(start, " ");
+        String substr = commandLine.substring(start, end);
+
+        if (substr == "--preload") {
+          start = end + 1;
+          end = commandLine.indexOf(start, " ");
+          if (end == -1)
+            end = commandLine.length();
+          getGlobalSettings()->_commandLineArgs["preload"] = commandLine.substring(start, end).toStdString();
+          start = end + 1;
+        }
+      }
+
+      mainWindow = new MainWindow (getApplicationName());
     }
 
     void shutdown() override
