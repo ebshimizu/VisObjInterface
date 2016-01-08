@@ -206,7 +206,7 @@ void MainContentComponent::openSettings()
     return;
 
   _settingsWindow = new SettingsWindow();
-  juce::Rectangle<int> area(50, 50, 400, 600);
+  juce::Rectangle<int> area(50, 50, 600, 400);
 
   _settingsWindow->setBounds(area);
 

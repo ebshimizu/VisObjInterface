@@ -23,6 +23,9 @@ public:
   virtual void setValue(double newValue) override;
   virtual double getValue() const override;
   void sliderValueChanged(Slider* s) override;
+  
+  // mostly used for the height and width properties so they can update each other
+  SettingsSlider* _other;
 private:
   string _id;
 };
@@ -39,8 +42,12 @@ public:
   void paint (Graphics&);
   void resized();
 
+  void updateDims();
+
 private:
   PropertyPanel _settings;
+  SettingsSlider* _width;
+  SettingsSlider* _height;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SettingsEditor)
 };
@@ -54,6 +61,8 @@ public:
   void resized() override;
 
   void closeButtonPressed() override;
+  void updateDims();
+
 private:
   ScopedPointer<SettingsEditor> _settingsEditor;
 

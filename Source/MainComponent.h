@@ -14,6 +14,7 @@
 #include "ParamControls.h"
 #include "AttributeControls.h"
 #include "SceneViewer.h"
+#include "SettingsEditor.h"
 
 
 //==============================================================================
@@ -78,7 +79,7 @@ private:
   ScopedPointer<AttributeControls> _attrs;
   ScopedPointer<SceneViewer> _viewer;
 
-  SafePointer<DocumentWindow> _settingsWindow;
+  SafePointer<SettingsWindow> _settingsWindow;
 
   TooltipWindow _tips;
 

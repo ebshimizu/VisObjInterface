@@ -208,7 +208,7 @@ ParamControls::~ParamControls()
 
 void ParamControls::paint (Graphics& g)
 {
-  g.fillAll(Colour(0xffa3a3a3));
+  g.fillAll(Colour(0xff929292));
 }
 
 void ParamControls::resized()
