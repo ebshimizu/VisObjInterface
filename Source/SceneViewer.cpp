@@ -109,8 +109,9 @@ void SceneViewer::renderScene() {
   }
 
   // Get the image dimensions
-  int width = p->getWidth();
-  int height = p->getHeight();
+  int width = getGlobalSettings()->_renderWidth;
+  int height = getGlobalSettings()->_renderHeight;
+  p->setDims(width, height);
 
   _currentRender = Image(Image::ARGB, width, height, true);
   uint8* bufptr = Image::BitmapData(_currentRender, Image::BitmapData::readWrite).getPixelPointer(0,0);
