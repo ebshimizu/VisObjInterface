@@ -34,9 +34,6 @@ void AttributeSearchResult::paint (Graphics& g)
   auto lbounds = getLocalBounds();
   lbounds.reduce(2, 2);
   g.drawImageWithin(_render, lbounds.getX(), lbounds.getY(), lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
-
-  g.setColour (Colours::grey);
-  g.drawRect (lbounds, 1);   // draw an outline around the component
 }
 
 void AttributeSearchResult::resized()

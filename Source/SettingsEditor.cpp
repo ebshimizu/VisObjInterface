@@ -31,7 +31,8 @@ void SettingsSlider::setValue(double newValue)
     if (p == nullptr)
       return;
 
-    p->setSamples((int)newValue);
+    getGlobalSettings()->_stageRenderSamples = (int)newValue;
+    p->setSamples(getGlobalSettings()->_stageRenderSamples);
   }
   else if (_id == "Thumbnail Render Samples") {
     getGlobalSettings()->_thumbnailRenderSamples = (int)newValue;

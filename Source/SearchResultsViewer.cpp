@@ -26,8 +26,8 @@ void SearchResultsRenderer::run() {
 
   // Set render options
   auto p = getAnimationPatch();
-  int width = getGlobalSettings()->_renderWidth * 0.5; // getGlobalSettings()->_thumbnailRenderScale;
-  int height = getGlobalSettings()->_renderHeight * 0.5; // getGlobalSettings()->_thumbnailRenderScale;
+  int width = getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale;
+  int height = getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale;
   p->setDims(width, height);
   p->setSamples(getGlobalSettings()->_thumbnailRenderSamples);
 
@@ -62,9 +62,7 @@ void SearchResultsRenderer::threadComplete(bool userPressedCancel)
   int width = getGlobalSettings()->_renderWidth;
   int height = getGlobalSettings()->_renderHeight;
   p->setDims(width, height);
-
-  // DEBUG
-  p->setSamples(1);
+  p->setSamples(getGlobalSettings()->_stageRenderSamples);
 
   delete this;
 }

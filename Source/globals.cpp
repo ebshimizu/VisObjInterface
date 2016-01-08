@@ -99,7 +99,8 @@ Recorder* getRecorder() {
 
 GlobalSettings::GlobalSettings()
 {
-  _thumbnailRenderSamples = 1;
+  _thumbnailRenderSamples = -1;
+  _stageRenderSamples = 1;
   _searchDerivDelta = 1e-3;
   _minEditDist = 1;
   _numEditScenes = 3;

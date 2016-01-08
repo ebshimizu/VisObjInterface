@@ -192,6 +192,7 @@ void MainContentComponent::loadComponents()
   auto p = getAnimationPatch();
   getGlobalSettings()->_renderWidth = p->getWidth();
   getGlobalSettings()->_renderHeight = p->getHeight();
+  getGlobalSettings()->_stageRenderSamples = p->getSamples();
 }
 
 void MainContentComponent::refreshParams()
@@ -216,6 +217,8 @@ void MainContentComponent::openSettings()
 
 void MainContentComponent::search()
 {
+  getRecorder()->log(ACTION, "Exploratory search started.");
+
   // Break out actual search alg into different function to prevent main from getting too cluttered.
   vector<SearchResult*> results = attributeSearch(_attrs->getActiveAttributes());
 
@@ -225,6 +228,5 @@ void MainContentComponent::search()
   // display results in the explorer
   _search->display(results);
 
-  // DEBUG: Temporary test to check if called
-  getRecorder()->log(SYSTEM, "Exploratory search called.");
+  getRecorder()->log(ACTION, "Exploratory search ended.");
 }

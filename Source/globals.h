@@ -30,6 +30,7 @@ public:
   ~GlobalSettings();
 
   int _thumbnailRenderSamples;
+  int _stageRenderSamples;
   double _searchDerivDelta;     // h, size of window for finite difference derivative
   double _searchGDGamma;        // gamma, controls speed of gradient descent
   double _searchGDTol;          // Tolerance, how small difference should be to be equivalent to zero (stopping condition)
