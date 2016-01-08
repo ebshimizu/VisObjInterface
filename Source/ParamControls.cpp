@@ -34,7 +34,7 @@ void FloatPropertySlider::setValue(double newValue)
 
 double FloatPropertySlider::getValue() const
 {
-  LumiverseFloat* val = (LumiverseFloat*)getRig()->getDevice(_id)->getParam(_param);
+  LumiverseFloat* val = getRig()->getDevice(_id)->getParam<LumiverseFloat>(_param);
   return val->getVal();
 }
 
@@ -73,7 +73,7 @@ void OrientationPropertySlider::setValue(double newValue)
 
 double OrientationPropertySlider::getValue() const
 {
-  LumiverseOrientation* val = (LumiverseOrientation*)getRig()->getDevice(_id)->getParam(_param);
+  LumiverseOrientation* val = getRig()->getDevice(_id)->getParam<LumiverseOrientation>(_param);
   return val->getVal();
 }
 
@@ -208,7 +208,7 @@ ParamControls::~ParamControls()
 
 void ParamControls::paint (Graphics& g)
 {
-  g.fillAll(Colour(0xff333333));
+  g.fillAll(Colour(0xffa3a3a3));
 }
 
 void ParamControls::resized()

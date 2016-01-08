@@ -88,7 +88,13 @@ struct EditConstraint {
 
 // Results that eventually get returned to the UI layer
 // contains edit history for debug, attribute value, and scene
-struct SearchResult {
+class SearchResult {
+public:
+  SearchResult();
+  SearchResult(Snapshot* s, Array<EditType> eh, map<string, double> av);
+  SearchResult(const SearchResult& other);
+  ~SearchResult();
+  
   Snapshot* _scene;
   Array<EditType> _editHistory;
   map<string, double> _attrVals;
@@ -98,10 +104,10 @@ struct SearchResult {
 typedef function<double(Snapshot*)> attrObjFunc;
 
 // Entry point to the search algorithm
-Array<SearchResult> attributeSearch(map<string, AttributeControllerBase*> active, int editDepth = 1);
+vector<SearchResult*> attributeSearch(map<string, AttributeControllerBase*> active, int editDepth = 1);
 
 // Given a current configuration, perform an edit on the configuration
-Array<Snapshot*> performEdit(EditType t, Snapshot* orig, attrObjFunc f);
+vector<Snapshot*> performEdit(EditType t, Snapshot* orig, attrObjFunc f);
 
 // computes the numeric derivative for the particular lighting parameter and
 // specified attribute

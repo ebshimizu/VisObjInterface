@@ -104,7 +104,7 @@ GlobalSettings::GlobalSettings()
   _minEditDist = 1;
   _numEditScenes = 3;
   _searchGDTol = 1e-6;
-  _searchGDGamma = 0.5;
+  _searchGDGamma = 1;
 }
 
 GlobalSettings::~GlobalSettings()

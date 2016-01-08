@@ -11,16 +11,79 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "SearchResultsViewer.h"
 
+SearchResultsContainer::SearchResultsContainer()
+{
+
+}
+
+SearchResultsContainer::~SearchResultsContainer()
+{
+  for (const auto& c : _results) {
+    delete c;
+  }
+}
+
+void SearchResultsContainer::paint(Graphics & g)
+{
+  g.fillAll(Colour(0xff333333));
+}
+
+void SearchResultsContainer::resized()
+{
+  int elemWidth = _width / _resultsPerRow;
+  int elemHeight = elemWidth * (9.0 / 16.0);
+
+  int i = 0;
+  for (const auto& result : _results) {
+    int r = i / 8;
+    int c = i % 8;
+
+    result->setBounds(c * elemWidth, r * elemHeight, elemWidth, elemHeight);
+    i++;
+  }
+}
+
+void SearchResultsContainer::display(vector<SearchResult*> results)
+{
+  for (const auto& c : _results) {
+    delete c;
+  } 
+
+  for (const auto& result : results) {
+    AttributeSearchResult* res = new AttributeSearchResult(result);
+    addAndMakeVisible(res);
+
+    _results.add(res);
+  }
+
+  setWidth(_width);
+}
+
+void SearchResultsContainer::setWidth(int width)
+{
+  _width = width;
+  int rows = (int)(size(_results) / _resultsPerRow) + 1;
+  int elemWidth = _width / _resultsPerRow;
+  int elemHeight = elemWidth * (9.0 / 16.0);
+  _height = rows * elemHeight;
+  setBounds(0, 0, _width, _height);
+  resized();
+  repaint();
+}
+
 //==============================================================================
 SearchResultsViewer::SearchResultsViewer()
 {
-    // In your constructor, you should add any child components, and
-    // initialise any special settings that your component needs.
-
+  _container = new SearchResultsContainer();
+  _viewer = new Viewport();
+  _viewer->setViewedComponent(_container);
+  addAndMakeVisible(_viewer);
 }
 
 SearchResultsViewer::~SearchResultsViewer()
 {
+  delete _container;
+  delete _viewer;
 }
 
 void SearchResultsViewer::paint (Graphics& g)
@@ -33,16 +96,17 @@ void SearchResultsViewer::paint (Graphics& g)
   */
 
   g.fillAll(Colour(0xff333333));
-
-  g.setColour (Colours::lightblue);
-  g.setFont (14.0f);
-  g.drawText ("SearchResultsViewer", getLocalBounds(),
-              Justification::centred, true);   // draw some placeholder text
 }
 
 void SearchResultsViewer::resized()
 {
-    // This method is where you should set the bounds of any child
-    // components that your component contains..
+  auto bounds = getLocalBounds();
 
+  _viewer->setBounds(bounds);
+  _container->setWidth(_viewer->getMaximumVisibleWidth());
+}
+
+void SearchResultsViewer::display(vector<SearchResult*> results)
+{
+  _container->display(results);
 }

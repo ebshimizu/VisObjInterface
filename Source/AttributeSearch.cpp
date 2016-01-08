@@ -15,16 +15,37 @@ map<EditType, vector<EditConstraint> > editConstraints = {
   { KEY_INTENS, { EditConstraint(L_KEY, INTENSITY) } }
 };
 
-Array<SearchResult> attributeSearch(map<string, AttributeControllerBase*> active, int editDepth)
+SearchResult::SearchResult() : _scene (nullptr) { }
+
+SearchResult::SearchResult(Snapshot * s, Array<EditType> eh, map<string, double> av) :
+  _scene(s), _editHistory(eh), _attrVals(av)
+{
+}
+
+SearchResult::SearchResult(const SearchResult & other) :
+  _scene(other._scene), _editHistory(other._editHistory), _attrVals(other._attrVals)
+{
+}
+
+SearchResult::~SearchResult() {
+  if (_scene != nullptr)
+    delete _scene;
+}
+
+
+// Search functions
+// ==============================================================================
+
+vector<SearchResult*> attributeSearch(map<string, AttributeControllerBase*> active, int editDepth)
 {
   // If there's no active attribute, just leave
   if (active.size() == 0)
-    return Array<SearchResult>();
+    return vector<SearchResult*>();
 
   // Save current state of rig.
   Rig* rig = getRig();
   Snapshot* original = new Snapshot(rig, nullptr);
-  Array<SearchResult> scenes;
+  vector<SearchResult*> scenes;
 
   // objective function for combined set of active attributes.
   attrObjFunc f = [active, original](Snapshot* s) {
@@ -43,16 +64,17 @@ Array<SearchResult> attributeSearch(map<string, AttributeControllerBase*> active
 
   // For each edit, get a list of scenes returned and just add it to the overall list.
   for (const auto& edits : editConstraints) {
-    Array<Snapshot*> editScenes = performEdit(edits.first, original, f);
+    vector<Snapshot*> editScenes = performEdit(edits.first, original, f);
 
-    for (const auto& s : editScenes) {
-      SearchResult r;
-      r._scene = s;
-      r._editHistory.add(edits.first);
+    scenes.reserve(editScenes.size());
+    for (auto s : editScenes) {
+      SearchResult* r = new SearchResult();
+      r->_scene = s;
+      r->_editHistory.add(edits.first);
       for (const auto& kvp : active) {
-        r._attrVals[kvp.first] = kvp.second->evaluateScene(s->getRigData());
+        r->_attrVals[kvp.first] = kvp.second->evaluateScene(s->getRigData());
       }
-      scenes.add(r);
+      scenes.push_back(r);
     }
   }
 
@@ -62,7 +84,7 @@ Array<SearchResult> attributeSearch(map<string, AttributeControllerBase*> active
   return scenes;
 }
 
-Array<Snapshot*> performEdit(EditType t, Snapshot * orig, attrObjFunc f)
+vector<Snapshot*> performEdit(EditType t, Snapshot * orig, attrObjFunc f)
 {
   // note of interest: which light is they key may vary though the course of this function,
   // potentially causing discontinuitous jumps in the objective function.
@@ -83,7 +105,7 @@ Array<Snapshot*> performEdit(EditType t, Snapshot * orig, attrObjFunc f)
   int vecSize = editConstraints[t].size();
   Eigen::VectorXd oldX;
   Eigen::VectorXd newX;
-  Array<Snapshot*> scenes;
+  vector<Snapshot*> scenes;
 
   oldX.resize(vecSize);
   newX.resize(vecSize);
@@ -122,7 +144,7 @@ Array<Snapshot*> performEdit(EditType t, Snapshot * orig, attrObjFunc f)
     // Determine if scene should go in the list of scenes to return
     double attrVal = f(s);
     if (abs(attrVal - startAttrVal) > minDist && scenes.size() < numScenes) {
-      scenes.insert(-1, new Snapshot(*s));
+      scenes.push_back(new Snapshot(*s));
     }
     if (scenes.size() >= numScenes) {
       // scenes full, stop

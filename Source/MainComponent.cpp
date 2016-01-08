@@ -214,11 +214,13 @@ void MainContentComponent::openSettings()
 void MainContentComponent::search()
 {
   // Break out actual search alg into different function to prevent main from getting too cluttered.
-  Array<SearchResult> results = attributeSearch(_attrs->getActiveAttributes());
+  vector<SearchResult*> results = attributeSearch(_attrs->getActiveAttributes());
 
   // cluster results
+
   // render results
   // display results in the explorer
+  _search->display(results);
 
   // DEBUG: Temporary test to check if called
   getRecorder()->log(SYSTEM, "Exploratory search called.");
