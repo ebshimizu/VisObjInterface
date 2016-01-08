@@ -46,5 +46,4 @@ void AttributeSearchResult::resized()
 void AttributeSearchResult::setImage(Image img)
 {
   _render = img;
-  repaint();
 }

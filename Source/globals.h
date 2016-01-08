@@ -35,6 +35,9 @@ public:
   double _searchGDTol;          // Tolerance, how small difference should be to be equivalent to zero (stopping condition)
   double _minEditDist;          // Minimum attribute difference needed to be returned from an edit
   int _numEditScenes;           // Number of scenes per edit that get returned to the search algorithm
+  int _renderWidth;             // Render width
+  int _renderHeight;            // Render height
+  double _thumbnailRenderScale; // Thumbnail size 
 
   map<string, string> _commandLineArgs;
 };

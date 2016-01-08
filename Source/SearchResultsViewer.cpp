@@ -11,6 +11,66 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "SearchResultsViewer.h"
 
+SearchResultsRenderer::SearchResultsRenderer(Array<AttributeSearchResult*> results) :
+  ThreadWithProgressWindow("Rendering Thumbnails...", true, true), _results(results)
+{
+}
+
+SearchResultsRenderer::~SearchResultsRenderer()
+{
+}
+
+void SearchResultsRenderer::run() {
+  setProgress(-1);
+  int numScenes = _results.size();
+
+  // Set render options
+  auto p = getAnimationPatch();
+  int width = getGlobalSettings()->_renderWidth * 0.5; // getGlobalSettings()->_thumbnailRenderScale;
+  int height = getGlobalSettings()->_renderHeight * 0.5; // getGlobalSettings()->_thumbnailRenderScale;
+  p->setDims(width, height);
+  p->setSamples(getGlobalSettings()->_thumbnailRenderSamples);
+
+  int i = 0;
+  for (auto r : _results) {
+    if (threadShouldExit())
+      return;
+
+    setProgress((float) i / (float)numScenes);
+
+    Image img = Image(Image::ARGB, width, height, true);
+    uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+
+    p->renderSingleFrameToBuffer(r->getSearchResult()->_scene->getDevices(), bufptr);
+
+    r->setImage(img);
+    i++;
+  }
+
+  setProgress(1);
+}
+
+void SearchResultsRenderer::threadComplete(bool userPressedCancel)
+{
+  if (userPressedCancel) {
+    AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
+      "Render Thumbnails",
+      "Render canceled");
+  }
+
+  auto p = getAnimationPatch();
+  int width = getGlobalSettings()->_renderWidth;
+  int height = getGlobalSettings()->_renderHeight;
+  p->setDims(width, height);
+
+  // DEBUG
+  p->setSamples(1);
+
+  delete this;
+}
+
+//==============================================================================
+
 SearchResultsContainer::SearchResultsContainer()
 {
 
@@ -48,6 +108,7 @@ void SearchResultsContainer::display(vector<SearchResult*> results)
   for (const auto& c : _results) {
     delete c;
   } 
+  _results.clear();
 
   for (const auto& result : results) {
     AttributeSearchResult* res = new AttributeSearchResult(result);
@@ -56,7 +117,8 @@ void SearchResultsContainer::display(vector<SearchResult*> results)
     _results.add(res);
   }
 
-  setWidth(_width);
+  // render
+  (new SearchResultsRenderer(_results))->runThread();
 }
 
 void SearchResultsContainer::setWidth(int width)
@@ -67,8 +129,6 @@ void SearchResultsContainer::setWidth(int width)
   int elemHeight = elemWidth * (9.0 / 16.0);
   _height = rows * elemHeight;
   setBounds(0, 0, _width, _height);
-  resized();
-  repaint();
 }
 
 //==============================================================================
@@ -109,4 +169,6 @@ void SearchResultsViewer::resized()
 void SearchResultsViewer::display(vector<SearchResult*> results)
 {
   _container->display(results);
+  _container->resized();
+  _container->repaint();
 }

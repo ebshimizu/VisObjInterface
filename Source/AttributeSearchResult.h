@@ -30,6 +30,8 @@ public:
   // Sets the image for this component.
   void setImage(Image img);
 
+  SearchResult* getSearchResult() { return _result; }
+
 private:
   // Search result object from the attribute search
   SearchResult* _result;

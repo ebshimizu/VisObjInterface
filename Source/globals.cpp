@@ -105,6 +105,9 @@ GlobalSettings::GlobalSettings()
   _numEditScenes = 3;
   _searchGDTol = 1e-6;
   _searchGDGamma = 1;
+  _renderWidth = 0;
+  _renderHeight = 0;
+  _thumbnailRenderScale = 0.25;
 }
 
 GlobalSettings::~GlobalSettings()

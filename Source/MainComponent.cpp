@@ -189,6 +189,9 @@ void MainContentComponent::openRig(String fname)
 void MainContentComponent::loadComponents()
 {
   _params->initProperties();
+  auto p = getAnimationPatch();
+  getGlobalSettings()->_renderWidth = p->getWidth();
+  getGlobalSettings()->_renderHeight = p->getHeight();
 }
 
 void MainContentComponent::refreshParams()

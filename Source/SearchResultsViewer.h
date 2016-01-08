@@ -16,6 +16,21 @@
 #include "AttributeSearch.h"
 #include "AttributeSearchResult.h"
 
+class SearchResultsRenderer : public ThreadWithProgressWindow
+{
+public:
+  SearchResultsRenderer(Array<AttributeSearchResult*> results);
+  ~SearchResultsRenderer();
+
+  void run() override;
+  void threadComplete(bool userPressedCancel) override;
+
+private:
+  Array<AttributeSearchResult*> _results;
+};
+
+//===============================================================================
+
 class SearchResultsContainer : public Component
 {
 public:
