@@ -152,7 +152,7 @@ void MainContentComponent::openRig() {
 
   if (fc.browseForFileToOpen()) {
     File selected = fc.getResult();
-    String fileName = selected.getFileName();
+    String fileName = selected.getFullPathName();
     openRig(fileName);
   }
 }

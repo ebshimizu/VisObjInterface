@@ -37,6 +37,7 @@ void SearchResultsRenderer::run() {
       return;
 
     setProgress((float) i / (float)numScenes);
+    setStatusMessage(String(i) + "/" + String(numScenes));
 
     Image img = Image(Image::ARGB, width, height, true);
     uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);

@@ -32,6 +32,9 @@ public:
 
   SearchResult* getSearchResult() { return _result; }
 
+  // Clicking does things.
+  virtual void mouseDown(const MouseEvent& event);
+
 private:
   // Search result object from the attribute search
   SearchResult* _result;
