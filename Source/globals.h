@@ -39,6 +39,7 @@ public:
   int _renderWidth;             // Render width
   int _renderHeight;            // Render height
   double _thumbnailRenderScale; // Thumbnail size 
+  int _editDepth;               // Maximum edit depth
 
   map<string, string> _commandLineArgs;
 };

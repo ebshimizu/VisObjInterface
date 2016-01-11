@@ -60,6 +60,8 @@ void SettingsSlider::setValue(double newValue)
   }
   else if (_id == "Thumbnail Scale")
     getGlobalSettings()->_thumbnailRenderScale = newValue;
+  else if (_id == "Edit Depth")
+    getGlobalSettings()->_editDepth = (int)newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -90,6 +92,8 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_renderHeight;
   else if (_id == "Thumbnail Scale")
     return getGlobalSettings()->_thumbnailRenderScale;
+  else if (_id == "Edit Depth")
+    return getGlobalSettings()->_editDepth;
 }
 
 void SettingsSlider::sliderValueChanged(Slider * s)
@@ -104,6 +108,7 @@ void SettingsSlider::sliderValueChanged(Slider * s)
 SettingsEditor::SettingsEditor()
 {
   Array<PropertyComponent*> searchComponents;
+  searchComponents.add(new SettingsSlider("Edit Depth", 1, 10, 1));
   searchComponents.add(new SettingsSlider("Minimum Edit Distance", 0, 100, 0.01));
   searchComponents.add(new SettingsSlider("Scenes per Edit", 1, 100, 1));
   searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1, 1e-7));

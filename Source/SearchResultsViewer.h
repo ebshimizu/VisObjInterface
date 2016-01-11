@@ -47,7 +47,7 @@ public:
   void setWidth(int width);
 
 private:
-  int _resultsPerRow = 8;
+  int _resultsPerRow = 6;
 
   int _width;
   int _height;

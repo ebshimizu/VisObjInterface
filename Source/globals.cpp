@@ -109,6 +109,7 @@ GlobalSettings::GlobalSettings()
   _renderWidth = 0;
   _renderHeight = 0;
   _thumbnailRenderScale = 0.25;
+  _editDepth = 1;
 }
 
 GlobalSettings::~GlobalSettings()

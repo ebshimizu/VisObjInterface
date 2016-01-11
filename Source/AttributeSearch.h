@@ -106,20 +106,42 @@ typedef function<double(Snapshot*)> attrObjFunc;
 // Entry point to the search algorithm
 vector<SearchResult*> attributeSearch(map<string, AttributeControllerBase*> active, int editDepth = 1);
 
-// Given a current configuration, perform an edit on the configuration
-vector<Snapshot*> performEdit(EditType t, Snapshot* orig, attrObjFunc f);
+// Run with progress window to allow user to abort search early
+class AttributeSearchThread : public ThreadWithProgressWindow
+{
+public:
+  AttributeSearchThread(map<string, AttributeControllerBase*> active, int editDepth = 1);
+  ~AttributeSearchThread();
 
-// computes the numeric derivative for the particular lighting parameter and
-// specified attribute
-double numericDeriv(EditConstraint c, Snapshot* s, attrObjFunc f);
+  void run() override;
+  void threadComplete(bool userPressedCancel) override;
 
-// updates the value for a Lumiverse parameter
-void setDeviceValue(EditConstraint c, double val, Snapshot* s);
+  vector<SearchResult*> getResults() { return _results; }
 
-// Retrieves the current value for a Lumiverse parameter
-double getDeviceValue(EditConstraint c, Snapshot* s);
+private:
+  map<string, AttributeControllerBase*> _active;
+  int _editDepth;
+  vector<SearchResult*> _results;
+  Snapshot* _original;
 
-// Given an EditLightType, get the corresponding light in the rig
-Device* getSpecifiedDevice(EditLightType l, Snapshot* s);
+  // Runs a single level iteration of the search algorithm, starting at the given scenes.
+  vector<SearchResult*> runSingleLevelSearch(vector<SearchResult*> startScenes, int level);
+
+  // Given a current configuration, perform an edit on the configuration
+  vector<Snapshot*> performEdit(EditType t, Snapshot* orig, attrObjFunc f);
+
+  // computes the numeric derivative for the particular lighting parameter and
+  // specified attribute
+  double numericDeriv(EditConstraint c, Snapshot* s, attrObjFunc f);
+
+  // updates the value for a Lumiverse parameter
+  void setDeviceValue(EditConstraint c, double val, Snapshot* s);
+
+  // Retrieves the current value for a Lumiverse parameter
+  double getDeviceValue(EditConstraint c, Snapshot* s);
+
+  // Given an EditLightType, get the corresponding light in the rig
+  Device* getSpecifiedDevice(EditLightType l, Snapshot* s);
+};
 
 #endif  // ATTRIBUTESEARCH_H_INCLUDED

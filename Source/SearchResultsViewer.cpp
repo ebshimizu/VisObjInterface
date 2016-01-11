@@ -94,8 +94,8 @@ void SearchResultsContainer::resized()
 
   int i = 0;
   for (const auto& result : _results) {
-    int r = i / 8;
-    int c = i % 8;
+    int r = i / _resultsPerRow;
+    int c = i % _resultsPerRow;
 
     result->setBounds(c * elemWidth, r * elemHeight, elemWidth, elemHeight);
     i++;
@@ -169,5 +169,5 @@ void SearchResultsViewer::display(vector<SearchResult*> results)
 {
   _container->display(results);
   _container->resized();
-  _container->repaint();
+  resized();
 }

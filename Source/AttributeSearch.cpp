@@ -42,49 +42,123 @@ vector<SearchResult*> attributeSearch(map<string, AttributeControllerBase*> acti
   if (active.size() == 0)
     return vector<SearchResult*>();
 
-  // Save current state of rig.
+  AttributeSearchThread* t = new AttributeSearchThread(active, editDepth);
+  t->runThread();
+
+  vector<SearchResult*> scenes = t->getResults();
+  delete t;
+
+  return scenes;
+}
+
+AttributeSearchThread::AttributeSearchThread(map<string, AttributeControllerBase*> active, int editDepth) :
+  ThreadWithProgressWindow("Searching", true, true, 2000), _active(active), _editDepth(editDepth)
+{
   Rig* rig = getRig();
-  Snapshot* original = new Snapshot(rig, nullptr);
-  vector<SearchResult*> scenes;
+  _original = new Snapshot(rig, nullptr);
+
+  setProgress(-1);
+}
+
+AttributeSearchThread::~AttributeSearchThread()
+{
+  // don't delete anything, other objects need the results allocated here.
+  // except for internally used variables only
+  delete _original;
+}
+
+void AttributeSearchThread::run()
+{
+  _results.clear();
+  SearchResult* start = new SearchResult();
+  start->_scene = new Snapshot(*_original);
+  _results.push_back(start);
+
+  for (int i = 0; i < _editDepth; i++) {
+    setProgress((float)i / _editDepth);
+    if (threadShouldExit())
+      return;
+
+    vector<SearchResult*> newResults = runSingleLevelSearch(_results, i);
+
+    // delete old results
+    for (auto r : _results)
+    {
+      delete r;
+    }
+    _results.clear();
+    _results = newResults;
+
+    // Filter if needed
+  }
+
+  setProgress(1);
+}
+
+void AttributeSearchThread::threadComplete(bool userPressedCancel)
+{
+  if (userPressedCancel) {
+    AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
+      "Exploratory Search",
+      "Search canceled");
+  }
+}
+
+vector<SearchResult*> AttributeSearchThread::runSingleLevelSearch(vector<SearchResult*> startScenes, int level)
+{
+  vector<SearchResult*> searchResults;
 
   // objective function for combined set of active attributes.
-  attrObjFunc f = [active, original](Snapshot* s) {
+  attrObjFunc f = [this](Snapshot* s) {
     double sum = 0;
-    for (const auto& kvp : active) {
+    for (const auto& kvp : _active) {
       if (kvp.second->getStatus() == A_LESS)
         sum += kvp.second->evaluateScene(s->getRigData());
       else if (kvp.second->getStatus() == A_MORE)
         sum -= kvp.second->evaluateScene(s->getRigData());
       else if (kvp.second->getStatus() == A_EQUAL)
-        sum += pow(kvp.second->evaluateScene(s->getRigData()) - kvp.second->evaluateScene(original->getRigData()), 2);
+        sum += pow(kvp.second->evaluateScene(s->getRigData()) - kvp.second->evaluateScene(_original->getRigData()), 2);
     }
 
     return sum;
   };
 
-  // For each edit, get a list of scenes returned and just add it to the overall list.
-  for (const auto& edits : editConstraints) {
-    vector<Snapshot*> editScenes = performEdit(edits.first, original, f);
+  float seqPct = ((float)level / _editDepth);
 
-    scenes.reserve(editScenes.size());
-    for (auto s : editScenes) {
-      SearchResult* r = new SearchResult();
-      r->_scene = s;
-      r->_editHistory.add(edits.first);
-      for (const auto& kvp : active) {
-        r->_attrVals[kvp.first] = kvp.second->evaluateScene(s->getRigData());
+  int totalOps = startScenes.size() * editConstraints.size();
+  int opCt = 0;
+
+  int i = 0, j = 0;
+
+  // For each scene in the initial set
+  for (const auto& scene : startScenes) {
+    // For each edit, get a list of scenes returned and just add it to the overall list.
+    for (const auto& edits : editConstraints) {
+      opCt++;
+      setStatusMessage("Scene " + String(i) + ": Running Edit " + String(j) + "/" + String(editConstraints.size()));
+      vector<Snapshot*> editScenes = performEdit(edits.first, scene->_scene, f);
+
+      for (auto s : editScenes) {
+        SearchResult* r = new SearchResult();
+        r->_scene = s;
+        r->_editHistory.addArray(scene->_editHistory);
+        r->_editHistory.add(edits.first);
+        for (const auto& kvp : _active) {
+          r->_attrVals[kvp.first] = kvp.second->evaluateScene(s->getRigData());
+        }
+        searchResults.push_back(r);
       }
-      scenes.push_back(r);
+
+      setProgress(seqPct + ((float)opCt/(float)totalOps)* (1.0/_editDepth));
+      j++;
     }
+    i++;
   }
 
-  // filter results
-  // recurse if necessary
-
-  return scenes;
+  return searchResults;
 }
 
-vector<Snapshot*> performEdit(EditType t, Snapshot * orig, attrObjFunc f)
+vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig, attrObjFunc f)
 {
   // note of interest: which light is they key may vary though the course of this function,
   // potentially causing discontinuitous jumps in the objective function.
@@ -155,7 +229,7 @@ vector<Snapshot*> performEdit(EditType t, Snapshot * orig, attrObjFunc f)
   return scenes;
 }
 
-double numericDeriv(EditConstraint c, Snapshot* s, attrObjFunc f)
+double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrObjFunc f)
 {
   // load the appropriate settings and get the proper device.
   double h = getGlobalSettings()->_searchDerivDelta;
@@ -245,7 +319,7 @@ double numericDeriv(EditConstraint c, Snapshot* s, attrObjFunc f)
   return (f2 - f1) / h;
 }
 
-void setDeviceValue(EditConstraint c, double val, Snapshot * s)
+void AttributeSearchThread::setDeviceValue(EditConstraint c, double val, Snapshot * s)
 {
   Device* d = getSpecifiedDevice(c._light, s);
 
@@ -298,7 +372,7 @@ void setDeviceValue(EditConstraint c, double val, Snapshot * s)
 
 }
 
-double getDeviceValue(EditConstraint c, Snapshot * s)
+double AttributeSearchThread::getDeviceValue(EditConstraint c, Snapshot * s)
 {
   Device* d = getSpecifiedDevice(c._light, s);
 
@@ -341,7 +415,7 @@ double getDeviceValue(EditConstraint c, Snapshot * s)
   }
 }
 
-Device* getSpecifiedDevice(EditLightType l, Snapshot * s)
+Device* AttributeSearchThread::getSpecifiedDevice(EditLightType l, Snapshot * s)
 {
   auto devices = s->getRigData();
   
