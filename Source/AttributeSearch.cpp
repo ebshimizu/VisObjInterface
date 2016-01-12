@@ -12,7 +12,20 @@
 
 map<EditType, vector<EditConstraint> > editConstraints = {
   { KEY_HUE, { EditConstraint(L_KEY, HUE) } },
+  //{ FILL_HUE, { EditConstraint(L_FILL, HUE) } },
+  //{ RIM_HUE, { EditConstraint(L_RIM, HUE) } },
   { KEY_INTENS, { EditConstraint(L_KEY, INTENSITY) } }
+  //{ FILL_INTENS, { EditConstraint(L_FILL, INTENSITY) } },
+  //{ RIM_INTENS, { EditConstraint(L_RIM, INTENSITY) } },
+  //{ KEY_POS, { EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_KEY, POLAR) } },
+  //{ FILL_POS, { EditConstraint(L_FILL, AZIMUTH), EditConstraint(L_FILL, POLAR) } },
+  //{ RIM_POS, { EditConstraint(L_RIM, AZIMUTH), EditConstraint(L_RIM, POLAR) } },
+  //{ KEY_SAT, { EditConstraint(L_KEY, SAT) } },
+  //{ FILL_SAT, { EditConstraint(L_FILL, SAT) } },
+  //{ RIM_SAT, { EditConstraint(L_RIM, SAT) } },
+  //{ KEY_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE) } },
+  //{ FILL_HSV, { EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE) } },
+  //{ RIM_HSV, { EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } }
 };
 
 SearchResult::SearchResult() : _scene (nullptr) { }
@@ -179,10 +192,12 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
   int vecSize = editConstraints[t].size();
   Eigen::VectorXd oldX;
   Eigen::VectorXd newX;
+  Eigen::VectorXd G;
   vector<Snapshot*> scenes;
 
   oldX.resize(vecSize);
   newX.resize(vecSize);
+  G.resize(vecSize);
 
   // Initalize the x (variable) vector
   int i = 0;
@@ -202,11 +217,13 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
     i = 0;
     for (const auto& c : editConstraints[t]) {
       dX[i] = numericDeriv(c, s, f);
+      G[i] += dX[i] * dX[i];
       i++;
     }
-
+    
     // Descent
-    newX = oldX - gamma * dX;
+    Eigen::VectorXd Gr = G.sqrt();
+    newX = oldX - dX.cwiseProduct(Gr/gamma);
 
     // Update scene
     i = 0;
