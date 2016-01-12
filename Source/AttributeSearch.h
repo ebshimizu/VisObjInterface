@@ -106,6 +106,8 @@ typedef function<double(Snapshot*)> attrObjFunc;
 // Entry point to the search algorithm
 vector<SearchResult*> attributeSearch(map<string, AttributeControllerBase*> active, int editDepth = 1);
 
+string editTypeToString(EditType t);
+
 // Run with progress window to allow user to abort search early
 class AttributeSearchThread : public ThreadWithProgressWindow
 {

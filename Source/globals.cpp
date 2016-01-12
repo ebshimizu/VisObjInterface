@@ -101,7 +101,7 @@ GlobalSettings::GlobalSettings()
 {
   _thumbnailRenderSamples = -1;
   _stageRenderSamples = 1;
-  _searchDerivDelta = 1e-3;
+  _searchDerivDelta = 1e-4;
   _minEditDist = 1;
   _numEditScenes = 3;
   _searchGDTol = 1e-6;

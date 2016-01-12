@@ -12,20 +12,20 @@
 
 map<EditType, vector<EditConstraint> > editConstraints = {
   { KEY_HUE, { EditConstraint(L_KEY, HUE) } },
-  //{ FILL_HUE, { EditConstraint(L_FILL, HUE) } },
-  //{ RIM_HUE, { EditConstraint(L_RIM, HUE) } },
-  { KEY_INTENS, { EditConstraint(L_KEY, INTENSITY) } }
-  //{ FILL_INTENS, { EditConstraint(L_FILL, INTENSITY) } },
-  //{ RIM_INTENS, { EditConstraint(L_RIM, INTENSITY) } },
-  //{ KEY_POS, { EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_KEY, POLAR) } },
-  //{ FILL_POS, { EditConstraint(L_FILL, AZIMUTH), EditConstraint(L_FILL, POLAR) } },
-  //{ RIM_POS, { EditConstraint(L_RIM, AZIMUTH), EditConstraint(L_RIM, POLAR) } },
-  //{ KEY_SAT, { EditConstraint(L_KEY, SAT) } },
-  //{ FILL_SAT, { EditConstraint(L_FILL, SAT) } },
-  //{ RIM_SAT, { EditConstraint(L_RIM, SAT) } },
-  //{ KEY_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE) } },
-  //{ FILL_HSV, { EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE) } },
-  //{ RIM_HSV, { EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } }
+  { FILL_HUE, { EditConstraint(L_FILL, HUE) } },
+  { RIM_HUE, { EditConstraint(L_RIM, HUE) } },
+  { KEY_INTENS, { EditConstraint(L_KEY, INTENSITY) } },
+  { FILL_INTENS, { EditConstraint(L_FILL, INTENSITY) } },
+  { RIM_INTENS, { EditConstraint(L_RIM, INTENSITY) } },
+  { KEY_POS, { EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_KEY, POLAR) } },
+  { FILL_POS, { EditConstraint(L_FILL, AZIMUTH), EditConstraint(L_FILL, POLAR) } },
+  { RIM_POS, { EditConstraint(L_RIM, AZIMUTH), EditConstraint(L_RIM, POLAR) } },
+  { KEY_SAT, { EditConstraint(L_KEY, SAT) } },
+  { FILL_SAT, { EditConstraint(L_FILL, SAT) } },
+  { RIM_SAT, { EditConstraint(L_RIM, SAT) } },
+  { KEY_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE) } },
+  { FILL_HSV, { EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE) } },
+  { RIM_HSV, { EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } }
 };
 
 SearchResult::SearchResult() : _scene (nullptr) { }
@@ -64,6 +64,55 @@ vector<SearchResult*> attributeSearch(map<string, AttributeControllerBase*> acti
   return scenes;
 }
 
+string editTypeToString(EditType t) {
+  switch (t) {
+  case ALL:
+    return "All";
+  case ALL_HSV:
+    return "All HSV";
+  case ALL_RGB:
+    return "All RGB";
+  case ALL_SAT:
+    return "All Saturation";
+  case ALL_HUE:
+    return "All Hue";
+  case KEY_HUE:
+    return "Key Hue";
+  case FILL_HUE:
+    return "Fill Hue";
+  case RIM_HUE:
+    return "Rim Hue";
+  case KEY_INTENS:
+    return "Key Intensity";
+  case FILL_INTENS:
+    return "Fill Intensity";
+  case RIM_INTENS:
+    return "Rim Intensity";
+  case KEY_POS:
+    return "Key Position";
+  case FILL_POS:
+    return "Fill Position";
+  case RIM_POS:
+    return "Rim Position";
+  case KEY_SAT:
+    return "Key Saturation";
+  case FILL_SAT:
+    return "Fill Saturation";
+  case RIM_SAT:
+    return "Rim Saturation";
+  case KEY_HSV:
+    return "Key HSV";
+  case FILL_HSV:
+    return "Fill HSV";
+  case RIM_HSV:
+    return "Rim HSV";
+  case KEY_FILL_INTENS:
+    return "Key-Fill Intensity";
+  default:
+    return "";
+  }
+}
+
 AttributeSearchThread::AttributeSearchThread(map<string, AttributeControllerBase*> active, int editDepth) :
   ThreadWithProgressWindow("Searching", true, true, 2000), _active(active), _editDepth(editDepth)
 {
@@ -89,10 +138,11 @@ void AttributeSearchThread::run()
 
   for (int i = 0; i < _editDepth; i++) {
     setProgress((float)i / _editDepth);
-    if (threadShouldExit())
-      return;
 
     vector<SearchResult*> newResults = runSingleLevelSearch(_results, i);
+
+    if (threadShouldExit())
+      return;
 
     // delete old results
     for (auto r : _results)
@@ -150,6 +200,9 @@ vector<SearchResult*> AttributeSearchThread::runSingleLevelSearch(vector<SearchR
       opCt++;
       setStatusMessage("Scene " + String(i) + ": Running Edit " + String(j) + "/" + String(editConstraints.size()));
       vector<Snapshot*> editScenes = performEdit(edits.first, scene->_scene, f);
+      
+      if (threadShouldExit())
+        return vector<SearchResult*>();
 
       for (auto s : editScenes) {
         SearchResult* r = new SearchResult();
@@ -188,6 +241,7 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
 
   // Save start value
   double startAttrVal = f(s);
+  double attrVal = startAttrVal;
 
   int vecSize = editConstraints[t].size();
   Eigen::VectorXd oldX;
@@ -203,12 +257,16 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
   int i = 0;
   for (const auto& c : editConstraints[t]) {
     newX[i] = getDeviceValue(c, s);
+    G[i] = 0;
     i++;
   }
 
   // run gradient descent until number of scenes to return
   // meets minimum, or the optimization is done.
   do {
+    if (threadShouldExit())
+      return scenes;
+
     oldX = newX;
     
     // Get derivative
@@ -222,8 +280,8 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
     }
     
     // Descent
-    Eigen::VectorXd Gr = G.sqrt();
-    newX = oldX - dX.cwiseProduct(Gr/gamma);
+    Eigen::VectorXd Gr = G.array().pow(-0.5).matrix();
+    newX = oldX - dX.cwiseProduct(Gr * gamma);
 
     // Update scene
     i = 0;
@@ -233,7 +291,7 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
     }
 
     // Determine if scene should go in the list of scenes to return
-    double attrVal = f(s);
+    attrVal = f(s);
     if (abs(attrVal - startAttrVal) > minDist && scenes.size() < numScenes) {
       scenes.push_back(new Snapshot(*s));
     }
@@ -241,7 +299,8 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
       // scenes full, stop
       break;      
     }
-  } while ((oldX - newX).norm() > thresh);
+  // continue loop while we're making sufficient progress and the attribute value is actually changing
+  } while ((oldX - newX).norm() > thresh && abs(attrVal - startAttrVal) > thresh);
   
   return scenes;
 }
@@ -258,6 +317,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   case INTENSITY:
   {
     float o = d->getIntensity()->asPercent();
+    if (o >= 1)
+      h = -h;
+
     d->getIntensity()->setValAsPercent(o + h);
     f2 = f(s);
     d->setIntensity(o);
@@ -266,6 +328,7 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   case HUE:
   {
     Eigen::Vector3d hsv = d->getColor()->getHSV();
+    // hue wraps around, derivative should be fine if hue is at max/min
     d->getColor()->setHSV(hsv[0] + h, hsv[1], hsv[2]);
     f2 = f(s);
     d->getColor()->setHSV(hsv[0], hsv[1], hsv[2]);
@@ -274,6 +337,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   case SAT:
   {
     Eigen::Vector3d hsv = d->getColor()->getHSV();
+    if (hsv[1] >= 1)
+      h = -h;
+
     d->getColor()->setHSV(hsv[0], hsv[1] + h, hsv[2]);
     f2 = f(s);
     d->getColor()->setHSV(hsv[0], hsv[1], hsv[2]);
@@ -282,6 +348,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   case VALUE:
   {
     Eigen::Vector3d hsv = d->getColor()->getHSV();
+    if (hsv[2] >= 1)
+      h = -h;
+
     d->getColor()->setHSV(hsv[0], hsv[1], hsv[2] + h);
     f2 = f(s);
     d->getColor()->setHSV(hsv[0], hsv[1], hsv[2]);
@@ -290,6 +359,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   case RED:
   {
     double r = d->getColor()->getColorChannel("Red");
+    if (r >= 1)
+      h = -h;
+
     d->getColor()->setColorChannel("Red", r + h);
     f2 = f(s);
     d->getColor()->setColorChannel("Red", r);
@@ -298,6 +370,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   case BLUE:
   {
     double b = d->getColor()->getColorChannel("Blue");
+    if (b >= 1)
+      h = -h;
+
     d->getColor()->setColorChannel("Blue", b + h);
     f2 = f(s);
     d->getColor()->setColorChannel("Blue", b);
@@ -306,6 +381,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   case GREEN:
   {
     double g = d->getColor()->getColorChannel("Green");
+    if (g >= 1)
+      h = -h;
+
     d->getColor()->setColorChannel("Green", g + h);
     f2 = f(s);
     d->getColor()->setColorChannel("Green", g);
@@ -314,7 +392,10 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   case POLAR:
   {
     LumiverseOrientation* val = (LumiverseOrientation*)d->getParam("polar");
-    float p = val->getVal();
+    float p = val->asPercent();
+    if (p >= 1)
+      h = -h;
+
     val->setVal(p + h);
     f2 = f(s);
     val->setVal(p);
@@ -323,7 +404,10 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   case AZIMUTH:
   {
     LumiverseOrientation* val = (LumiverseOrientation*)d->getParam("azimuth");
-    float a = val->getVal();
+    float a = val->asPercent();
+    if (a >= 1)
+      h = -h;
+
     val->setVal(a + h);
     f2 = f(s);
     val->setVal(a);

@@ -20,6 +20,11 @@ AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(res
   for (const auto& kvp : result->_attrVals) {
     tt = tt + kvp.first + ": " + String(kvp.second) + "\n";
   }
+
+  tt = tt + "Edit History: ";
+  for (const auto& t : result->_editHistory) {
+    tt = tt + editTypeToString(t) + " ";
+  }
   setTooltip(tt);
 }
 

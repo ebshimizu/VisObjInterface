@@ -113,7 +113,7 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Scenes per Edit", 1, 100, 1));
   searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1, 1e-7));
   searchComponents.add(new SettingsSlider("GD - Tolerance", 0, 1e-2, 1e-7));
-  searchComponents.add(new SettingsSlider("GD - Gamma", 0, 10, 1e-3));
+  searchComponents.add(new SettingsSlider("GD - Gamma", 0, 25, 1e-3));
   _settings.addSection("Search", searchComponents);
 
   Array<PropertyComponent*> renderComponents;
