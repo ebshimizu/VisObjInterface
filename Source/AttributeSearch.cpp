@@ -322,7 +322,7 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
 
     d->getIntensity()->setValAsPercent(o + h);
     f2 = f(s);
-    d->setIntensity(o);
+    d->getIntensity()->setValAsPercent(o);
     break;
   }
   case HUE:
@@ -396,9 +396,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
     if (p >= 1)
       h = -h;
 
-    val->setVal(p + h);
+    val->setValAsPercent(p + h);
     f2 = f(s);
-    val->setVal(p);
+    val->setValAsPercent(p);
     break;
   }
   case AZIMUTH:
@@ -408,9 +408,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
     if (a >= 1)
       h = -h;
 
-    val->setVal(a + h);
+    val->setValAsPercent(a + h);
     f2 = f(s);
-    val->setVal(a);
+    val->setValAsPercent(a);
     break;
   }
   default:
