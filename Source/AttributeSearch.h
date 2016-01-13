@@ -13,6 +13,7 @@
 
 #include "globals.h"
 #include "AttributeControllerBase.h"
+#include <dlib/clustering.h>
 
 enum EditType {
   // Normal edits - edits that manipulate specific lighting parameters
@@ -98,15 +99,40 @@ public:
   Snapshot* _scene;
   Array<EditType> _editHistory;
   map<string, double> _attrVals;
+
+  // Paired with a vector of cluster centers, indicates which cluster the result belongs to.
+  unsigned long _cluster;
 };
 
 // Objective function type to be passed to performEdit.
 typedef function<double(Snapshot*)> attrObjFunc;
 
+// kmeans typedefs
+typedef dlib::matrix<double, 0, 1> sampleType;
+typedef dlib::radial_basis_kernel<sampleType> kernelType;
+
 // Entry point to the search algorithm
 vector<SearchResult*> attributeSearch(map<string, AttributeControllerBase*> active, int editDepth = 1);
 
 string editTypeToString(EditType t);
+
+// Clusters results using k-means. K is chosen iteratively by computing the
+// mean distance from every scene to the cluster center until it is below
+// a specified threshold (global setting)
+// Returns the cluster centers as vectors
+vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results);
+
+// Returns a representative scene from each cluster. Chooses to return an existing
+// result instead of creating a new scene based on the cluster center to maintain
+// edit history.
+vector<SearchResult*> filterResults(vector<SearchResult*> results, vector<Eigen::VectorXd> centers);
+
+// Returns a vector representation of the rig state contained in the snapshot
+// Order of parameters detailed in implementation
+Eigen::VectorXd snapshotToVector(Snapshot* s);
+
+// Given an EditLightType, get the corresponding light in the rig
+Device* getSpecifiedDevice(EditLightType l, Snapshot* s);
 
 // Run with progress window to allow user to abort search early
 class AttributeSearchThread : public ThreadWithProgressWindow
@@ -141,9 +167,6 @@ private:
 
   // Retrieves the current value for a Lumiverse parameter
   double getDeviceValue(EditConstraint c, Snapshot* s);
-
-  // Given an EditLightType, get the corresponding light in the rig
-  Device* getSpecifiedDevice(EditLightType l, Snapshot* s);
 };
 
 #endif  // ATTRIBUTESEARCH_H_INCLUDED

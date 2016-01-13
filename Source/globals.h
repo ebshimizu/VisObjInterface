@@ -40,6 +40,7 @@ public:
   int _renderHeight;            // Render height
   double _thumbnailRenderScale; // Thumbnail size 
   int _editDepth;               // Maximum edit depth
+  double _clusterDistThreshold; // Required average distance from every element to the cluster center
 
   map<string, string> _commandLineArgs;
 };

@@ -110,6 +110,7 @@ GlobalSettings::GlobalSettings()
   _renderHeight = 0;
   _thumbnailRenderScale = 0.25;
   _editDepth = 1;
+  _clusterDistThreshold = 0.01;
 }
 
 GlobalSettings::~GlobalSettings()

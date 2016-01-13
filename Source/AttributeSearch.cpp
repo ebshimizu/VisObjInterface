@@ -113,6 +113,120 @@ string editTypeToString(EditType t) {
   }
 }
 
+vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results)
+{
+  // kmeans setup
+  dlib::kcentroid<kernelType> kkmeansKernel(kernelType(0.1), 0.01);
+  dlib::kkmeans<kernelType> k(kkmeansKernel);
+
+  vector<sampleType> samples;
+  for (auto result : results) {
+    samples.push_back(dlib::mat(snapshotToVector(result->_scene)));
+  }
+  vector<sampleType> centers;
+
+  // Start at 2
+  int numCenters = 2;
+  double msd = INFINITY;
+
+  while (msd > getGlobalSettings()->_clusterDistThreshold) {
+    // clear vectors
+    centers.clear();
+
+    // use dlib to get the initial centers
+    dlib::pick_initial_centers(numCenters, centers, samples, k.get_kernel());
+
+    // Run kmeans
+    dlib::find_clusters_using_kmeans(samples, centers);
+
+    // assign results to clusters and compute distance
+    double sumDist = 0;
+    for (int i = 0; i < results.size(); i++) {
+      unsigned long center = dlib::nearest_center(centers, samples[i]);
+      results[i]->_cluster = center;
+      
+      // get the center and compute the distance
+      auto centroid = centers[center];
+      sumDist += length(centroid - samples[i]);
+    }
+
+    msd = sumDist / results.size();
+    numCenters++;
+  }
+
+  // convert centers to eigen representation
+  return vector<Eigen::VectorXd>();
+}
+
+Eigen::VectorXd snapshotToVector(Snapshot * s)
+{
+  // Param order: Intensity, polar, azimuth, R, G, B
+  // Device order: Key, Fill, Rim
+  int numFeats = 6;
+  Eigen::VectorXd features;
+  features.resize(numFeats * 3);
+  
+  auto device = s->getRigData();
+
+  auto key = getSpecifiedDevice(L_KEY, s);
+  auto fill = getSpecifiedDevice(L_FILL, s);
+  auto rim = getSpecifiedDevice(L_RIM, s);
+
+  // Normalize features if needed
+  features[0] = key->getParam<LumiverseFloat>("intensity")->asPercent();
+  features[1] = key->getParam<LumiverseOrientation>("polar")->asPercent();
+  features[2] = key->getParam<LumiverseOrientation>("azimuth")->asPercent();
+  features[3] = key->getParam<LumiverseColor>("color")->getColorChannel("Red");
+  features[4] = key->getParam<LumiverseColor>("color")->getColorChannel("Green");
+  features[5] = key->getParam<LumiverseColor>("color")->getColorChannel("Blue");
+  features[6] = fill->getParam<LumiverseFloat>("intensity")->asPercent();
+  features[7] = fill->getParam<LumiverseOrientation>("polar")->asPercent();
+  features[8] = fill->getParam<LumiverseOrientation>("azimuth")->asPercent();
+  features[9] = fill->getParam<LumiverseColor>("color")->getColorChannel("Red");
+  features[10] = fill->getParam<LumiverseColor>("color")->getColorChannel("Green");
+  features[11] = fill->getParam<LumiverseColor>("color")->getColorChannel("Blue");
+  features[12] = rim->getParam<LumiverseFloat>("intensity")->asPercent();
+  features[13] = rim->getParam<LumiverseOrientation>("polar")->asPercent();
+  features[14] = rim->getParam<LumiverseOrientation>("azimuth")->asPercent();
+  features[15] = rim->getParam<LumiverseColor>("color")->getColorChannel("Red");
+  features[16] = rim->getParam<LumiverseColor>("color")->getColorChannel("Green");
+  features[17] = rim->getParam<LumiverseColor>("color")->getColorChannel("Blue");
+
+  return features;
+}
+
+Device* getSpecifiedDevice(EditLightType l, Snapshot * s)
+{
+  auto devices = s->getRigData();
+
+  // Rim is easy to identify
+  if (l == L_RIM)
+    return devices["rim"];
+
+  Device* key;
+  Device* fill;
+
+  // Determine which light is key/fill
+  if (devices["right"]->getIntensity()->getVal() > devices["left"]->getIntensity()->getVal()) {
+    key = devices["right"];
+    fill = devices["left"];
+  }
+  else {
+    key = devices["left"];
+    fill = devices["right"];
+  }
+
+  if (l == L_FILL)
+    return fill;
+  else if (l == L_KEY)
+    return key;
+
+  // If this ever happens, something's gone terribly wrong
+  return nullptr;
+}
+
+//=============================================================================
+
 AttributeSearchThread::AttributeSearchThread(map<string, AttributeControllerBase*> active, int editDepth) :
   ThreadWithProgressWindow("Searching", true, true, 2000), _active(active), _editDepth(editDepth)
 {
@@ -221,6 +335,9 @@ vector<SearchResult*> AttributeSearchThread::runSingleLevelSearch(vector<SearchR
     i++;
   }
 
+  // cluster results
+  auto centers = clusterResults(searchResults);
+
   return searchResults;
 }
 
@@ -279,6 +396,11 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
       i++;
     }
     
+    // If the derivative is a 0 vector, break and return immediately since we're 
+    // clearly not going anywhere
+    if (dX.norm() == 0)
+      break;
+
     // Descent
     Eigen::VectorXd Gr = G.array().pow(-0.5).matrix();
     newX = oldX - dX.cwiseProduct(Gr * gamma);
@@ -514,34 +636,4 @@ double AttributeSearchThread::getDeviceValue(EditConstraint c, Snapshot * s)
   default:
     break;
   }
-}
-
-Device* AttributeSearchThread::getSpecifiedDevice(EditLightType l, Snapshot * s)
-{
-  auto devices = s->getRigData();
-  
-  // Rim is easy to identify
-  if (l == L_RIM)
-    return devices["rim"];
-  
-  Device* key;
-  Device* fill;
-
-  // Determine which light is key/fill
-  if (devices["right"]->getIntensity()->getVal() > devices["left"]->getIntensity()->getVal()) {
-    key = devices["right"];
-    fill = devices["left"];
-  }
-  else {
-    key = devices["left"];
-    fill = devices["right"];
-  }
-
-  if (l == L_FILL)
-    return fill;
-  else if (l == L_KEY)
-    return key;
-
-  // If this ever happens, something's gone terribly wrong
-  return nullptr;
 }
