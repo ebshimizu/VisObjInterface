@@ -155,7 +155,20 @@ vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results)
   }
 
   // convert centers to eigen representation
-  return vector<Eigen::VectorXd>();
+  vector<Eigen::VectorXd> clusterCenters;
+  for (auto c : centers)
+  {
+    Eigen::VectorXd eCenter;
+    eCenter.resize(c.nr());
+
+    for (int i = 0; i < c.nr(); i++) {
+      eCenter[i] = c(i);
+    }
+
+    clusterCenters.push_back(eCenter);
+  }
+
+  return clusterCenters;
 }
 
 Eigen::VectorXd snapshotToVector(Snapshot * s)
@@ -266,7 +279,13 @@ void AttributeSearchThread::run()
     _results.clear();
     _results = newResults;
 
-    // Filter if needed
+    // Cluster and filter if not last iteration,
+    // if it is the last iteration, we punt the clustering to the UI
+    if (i != _editDepth - 1) {
+      auto centers = clusterResults(_results);
+      // filterResults(_results, centers);
+    }
+
   }
 
   setProgress(1);
@@ -312,7 +331,7 @@ vector<SearchResult*> AttributeSearchThread::runSingleLevelSearch(vector<SearchR
     // For each edit, get a list of scenes returned and just add it to the overall list.
     for (const auto& edits : editConstraints) {
       opCt++;
-      setStatusMessage("Scene " + String(i) + ": Running Edit " + String(j) + "/" + String(editConstraints.size()));
+      setStatusMessage("Scene " + String(i+1) + "\nRunning Edit " + String(j+1) + "/" + String(editConstraints.size()));
       vector<Snapshot*> editScenes = performEdit(edits.first, scene->_scene, f);
       
       if (threadShouldExit())
@@ -334,9 +353,6 @@ vector<SearchResult*> AttributeSearchThread::runSingleLevelSearch(vector<SearchR
     }
     i++;
   }
-
-  // cluster results
-  auto centers = clusterResults(searchResults);
 
   return searchResults;
 }
