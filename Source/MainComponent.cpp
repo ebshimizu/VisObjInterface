@@ -128,7 +128,7 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     refreshParams();
     break;
   case command::ARNOLD_RENDER:
-    _viewer->renderScene();
+    arnoldRender();
     break;
   case command::SETTINGS:
     openSettings();
@@ -137,7 +137,7 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     search();
     break;
   case command::REFRESH_ATTR:
-    _attrs->repaint();
+    refreshAttr();
     break;
   default:
     return false;
@@ -198,6 +198,16 @@ void MainContentComponent::loadComponents()
 void MainContentComponent::refreshParams()
 {
   _params->refreshParams();
+}
+
+void MainContentComponent::refreshAttr()
+{
+  _attrs->repaint();
+}
+
+void MainContentComponent::arnoldRender()
+{
+  _viewer->renderScene();
 }
 
 void MainContentComponent::openSettings()

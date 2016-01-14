@@ -109,15 +109,34 @@ void SearchResultsContainer::display(vector<SearchResult*> results)
   } 
   _results.clear();
 
-  for (const auto& result : results) {
-    AttributeSearchResult* res = new AttributeSearchResult(result);
-    addAndMakeVisible(res);
+  // Find clusters
+  vector<Eigen::VectorXd> centers = clusterResults(results);
+  Array<AttributeSearchResult*> renderBatch;
 
-    _results.add(res);
+  // create searchresult elements for cluster centers
+  for (auto& c : centers) {
+    SearchResult* s = new SearchResult();
+    s->_scene = vectorToSnapshot(c);
+    s->_editHistory.add(CLUSTER_CENTER);
+
+    AttributeSearchResult* cluster = new AttributeSearchResult(s);
+
+    addAndMakeVisible(cluster);
+    _results.add(cluster);
+    renderBatch.add(cluster);
   }
 
-  // render
-  (new SearchResultsRenderer(_results))->runThread();
+  // iterate: for each cluster, put the proper attributeSearchResult into the
+  // proper cluster, and also add it to the render list.
+  for (const auto& result : results) {
+    AttributeSearchResult* res = new AttributeSearchResult(result);
+
+    _results[result->_cluster]->addClusterElement(res);
+    renderBatch.add(res);
+  }
+
+  // render cluster centers
+  (new SearchResultsRenderer(renderBatch))->runThread();
 }
 
 void SearchResultsContainer::setWidth(int width)

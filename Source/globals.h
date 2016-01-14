@@ -20,6 +20,8 @@
 using namespace Lumiverse;
 using namespace Lumiverse::ShowControl;
 
+class MainWindow;
+
 // A container for various things that the entire application may want to access
 // TODO: at some point, have this load from a file
 class GlobalSettings
@@ -73,17 +75,17 @@ enum command {
   OPEN = 0x0001,
 
   // Internal
-  REFRESH_PARAMS = 0x1000,
-  REFRESH_ATTR = 0x1001,
+  REFRESH_PARAMS = 0x2000,
+  REFRESH_ATTR = 0x2001,
 
   // Render
-  ARNOLD_RENDER = 0x2000,
+  ARNOLD_RENDER = 0x3000,
 
   // Edit
-  SETTINGS = 0x3000,
+  SETTINGS = 0x4000,
 
   // Explore
-  SEARCH = 0x4000
+  SEARCH = 0x5000
 
   // Window
 };

@@ -53,7 +53,9 @@ enum EditType {
   KEY_INTENS_RIM_CONTRAST_MATCH,      // Adjust key intensity but keep key-rim contrast constant
   KEY_INTENS_FILL_CONTRAST_MATCH,     // Adjust key intensity but keep key-fill contrast constant
   KEY_HUE_FILL_HUE_MATCH,             // Adjust key color, apply same relative change to fill color (rotate around color wheel basically)
-  KEY_HUE_FILL_RIM_HUE_MATCH          // Adjust key color, apply same relative change to rim/fill color
+  KEY_HUE_FILL_RIM_HUE_MATCH,         // Adjust key color, apply same relative change to rim/fill color
+  // Special type for GUI
+  CLUSTER_CENTER
 };
 
 // Don't want to use strings for this for speed reasons
@@ -130,6 +132,9 @@ vector<SearchResult*> filterResults(vector<SearchResult*> results, vector<Eigen:
 // Returns a vector representation of the rig state contained in the snapshot
 // Order of parameters detailed in implementation
 Eigen::VectorXd snapshotToVector(Snapshot* s);
+
+// Returns a snapshot consisting of the state contained in the vector
+Snapshot* vectorToSnapshot(Eigen::VectorXd v);
 
 // Given an EditLightType, get the corresponding light in the rig
 Device* getSpecifiedDevice(EditLightType l, Snapshot* s);

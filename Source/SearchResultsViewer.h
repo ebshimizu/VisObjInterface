@@ -52,6 +52,8 @@ private:
   int _width;
   int _height;
 
+  bool _isRoot;
+
   // results components
   Array<AttributeSearchResult*> _results;
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SearchResultsContainer)

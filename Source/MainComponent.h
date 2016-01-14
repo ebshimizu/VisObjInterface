@@ -37,6 +37,16 @@ public:
   virtual void getCommandInfo(CommandID commandID, ApplicationCommandInfo& result) override;
   virtual bool perform(const InvocationInfo& info) override;
 
+  // Refrehses the parameter controls
+  void refreshParams();
+
+  void refreshAttr();
+  void arnoldRender();
+
+  // The big search function. This function does the following:
+  // - Performs a number of searches using particular sets of constraints (edits)
+  // - Groups results (if any) and presents them to the user
+  void search();
 private:
   // Open a Lumiverse file
   void openRig();
@@ -45,16 +55,8 @@ private:
   // Initializes the components in the interface after loading a rig
   void loadComponents();
 
-  // Refrehses the parameter controls
-  void refreshParams();
-
   // Opens the settings window
   void openSettings();
-
-  // The big search function. This function does the following:
-  // - Performs a number of searches using particular sets of constraints (edits)
-  // - Groups results (if any) and presents them to the user
-  void search();
 
   // Private vars
   File _parentDir;

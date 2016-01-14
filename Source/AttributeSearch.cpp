@@ -108,6 +108,8 @@ string editTypeToString(EditType t) {
     return "Rim HSV";
   case KEY_FILL_INTENS:
     return "Key-Fill Intensity";
+  case CLUSTER_CENTER:
+    return "Cluster Center";
   default:
     return "";
   }
@@ -174,10 +176,10 @@ vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results)
 Eigen::VectorXd snapshotToVector(Snapshot * s)
 {
   // Param order: Intensity, polar, azimuth, R, G, B
-  // Device order: Key, Fill, Rim
+  // Device order: Key, Fill, Rim, L/R indicator
   int numFeats = 6;
   Eigen::VectorXd features;
-  features.resize(numFeats * 3);
+  features.resize(numFeats * 3 + 1);
   
   auto device = s->getRigData();
 
@@ -204,8 +206,40 @@ Eigen::VectorXd snapshotToVector(Snapshot * s)
   features[15] = rim->getParam<LumiverseColor>("color")->getColorChannel("Red");
   features[16] = rim->getParam<LumiverseColor>("color")->getColorChannel("Green");
   features[17] = rim->getParam<LumiverseColor>("color")->getColorChannel("Blue");
+  features[18] = (key->getId() == "right") ? 1e-6 : -1e-6;  // tiny little sign bit for recreating snapshot
 
   return features;
+}
+
+Snapshot * vectorToSnapshot(Eigen::VectorXd v)
+{
+  Snapshot* s = new Snapshot(getRig(), nullptr);
+  auto devices = s->getRigData();
+
+  auto key = (v[18] > 0) ? devices["right"] : devices["left"];
+  auto fill = (v[18] > 0) ? devices["left"] : devices["right"];
+  auto rim = devices["rim"];
+
+  key->getParam<LumiverseFloat>("intensity")->setValAsPercent(v[0]);
+  key->getParam<LumiverseOrientation>("polar")->setValAsPercent(v[1]);
+  key->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(v[2]);
+  key->getParam<LumiverseColor>("color")->setColorChannel("Red", v[3]);
+  key->getParam<LumiverseColor>("color")->setColorChannel("Green", v[4]);
+  key->getParam<LumiverseColor>("color")->setColorChannel("Blue", v[5]);
+  fill->getParam<LumiverseFloat>("intensity")->setValAsPercent(v[6]);
+  fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(v[7]);
+  fill->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(v[8]);
+  fill->getParam<LumiverseColor>("color")->setColorChannel("Red", v[9]);
+  fill->getParam<LumiverseColor>("color")->setColorChannel("Green", v[10]);
+  fill->getParam<LumiverseColor>("color")->setColorChannel("Blue", v[11]);
+  rim->getParam<LumiverseFloat>("intensity")->setValAsPercent(v[12]);
+  rim->getParam<LumiverseOrientation>("polar")->setValAsPercent(v[13]);
+  rim->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(v[14]);
+  rim->getParam<LumiverseColor>("color")->setColorChannel("Red", v[15]);
+  rim->getParam<LumiverseColor>("color")->setColorChannel("Green", v[16]);
+  rim->getParam<LumiverseColor>("color")->setColorChannel("Blue", v[17]);
+
+  return s;
 }
 
 Device* getSpecifiedDevice(EditLightType l, Snapshot * s)
@@ -419,6 +453,13 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
 
     // Descent
     Eigen::VectorXd Gr = G.array().pow(-0.5).matrix();
+    
+    // If one component of G is 0, set to 0 instead of inf
+    for (int i = 0; i < G.size(); i++) {
+      if (G[i] == 0)
+        Gr[i] = 0;
+    }
+
     newX = oldX - dX.cwiseProduct(Gr * gamma);
 
     // Update scene
