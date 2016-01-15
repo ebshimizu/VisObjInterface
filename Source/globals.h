@@ -43,6 +43,7 @@ public:
   double _thumbnailRenderScale; // Thumbnail size 
   int _editDepth;               // Maximum edit depth
   double _clusterDistThreshold; // Required average distance from every element to the cluster center
+  double _clusterDiffThreshold; // Used to filter out results that are too close to each other in search
 
   map<string, string> _commandLineArgs;
 };

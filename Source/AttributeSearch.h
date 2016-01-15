@@ -124,9 +124,10 @@ string editTypeToString(EditType t);
 // Returns the cluster centers as vectors
 vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results);
 
-// Returns a representative scene from each cluster. Chooses to return an existing
-// result instead of creating a new scene based on the cluster center to maintain
-// edit history.
+// Filters out scenes that are too similar to each other.
+// - Sorts scenes into clusters
+// - then from closest to farthest from the center, removes scenes that are
+//   within a threshold from the point being considered
 vector<SearchResult*> filterResults(vector<SearchResult*> results, vector<Eigen::VectorXd> centers);
 
 // Returns a vector representation of the rig state contained in the snapshot
