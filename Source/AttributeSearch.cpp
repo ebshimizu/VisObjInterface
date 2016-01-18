@@ -200,6 +200,7 @@ vector<SearchResult*> filterResults(vector<SearchResult*> results, vector<Eigen:
 
         // delete element if it's too close
         if (dist < getGlobalSettings()->_clusterDiffThreshold) {
+          delete it2->second;
           c.erase(it2++);
         }
         else {
@@ -529,6 +530,7 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
   // continue loop while we're making sufficient progress and the attribute value is actually changing
   } while ((oldX - newX).norm() > thresh && abs(attrVal - startAttrVal) > thresh);
   
+  delete s;
   return scenes;
 }
 

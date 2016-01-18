@@ -6,7 +6,7 @@
               companyWebsite="graphics.cs.cmu.edu" companyEmail="eshimizu@cs.cmu.edu">
   <MAINGROUP id="upFVKV" name="AttributesInterface">
     <GROUP id="{E33A23C0-94A8-8A6D-0624-83F1C8438329}" name="Source">
-      <FILE id="hogpPD" name="source.cpp" compile="1" resource="0" file="../../../../../../../../lib/dlib-18.18/dlib/all/source.cpp"/>
+      <FILE id="jQPzfO" name="source.cpp" compile="1" resource="0" file="C:/lib/dlib-18.18/dlib/all/source.cpp"/>
       <GROUP id="{4DA39040-8D72-1165-28A1-9B56CCADE37F}" name="GUI">
         <FILE id="EzqHGX" name="MainMenu.cpp" compile="1" resource="0" file="Source/MainMenu.cpp"/>
         <FILE id="xzEXk8" name="MainMenu.h" compile="0" resource="0" file="Source/MainMenu.h"/>

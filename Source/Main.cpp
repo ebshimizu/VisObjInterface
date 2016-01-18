@@ -13,6 +13,8 @@
 #include "globals.h"
 #include "MainMenu.h"
 
+//#include <vld.h>
+
 //==============================================================================
 class NewProjectApplication  : public JUCEApplication
 {
@@ -44,6 +46,9 @@ public:
           getGlobalSettings()->_commandLineArgs["preload"] = commandLine.substring(start, end).toStdString();
           start = end + 1;
         }
+
+        if (start == 0)
+          break;
       }
 
       mainWindow = new MainWindow (getApplicationName());
