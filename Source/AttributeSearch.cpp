@@ -136,6 +136,17 @@ vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results)
   double msd = INFINITY;
 
   while (msd > getGlobalSettings()->_clusterDistThreshold) {
+    if (numCenters == samples.size()) {
+      vector<Eigen::VectorXd> clusterCenters;
+      int i = 0;
+      for (auto c : results) {
+        clusterCenters.push_back(snapshotToVector(c->_scene));
+        c->_cluster = i;
+        i++;
+      }
+      return clusterCenters;
+    }
+
     // clear vectors
     centers.clear();
 
@@ -458,6 +469,7 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
   int numScenes = getGlobalSettings()->_numEditScenes;
   double gamma = getGlobalSettings()->_searchGDGamma;
   double thresh = getGlobalSettings()->_searchGDTol;
+  double alpha = getGlobalSettings()->_searchMomentum;
 
   // Save start value
   double startAttrVal = f(s);
@@ -466,18 +478,18 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
   int vecSize = editConstraints[t].size();
   Eigen::VectorXd oldX;
   Eigen::VectorXd newX;
-  Eigen::VectorXd G;
+  Eigen::VectorXd oldDx;
   vector<Snapshot*> scenes;
 
   oldX.resize(vecSize);
   newX.resize(vecSize);
-  G.resize(vecSize);
+  oldDx.resize(vecSize);
 
   // Initalize the x (variable) vector
   int i = 0;
   for (const auto& c : editConstraints[t]) {
     newX[i] = getDeviceValue(c, s);
-    G[i] = 0;
+    oldDx[i] = 0;
     i++;
   }
 
@@ -503,7 +515,6 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
     i = 0;
     for (const auto& c : editConstraints[t]) {
       dX[i] = numericDeriv(c, s, f);
-      G[i] += dX[i] * dX[i];
       i++;
     }
     
@@ -512,16 +523,10 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
     if (dX.norm() == 0)
       break;
 
-    // Descent
-    Eigen::VectorXd Gr = G.array().pow(-0.5).matrix();
-    
-    // If one component of G is 0, set to 0 instead of inf
-    for (int i = 0; i < G.size(); i++) {
-      if (G[i] == 0)
-        Gr[i] = 0;
-    }
-
-    newX = oldX - dX.cwiseProduct(Gr * gamma);
+    // Descent - grad descent with momenutm
+    auto change = gamma * dX + alpha * oldDx;
+    newX = oldX - change;
+    oldDx = change;
 
     // Update scene
     i = 0;
@@ -532,7 +537,7 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
 
     // Determine if scene should go in the list of scenes to return
     attrVal = f(s);
-    if (abs(attrVal - startAttrVal) > minDist && scenes.size() < numScenes) {
+    if (abs(attrVal - startAttrVal) > minDist && scenes.size() < numScenes && attrVal < startAttrVal) {
       scenes.push_back(new Snapshot(*s));
     }
     if (scenes.size() >= numScenes) {

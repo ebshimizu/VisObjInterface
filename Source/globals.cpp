@@ -112,7 +112,8 @@ GlobalSettings::GlobalSettings()
   _editDepth = 1;
   _clusterDistThreshold = 0.05;
   _clusterDiffThreshold = 0.025;
-  _maxEditIters = 5000;
+  _maxEditIters = 2000;
+  _searchMomentum = 0.5;
 }
 
 GlobalSettings::~GlobalSettings()
