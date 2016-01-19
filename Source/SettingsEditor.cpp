@@ -62,6 +62,14 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_thumbnailRenderScale = newValue;
   else if (_id == "Edit Depth")
     getGlobalSettings()->_editDepth = (int)newValue;
+  else if (_id == "Cluster Distance Threshold")
+    getGlobalSettings()->_clusterDistThreshold = newValue;
+  else if (_id == "Result Difference Threshold")
+    getGlobalSettings()->_clusterDiffThreshold = newValue;
+  else if (_id == "Max Iterations")
+    getGlobalSettings()->_maxEditIters = (int)newValue;
+  else if (_id == "GB - Momentum")
+    getGlobalSettings()->_searchMomentum = newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -94,6 +102,14 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_thumbnailRenderScale;
   else if (_id == "Edit Depth")
     return getGlobalSettings()->_editDepth;
+  else if (_id == "Cluster Distance Threshold")
+    return getGlobalSettings()->_clusterDistThreshold;
+  else if (_id == "Result Difference Threshold")
+    return getGlobalSettings()->_clusterDiffThreshold;
+  else if (_id == "Max Iterations")
+    return getGlobalSettings()->_maxEditIters;
+  else if (_id == "GD - Momentum")
+    return getGlobalSettings()->_searchMomentum;
 }
 
 void SettingsSlider::sliderValueChanged(Slider * s)
@@ -114,6 +130,10 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1, 1e-7));
   searchComponents.add(new SettingsSlider("GD - Tolerance", 0, 1e-2, 1e-7));
   searchComponents.add(new SettingsSlider("GD - Gamma", 0, 25, 1e-3));
+  searchComponents.add(new SettingsSlider("Cluster Distance Threshold", 1e-3, 5, 1e-3));
+  searchComponents.add(new SettingsSlider("Result Difference Threshold", 1e-3, 5, 1e-3));
+  searchComponents.add(new SettingsSlider("Max Iterations", 1, 10000, 1));
+  searchComponents.add(new SettingsSlider("GD - Momentum", 1e-3, 1, 1e-3));
   _settings.addSection("Search", searchComponents);
 
   Array<PropertyComponent*> renderComponents;
