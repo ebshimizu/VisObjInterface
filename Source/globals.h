@@ -44,6 +44,7 @@ public:
   int _editDepth;               // Maximum edit depth
   double _clusterDistThreshold; // Required average distance from every element to the cluster center
   double _clusterDiffThreshold; // Used to filter out results that are too close to each other in search
+  int _maxEditIters;            // In case the search gets hung up on something
 
   map<string, string> _commandLineArgs;
 };

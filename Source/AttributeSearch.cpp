@@ -117,6 +117,10 @@ string editTypeToString(EditType t) {
 
 vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results)
 {
+  // Make sure there's at least two things in here
+  if (results.size() < 2)
+    return vector<Eigen::VectorXd>();
+
   // kmeans setup
   dlib::kcentroid<kernelType> kkmeansKernel(kernelType(0.1), 0.01);
   dlib::kkmeans<kernelType> k(kkmeansKernel);
@@ -479,9 +483,17 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
 
   // run gradient descent until number of scenes to return
   // meets minimum, or the optimization is done.
+  int m = 0;
   do {
-    if (threadShouldExit())
-      return scenes;
+    if (m > getGlobalSettings()->_maxEditIters)
+      break;
+
+    if (threadShouldExit()) {
+      for (auto scene : scenes)
+        delete scene;
+      scenes.clear();
+      break;
+    }
 
     oldX = newX;
     
@@ -527,6 +539,7 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
       // scenes full, stop
       break;      
     }
+    m++;
   // continue loop while we're making sufficient progress and the attribute value is actually changing
   } while ((oldX - newX).norm() > thresh && abs(attrVal - startAttrVal) > thresh);
   
