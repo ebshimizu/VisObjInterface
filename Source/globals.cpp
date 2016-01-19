@@ -9,6 +9,7 @@
 */
 
 #include "globals.h"
+#include "MainComponent.h"
 
 static ApplicationCommandManager* _manager;
 static Rig* _rig;
@@ -52,8 +53,20 @@ Rig* getRig() {
 DocumentWindow* getAppTopLevelWindow()
 {
   for (int i = TopLevelWindow::getNumTopLevelWindows(); --i >= 0;)
-    if (DocumentWindow* win = dynamic_cast<DocumentWindow*> (TopLevelWindow::getTopLevelWindow(i)))
+    if (DocumentWindow* win = dynamic_cast<DocumentWindow*> (TopLevelWindow::getTopLevelWindow(i))) {
       return win;
+    }
+
+  return nullptr;
+}
+
+DocumentWindow* getAppMainContentWindow()
+{
+  for (int i = TopLevelWindow::getNumTopLevelWindows(); --i >= 0;)
+    if (DocumentWindow* win = dynamic_cast<DocumentWindow*> (TopLevelWindow::getTopLevelWindow(i))) {
+      if (dynamic_cast<MainContentComponent*>(win->getContentComponent()) != nullptr)
+        return win;
+    }
 
   return nullptr;
 }

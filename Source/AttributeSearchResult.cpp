@@ -67,7 +67,7 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
 
     if (result == 1) {
       _result->_scene->loadRig(getRig());
-      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppTopLevelWindow()->getContentComponent());
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
       if (mc != nullptr) {
         mc->refreshParams();
@@ -77,7 +77,7 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
     else if (result == 2) {
       _result->_scene->loadRig(getRig());
 
-      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppTopLevelWindow()->getContentComponent());
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
       if (mc != nullptr) {
         mc->refreshParams();
@@ -87,7 +87,7 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
     }
     else if (result == 3) {
       _result->_scene->loadRig(getRig());
-      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppTopLevelWindow()->getContentComponent());
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
       if (mc != nullptr) {
         mc->refreshParams();

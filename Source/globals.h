@@ -66,6 +66,7 @@ Rig* getRig();
 Recorder* getRecorder();
 
 DocumentWindow* getAppTopLevelWindow();
+DocumentWindow* getAppMainContentWindow();
 
 // Returns the animation patch from the rig, if one exists.
 ArnoldAnimationPatch* getAnimationPatch();
