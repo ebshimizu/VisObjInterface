@@ -11,6 +11,23 @@
 #include "AttributeSearch.h"
 
 map<EditType, vector<EditConstraint> > editConstraints = {
+  { ALL, { EditConstraint(L_KEY, RED), EditConstraint(L_KEY, GREEN), EditConstraint(L_KEY, BLUE),
+           EditConstraint(L_KEY, INTENSITY), EditConstraint(L_KEY, POLAR), EditConstraint(L_KEY, AZIMUTH),
+           EditConstraint(L_FILL, RED), EditConstraint(L_FILL, GREEN), EditConstraint(L_FILL, BLUE),
+           EditConstraint(L_FILL, INTENSITY), EditConstraint(L_FILL, POLAR), EditConstraint(L_FILL, AZIMUTH),
+           EditConstraint(L_RIM, RED), EditConstraint(L_RIM, GREEN), EditConstraint(L_RIM, BLUE),
+           EditConstraint(L_RIM, INTENSITY), EditConstraint(L_RIM, POLAR), EditConstraint(L_RIM, AZIMUTH) } },
+  { ALL_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE),
+               EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE), 
+               EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } },
+  { ALL_RGB, { EditConstraint(L_KEY, RED), EditConstraint(L_KEY, GREEN), EditConstraint(L_KEY, BLUE),
+               EditConstraint(L_FILL, RED), EditConstraint(L_FILL, GREEN), EditConstraint(L_FILL, BLUE),
+               EditConstraint(L_RIM, RED), EditConstraint(L_RIM, GREEN), EditConstraint(L_RIM, BLUE) } },
+  { ALL_SAT, { EditConstraint(L_KEY, SAT), EditConstraint(L_FILL, SAT), EditConstraint(L_RIM, SAT) } },
+  { ALL_HUE, { EditConstraint(L_KEY, HUE), EditConstraint(L_FILL, HUE), EditConstraint(L_RIM, HUE) } },
+  { ALL_INTENS, { EditConstraint(L_KEY, INTENSITY), EditConstraint(L_FILL, INTENSITY), EditConstraint(L_RIM, INTENSITY) } },
+  { ALL_POS, { EditConstraint(L_KEY, POLAR), EditConstraint(L_FILL, POLAR), EditConstraint(L_RIM, POLAR),
+               EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_FILL, AZIMUTH), EditConstraint(L_RIM, AZIMUTH) } },
   { KEY_HUE, { EditConstraint(L_KEY, HUE) } },
   { FILL_HUE, { EditConstraint(L_FILL, HUE) } },
   { RIM_HUE, { EditConstraint(L_RIM, HUE) } },
@@ -25,7 +42,21 @@ map<EditType, vector<EditConstraint> > editConstraints = {
   { RIM_SAT, { EditConstraint(L_RIM, SAT) } },
   { KEY_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE) } },
   { FILL_HSV, { EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE) } },
-  { RIM_HSV, { EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } }
+  { RIM_HSV, { EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } },
+  { KEY_FILL_INTENS, { EditConstraint(L_KEY, INTENSITY), EditConstraint(L_FILL, INTENSITY) } },
+  { KEY_RIM_INTENS, { EditConstraint(L_KEY, INTENSITY), EditConstraint(L_RIM, INTENSITY) } },
+  { FILL_RIM_INTENS, { EditConstraint(L_FILL, INTENSITY), EditConstraint(L_RIM, INTENSITY) } },
+  { KEY_FILL_HUE, { EditConstraint(L_KEY, HUE), EditConstraint(L_FILL, HUE) } },
+  { KEY_FILL_SAT, { EditConstraint(L_KEY, SAT), EditConstraint(L_FILL, SAT) } },
+  { KEY_FILL_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE),
+                    EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE) } },
+  { KEY_FILL_POS, { EditConstraint(L_KEY, POLAR), EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_FILL, POLAR), EditConstraint(L_FILL, POLAR) } },
+  { KEY_RIM_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE),
+                   EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } },
+  { KEY_RIM_POS, { EditConstraint(L_KEY, POLAR), EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_RIM, POLAR), EditConstraint(L_RIM, AZIMUTH) } },
+  { KEY_RGB, { EditConstraint(L_KEY, RED), EditConstraint(L_KEY, GREEN), EditConstraint(L_KEY, BLUE) } },
+  { FILL_RGB, { EditConstraint(L_FILL, RED), EditConstraint(L_FILL, GREEN), EditConstraint(L_FILL, BLUE) } },
+  { RIM_RGB, { EditConstraint(L_RIM, RED), EditConstraint(L_RIM, GREEN), EditConstraint(L_RIM, BLUE) } }
 };
 
 SearchResult::SearchResult() : _scene (nullptr) { }
@@ -76,6 +107,10 @@ string editTypeToString(EditType t) {
     return "All Saturation";
   case ALL_HUE:
     return "All Hue";
+  case ALL_INTENS:
+    return "All Intensity";
+  case ALL_POS:
+    return "All Position";
   case KEY_HUE:
     return "Key Hue";
   case FILL_HUE:
@@ -108,6 +143,28 @@ string editTypeToString(EditType t) {
     return "Rim HSV";
   case KEY_FILL_INTENS:
     return "Key-Fill Intensity";
+  case KEY_RIM_INTENS:
+    return "Key-Rim Intensity";
+  case FILL_RIM_INTENS:
+    return "Fill-Rim Intensity";
+  case KEY_FILL_HUE:
+    return "Key-Fill Hue";
+  case KEY_FILL_SAT:
+    return "Key-Fill Saturation";
+  case KEY_FILL_HSV:
+    return "Key-Fill HSV";
+  case KEY_FILL_POS:
+    return "Key-Fill Position";
+  case KEY_RIM_HSV:
+    return "Key-Rim HSV";
+  case KEY_RIM_POS:
+    return "Key-Rim Position";
+  case KEY_RGB:
+    return "Key RGB";
+  case FILL_RGB:
+    return "Fill RGB";
+  case RIM_RGB:
+    return "Rim RGB";
   case CLUSTER_CENTER:
     return "Cluster Center";
   default:
@@ -365,9 +422,6 @@ void AttributeSearchThread::run()
 
     vector<SearchResult*> newResults = runSingleLevelSearch(_results, i);
 
-    if (threadShouldExit())
-      return;
-
     // delete old results
     for (auto r : _results)
     {
@@ -375,15 +429,13 @@ void AttributeSearchThread::run()
     }
     _results.clear();
 
-    // Cluster and filter if not last iteration,
-    // if it is the last iteration, we punt the clustering to the UI
-    //if (i != _editDepth - 1) {
-      auto centers = clusterResults(newResults);
-      auto filtered = filterResults(newResults, centers);
-      _results = filtered;
-    //}
+    // cluster and filter
+    auto centers = clusterResults(newResults);
+    auto filtered = filterResults(newResults, centers);
+    _results = filtered;
 
-    //_results = newResults;
+    if (threadShouldExit())
+      return;
   }
 
   setProgress(1);
@@ -427,9 +479,10 @@ vector<SearchResult*> AttributeSearchThread::runSingleLevelSearch(vector<SearchR
   // For each scene in the initial set
   for (const auto& scene : startScenes) {
     // For each edit, get a list of scenes returned and just add it to the overall list.
+    j = 0;
     for (const auto& edits : editConstraints) {
       opCt++;
-      setStatusMessage("Scene " + String(i+1) + "\nRunning Edit " + String(j+1) + "/" + String(editConstraints.size()));
+      setStatusMessage("Level " + String(level) + "\nScene " + String(i+1) + "/" + String(startScenes.size()) + "\nRunning Edit " + String(j+1) + "/" + String(editConstraints.size()));
       vector<Snapshot*> editScenes = performEdit(edits.first, scene->_scene, f);
       
       if (threadShouldExit())

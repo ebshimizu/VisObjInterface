@@ -118,12 +118,12 @@ GlobalSettings::GlobalSettings()
   _minEditDist = 1;
   _numEditScenes = 3;
   _searchGDTol = 1e-6;
-  _searchGDGamma = 1;
+  _searchGDGamma = 5;
   _renderWidth = 0;
   _renderHeight = 0;
   _thumbnailRenderScale = 0.25;
   _editDepth = 1;
-  _clusterDistThreshold = 0.05;
+  _clusterDistThreshold = 0.1;
   _clusterDiffThreshold = 0.025;
   _maxEditIters = 2000;
   _searchMomentum = 0.5;

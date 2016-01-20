@@ -231,7 +231,6 @@ void ParamControls::initProperties()
     components.add(new FloatPropertySlider(d->getId(), "intensity", (LumiverseFloat*)d->getParam("intensity")));
     components.add(new OrientationPropertySlider(d->getId(), "polar", (LumiverseOrientation*)d->getParam("polar")));
     components.add(new OrientationPropertySlider(d->getId(), "azimuth", (LumiverseOrientation*)d->getParam("azimuth")));
-    components.add(new FloatPropertySlider(d->getId(), "distance", (LumiverseFloat*)d->getParam("distance")));
     components.add(new ColorPropertySlider(d->getId(), "color", "Red", d->getColor()));
     components.add(new ColorPropertySlider(d->getId(), "color", "Green", d->getColor()));
     components.add(new ColorPropertySlider(d->getId(), "color", "Blue", d->getColor()));
