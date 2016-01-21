@@ -319,7 +319,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="C:\lib\dlib-18.18\dlib\all\source.cpp">
+    <ClCompile Include="..\..\..\..\..\..\..\..\..\..\lib\dlib-18.18\dlib\all\source.cpp">
       <Filter>AttributesInterface\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\MainMenu.cpp">
@@ -336,6 +336,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\StatusBar.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\BrightAttribute.cpp">
+      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\TestAttribute.cpp">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
@@ -1638,10 +1641,16 @@
     <ClInclude Include="..\..\Source\TopComponentContainer.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\BrightAttribute.h">
+      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\TestAttribute.h">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\AttributeControllerBase.h">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\AttributeControllers.h">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\AttributeControls.h">

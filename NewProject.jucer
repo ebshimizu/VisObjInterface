@@ -25,6 +25,10 @@
       </GROUP>
       <GROUP id="{2AE89FBF-419D-C3BF-F7EF-2317DD7C267B}" name="attributes">
         <GROUP id="{9D54FF1D-9ACE-EBC7-F1C5-BC6BB3FDA4C7}" name="attribute instances">
+          <FILE id="fgXToS" name="BrightAttribute.cpp" compile="1" resource="0"
+                file="Source/BrightAttribute.cpp"/>
+          <FILE id="mAgE17" name="BrightAttribute.h" compile="0" resource="0"
+                file="Source/BrightAttribute.h"/>
           <FILE id="GGdIAz" name="TestAttribute.cpp" compile="1" resource="0"
                 file="Source/TestAttribute.cpp"/>
           <FILE id="I0a1vF" name="TestAttribute.h" compile="0" resource="0" file="Source/TestAttribute.h"/>
@@ -33,6 +37,8 @@
               file="Source/AttributeControllerBase.cpp"/>
         <FILE id="ufU21i" name="AttributeControllerBase.h" compile="0" resource="0"
               file="Source/AttributeControllerBase.h"/>
+        <FILE id="bhChDf" name="AttributeControllers.h" compile="0" resource="0"
+              file="Source/AttributeControllers.h"/>
         <FILE id="QeMzB3" name="AttributeControls.cpp" compile="1" resource="0"
               file="Source/AttributeControls.cpp"/>
         <FILE id="aiCieQ" name="AttributeControls.h" compile="0" resource="0"

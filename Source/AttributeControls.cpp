@@ -11,7 +11,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "AttributeControls.h"
 
-#include "TestAttribute.h"
+#include "AttributeControllers.h"
 
 
 AttributeControlsList::AttributeControlsList()
@@ -95,6 +95,7 @@ AttributeControls::AttributeControls()
 {
   _container = new AttributeControlsList();
   _container->addAttributeController(new TestAttribute());
+  _container->addAttributeController(new BrightAttribute());
   _container->setName("attribute list");
   addAndMakeVisible(_container);
 
