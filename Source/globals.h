@@ -74,6 +74,12 @@ ArnoldAnimationPatch* getAnimationPatch();
 // Deletes all global variables, should be called on application destroy
 void cleanUpGlobals();
 
+// Returns true if the device has a metadata string equal to 'y' for [param]_lock
+bool isDeviceParamLocked(string id, string param);
+
+void lockDeviceParam(string id, string param);
+void unlockDeviceParam(string id, string param);
+
 enum command {
   // File
   OPEN = 0x0001,

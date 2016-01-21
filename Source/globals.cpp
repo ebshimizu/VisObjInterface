@@ -42,6 +42,40 @@ void cleanUpGlobals() {
     delete _globalSettings;
 }
 
+bool isDeviceParamLocked(string id, string param)
+{
+  string metadataId = param + "_lock";
+  Device* d = getRig()->getDevice(id);
+
+  if (d == nullptr)
+    return false;
+
+  if (d->getMetadata(metadataId) == "y")
+    return true;
+  else
+    return false;
+}
+
+void lockDeviceParam(string id, string param)
+{
+  Device* d = getRig()->getDevice(id);
+
+  if (d == nullptr)
+    return;
+
+  d->setMetadata(param + "_lock", "y");
+}
+
+void unlockDeviceParam(string id, string param)
+{
+  Device* d = getRig()->getDevice(id);
+
+  if (d == nullptr)
+    return;
+
+  d->setMetadata(param + "_lock", "n");
+}
+
 Rig* getRig() {
   if (_rig == nullptr) {
     _rig = new Rig();

@@ -198,6 +198,7 @@ void MainContentComponent::loadComponents()
 void MainContentComponent::refreshParams()
 {
   _params->refreshParams();
+  _params->repaint();
 }
 
 void MainContentComponent::refreshAttr()

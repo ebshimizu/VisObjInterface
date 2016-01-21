@@ -20,6 +20,9 @@ public:
   FloatPropertySlider(string id, string param, LumiverseFloat* val);
   ~FloatPropertySlider();
 
+  void paint(Graphics& g) override;
+  void mouseDown(const MouseEvent& event) override;
+
   virtual void setValue(double newValue) override;
   virtual double getValue() const override;
   void sliderDragStarted(Slider* s) override;
@@ -35,6 +38,9 @@ class OrientationPropertySlider : public SliderPropertyComponent
 public:
   OrientationPropertySlider(string id, string param, LumiverseOrientation* val);
   ~OrientationPropertySlider();
+
+  void paint(Graphics& g) override;
+  void mouseDown(const MouseEvent& event) override;
 
   virtual void setValue(double newValue) override;
   virtual double getValue() const override;
@@ -52,6 +58,9 @@ public:
   ColorPropertySlider(string id, string param, string channel, LumiverseColor* val);
   ~ColorPropertySlider();
 
+  void paint(Graphics& g) override;
+  void mouseDown(const MouseEvent& event) override;
+
   virtual void setValue(double newValue) override;
   virtual double getValue() const override;
   void sliderDragStarted(Slider* s) override;
@@ -68,6 +77,9 @@ class HSVColorPropertySlider : public SliderPropertyComponent
 public:
   HSVColorPropertySlider(string id, string param, string channel, LumiverseColor* val);
   ~HSVColorPropertySlider();
+
+  void paint(Graphics& g) override;
+  void mouseDown(const MouseEvent& event) override;
 
   virtual void setValue(double newValue) override;
   virtual double getValue() const override;

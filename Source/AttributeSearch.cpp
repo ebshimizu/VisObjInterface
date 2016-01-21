@@ -616,6 +616,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   switch (c._param) {
   case INTENSITY:
   {
+    if (isDeviceParamLocked(d->getId(), "intensity"))
+      return 0;
+
     float o = d->getIntensity()->asPercent();
     if (o >= 1)
       h = -h;
@@ -627,6 +630,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   }
   case HUE:
   {
+    if (isDeviceParamLocked(d->getId(), "colorH"))
+      return 0;
+
     Eigen::Vector3d hsv = d->getColor()->getHSV();
     // hue wraps around, derivative should be fine if hue is at max/min
     d->getColor()->setHSV(hsv[0] + h, hsv[1], hsv[2]);
@@ -636,6 +642,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   }
   case SAT:
   {
+    if (isDeviceParamLocked(d->getId(), "colorS"))
+      return 0;
+
     Eigen::Vector3d hsv = d->getColor()->getHSV();
     if (hsv[1] >= 1)
       h = -h;
@@ -647,6 +656,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   }
   case VALUE:
   {
+    if (isDeviceParamLocked(d->getId(), "colorV"))
+      return 0;
+
     Eigen::Vector3d hsv = d->getColor()->getHSV();
     if (hsv[2] >= 1)
       h = -h;
@@ -658,6 +670,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   }
   case RED:
   {
+    if (isDeviceParamLocked(d->getId(), "colorRed"))
+      return 0;
+
     double r = d->getColor()->getColorChannel("Red");
     if (r >= 1)
       h = -h;
@@ -669,6 +684,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   }
   case BLUE:
   {
+    if (isDeviceParamLocked(d->getId(), "colorBlue"))
+      return 0;
+
     double b = d->getColor()->getColorChannel("Blue");
     if (b >= 1)
       h = -h;
@@ -680,6 +698,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   }
   case GREEN:
   {
+    if (isDeviceParamLocked(d->getId(), "colorGreen"))
+      return 0;
+
     double g = d->getColor()->getColorChannel("Green");
     if (g >= 1)
       h = -h;
@@ -691,6 +712,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   }
   case POLAR:
   {
+    if (isDeviceParamLocked(d->getId(), "polar"))
+      return 0;
+
     LumiverseOrientation* val = (LumiverseOrientation*)d->getParam("polar");
     float p = val->asPercent();
     if (p >= 1)
@@ -703,6 +727,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   }
   case AZIMUTH:
   {
+    if (isDeviceParamLocked(d->getId(), "azimuth"))
+      return 0;
+
     LumiverseOrientation* val = (LumiverseOrientation*)d->getParam("azimuth");
     float a = val->asPercent();
     if (a >= 1)

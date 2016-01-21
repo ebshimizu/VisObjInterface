@@ -26,6 +26,36 @@ FloatPropertySlider::~FloatPropertySlider()
 {
 }
 
+void FloatPropertySlider::paint(Graphics & g)
+{
+  LookAndFeel& lf = getLookAndFeel();
+
+  if (isDeviceParamLocked(_id, _param)) {
+    g.setColour(Colours::red);
+  }
+  else {
+    g.setColour(this->findColour(PropertyComponent::backgroundColourId));
+  }
+
+  g.fillRect(0, 0, getWidth(), getHeight() - 1);
+
+  lf.drawPropertyComponentLabel(g, getWidth(), getHeight(), *this);
+}
+
+void FloatPropertySlider::mouseDown(const MouseEvent & event)
+{
+  if (event.mods.isRightButtonDown()) {
+    if (isDeviceParamLocked(_id, _param)) {
+      unlockDeviceParam(_id, _param);
+    }
+    else {
+      lockDeviceParam(_id, _param);
+    }
+
+    getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, false);
+  }
+}
+
 void FloatPropertySlider::setValue(double newValue)
 {
   getRig()->getDevice(_id)->setParam(_param, (float)newValue);
@@ -65,6 +95,36 @@ OrientationPropertySlider::~OrientationPropertySlider()
 {
 }
 
+void OrientationPropertySlider::paint(Graphics & g)
+{
+  LookAndFeel& lf = getLookAndFeel();
+
+  if (isDeviceParamLocked(_id, _param)) {
+    g.setColour(Colours::red);
+  }
+  else {
+    g.setColour(this->findColour(PropertyComponent::backgroundColourId));
+  }
+
+  g.fillRect(0, 0, getWidth(), getHeight() - 1);
+
+  lf.drawPropertyComponentLabel(g, getWidth(), getHeight(), *this);
+}
+
+void OrientationPropertySlider::mouseDown(const MouseEvent & event)
+{
+  if (event.mods.isRightButtonDown()) {
+    if (isDeviceParamLocked(_id, _param)) {
+      unlockDeviceParam(_id, _param);
+    }
+    else {
+      lockDeviceParam(_id, _param);
+    }
+
+    getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, false);
+  }
+}
+
 void OrientationPropertySlider::setValue(double newValue)
 {
   getRig()->getDevice(_id)->setParam(_param, (float)newValue);
@@ -100,6 +160,47 @@ ColorPropertySlider::ColorPropertySlider(string id, string param, string channel
 
 ColorPropertySlider::~ColorPropertySlider()
 {
+}
+
+void ColorPropertySlider::paint(Graphics & g)
+{
+  LookAndFeel& lf = getLookAndFeel();
+
+  if (isDeviceParamLocked(_id, _param + _channel)) {
+    g.setColour(Colours::red);
+  }
+  else {
+    g.setColour(this->findColour(PropertyComponent::backgroundColourId));
+  }
+
+  g.fillRect(0, 0, getWidth(), getHeight() - 1);
+
+  lf.drawPropertyComponentLabel(g, getWidth(), getHeight(), *this);
+}
+
+void ColorPropertySlider::mouseDown(const MouseEvent & event)
+{
+  if (event.mods.isRightButtonDown()) {
+    if (isDeviceParamLocked(_id, _param + _channel)) {
+      unlockDeviceParam(_id, _param + _channel);
+
+      // if none of the other color params are locked, unlock HSV
+      if (!isDeviceParamLocked(_id, _param + "Red") && !isDeviceParamLocked(_id, _param + "Green") && !isDeviceParamLocked(_id, _param + "Blue")) {
+        unlockDeviceParam(_id, _param + "H");
+        unlockDeviceParam(_id, _param + "S");
+        unlockDeviceParam(_id, _param + "V");
+      }
+    }
+    else {
+      lockDeviceParam(_id, _param + _channel);
+      // Lock HSV as well
+      lockDeviceParam(_id, _param + "H");
+      lockDeviceParam(_id, _param + "S");
+      lockDeviceParam(_id, _param + "V");
+    }
+
+    getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, false);
+  }
 }
 
 void ColorPropertySlider::setValue(double newValue)
@@ -145,6 +246,46 @@ HSVColorPropertySlider::HSVColorPropertySlider(string id, string param, string c
 
 HSVColorPropertySlider::~HSVColorPropertySlider()
 {
+}
+
+void HSVColorPropertySlider::paint(Graphics & g)
+{
+  LookAndFeel& lf = getLookAndFeel();
+
+  if (isDeviceParamLocked(_id, _param + _channel)) {
+    g.setColour(Colours::red);
+  }
+  else {
+    g.setColour(this->findColour(PropertyComponent::backgroundColourId));
+  }
+
+  g.fillRect(0, 0, getWidth(), getHeight() - 1);
+
+  lf.drawPropertyComponentLabel(g, getWidth(), getHeight(), *this);
+}
+
+void HSVColorPropertySlider::mouseDown(const MouseEvent & event)
+{
+  if (event.mods.isRightButtonDown()) {
+    if (isDeviceParamLocked(_id, _param + _channel)) {
+      unlockDeviceParam(_id, _param + _channel);
+      // if none of the other hsv params are locked, unlock rgb
+      if (!isDeviceParamLocked(_id, _param + "H") && !isDeviceParamLocked(_id, _param + "S") && !isDeviceParamLocked(_id, _param + "V")) {
+        unlockDeviceParam(_id, _param + "Red");
+        unlockDeviceParam(_id, _param + "Green");
+        unlockDeviceParam(_id, _param + "Blue");
+      }
+    }
+    else {
+      lockDeviceParam(_id, _param + _channel);
+      // Lock RGB as well
+      lockDeviceParam(_id, _param + "Red");
+      lockDeviceParam(_id, _param + "Green");
+      lockDeviceParam(_id, _param + "Blue");
+    }
+    
+    getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, false);
+  }
 }
 
 void HSVColorPropertySlider::setValue(double newValue)
