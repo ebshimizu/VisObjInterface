@@ -56,7 +56,9 @@ map<EditType, vector<EditConstraint> > editConstraints = {
   { KEY_RIM_POS, { EditConstraint(L_KEY, POLAR), EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_RIM, POLAR), EditConstraint(L_RIM, AZIMUTH) } },
   { KEY_RGB, { EditConstraint(L_KEY, RED), EditConstraint(L_KEY, GREEN), EditConstraint(L_KEY, BLUE) } },
   { FILL_RGB, { EditConstraint(L_FILL, RED), EditConstraint(L_FILL, GREEN), EditConstraint(L_FILL, BLUE) } },
-  { RIM_RGB, { EditConstraint(L_RIM, RED), EditConstraint(L_RIM, GREEN), EditConstraint(L_RIM, BLUE) } }
+  { RIM_RGB, { EditConstraint(L_RIM, RED), EditConstraint(L_RIM, GREEN), EditConstraint(L_RIM, BLUE) } },
+  { KEY_POS_FILL_POS_MATCH, { EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_KEY, POLAR) } },
+  { KEY_INTENS_RIM_CONTRAST_MATCH, { EditConstraint(L_KEY, INTENSITY) } }
 };
 
 SearchResult::SearchResult() : _scene (nullptr) { }
@@ -165,6 +167,16 @@ string editTypeToString(EditType t) {
     return "Fill RGB";
   case RIM_RGB:
     return "Rim RGB";
+  case KEY_POS_FILL_POS_MATCH:
+    return "Key Position (Fill Match)";
+  case KEY_INTENS_RIM_CONTRAST_MATCH:
+    return "Key Intensity (Rim Match)";
+  case KEY_INTENS_FILL_CONTRAST_MATCH:
+    return "Key Intensity (Fill Match)";
+  case KEY_HUE_FILL_HUE_MATCH:
+    return "Key Hue (Fill Match)";
+  case KEY_HUE_FILL_RIM_HUE_MATCH:
+    return "Key Hue (Fill, Rim Match)";
   case CLUSTER_CENTER:
     return "Cluster Center";
   default:
@@ -567,7 +579,7 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
     dX.resize(vecSize);
     i = 0;
     for (const auto& c : editConstraints[t]) {
-      dX[i] = numericDeriv(c, s, f);
+      dX[i] = numericDeriv(c, t, s, f);
       i++;
     }
     
@@ -584,7 +596,7 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
     // Update scene
     i = 0;
     for (const auto& c : editConstraints[t]) {
-      setDeviceValue(c, newX[i], s);
+      setDeviceValue(c, t, newX[i], s);
       i++;
     }
 
@@ -605,7 +617,7 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
   return scenes;
 }
 
-double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrObjFunc f)
+double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapshot* s, attrObjFunc f)
 {
   // load the appropriate settings and get the proper device.
   double h = getGlobalSettings()->_searchDerivDelta;
@@ -623,9 +635,22 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
     if (o >= 1)
       h = -h;
 
+    if (c._light == L_KEY && t == KEY_INTENS_RIM_CONTRAST_MATCH) {
+      Device* rim = getSpecifiedDevice(L_RIM, s);
+      double r = rim->getIntensity()->asPercent() / o;
+      rim->getIntensity()->setValAsPercent((o * r) + h);
+    }
+
     d->getIntensity()->setValAsPercent(o + h);
     f2 = f(s);
     d->getIntensity()->setValAsPercent(o);
+
+    if (c._light == L_KEY && t == KEY_INTENS_RIM_CONTRAST_MATCH) {
+      Device* rim = getSpecifiedDevice(L_RIM, s);
+      double r = rim->getIntensity()->asPercent() / o;
+      rim->getIntensity()->setValAsPercent(o * r);
+    }
+
     break;
   }
   case HUE:
@@ -720,9 +745,20 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
     if (p >= 1)
       h = -h;
 
+    if (c._light == L_KEY && t == KEY_POS_FILL_POS_MATCH) {
+      auto fill = getSpecifiedDevice(L_FILL, s);
+      fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(-p + h);
+    }
+
     val->setValAsPercent(p + h);
     f2 = f(s);
     val->setValAsPercent(p);
+
+    if (c._light == L_KEY && t == KEY_POS_FILL_POS_MATCH) {
+      auto fill = getSpecifiedDevice(L_FILL, s);
+      fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(-p);
+    }
+
     break;
   }
   case AZIMUTH:
@@ -735,9 +771,19 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
     if (a >= 1)
       h = -h;
 
+    if (c._light == L_KEY && t == KEY_POS_FILL_POS_MATCH) {
+      auto fill = getSpecifiedDevice(L_FILL, s);
+      fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(a + h);
+    }
+
     val->setValAsPercent(a + h);
     f2 = f(s);
     val->setValAsPercent(a);
+
+    if (c._light == L_KEY && t == KEY_POS_FILL_POS_MATCH) {
+      auto fill = getSpecifiedDevice(L_FILL, s);
+      fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(a);
+    }
     break;
   }
   default:
@@ -747,14 +793,23 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   return (f2 - f1) / h;
 }
 
-void AttributeSearchThread::setDeviceValue(EditConstraint c, double val, Snapshot * s)
+void AttributeSearchThread::setDeviceValue(EditConstraint c, EditType t, double val, Snapshot * s)
 {
   Device* d = getSpecifiedDevice(c._light, s);
 
   switch (c._param) {
   case INTENSITY:
+  {
     d->setIntensity(val);
+    
+    if (c._light == L_KEY && t == KEY_INTENS_RIM_CONTRAST_MATCH) {
+      Device* rim = getSpecifiedDevice(L_RIM, s);
+      double r = rim->getIntensity()->asPercent() / d->getIntensity()->asPercent();
+      rim->setIntensity(val * r);
+    }
+    
     break;
+  }
   case HUE:
   {
     Eigen::Vector3d hsv = d->getColor()->getHSV();
@@ -786,12 +841,24 @@ void AttributeSearchThread::setDeviceValue(EditConstraint c, double val, Snapsho
   {
     LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("polar");
     o->setVal(val);
+
+    if (c._light == L_KEY && t == KEY_POS_FILL_POS_MATCH) {
+      auto fill = getSpecifiedDevice(L_FILL, s);
+      fill->getParam<LumiverseOrientation>("polar")->setVal(-val);
+    }
+
     break;
   }
   case AZIMUTH:
   {
     LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("azimuth");
     o->setVal(val);
+
+    if (c._light == L_KEY && t == KEY_POS_FILL_POS_MATCH) {
+      auto fill = getSpecifiedDevice(L_FILL, s);
+      fill->getParam<LumiverseOrientation>("polar")->setVal(val);
+    }
+
     break;
   }
   default:

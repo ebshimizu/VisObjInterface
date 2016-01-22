@@ -31,7 +31,7 @@ void FloatPropertySlider::paint(Graphics & g)
   LookAndFeel& lf = getLookAndFeel();
 
   if (isDeviceParamLocked(_id, _param)) {
-    g.setColour(Colours::red);
+    g.setColour(Colour(0xFFFF3838));
   }
   else {
     g.setColour(this->findColour(PropertyComponent::backgroundColourId));
@@ -100,7 +100,7 @@ void OrientationPropertySlider::paint(Graphics & g)
   LookAndFeel& lf = getLookAndFeel();
 
   if (isDeviceParamLocked(_id, _param)) {
-    g.setColour(Colours::red);
+    g.setColour(Colour(0xFFFF3838));
   }
   else {
     g.setColour(this->findColour(PropertyComponent::backgroundColourId));
@@ -167,7 +167,7 @@ void ColorPropertySlider::paint(Graphics & g)
   LookAndFeel& lf = getLookAndFeel();
 
   if (isDeviceParamLocked(_id, _param + _channel)) {
-    g.setColour(Colours::red);
+    g.setColour(Colour(0xFFFF3838));
   }
   else {
     g.setColour(this->findColour(PropertyComponent::backgroundColourId));
@@ -253,7 +253,7 @@ void HSVColorPropertySlider::paint(Graphics & g)
   LookAndFeel& lf = getLookAndFeel();
 
   if (isDeviceParamLocked(_id, _param + _channel)) {
-    g.setColour(Colours::red);
+    g.setColour(Colour(0xFFFF3838));
   }
   else {
     g.setColour(this->findColour(PropertyComponent::backgroundColourId));

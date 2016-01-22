@@ -170,10 +170,10 @@ private:
 
   // computes the numeric derivative for the particular lighting parameter and
   // specified attribute
-  double numericDeriv(EditConstraint c, Snapshot* s, attrObjFunc f);
+  double numericDeriv(EditConstraint c, EditType t, Snapshot* s, attrObjFunc f);
 
   // updates the value for a Lumiverse parameter
-  void setDeviceValue(EditConstraint c, double val, Snapshot* s);
+  void setDeviceValue(EditConstraint c, EditType t, double val, Snapshot* s);
 
   // Retrieves the current value for a Lumiverse parameter
   double getDeviceValue(EditConstraint c, Snapshot* s);
