@@ -45,13 +45,13 @@ double TestAttribute::evaluateScene(Device* key, Device* fill, Device* rim)
   // may need to also scale by luma
   double err = 0;
   auto kcolor = key->getColor()->getLCHab(ReferenceWhite::D65);
-  err += (100 - (warmest - Eigen::Vector2d(kcolor[1], kcolor[2])).norm()) * key->getIntensity()->asPercent() * _keyWeight;
+  err += (300 - (warmest - Eigen::Vector2d(kcolor[1], kcolor[2])).norm()) * key->getIntensity()->asPercent() * _keyWeight;
   
   auto fcolor = fill->getColor()->getLCHab(ReferenceWhite::D65);
-  err += (100 - (warmest - Eigen::Vector2d(fcolor[1], fcolor[2])).norm()) * fill->getIntensity()->asPercent() * _fillWeight;
+  err += (300 - (warmest - Eigen::Vector2d(fcolor[1], fcolor[2])).norm()) * fill->getIntensity()->asPercent() * _fillWeight;
   
   auto rcolor = rim->getColor()->getLCHab(ReferenceWhite::D65);
-  err += (100 - (warmest - Eigen::Vector2d(rcolor[1], rcolor[2])).norm()) * rim->getIntensity()->asPercent() * _rimWeight;
+  err += (300 - (warmest - Eigen::Vector2d(rcolor[1], rcolor[2])).norm()) * rim->getIntensity()->asPercent() * _rimWeight;
 
   // Max for this function should be at 100
   return err;

@@ -168,6 +168,9 @@ private:
   // Given a current configuration, perform an edit on the configuration
   vector<Snapshot*> performEdit(EditType t, Snapshot* orig, attrObjFunc f);
 
+  // Given a current configuration, use MCMC to perform an edit on the configuration
+  vector<Snapshot*> performEditMCMC(EditType t, Snapshot* orig, attrObjFunc f);
+
   // computes the numeric derivative for the particular lighting parameter and
   // specified attribute
   double numericDeriv(EditConstraint c, EditType t, Snapshot* s, attrObjFunc f);

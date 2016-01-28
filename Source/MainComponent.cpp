@@ -82,7 +82,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
   // Add new commands to handle here.
   const CommandID ids[] = {
     command::OPEN, command::REFRESH_PARAMS, command::ARNOLD_RENDER, command::SETTINGS,
-    command::SEARCH, command::REFRESH_ATTR
+    command::SEARCH, command::REFRESH_ATTR, command::SAVE, command::SAVE_AS
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -113,6 +113,14 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::REFRESH_ATTR:
     result.setInfo("Refresh Attribute Controls", "Internal: refreshes the attribute control panel", "Internal", 0);
     break;
+  case command::SAVE:
+    result.setInfo("Save", "Save rig file", "File", 0);
+    result.addDefaultKeypress('s', ModifierKeys::commandModifier);
+    break;
+  case command::SAVE_AS:
+    result.setInfo("Save As...", "Save rig file using different name", "File", 0);
+    result.addDefaultKeypress('s', ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+    break;
   default:
     return;
   }
@@ -138,6 +146,12 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::REFRESH_ATTR:
     refreshAttr();
+    break;
+  case command::SAVE:
+    saveRig();
+    break;
+  case command::SAVE_AS:
+    saveAs();
     break;
   default:
     return false;
@@ -177,12 +191,61 @@ void MainContentComponent::openRig(String fname)
 
     loadComponents();
 
-    _showName = fileName.toStdString();
+    _showName = rig.getFileName();
     getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);
   }
   else {
     getStatusBar()->setStatusMessage("Error loading \"" + rig.getFullPathName() + "\"");
     getRecorder()->log(SYSTEM, "Failed to load \"" + rig.getFullPathName().toStdString() + "\"");
+  }
+}
+
+void MainContentComponent::saveRig()
+{
+  if (_showName == "") {
+    // Redirect to save as if we don't have a show name...
+    saveAs();
+    return;
+  }
+
+  File rig = _parentDir.getChildFile(String(_showName) + ".rig.json");
+
+  bool rigRes = getRig()->save(rig.getFullPathName().toStdString(), true);
+
+  if (rigRes)
+    getStatusBar()->setStatusMessage("Wrote show " + _showName + " to disk.");
+  else
+    getStatusBar()->setStatusMessage("Error saving rig file for show.");
+}
+
+void MainContentComponent::saveAs()
+{
+  FileChooser fc("Save as...",
+    File::getCurrentWorkingDirectory(),
+    "*.rig.json;*.playback.json",
+    true);
+
+  if (fc.browseForFileToSave(true))
+  {
+    File selected = fc.getResult();
+    String fileName = selected.getFileName();
+    fileName = fileName.upToFirstOccurrenceOf(".", false, false);
+
+    _parentDir = selected.getParentDirectory();
+
+    File rig = _parentDir.getChildFile(fileName + ".rig.json");
+
+    bool rigRes = getRig()->save(rig.getFullPathName().toStdString(), true);
+
+    if (rigRes) {
+      _showName = selected.getFileName();
+      getStatusBar()->setStatusMessage("Wrote show " + _showName + " to disk.");
+      getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);
+    }
+    else {
+      getStatusBar()->setStatusMessage("Error saving rig file for show.");
+      getRecorder()->log(SYSTEM, "Failed to save show.");
+    }
   }
 }
 

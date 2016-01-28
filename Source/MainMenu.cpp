@@ -36,6 +36,9 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& menuNam
 
   if (topLevelMenuIndex == 0) {
     menu.addCommandItem(cm, command::OPEN);
+    menu.addSeparator();
+    menu.addCommandItem(cm, command::SAVE);
+    menu.addCommandItem(cm, command::SAVE_AS);
   }
   else if (topLevelMenuIndex == 1) {
     menu.addCommandItem(cm, command::SETTINGS);

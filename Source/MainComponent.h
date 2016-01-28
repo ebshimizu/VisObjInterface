@@ -52,6 +52,9 @@ private:
   void openRig();
   void openRig(String fname);
 
+  void saveRig();
+  void saveAs();
+
   // Initializes the components in the interface after loading a rig
   void loadComponents();
 
