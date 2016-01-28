@@ -10,59 +10,60 @@
 
 #include "AttributeSearch.h"
 #include <random>
+//#include <vld.h>
 
 map<EditType, vector<EditConstraint> > editConstraints = {
-  //{ ALL, { EditConstraint(L_KEY, RED), EditConstraint(L_KEY, GREEN), EditConstraint(L_KEY, BLUE),
-  //         EditConstraint(L_KEY, INTENSITY), EditConstraint(L_KEY, POLAR), EditConstraint(L_KEY, AZIMUTH),
-  //         EditConstraint(L_FILL, RED), EditConstraint(L_FILL, GREEN), EditConstraint(L_FILL, BLUE),
-  //         EditConstraint(L_FILL, INTENSITY), EditConstraint(L_FILL, POLAR), EditConstraint(L_FILL, AZIMUTH),
-  //         EditConstraint(L_RIM, RED), EditConstraint(L_RIM, GREEN), EditConstraint(L_RIM, BLUE),
-  //         EditConstraint(L_RIM, INTENSITY), EditConstraint(L_RIM, POLAR), EditConstraint(L_RIM, AZIMUTH) } },
-  //{ ALL_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE),
-  //             EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE), 
-  //             EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } },
-  //{ ALL_RGB, { EditConstraint(L_KEY, RED), EditConstraint(L_KEY, GREEN), EditConstraint(L_KEY, BLUE),
-  //             EditConstraint(L_FILL, RED), EditConstraint(L_FILL, GREEN), EditConstraint(L_FILL, BLUE),
-  //             EditConstraint(L_RIM, RED), EditConstraint(L_RIM, GREEN), EditConstraint(L_RIM, BLUE) } },
-  //{ ALL_SAT, { EditConstraint(L_KEY, SAT), EditConstraint(L_FILL, SAT), EditConstraint(L_RIM, SAT) } },
-  //{ ALL_HUE, { EditConstraint(L_KEY, HUE), EditConstraint(L_FILL, HUE), EditConstraint(L_RIM, HUE) } },
-  //{ ALL_INTENS, { EditConstraint(L_KEY, INTENSITY), EditConstraint(L_FILL, INTENSITY), EditConstraint(L_RIM, INTENSITY) } },
-  //{ ALL_POS, { EditConstraint(L_KEY, POLAR), EditConstraint(L_FILL, POLAR), EditConstraint(L_RIM, POLAR),
-  //             EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_FILL, AZIMUTH), EditConstraint(L_RIM, AZIMUTH) } },
-  //{ KEY_HUE, { EditConstraint(L_KEY, HUE) } },
-  //{ FILL_HUE, { EditConstraint(L_FILL, HUE) } },
-  //{ RIM_HUE, { EditConstraint(L_RIM, HUE) } },
-  { KEY_INTENS, { EditConstraint(L_KEY, INTENSITY) } }
-  //{ FILL_INTENS, { EditConstraint(L_FILL, INTENSITY) } },
-  //{ RIM_INTENS, { EditConstraint(L_RIM, INTENSITY) } },
-  //{ KEY_POS, { EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_KEY, POLAR) } },
-  //{ FILL_POS, { EditConstraint(L_FILL, AZIMUTH), EditConstraint(L_FILL, POLAR) } },
-  //{ RIM_POS, { EditConstraint(L_RIM, AZIMUTH), EditConstraint(L_RIM, POLAR) } },
-  //{ KEY_SAT, { EditConstraint(L_KEY, SAT) } },
-  //{ FILL_SAT, { EditConstraint(L_FILL, SAT) } },
-  //{ RIM_SAT, { EditConstraint(L_RIM, SAT) } },
-  //{ KEY_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE) } }
-  //{ FILL_HSV, { EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE) } },
-  //{ RIM_HSV, { EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } },
-  //{ KEY_FILL_INTENS, { EditConstraint(L_KEY, INTENSITY), EditConstraint(L_FILL, INTENSITY) } },
-  //{ KEY_RIM_INTENS, { EditConstraint(L_KEY, INTENSITY), EditConstraint(L_RIM, INTENSITY) } },
-  //{ FILL_RIM_INTENS, { EditConstraint(L_FILL, INTENSITY), EditConstraint(L_RIM, INTENSITY) } },
-  //{ KEY_FILL_HUE, { EditConstraint(L_KEY, HUE), EditConstraint(L_FILL, HUE) } },
-  //{ KEY_FILL_SAT, { EditConstraint(L_KEY, SAT), EditConstraint(L_FILL, SAT) } },
-  //{ KEY_FILL_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE),
-  //                  EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE) } },
-  //{ KEY_FILL_POS, { EditConstraint(L_KEY, POLAR), EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_FILL, POLAR), EditConstraint(L_FILL, POLAR) } },
-  //{ KEY_RIM_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE),
-  //                 EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } },
-  //{ KEY_RIM_POS, { EditConstraint(L_KEY, POLAR), EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_RIM, POLAR), EditConstraint(L_RIM, AZIMUTH) } },
-  //{ KEY_RGB, { EditConstraint(L_KEY, RED), EditConstraint(L_KEY, GREEN), EditConstraint(L_KEY, BLUE) } },
-  //{ FILL_RGB, { EditConstraint(L_FILL, RED), EditConstraint(L_FILL, GREEN), EditConstraint(L_FILL, BLUE) } },
-  //{ RIM_RGB, { EditConstraint(L_RIM, RED), EditConstraint(L_RIM, GREEN), EditConstraint(L_RIM, BLUE) } },
-  //{ KEY_POS_FILL_POS_MATCH, { EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_KEY, POLAR) } },
-  //{ KEY_INTENS_RIM_CONTRAST_MATCH, { EditConstraint(L_KEY, INTENSITY) } },
-  //{ KEY_INTENS_FILL_CONTRAST_MATCH, { EditConstraint(L_KEY, INTENSITY) } },
-  //{ KEY_HUE_FILL_HUE_MATCH, { EditConstraint(L_KEY, HUE) } },
-  //{ KEY_HUE_FILL_RIM_HUE_MATCH, { EditConstraint(L_KEY, HUE) } }
+  { ALL, { EditConstraint(L_KEY, RED), EditConstraint(L_KEY, GREEN), EditConstraint(L_KEY, BLUE),
+           EditConstraint(L_KEY, INTENSITY), EditConstraint(L_KEY, POLAR), EditConstraint(L_KEY, AZIMUTH),
+           EditConstraint(L_FILL, RED), EditConstraint(L_FILL, GREEN), EditConstraint(L_FILL, BLUE),
+           EditConstraint(L_FILL, INTENSITY), EditConstraint(L_FILL, POLAR), EditConstraint(L_FILL, AZIMUTH),
+           EditConstraint(L_RIM, RED), EditConstraint(L_RIM, GREEN), EditConstraint(L_RIM, BLUE),
+           EditConstraint(L_RIM, INTENSITY), EditConstraint(L_RIM, POLAR), EditConstraint(L_RIM, AZIMUTH) } },
+  { ALL_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE),
+               EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE), 
+               EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } },
+  { ALL_RGB, { EditConstraint(L_KEY, RED), EditConstraint(L_KEY, GREEN), EditConstraint(L_KEY, BLUE),
+               EditConstraint(L_FILL, RED), EditConstraint(L_FILL, GREEN), EditConstraint(L_FILL, BLUE),
+               EditConstraint(L_RIM, RED), EditConstraint(L_RIM, GREEN), EditConstraint(L_RIM, BLUE) } },
+  { ALL_SAT, { EditConstraint(L_KEY, SAT), EditConstraint(L_FILL, SAT), EditConstraint(L_RIM, SAT) } },
+  { ALL_HUE, { EditConstraint(L_KEY, HUE), EditConstraint(L_FILL, HUE), EditConstraint(L_RIM, HUE) } },
+  { ALL_INTENS, { EditConstraint(L_KEY, INTENSITY), EditConstraint(L_FILL, INTENSITY), EditConstraint(L_RIM, INTENSITY) } },
+  { ALL_POS, { EditConstraint(L_KEY, POLAR), EditConstraint(L_FILL, POLAR), EditConstraint(L_RIM, POLAR),
+               EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_FILL, AZIMUTH), EditConstraint(L_RIM, AZIMUTH) } },
+  { KEY_HUE, { EditConstraint(L_KEY, HUE) } },
+  { FILL_HUE, { EditConstraint(L_FILL, HUE) } },
+  { RIM_HUE, { EditConstraint(L_RIM, HUE) } },
+  { KEY_INTENS, { EditConstraint(L_KEY, INTENSITY) } },
+  { FILL_INTENS, { EditConstraint(L_FILL, INTENSITY) } },
+  { RIM_INTENS, { EditConstraint(L_RIM, INTENSITY) } },
+  { KEY_POS, { EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_KEY, POLAR) } },
+  { FILL_POS, { EditConstraint(L_FILL, AZIMUTH), EditConstraint(L_FILL, POLAR) } },
+  { RIM_POS, { EditConstraint(L_RIM, AZIMUTH), EditConstraint(L_RIM, POLAR) } },
+  { KEY_SAT, { EditConstraint(L_KEY, SAT) } },
+  { FILL_SAT, { EditConstraint(L_FILL, SAT) } },
+  { RIM_SAT, { EditConstraint(L_RIM, SAT) } },
+  { KEY_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE) } },
+  { FILL_HSV, { EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE) } },
+  { RIM_HSV, { EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } },
+  { KEY_FILL_INTENS, { EditConstraint(L_KEY, INTENSITY), EditConstraint(L_FILL, INTENSITY) } }
+  { KEY_RIM_INTENS, { EditConstraint(L_KEY, INTENSITY), EditConstraint(L_RIM, INTENSITY) } },
+  { FILL_RIM_INTENS, { EditConstraint(L_FILL, INTENSITY), EditConstraint(L_RIM, INTENSITY) } },
+  { KEY_FILL_HUE, { EditConstraint(L_KEY, HUE), EditConstraint(L_FILL, HUE) } },
+  { KEY_FILL_SAT, { EditConstraint(L_KEY, SAT), EditConstraint(L_FILL, SAT) } },
+  { KEY_FILL_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE),
+                    EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE) } },
+  { KEY_FILL_POS, { EditConstraint(L_KEY, POLAR), EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_FILL, POLAR), EditConstraint(L_FILL, POLAR) } },
+  { KEY_RIM_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE),
+                   EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } },
+  { KEY_RIM_POS, { EditConstraint(L_KEY, POLAR), EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_RIM, POLAR), EditConstraint(L_RIM, AZIMUTH) } },
+  { KEY_RGB, { EditConstraint(L_KEY, RED), EditConstraint(L_KEY, GREEN), EditConstraint(L_KEY, BLUE) } },
+  { FILL_RGB, { EditConstraint(L_FILL, RED), EditConstraint(L_FILL, GREEN), EditConstraint(L_FILL, BLUE) } },
+  { RIM_RGB, { EditConstraint(L_RIM, RED), EditConstraint(L_RIM, GREEN), EditConstraint(L_RIM, BLUE) } },
+  { KEY_POS_FILL_POS_MATCH, { EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_KEY, POLAR) } },
+  { KEY_INTENS_RIM_CONTRAST_MATCH, { EditConstraint(L_KEY, INTENSITY) } },
+  { KEY_INTENS_FILL_CONTRAST_MATCH, { EditConstraint(L_KEY, INTENSITY) } },
+  { KEY_HUE_FILL_HUE_MATCH, { EditConstraint(L_KEY, HUE) } },
+  { KEY_HUE_FILL_RIM_HUE_MATCH, { EditConstraint(L_KEY, HUE) } }
 };
 
 SearchResult::SearchResult() : _scene (nullptr) { }
@@ -682,11 +683,12 @@ pair<vector<Snapshot*>, int> AttributeSearchThread::doMCMC(EditType t, Snapshot 
 
   // diagnostics
   int accepted = 0;
+  Snapshot* sp = nullptr;
 
   for (int i = 0; i < maxIters; i++) {
     // generate candidate x'
     Eigen::VectorXd xp = x;
-    Snapshot* sp = new Snapshot(*s);
+    sp = new Snapshot(*s);
 
     // displace by gaussian dist
     for (int j = 0; j < xp.size(); j++) {
@@ -716,6 +718,7 @@ pair<vector<Snapshot*>, int> AttributeSearchThread::doMCMC(EditType t, Snapshot 
       }
       // update x
       delete s;
+      s = nullptr;
       x = xp;
       s = sp;
       accepted++;
@@ -723,12 +726,17 @@ pair<vector<Snapshot*>, int> AttributeSearchThread::doMCMC(EditType t, Snapshot 
     else {
       // leave x alone and discard new sample
       delete sp;
+      sp = nullptr;
     }
   }
 
-  // filter, return results
+  if (s != nullptr)
+    delete s;
+  if (s != sp && sp != nullptr)
+    delete sp;
 
-  getRecorder()->log(SYSTEM, "[Debug] " + editTypeToString(t) + " accepted " + String(((float)accepted / (float)maxIters) * 100).toStdString() + "% of proposals");
+  if (saveSamples)
+    getRecorder()->log(SYSTEM, "[Debug] " + editTypeToString(t) + " accepted " + String(((float)accepted / (float)maxIters) * 100).toStdString() + "% of proposals");
 
   return pair<vector<Snapshot*>, int>(results, accepted);
 }

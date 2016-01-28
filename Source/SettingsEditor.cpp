@@ -141,7 +141,7 @@ SettingsEditor::SettingsEditor()
   _settings.addSection("Search Shared", searchComponents);
 
   Array<PropertyComponent*> mcmcComponents;
-  mcmcComponents.add(new SettingsSlider("MCMC Step Size", 0, 100, 0.01));
+  mcmcComponents.add(new SettingsSlider("MCMC Step Size", 0, 0.5, 0.001));
   mcmcComponents.add(new SettingsSlider("MCMC Max Iterations", 1, 1e5, 1));
   _settings.addSection("MCMC Search", mcmcComponents);
 

@@ -161,7 +161,7 @@ GlobalSettings::GlobalSettings()
   _clusterDiffThreshold = 0.025;
   _maxEditIters = 2000;
   _searchMomentum = 0.5;
-  _editStepSize = 2;
+  _editStepSize = 0.002;
   _maxMCMCIters = 1e3;
 }
 
