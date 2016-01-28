@@ -963,18 +963,18 @@ void AttributeSearchThread::setDeviceValue(EditConstraint c, EditType t, double 
   switch (c._param) {
   case INTENSITY:
   {
-    d->setIntensity(val);
+    d->getIntensity()->setValAsPercent(val);
     
     if (c._light == L_KEY) {
       if (t == KEY_INTENS_RIM_CONTRAST_MATCH) {
         Device* rim = getSpecifiedDevice(L_RIM, s);
         double r = rim->getIntensity()->asPercent() / d->getIntensity()->asPercent();
-        rim->setIntensity(val * r);
+        rim->getIntensity()->setValAsPercent(val * r);
       }
       if (t == KEY_INTENS_FILL_CONTRAST_MATCH) {
         Device* fill = getSpecifiedDevice(L_FILL, s);
         double r = fill->getIntensity()->asPercent() / d->getIntensity()->asPercent();
-        fill->setIntensity(val * r);
+        fill->getIntensity()->setValAsPercent(val * r);
       }
     }
     
@@ -982,6 +982,7 @@ void AttributeSearchThread::setDeviceValue(EditConstraint c, EditType t, double 
   }
   case HUE:
   {
+    val *= 360;
     Eigen::Vector3d hsv = d->getColor()->getHSV();
     d->getColor()->setHSV(val, hsv[1], hsv[2]);
 
@@ -1024,11 +1025,11 @@ void AttributeSearchThread::setDeviceValue(EditConstraint c, EditType t, double 
   case POLAR:
   {
     LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("polar");
-    o->setVal(val);
+    o->setValAsPercent(val);
 
     if (c._light == L_KEY && t == KEY_POS_FILL_POS_MATCH) {
       auto fill = getSpecifiedDevice(L_FILL, s);
-      fill->getParam<LumiverseOrientation>("polar")->setVal(-val);
+      fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(-val);
     }
 
     break;
@@ -1036,11 +1037,11 @@ void AttributeSearchThread::setDeviceValue(EditConstraint c, EditType t, double 
   case AZIMUTH:
   {
     LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("azimuth");
-    o->setVal(val);
+    o->setValAsPercent(val);
 
     if (c._light == L_KEY && t == KEY_POS_FILL_POS_MATCH) {
       auto fill = getSpecifiedDevice(L_FILL, s);
-      fill->getParam<LumiverseOrientation>("polar")->setVal(val);
+      fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(val);
     }
 
     break;
@@ -1057,11 +1058,11 @@ double AttributeSearchThread::getDeviceValue(EditConstraint c, Snapshot * s)
 
   switch (c._param) {
   case INTENSITY:
-    return d->getIntensity()->getVal();
+    return d->getIntensity()->asPercent();
   case HUE:
   {
     Eigen::Vector3d hsv = d->getColor()->getHSV();
-    return hsv[0];
+    return hsv[0] / 360.0;
   }
   case SAT:
   {
@@ -1082,12 +1083,12 @@ double AttributeSearchThread::getDeviceValue(EditConstraint c, Snapshot * s)
   case POLAR:
   {
     LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("polar");
-    return o->getVal();
+    return o->asPercent();
   }
   case AZIMUTH:
   {
     LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("azimuth");
-    return o->getVal();
+    return o->asPercent();
   }
   default:
     break;
