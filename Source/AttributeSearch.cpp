@@ -29,10 +29,10 @@ map<EditType, vector<EditConstraint> > editConstraints = {
   //{ ALL_INTENS, { EditConstraint(L_KEY, INTENSITY), EditConstraint(L_FILL, INTENSITY), EditConstraint(L_RIM, INTENSITY) } },
   //{ ALL_POS, { EditConstraint(L_KEY, POLAR), EditConstraint(L_FILL, POLAR), EditConstraint(L_RIM, POLAR),
   //             EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_FILL, AZIMUTH), EditConstraint(L_RIM, AZIMUTH) } },
-  { KEY_HUE, { EditConstraint(L_KEY, HUE) } }
+  //{ KEY_HUE, { EditConstraint(L_KEY, HUE) } },
   //{ FILL_HUE, { EditConstraint(L_FILL, HUE) } },
   //{ RIM_HUE, { EditConstraint(L_RIM, HUE) } },
-  //{ KEY_INTENS, { EditConstraint(L_KEY, INTENSITY) } },
+  { KEY_INTENS, { EditConstraint(L_KEY, INTENSITY) } }
   //{ FILL_INTENS, { EditConstraint(L_FILL, INTENSITY) } },
   //{ RIM_INTENS, { EditConstraint(L_RIM, INTENSITY) } },
   //{ KEY_POS, { EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_KEY, POLAR) } },
@@ -41,7 +41,7 @@ map<EditType, vector<EditConstraint> > editConstraints = {
   //{ KEY_SAT, { EditConstraint(L_KEY, SAT) } },
   //{ FILL_SAT, { EditConstraint(L_FILL, SAT) } },
   //{ RIM_SAT, { EditConstraint(L_RIM, SAT) } },
-  //{ KEY_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE) } },
+  //{ KEY_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE) } }
   //{ FILL_HSV, { EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE) } },
   //{ RIM_HSV, { EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } },
   //{ KEY_FILL_INTENS, { EditConstraint(L_KEY, INTENSITY), EditConstraint(L_FILL, INTENSITY) } },
@@ -623,22 +623,52 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
 }
 
 vector<Snapshot*> AttributeSearchThread::performEditMCMC(EditType t, Snapshot* orig, attrObjFunc f) {
+  // Determine accept parameters
+  double targetAcceptRate = 0.5;  // +/- 5%
+  double sigma = 0.05;
+  while (1) {
+    auto res = doMCMC(t, orig, f, 100, sigma, false);
+    double acceptRate = res.second / 100.0;
+    
+    if (abs(acceptRate - 0.5) <= 0.05) {
+      break;
+    }
+    
+    if (acceptRate > 0.5)
+      sigma -= 0.01;
+    if (acceptRate < 0.5)
+      sigma += 0.01;
+
+    if (sigma <= 0) {
+      // if we can't solve the problem with sigma, for now we'll just set it to default and continue
+      sigma = 0.05;
+      break;
+    }
+  }
+
+  auto res = doMCMC(t, orig, f, getGlobalSettings()->_maxMCMCIters, sigma, true);
+  return res.first;
+}
+
+pair<vector<Snapshot*>, int> AttributeSearchThread::doMCMC(EditType t, Snapshot * start, attrObjFunc f, int iters, double sigma, bool saveSamples)
+{
   // duplicate initial state
-  Snapshot* s = new Snapshot(*orig);
+  Snapshot* s = new Snapshot(*start);
 
   // Set up return list
   vector<Snapshot*> results;
 
   // RNG
-  default_random_engine gen;
-  normal_distribution<double> gdist(0, 2);  // start with sdev 1
+  unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
+  default_random_engine gen(seed1);
+  normal_distribution<double> gdist(0, getGlobalSettings()->_editStepSize);  // start with sdev 2
   uniform_real_distribution<double> udist(0.0, 1.0);
 
   // Constants
   double minEditDist = getGlobalSettings()->_minEditDist;
-  int maxIters = 1e4; // CHANGE TO GLOBAL
+  int maxIters = iters;
   double startVal = f(s);
-  
+
   // Set up relevant feature vector
   int vecSize = editConstraints[t].size();
   Eigen::VectorXd x;
@@ -649,6 +679,9 @@ vector<Snapshot*> AttributeSearchThread::performEditMCMC(EditType t, Snapshot* o
     x[i] = getDeviceValue(c, s);
     i++;
   }
+
+  // diagnostics
+  int accepted = 0;
 
   for (int i = 0; i < maxIters; i++) {
     // generate candidate x'
@@ -670,13 +703,14 @@ vector<Snapshot*> AttributeSearchThread::performEditMCMC(EditType t, Snapshot* o
     // need way to bias results towards correct answers, rescaling or resampling a may work
     // currently looking at ways to use normal distribution to bias results based on how far away is from std dev, maybe
     if (a < 1) {
-      // run through normal distribution
-      double cdf = 0.5 * erfc(3.21412 * (0.5 - a));
+      // Rescale a based on normal distribution with a std dev decided on by
+      // tuning (or in this case, compeltely arbitrarily for now)
+      a = 1 - (0.5 * erfc(diff / (sqrt(2) * sigma)) - 0.5 * erfc(diff / (sqrt(2) * -sigma)));
     }
 
     // accept if a >= 1 or with probability a
     if (a >= 1 || udist(gen) <= a) {
-      if (fxp > startVal && abs(fxp - startVal) > minEditDist) {
+      if (saveSamples && fxp > startVal && abs(fxp - startVal) > minEditDist) {
         // save sample in list
         results.push_back(new Snapshot(*sp));
       }
@@ -684,6 +718,7 @@ vector<Snapshot*> AttributeSearchThread::performEditMCMC(EditType t, Snapshot* o
       delete s;
       x = xp;
       s = sp;
+      accepted++;
     }
     else {
       // leave x alone and discard new sample
@@ -693,7 +728,9 @@ vector<Snapshot*> AttributeSearchThread::performEditMCMC(EditType t, Snapshot* o
 
   // filter, return results
 
-  return results;
+  getRecorder()->log(SYSTEM, "[Debug] " + editTypeToString(t) + " accepted " + String(((float)accepted / (float)maxIters) * 100).toStdString() + "% of proposals");
+
+  return pair<vector<Snapshot*>, int>(results, accepted);
 }
 
 double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapshot* s, attrObjFunc f)

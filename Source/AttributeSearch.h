@@ -171,6 +171,10 @@ private:
   // Given a current configuration, use MCMC to perform an edit on the configuration
   vector<Snapshot*> performEditMCMC(EditType t, Snapshot* orig, attrObjFunc f);
 
+  // Do MCMC with the given parameters. Returns the list of samples and number of accepted samples.
+  // Samples list will be empty if saveSamples is false.
+  pair<vector<Snapshot*>, int> doMCMC(EditType t, Snapshot* start, attrObjFunc f, int iters, double sigma, bool saveSamples);
+
   // computes the numeric derivative for the particular lighting parameter and
   // specified attribute
   double numericDeriv(EditConstraint c, EditType t, Snapshot* s, attrObjFunc f);

@@ -70,6 +70,10 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_maxEditIters = (int)newValue;
   else if (_id == "GB - Momentum")
     getGlobalSettings()->_searchMomentum = newValue;
+  else if (_id == "MCMC Step Size")
+    getGlobalSettings()->_editStepSize = newValue;
+  else if (_id == "MCMC Max Iterations")
+    getGlobalSettings()->_maxMCMCIters = (int)newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -110,6 +114,10 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_maxEditIters;
   else if (_id == "GD - Momentum")
     return getGlobalSettings()->_searchMomentum;
+  else if (_id == "MCMC Step Size")
+    return getGlobalSettings()->_editStepSize;
+  else if (_id == "MCMC Max Iterations")
+    return getGlobalSettings()->_maxMCMCIters;
 }
 
 void SettingsSlider::sliderValueChanged(Slider * s)
@@ -128,13 +136,21 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Minimum Edit Distance", 0, 100, 0.01));
   searchComponents.add(new SettingsSlider("Scenes per Edit", 1, 100, 1));
   searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1, 1e-7));
-  searchComponents.add(new SettingsSlider("GD - Tolerance", 0, 1e-2, 1e-7));
-  searchComponents.add(new SettingsSlider("GD - Gamma", 0, 25, 1e-3));
   searchComponents.add(new SettingsSlider("Cluster Distance Threshold", 1e-3, 5, 1e-3));
   searchComponents.add(new SettingsSlider("Result Difference Threshold", 1e-3, 5, 1e-3));
-  searchComponents.add(new SettingsSlider("Max Iterations", 1, 10000, 1));
-  searchComponents.add(new SettingsSlider("GD - Momentum", 1e-3, 1, 1e-3));
-  _settings.addSection("Search", searchComponents);
+  _settings.addSection("Search Shared", searchComponents);
+
+  Array<PropertyComponent*> mcmcComponents;
+  mcmcComponents.add(new SettingsSlider("MCMC Step Size", 0, 100, 0.01));
+  mcmcComponents.add(new SettingsSlider("MCMC Max Iterations", 1, 1e5, 1));
+  _settings.addSection("MCMC Search", mcmcComponents);
+
+  Array<PropertyComponent*> gdSearchComponents;
+  gdSearchComponents.add(new SettingsSlider("GD - Tolerance", 0, 1e-2, 1e-7));
+  gdSearchComponents.add(new SettingsSlider("GD - Gamma", 0, 25, 1e-3));  
+  gdSearchComponents.add(new SettingsSlider("GD - Momentum", 1e-3, 1, 1e-3));
+  gdSearchComponents.add(new SettingsSlider("Max Iterations", 1, 10000, 1));
+  _settings.addSection("Gradient Descent Search", gdSearchComponents);
 
   Array<PropertyComponent*> renderComponents;
   _width = new SettingsSlider("Frame Width", 1, 3840, 1);

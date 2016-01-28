@@ -46,6 +46,8 @@ public:
   double _clusterDiffThreshold; // Used to filter out results that are too close to each other in search
   int _maxEditIters;            // In case the search gets hung up on something
   double _searchMomentum;       // For momentum gradient descent, the alpha parameter controlling the strength of the backprop
+  double _editStepSize;         // MCMC: Std dev of gaussian sample 
+  int _maxMCMCIters;            // MCMC: Max number of iterations
 
   map<string, string> _commandLineArgs;
 };
