@@ -55,6 +55,12 @@ void AttributeSearchResult::setImage(Image img)
   _render = img;
 }
 
+void AttributeSearchResult::clearSearchResult()
+{
+  _result = nullptr;
+  _clusterElems.clear();
+}
+
 void AttributeSearchResult::mouseDown(const MouseEvent & event)
 {
   if (event.mods.isRightButtonDown()) {

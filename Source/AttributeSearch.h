@@ -126,7 +126,7 @@ string editTypeToString(EditType t);
 // mean distance from every scene to the cluster center until it is below
 // a specified threshold (global setting)
 // Returns the cluster centers as vectors
-vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results);
+vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results, int c = -1);
 
 // Filters out scenes that are too similar to each other.
 // - Sorts scenes into clusters

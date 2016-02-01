@@ -74,6 +74,8 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_editStepSize = newValue;
   else if (_id == "MCMC Max Iterations")
     getGlobalSettings()->_maxMCMCIters = (int)newValue;
+  else if (_id == "Number of Clusters")
+    getGlobalSettings()->_numDisplayClusters = (int)newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -118,6 +120,8 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_editStepSize;
   else if (_id == "MCMC Max Iterations")
     return getGlobalSettings()->_maxMCMCIters;
+  else if (_id == "Number of Clusters")
+    return getGlobalSettings()->_numDisplayClusters;
 }
 
 void SettingsSlider::sliderValueChanged(Slider * s)
@@ -132,6 +136,7 @@ void SettingsSlider::sliderValueChanged(Slider * s)
 SettingsEditor::SettingsEditor()
 {
   Array<PropertyComponent*> searchComponents;
+  searchComponents.add(new SettingsSlider("Number of Clusters", 1, 25, 1));
   searchComponents.add(new SettingsSlider("Edit Depth", 1, 10, 1));
   searchComponents.add(new SettingsSlider("Minimum Edit Distance", 0, 100, 0.01));
   searchComponents.add(new SettingsSlider("Scenes per Edit", 1, 100, 1));

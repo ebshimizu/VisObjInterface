@@ -43,6 +43,9 @@ public:
   // Display a new set of results in the container
   void display(vector<SearchResult*> results);
 
+  // Recluster results
+  void recluster();
+
   // Sets the width of the component (height is variable)
   void setWidth(int width);
 
@@ -72,6 +75,7 @@ public:
   void resized();
 
   void display(vector<SearchResult*> results);
+  void redisplay();
 
 private:
   Viewport* _viewer;

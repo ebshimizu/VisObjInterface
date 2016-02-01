@@ -33,6 +33,11 @@ public:
   void setImage(Image img);
 
   SearchResult* getSearchResult() { return _result; }
+  Array<AttributeSearchResult*> getClusterElements() { return _clusterElems; }
+ 
+  // Removes references to SearchResult objects in this GUI element. 
+  // Note that this can cause memory leaks if used improperly
+  void clearSearchResult();
 
   // Clicking does things.
   virtual void mouseDown(const MouseEvent& event);

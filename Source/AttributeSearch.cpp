@@ -189,12 +189,8 @@ string editTypeToString(EditType t) {
   }
 }
 
-vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results)
+vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results, int c)
 {
-  // Make sure there's at least two things in here
-  if (results.size() < 2)
-    return vector<Eigen::VectorXd>();
-
   // kmeans setup
   dlib::kcentroid<kernelType> kkmeansKernel(kernelType(0.1), 0.01);
   dlib::kkmeans<kernelType> k(kkmeansKernel);
@@ -205,8 +201,13 @@ vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results)
   }
   vector<sampleType> centers;
 
-  // Start at 2
-  int numCenters = 2;
+  // Start at or number of clusters specified by centers
+  int numCenters = (c < 0) ? 2 : c;
+
+  // Make sure user gave us something reasonable for centers
+  if (results.size() < numCenters)
+    return vector<Eigen::VectorXd>();
+
   double msd = INFINITY;
 
   while (msd > getGlobalSettings()->_clusterDistThreshold) {
@@ -243,6 +244,10 @@ vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results)
 
     msd = sumDist / results.size();
     numCenters++;
+
+    // Immediately return if user specified an exact number of clusters
+    if (c < 0)
+      break;
   }
 
   // convert centers to eigen representation
@@ -451,8 +456,16 @@ void AttributeSearchThread::run()
     auto filtered = filterResults(newResults, centers);
     _results = filtered;
 
-    if (threadShouldExit())
+    if (threadShouldExit()) {
+      // delete results before cancelling search
+      for (auto r : _results)
+      {
+        delete r;
+      }
+      _results.clear();
+      
       return;
+    }
   }
 
   setProgress(1);
@@ -476,11 +489,11 @@ vector<SearchResult*> AttributeSearchThread::runSingleLevelSearch(vector<SearchR
     double sum = 0;
     for (const auto& kvp : _active) {
       if (kvp.second->getStatus() == A_LESS)
-        sum -= kvp.second->evaluateScene(s->getRigData());
-      else if (kvp.second->getStatus() == A_MORE)
         sum += kvp.second->evaluateScene(s->getRigData());
+      else if (kvp.second->getStatus() == A_MORE)
+        sum -= kvp.second->evaluateScene(s->getRigData());
       else if (kvp.second->getStatus() == A_EQUAL)
-        sum -= pow(kvp.second->evaluateScene(s->getRigData()) - kvp.second->evaluateScene(_original->getRigData()), 2);
+        sum += pow(kvp.second->evaluateScene(s->getRigData()) - kvp.second->evaluateScene(_original->getRigData()), 2);
     }
 
     return sum;
@@ -699,20 +712,20 @@ pair<vector<Snapshot*>, int> AttributeSearchThread::doMCMC(EditType t, Snapshot 
     // check for acceptance
     double fx = f(s);
     double fxp = f(sp);
-    double diff = fxp - fx;
-    double a = fxp / fx;
+    double diff = abs(fxp - fx);
+    double a = 0;
 
-    // need way to bias results towards correct answers, rescaling or resampling a may work
-    // currently looking at ways to use normal distribution to bias results based on how far away is from std dev, maybe
-    if (a < 1) {
+    if (fxp < fx)
+      a = 1;
+    else {
       // Rescale a based on normal distribution with a std dev decided on by
       // tuning (or in this case, compeltely arbitrarily for now)
-      a = 1 - (0.5 * erfc(diff / (sqrt(2) * sigma)) - 0.5 * erfc(diff / (sqrt(2) * -sigma)));
+      a = 1 - (0.5 * erfc(-diff / (sqrt(2) * sigma)) - 0.5 * erfc(-diff / (sqrt(2) * -sigma)));
     }
 
     // accept if a >= 1 or with probability a
     if (a >= 1 || udist(gen) <= a) {
-      if (saveSamples && fxp > startVal && abs(fxp - startVal) > minEditDist) {
+      if (saveSamples && fxp < startVal && abs(fxp - startVal) > minEditDist) {
         // save sample in list
         results.push_back(new Snapshot(*sp));
       }

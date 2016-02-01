@@ -157,12 +157,13 @@ GlobalSettings::GlobalSettings()
   _renderHeight = 0;
   _thumbnailRenderScale = 0.25;
   _editDepth = 1;
-  _clusterDistThreshold = 0.1;
-  _clusterDiffThreshold = 0.025;
+  _clusterDistThreshold = 0.3;
+  _clusterDiffThreshold = 0.15;
   _maxEditIters = 2000;
   _searchMomentum = 0.5;
   _editStepSize = 0.002;
   _maxMCMCIters = 1e3;
+  _numDisplayClusters = 3;
 }
 
 GlobalSettings::~GlobalSettings()

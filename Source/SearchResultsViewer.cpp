@@ -139,6 +139,53 @@ void SearchResultsContainer::display(vector<SearchResult*> results)
   (new SearchResultsRenderer(renderBatch))->runThread();
 }
 
+void SearchResultsContainer::recluster()
+{
+  // Retrieve results from containers
+  vector<SearchResult*> results;
+  vector<AttributeSearchResult*> resultContainers;
+
+  for (auto r : _results) {
+    auto elems = r->getClusterElements();
+    for (auto e : elems) {
+      results.push_back(e->getSearchResult());
+      resultContainers.push_back(e);
+    }
+    r->clearSearchResult();
+    delete r; // Delete the old cluster centers
+  }
+
+  // Remove things from results list
+  _results.clear();
+
+  // Find clusters
+  vector<Eigen::VectorXd> centers = clusterResults(results, getGlobalSettings()->_numDisplayClusters);
+  Array<AttributeSearchResult*> renderBatch;
+
+  // This time we probably only need to render the cluster centers again
+  for (auto& c : centers) {
+    SearchResult* s = new SearchResult();
+    s->_scene = vectorToSnapshot(c);
+    s->_editHistory.add(CLUSTER_CENTER);
+
+    AttributeSearchResult* cluster = new AttributeSearchResult(s);
+
+    addAndMakeVisible(cluster);
+    _results.add(cluster);
+    renderBatch.add(cluster);
+  }
+
+  // Reassign results into the proper clusters.
+  for (int i = 0; i < results.size(); i++) {
+    _results[results[i]->_cluster]->addClusterElement(resultContainers[i]);
+
+    // Do not need to re-render
+  }
+
+  // Render cluster centers
+  (new SearchResultsRenderer(renderBatch))->runThread();
+}
+
 void SearchResultsContainer::setWidth(int width)
 {
   _width = width;
@@ -187,6 +234,13 @@ void SearchResultsViewer::resized()
 void SearchResultsViewer::display(vector<SearchResult*> results)
 {
   _container->display(results);
+  _container->resized();
+  resized();
+}
+
+void SearchResultsViewer::redisplay()
+{
+  _container->recluster();
   _container->resized();
   resized();
 }

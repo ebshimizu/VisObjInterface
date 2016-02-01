@@ -49,6 +49,8 @@ public:
   double _editStepSize;         // MCMC: Std dev of gaussian sample 
   int _maxMCMCIters;            // MCMC: Max number of iterations
 
+  int _numDisplayClusters;      // Number of clusters to display in the results
+
   map<string, string> _commandLineArgs;
 };
 
@@ -99,7 +101,8 @@ enum command {
   SETTINGS = 0x4000,
 
   // Explore
-  SEARCH = 0x5000
+  SEARCH = 0x5000,
+  RECLUSTER = 0x5001
 
   // Window
 };
