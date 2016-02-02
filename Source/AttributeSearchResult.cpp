@@ -27,6 +27,7 @@ AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(res
     tt = tt + editTypeToString(t) + " ";
   }
   setTooltip(tt);
+  _isShowingCluster = false;
 }
 
 AttributeSearchResult::~AttributeSearchResult()
@@ -41,6 +42,13 @@ AttributeSearchResult::~AttributeSearchResult()
 
 void AttributeSearchResult::paint (Graphics& g)
 {
+  if (_isShowingCluster) {
+    g.fillAll(Colours::yellow);
+  }
+  else {
+    g.fillAll(Colour(0xff333333));
+  }
+
   auto lbounds = getLocalBounds();
   lbounds.reduce(2, 2);
   g.drawImageWithin(_render, lbounds.getX(), lbounds.getY(), lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
@@ -108,16 +116,33 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
       }
     }
   }
-  if (event.mods.isLeftButtonDown()) {
-    if (_clusterElems.size() > 0) {
-      AttributeSearchCluster* cluster = new AttributeSearchCluster(_clusterElems);
-      Viewport* v = new Viewport();
-      v->setViewedComponent(cluster, true);
+  //if (event.mods.isLeftButtonDown()) {
+  //  if (_clusterElems.size() > 0) {
+  //    AttributeSearchCluster* cluster = new AttributeSearchCluster(_clusterElems);
+  //    Viewport* v = new Viewport();
+  //    v->setViewedComponent(cluster, true);
 
-      cluster->setWidth(450);
-      v->setBounds(0, 0, 450, 300);
-      cluster->setWidth(v->getMaximumVisibleWidth());
-      CallOutBox& cb = CallOutBox::launchAsynchronously(v, getScreenBounds(), nullptr);
+  //    cluster->setWidth(450);
+  //    v->setBounds(0, 0, 450, 300);
+  //    cluster->setWidth(v->getMaximumVisibleWidth());
+  //    CallOutBox& cb = CallOutBox::launchAsynchronously(v, getScreenBounds(), nullptr);
+  //  }
+  //}
+}
+
+void AttributeSearchResult::mouseEnter(const MouseEvent & event)
+{
+  // when the mouse enters one of these components, we want to display the cluster contents
+  // (which can be displayed in an AttributeSearchCluster object) in the bottom half
+  // of the search results window
+  if (_clusterElems.size() > 0) {
+    AttributeSearchCluster* cluster = new AttributeSearchCluster(_clusterElems);
+
+    // We have to reach all the way up to the main component to do this
+    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+    if (mc != nullptr) {
+      mc->setBottomSearchComponent(cluster, this);
     }
   }
 }
@@ -159,28 +184,18 @@ void AttributeSearchCluster::paint(Graphics & g)
 void AttributeSearchCluster::resized()
 {
   auto lbounds = getLocalBounds();
-  lbounds.reduce(1, 1);
+  int elemHeight = lbounds.getHeight();
+  int elemWidth = elemHeight * (16.0 / 9.0);
 
-  int elemWidth = lbounds.getWidth() / _elemsPerRow;
-  int rows = ceil((_elems.size() / (float)_elemsPerRow));
-  int elemHeight = lbounds.getHeight() / rows;
-
-  for (int r = 0; r < rows; r++) {
-    auto rbounds = lbounds.removeFromTop(elemHeight);
-    for (int c = 0; c < _elemsPerRow; c++) {
-      if (r * _elemsPerRow + c >= _elems.size())
-        break;
-
-      _elems[r * _elemsPerRow + c]->setBounds(rbounds.removeFromLeft(elemWidth).reduced(1));
-    }
+  for (int i = 0; i < _elems.size(); i++) {
+    _elems[i]->setBounds(lbounds.removeFromLeft(elemWidth).reduced(1));
   }
 }
 
-void AttributeSearchCluster::setWidth(int width)
+void AttributeSearchCluster::setHeight(int height)
 {
-  int rows = (int)(size(_elems) / _elemsPerRow) + 1;
-  int elemWidth = width /_elemsPerRow;
-  int elemHeight = elemWidth * (9.0 / 16.0);
-  int height = rows * elemHeight;
+  int elemWidth = height * (16.0 / 9.0);
+  int elemHeight = height;
+  int width = elemWidth * _elems.size();
   setBounds(0, 0, width, height);
 }

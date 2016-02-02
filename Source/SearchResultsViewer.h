@@ -46,12 +46,12 @@ public:
   // Recluster results
   void recluster();
 
-  // Sets the width of the component (height is variable)
-  void setWidth(int width);
+  // Update the width of the component
+  void setHeight(int height);
+
+  void markDisplayedCluster(AttributeSearchResult* c);
 
 private:
-  int _resultsPerRow = 6;
-
   int _width;
   int _height;
 
@@ -77,9 +77,13 @@ public:
   void display(vector<SearchResult*> results);
   void redisplay();
 
+  void setBotComponent(Component* c, Component* source);
+
 private:
   Viewport* _viewer;
+  Viewport* _detailViewer;
   SearchResultsContainer* _container;
+  AttributeSearchCluster* _displayedCluster;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SearchResultsViewer)
 };

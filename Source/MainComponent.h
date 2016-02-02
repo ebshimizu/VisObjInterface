@@ -47,6 +47,10 @@ public:
   // - Performs a number of searches using particular sets of constraints (edits)
   // - Groups results (if any) and presents them to the user
   void search();
+
+  // Typically called from an AttributeSearchResult to place results in the bottom part
+  // of the search results viewer
+  void setBottomSearchComponent(Component* c, Component* source);
 private:
   // Open a Lumiverse file
   void openRig();

@@ -41,9 +41,13 @@ public:
 
   // Clicking does things.
   virtual void mouseDown(const MouseEvent& event);
+  virtual void mouseEnter(const MouseEvent& event);
 
   void setClusterElements(Array<AttributeSearchResult*> elems);
   void addClusterElement(AttributeSearchResult* elem);
+
+  // Indicates if the result is displaying its current cluster contents
+  bool _isShowingCluster;
 
 private:
   // Search result object from the attribute search
@@ -69,12 +73,10 @@ public:
   void paint(Graphics& g);
   void resized();
 
-  void setWidth(int width);
+  void setHeight(int height);
 
 private:
   Array<AttributeSearchResult*> _elems;
-
-  int _elemsPerRow = 2;
 };
 
 #endif  // ATTRIBUTESEARCHRESULT_H_INCLUDED

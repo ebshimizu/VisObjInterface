@@ -92,15 +92,15 @@ void SearchResultsContainer::paint(Graphics & g)
 
 void SearchResultsContainer::resized()
 {
-  int elemWidth = _width / _resultsPerRow;
-  int elemHeight = elemWidth * (9.0 / 16.0);
+  if (size(_results) == 0)
+    return;
+
+  int elemWidth = _width / size(_results);
+  int elemHeight = _height;
 
   int i = 0;
   for (const auto& result : _results) {
-    int r = i / _resultsPerRow;
-    int c = i % _resultsPerRow;
-
-    result->setBounds(c * elemWidth, r * elemHeight, elemWidth, elemHeight);
+    result->setBounds(i * elemWidth, 0, elemWidth, elemHeight);
     i++;
   }
 }
@@ -190,14 +190,25 @@ void SearchResultsContainer::recluster()
   (new SearchResultsRenderer(renderBatch))->runThread();
 }
 
-void SearchResultsContainer::setWidth(int width)
+void SearchResultsContainer::setHeight(int height)
 {
-  _width = width;
-  int rows = (int)(size(_results) / _resultsPerRow) + 1;
-  int elemWidth = _width / _resultsPerRow;
-  int elemHeight = elemWidth * (9.0 / 16.0);
-  _height = rows * elemHeight;
+  _height = height;
+  int elemWidth = height * (16.0 / 9.0);
+  int elemHeight = height;
+  _width = elemWidth * size(_results);
   setBounds(0, 0, _width, _height);
+}
+
+void SearchResultsContainer::markDisplayedCluster(AttributeSearchResult * c)
+{
+  for (auto a : _results) {
+    if (c == a) {
+      a->_isShowingCluster = true;
+    }
+    else {
+      a->_isShowingCluster = false;
+    }
+  }
 }
 
 //==============================================================================
@@ -207,12 +218,18 @@ SearchResultsViewer::SearchResultsViewer()
   _viewer = new Viewport();
   _viewer->setViewedComponent(_container);
   addAndMakeVisible(_viewer);
+
+  _displayedCluster = nullptr;
+  _detailViewer = new Viewport();
+  addAndMakeVisible(_detailViewer);
 }
 
 SearchResultsViewer::~SearchResultsViewer()
 {
   delete _container;
   delete _viewer;
+  delete _displayedCluster;
+  delete _detailViewer;
 }
 
 void SearchResultsViewer::paint (Graphics& g)
@@ -229,10 +246,15 @@ void SearchResultsViewer::paint (Graphics& g)
 
 void SearchResultsViewer::resized()
 {
-  auto bounds = getLocalBounds();
+  auto lbounds = getLocalBounds();
+  int halfBounds = lbounds.getHeight() / 2;
 
-  _viewer->setBounds(bounds);
-  _container->setWidth(_viewer->getMaximumVisibleWidth());
+  _viewer->setBounds(lbounds.removeFromTop(halfBounds));
+  _container->setHeight(halfBounds - 20);
+
+  _detailViewer->setBounds(lbounds);
+  if (_displayedCluster != nullptr)
+    _displayedCluster->setHeight(lbounds.getHeight() - 20); // magic numbers are bad but eh
 }
 
 void SearchResultsViewer::display(vector<SearchResult*> results)
@@ -247,4 +269,20 @@ void SearchResultsViewer::redisplay()
   _container->recluster();
   _container->resized();
   resized();
+}
+
+void SearchResultsViewer::setBotComponent(Component * c, Component* source)
+{
+  auto cl = dynamic_cast<AttributeSearchCluster*>(c);
+  auto s = dynamic_cast<AttributeSearchResult*>(source);
+  if (cl != nullptr) {
+    _displayedCluster = cl;
+    _detailViewer->setViewedComponent(_displayedCluster, true);
+
+    // Mark the triggering component so it can outline itself
+    _container->markDisplayedCluster(s);
+
+    resized();
+    repaint();
+  }
 }
