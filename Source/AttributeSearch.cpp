@@ -389,8 +389,9 @@ void filterResults(vector<Eigen::VectorXd>& results, double t)
   // starting at the first element
   for (auto it = results.begin(); it != results.end(); it++) {
     // See how close all other elements are
-    for (auto it2 = results.end(); it2 != results.begin(); ) {
+    for (auto it2 = results.begin(); it2 != results.end(); ) {
       if (it == it2) {
+        it2++;
         continue;
       }
       
