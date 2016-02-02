@@ -72,7 +72,9 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
     const int result = m.show();
 
     if (result == 1) {
-      _result->_scene->loadRig(getRig());
+      Snapshot* s = vectorToSnapshot(_result->_scene);
+      s->loadRig(getRig());
+      delete s;
       MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
       if (mc != nullptr) {
@@ -81,7 +83,9 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
       }
     }
     else if (result == 2) {
-      _result->_scene->loadRig(getRig());
+      Snapshot* s = vectorToSnapshot(_result->_scene);
+      s->loadRig(getRig());
+      delete s;
 
       MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
@@ -92,7 +96,9 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
       }
     }
     else if (result == 3) {
-      _result->_scene->loadRig(getRig());
+      Snapshot* s = vectorToSnapshot(_result->_scene);
+      s->loadRig(getRig());
+      delete s;
       MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
       if (mc != nullptr) {

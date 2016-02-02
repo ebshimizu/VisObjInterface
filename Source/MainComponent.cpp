@@ -82,7 +82,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
   // Add new commands to handle here.
   const CommandID ids[] = {
     command::OPEN, command::REFRESH_PARAMS, command::ARNOLD_RENDER, command::SETTINGS,
-    command::SEARCH, command::REFRESH_ATTR, command::SAVE, command::SAVE_AS
+    command::SEARCH, command::REFRESH_ATTR, command::SAVE, command::SAVE_AS, command::RECLUSTER
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -121,6 +121,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Save As...", "Save rig file using different name", "File", 0);
     result.addDefaultKeypress('s', ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
     break;
+  case command::RECLUSTER:
+    result.setInfo("Recluster", "Recluster results based on uuser settings", "Explore", 0);
+    break;
   default:
     return;
   }
@@ -152,6 +155,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::SAVE_AS:
     saveAs();
+    break;
+  case command::RECLUSTER:
+    _search->redisplay();
     break;
   default:
     return false;

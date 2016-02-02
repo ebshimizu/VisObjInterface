@@ -32,7 +32,7 @@ public:
 
   // This function does a tiny preprocess step in identifying the key, fill, and
   // rim lights before calling the subclass-defined objective function.
-	double evaluateScene(map<string, Device*> devices);
+	double evaluateScene(map<string, Device*>& devices);
 
 protected:
   // This function evaluates the current scene and returns a numeric value

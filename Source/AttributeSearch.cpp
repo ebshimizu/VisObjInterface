@@ -66,12 +66,7 @@ map<EditType, vector<EditConstraint> > editConstraints = {
   { KEY_HUE_FILL_RIM_HUE_MATCH, { EditConstraint(L_KEY, HUE) } }
 };
 
-SearchResult::SearchResult() : _scene (nullptr) { }
-
-SearchResult::SearchResult(Snapshot * s, Array<EditType> eh, map<string, double> av) :
-  _scene(s), _editHistory(eh), _attrVals(av)
-{
-}
+SearchResult::SearchResult() { }
 
 SearchResult::SearchResult(const SearchResult & other) :
   _scene(other._scene), _editHistory(other._editHistory), _attrVals(other._attrVals)
@@ -79,8 +74,6 @@ SearchResult::SearchResult(const SearchResult & other) :
 }
 
 SearchResult::~SearchResult() {
-  if (_scene != nullptr)
-    delete _scene;
 }
 
 
@@ -197,7 +190,7 @@ vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results, int c)
 
   vector<sampleType> samples;
   for (auto result : results) {
-    samples.push_back(dlib::mat(snapshotToVector(result->_scene)));
+    samples.push_back(dlib::mat(result->_scene));
   }
   vector<sampleType> centers;
 
@@ -215,7 +208,7 @@ vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results, int c)
       vector<Eigen::VectorXd> clusterCenters;
       int i = 0;
       for (auto c : results) {
-        clusterCenters.push_back(snapshotToVector(c->_scene));
+        clusterCenters.push_back(c->_scene);
         c->_cluster = i;
         i++;
       }
@@ -236,7 +229,7 @@ vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results, int c)
     for (int i = 0; i < results.size(); i++) {
       unsigned long center = dlib::nearest_center(centers, samples[i]);
       results[i]->_cluster = center;
-      
+
       // get the center and compute the distance
       auto centroid = centers[center];
       sumDist += length(centroid - samples[i]);
@@ -246,7 +239,82 @@ vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results, int c)
     numCenters++;
 
     // Immediately return if user specified an exact number of clusters
-    if (c < 0)
+    if (c > 0)
+      break;
+  }
+
+  // convert centers to eigen representation
+  vector<Eigen::VectorXd> clusterCenters;
+  for (auto c : centers)
+  {
+    Eigen::VectorXd eCenter;
+    eCenter.resize(c.nr());
+
+    for (int i = 0; i < c.nr(); i++) {
+      eCenter[i] = c(i);
+    }
+
+    clusterCenters.push_back(eCenter);
+  }
+
+  return clusterCenters;
+}
+
+vector<Eigen::VectorXd> clusterResults(vector<Eigen::VectorXd> results, int c) {
+  // kmeans setup
+  dlib::kcentroid<kernelType> kkmeansKernel(kernelType(0.1), 0.01);
+  dlib::kkmeans<kernelType> k(kkmeansKernel);
+
+  vector<sampleType> samples;
+  for (auto result : results) {
+    samples.push_back(dlib::mat(result));
+  }
+  vector<sampleType> centers;
+
+  // Start at or number of clusters specified by centers
+  int numCenters = (c < 0) ? 2 : c;
+
+  // Make sure user gave us something reasonable for centers
+  if (results.size() < numCenters)
+    return vector<Eigen::VectorXd>();
+
+  double msd = INFINITY;
+
+  while (msd > getGlobalSettings()->_clusterDistThreshold) {
+    if (numCenters == samples.size()) {
+      vector<Eigen::VectorXd> clusterCenters;
+      int i = 0;
+      for (auto c : results) {
+        clusterCenters.push_back(c);
+        i++;
+      }
+      return clusterCenters;
+    }
+
+    // clear vectors
+    centers.clear();
+
+    // use dlib to get the initial centers
+    dlib::pick_initial_centers(numCenters, centers, samples, k.get_kernel());
+
+    // Run kmeans
+    dlib::find_clusters_using_kmeans(samples, centers);
+
+    // assign results to clusters and compute distance
+    double sumDist = 0;
+    for (int i = 0; i < results.size(); i++) {
+      unsigned long center = dlib::nearest_center(centers, samples[i]);
+
+      // get the center and compute the distance
+      auto centroid = centers[center];
+      sumDist += length(centroid - samples[i]);
+    }
+
+    msd = sumDist / results.size();
+    numCenters++;
+
+    // Immediately return if user specified an exact number of clusters
+    if (c > 0)
       break;
   }
 
@@ -275,7 +343,7 @@ vector<SearchResult*> filterResults(vector<SearchResult*> results, vector<Eigen:
 
   // Place scenes sorted by distance to center into their clusters
   for (auto r : results) {
-    double dist = (snapshotToVector(r->_scene) - centers[r->_cluster]).norm();
+    double dist = (r->_scene - centers[r->_cluster]).norm();
     res[r->_cluster].insert(pair<double, SearchResult*>(dist, r));
   }
 
@@ -290,7 +358,7 @@ vector<SearchResult*> filterResults(vector<SearchResult*> results, vector<Eigen:
           continue;
         }
 
-        double dist = (snapshotToVector(it->second->_scene) - snapshotToVector(it2->second->_scene)).norm();
+        double dist = (it->second->_scene - it2->second->_scene).norm();
 
         // delete element if it's too close
         if (dist < getGlobalSettings()->_clusterDiffThreshold) {
@@ -323,7 +391,7 @@ Eigen::VectorXd snapshotToVector(Snapshot * s)
   Eigen::VectorXd features;
   features.resize(numFeats * 3 + 1);
   
-  auto device = s->getRigData();
+  auto& device = s->getRigData();
 
   auto key = getSpecifiedDevice(L_KEY, s);
   auto fill = getSpecifiedDevice(L_FILL, s);
@@ -386,23 +454,20 @@ Snapshot * vectorToSnapshot(Eigen::VectorXd v)
 
 Device* getSpecifiedDevice(EditLightType l, Snapshot * s)
 {
-  auto devices = s->getRigData();
+  auto& devices = s->getRigData();
 
   // Rim is easy to identify
   if (l == L_RIM)
     return devices["rim"];
 
-  Device* key;
-  Device* fill;
+  Device* key = devices["right"];
+  Device* fill = devices["left"];
 
-  // Determine which light is key/fill
-  if (devices["right"]->getIntensity()->getVal() > devices["left"]->getIntensity()->getVal()) {
-    key = devices["right"];
-    fill = devices["left"];
-  }
-  else {
-    key = devices["left"];
-    fill = devices["right"];
+  // If right is key assumption is false, swap
+  if (fill->getIntensity()->getVal() > key->getIntensity()->getVal()) {
+    Device* temp = key;
+    key = fill;
+    fill = temp;
   }
 
   if (l == L_FILL)
@@ -436,7 +501,7 @@ void AttributeSearchThread::run()
 {
   _results.clear();
   SearchResult* start = new SearchResult();
-  start->_scene = new Snapshot(*_original);
+  start->_scene = snapshotToVector(_original);
   _results.push_back(start);
 
   for (int i = 0; i < _editDepth; i++) {
@@ -514,7 +579,7 @@ vector<SearchResult*> AttributeSearchThread::runSingleLevelSearch(vector<SearchR
       opCt++;
       setStatusMessage("Level " + String(level) + "\nScene " + String(i+1) + "/" + String(startScenes.size()) + "\nRunning Edit " + String(j+1) + "/" + String(editConstraints.size()));
       //vector<Snapshot*> editScenes = performEdit(edits.first, scene->_scene, f);
-      vector<Snapshot*> editScenes = performEditMCMC(edits.first, scene->_scene, f);
+      vector<Eigen::VectorXd> editScenes = performEditMCMC(edits.first, vectorToSnapshot(scene->_scene), f);
       
       if (threadShouldExit())
         return vector<SearchResult*>();
@@ -524,9 +589,9 @@ vector<SearchResult*> AttributeSearchThread::runSingleLevelSearch(vector<SearchR
         r->_scene = s;
         r->_editHistory.addArray(scene->_editHistory);
         r->_editHistory.add(edits.first);
-        for (const auto& kvp : _active) {
-          r->_attrVals[kvp.first] = kvp.second->evaluateScene(s->getRigData());
-        }
+        r->_f = f;
+
+        // We evaluate the function value on demand and just save the function itself
         searchResults.push_back(r);
       }
 
@@ -636,41 +701,42 @@ vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig
   return scenes;
 }
 
-vector<Snapshot*> AttributeSearchThread::performEditMCMC(EditType t, Snapshot* orig, attrObjFunc f) {
+vector<Eigen::VectorXd> AttributeSearchThread::performEditMCMC(EditType t, Snapshot* orig, attrObjFunc f) {
   // Determine accept parameters
   double targetAcceptRate = 0.5;  // +/- 5%
   double sigma = 0.05;
-  while (1) {
-    auto res = doMCMC(t, orig, f, 100, sigma, false);
-    double acceptRate = res.second / 100.0;
+  //while (1) {
+  //  auto res = doMCMC(t, orig, f, 100, sigma, false);
+  //  double acceptRate = res.second / 100.0;
     
-    if (abs(acceptRate - 0.5) <= 0.05) {
-      break;
-    }
+  //  if (abs(acceptRate - 0.5) <= 0.05) {
+  //    break;
+  //  }
     
-    if (acceptRate > 0.5)
-      sigma -= 0.01;
-    if (acceptRate < 0.5)
-      sigma += 0.01;
+  //  if (acceptRate > 0.5)
+  //    sigma -= 0.01;
+  //  if (acceptRate < 0.5)
+  //    sigma += 0.01;
 
-    if (sigma <= 0) {
+  //  if (sigma <= 0) {
       // if we can't solve the problem with sigma, for now we'll just set it to default and continue
-      sigma = 0.05;
-      break;
-    }
-  }
+  //    sigma = 0.05;
+  //    break;
+  //  }
+  //}
 
   auto res = doMCMC(t, orig, f, getGlobalSettings()->_maxMCMCIters, sigma, true);
+  delete orig;
   return res.first;
 }
 
-pair<vector<Snapshot*>, int> AttributeSearchThread::doMCMC(EditType t, Snapshot * start, attrObjFunc f, int iters, double sigma, bool saveSamples)
+pair<vector<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snapshot * start, attrObjFunc f, int iters, double sigma, bool saveSamples)
 {
   // duplicate initial state
   Snapshot* s = new Snapshot(*start);
 
   // Set up return list
-  vector<Snapshot*> results;
+  vector<Eigen::VectorXd> results;
 
   // RNG
   unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
@@ -696,12 +762,12 @@ pair<vector<Snapshot*>, int> AttributeSearchThread::doMCMC(EditType t, Snapshot 
 
   // diagnostics
   int accepted = 0;
-  Snapshot* sp = nullptr;
+  Snapshot* sp = new Snapshot(*start);
+  double fx = startVal;
 
   for (int i = 0; i < maxIters; i++) {
     // generate candidate x'
     Eigen::VectorXd xp = x;
-    sp = new Snapshot(*s);
 
     // displace by gaussian dist
     for (int j = 0; j < xp.size(); j++) {
@@ -710,7 +776,6 @@ pair<vector<Snapshot*>, int> AttributeSearchThread::doMCMC(EditType t, Snapshot 
     }
 
     // check for acceptance
-    double fx = f(s);
     double fxp = f(sp);
     double diff = abs(fxp - fx);
     double a = 0;
@@ -727,19 +792,12 @@ pair<vector<Snapshot*>, int> AttributeSearchThread::doMCMC(EditType t, Snapshot 
     if (a >= 1 || udist(gen) <= a) {
       if (saveSamples && fxp < startVal && abs(fxp - startVal) > minEditDist) {
         // save sample in list
-        results.push_back(new Snapshot(*sp));
+        results.push_back(snapshotToVector(sp));
       }
       // update x
-      delete s;
-      s = nullptr;
       x = xp;
-      s = sp;
       accepted++;
-    }
-    else {
-      // leave x alone and discard new sample
-      delete sp;
-      sp = nullptr;
+      fx = fxp;
     }
   }
 
@@ -751,7 +809,9 @@ pair<vector<Snapshot*>, int> AttributeSearchThread::doMCMC(EditType t, Snapshot 
   if (saveSamples)
     getRecorder()->log(SYSTEM, "[Debug] " + editTypeToString(t) + " accepted " + String(((float)accepted / (float)maxIters) * 100).toStdString() + "% of proposals");
 
-  return pair<vector<Snapshot*>, int>(results, accepted);
+  // filter results
+
+  return pair<vector<Eigen::VectorXd>, int>(results, accepted);
 }
 
 double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapshot* s, attrObjFunc f)

@@ -93,25 +93,25 @@ struct EditConstraint {
   EditParam _param;
 };
 
+// Objective function type to be passed to performEdit.
+typedef function<double(Snapshot*)> attrObjFunc;
+
 // Results that eventually get returned to the UI layer
 // contains edit history for debug, attribute value, and scene
 class SearchResult {
 public:
   SearchResult();
-  SearchResult(Snapshot* s, Array<EditType> eh, map<string, double> av);
   SearchResult(const SearchResult& other);
   ~SearchResult();
   
-  Snapshot* _scene;
+  Eigen::VectorXd _scene;
   Array<EditType> _editHistory;
   map<string, double> _attrVals;
+  attrObjFunc _f;
 
   // Paired with a vector of cluster centers, indicates which cluster the result belongs to.
   unsigned long _cluster;
 };
-
-// Objective function type to be passed to performEdit.
-typedef function<double(Snapshot*)> attrObjFunc;
 
 // kmeans typedefs
 typedef dlib::matrix<double, 0, 1> sampleType;
@@ -169,11 +169,11 @@ private:
   vector<Snapshot*> performEdit(EditType t, Snapshot* orig, attrObjFunc f);
 
   // Given a current configuration, use MCMC to perform an edit on the configuration
-  vector<Snapshot*> performEditMCMC(EditType t, Snapshot* orig, attrObjFunc f);
+  vector<Eigen::VectorXd> performEditMCMC(EditType t, Snapshot* orig, attrObjFunc f);
 
   // Do MCMC with the given parameters. Returns the list of samples and number of accepted samples.
   // Samples list will be empty if saveSamples is false.
-  pair<vector<Snapshot*>, int> doMCMC(EditType t, Snapshot* start, attrObjFunc f, int iters, double sigma, bool saveSamples);
+  pair<vector<Eigen::VectorXd>, int> doMCMC(EditType t, Snapshot* start, attrObjFunc f, int iters, double sigma, bool saveSamples);
 
   // computes the numeric derivative for the particular lighting parameter and
   // specified attribute

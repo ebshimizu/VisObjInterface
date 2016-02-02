@@ -10,6 +10,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "SearchResultsViewer.h"
+//#include <vld.h>
 
 SearchResultsRenderer::SearchResultsRenderer(Array<AttributeSearchResult*> results) :
   ThreadWithProgressWindow("Rendering Thumbnails...", true, true), _results(results)
@@ -42,7 +43,9 @@ void SearchResultsRenderer::run() {
     Image img = Image(Image::ARGB, width, height, true);
     uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
 
-    p->renderSingleFrameToBuffer(r->getSearchResult()->_scene->getDevices(), bufptr);
+    Snapshot* s = vectorToSnapshot(r->getSearchResult()->_scene);
+    p->renderSingleFrameToBuffer(s->getDevices(), bufptr);
+    delete s;
 
     r->setImage(img);
     i++;
@@ -116,7 +119,7 @@ void SearchResultsContainer::display(vector<SearchResult*> results)
   // create searchresult elements for cluster centers
   for (auto& c : centers) {
     SearchResult* s = new SearchResult();
-    s->_scene = vectorToSnapshot(c);
+    s->_scene = c;
     s->_editHistory.add(CLUSTER_CENTER);
 
     AttributeSearchResult* cluster = new AttributeSearchResult(s);
@@ -151,6 +154,7 @@ void SearchResultsContainer::recluster()
       results.push_back(e->getSearchResult());
       resultContainers.push_back(e);
     }
+    delete r->getSearchResult();
     r->clearSearchResult();
     delete r; // Delete the old cluster centers
   }
@@ -165,7 +169,7 @@ void SearchResultsContainer::recluster()
   // This time we probably only need to render the cluster centers again
   for (auto& c : centers) {
     SearchResult* s = new SearchResult();
-    s->_scene = vectorToSnapshot(c);
+    s->_scene = c;
     s->_editHistory.add(CLUSTER_CENTER);
 
     AttributeSearchResult* cluster = new AttributeSearchResult(s);

@@ -98,7 +98,7 @@ void AttributeControllerBase::buttonClicked(Button * b)
   }
 }
 
-double AttributeControllerBase::evaluateScene(map<string, Device*> devices)
+double AttributeControllerBase::evaluateScene(map<string, Device*>& devices)
 {
   // Here we assume the explicit presence of just three lights: right, left, and rim.
   // The key light is defined to be the light with the highest intensity between
