@@ -10,6 +10,7 @@
 
 #include "AttributeSearch.h"
 #include <random>
+#include <list>
 //#include <vld.h>
 
 map<EditType, vector<EditConstraint> > editConstraints = {
@@ -335,7 +336,7 @@ vector<Eigen::VectorXd> clusterResults(vector<Eigen::VectorXd> results, int c) {
   return clusterCenters;
 }
 
-vector<SearchResult*> filterResults(vector<SearchResult*> results, vector<Eigen::VectorXd> centers)
+vector<SearchResult*> filterResults(vector<SearchResult*>& results, vector<Eigen::VectorXd>& centers)
 {
   vector<multimap<double, SearchResult*> > res;
   for (int i = 0; i < centers.size(); i++)
@@ -381,6 +382,29 @@ vector<SearchResult*> filterResults(vector<SearchResult*> results, vector<Eigen:
   }
 
   return filteredResults;
+}
+
+void filterResults(vector<Eigen::VectorXd>& results, double t)
+{
+  // starting at the first element
+  for (auto it = results.begin(); it != results.end(); it++) {
+    // See how close all other elements are
+    for (auto it2 = results.end(); it2 != results.begin(); ) {
+      if (it == it2) {
+        continue;
+      }
+      
+      double dist = (*it - *it2).norm();
+
+      // delete element if it's too close
+      if (dist < t) {
+        it2 = results.erase(it2);
+      }
+      else {
+        it2++;
+      }
+    }
+  }
 }
 
 Eigen::VectorXd snapshotToVector(Snapshot * s)
@@ -810,6 +834,7 @@ pair<vector<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Sna
     getRecorder()->log(SYSTEM, "[Debug] " + editTypeToString(t) + " accepted " + String(((float)accepted / (float)maxIters) * 100).toStdString() + "% of proposals");
 
   // filter results
+  filterResults(results, getGlobalSettings()->_jndThreshold);
 
   return pair<vector<Eigen::VectorXd>, int>(results, accepted);
 }

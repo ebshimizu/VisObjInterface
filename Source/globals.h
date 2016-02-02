@@ -48,6 +48,7 @@ public:
   double _searchMomentum;       // For momentum gradient descent, the alpha parameter controlling the strength of the backprop
   double _editStepSize;         // MCMC: Std dev of gaussian sample 
   int _maxMCMCIters;            // MCMC: Max number of iterations
+  double _jndThreshold;         // For two feature vectors, how far apart they can be to be considered equivalent
 
   int _numDisplayClusters;      // Number of clusters to display in the results
 

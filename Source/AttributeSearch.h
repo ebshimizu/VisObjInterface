@@ -132,7 +132,11 @@ vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results, int c = -1
 // - Sorts scenes into clusters
 // - then from closest to farthest from the center, removes scenes that are
 //   within a threshold from the point being considered
-vector<SearchResult*> filterResults(vector<SearchResult*> results, vector<Eigen::VectorXd> centers);
+vector<SearchResult*> filterResults(vector<SearchResult*>& results, vector<Eigen::VectorXd>& centers);
+
+// Remove vectors from the set that are within a specified threshold of other elements
+// in the set
+void filterResults(vector<Eigen::VectorXd>& results, double t);
 
 // Returns a vector representation of the rig state contained in the snapshot
 // Order of parameters detailed in implementation

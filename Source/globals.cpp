@@ -164,6 +164,7 @@ GlobalSettings::GlobalSettings()
   _editStepSize = 0.002;
   _maxMCMCIters = 1e3;
   _numDisplayClusters = 3;
+  _jndThreshold = 0.05;
 }
 
 GlobalSettings::~GlobalSettings()
