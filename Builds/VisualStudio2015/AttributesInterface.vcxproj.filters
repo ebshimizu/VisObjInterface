@@ -337,7 +337,13 @@
     <ClCompile Include="..\..\Source\StatusBar.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\BacklitAttribute.cpp">
+      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\BrightAttribute.cpp">
+      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SoftAttribute.cpp">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\TestAttribute.cpp">
@@ -1641,7 +1647,13 @@
     <ClInclude Include="..\..\Source\TopComponentContainer.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\BacklitAttribute.h">
+      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\BrightAttribute.h">
+      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SoftAttribute.h">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\TestAttribute.h">

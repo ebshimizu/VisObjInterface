@@ -14,6 +14,8 @@
 // Attribute includes
 #include "TestAttribute.h"
 #include "BrightAttribute.h"
+#include "BacklitAttribute.h"
+#include "SoftAttribute.h"
 
 
 #endif  // ATTRIBUTECONTROLLERS_H_INCLUDED

@@ -96,6 +96,8 @@ AttributeControls::AttributeControls()
   _container = new AttributeControlsList();
   _container->addAttributeController(new TestAttribute());
   _container->addAttributeController(new BrightAttribute());
+  _container->addAttributeController(new BacklitAttribute());
+  _container->addAttributeController(new SoftAttribute());
   _container->setName("attribute list");
   addAndMakeVisible(_container);
 

@@ -219,7 +219,7 @@ void MainContentComponent::saveRig()
     return;
   }
 
-  File rig = _parentDir.getChildFile(String(_showName) + ".rig.json");
+  File rig = _parentDir.getChildFile(String(_showName));
 
   bool rigRes = getRig()->save(rig.getFullPathName().toStdString(), true);
 

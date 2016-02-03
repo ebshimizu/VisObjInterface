@@ -282,7 +282,14 @@ void SearchResultsViewer::setBotComponent(Component * c, Component* source)
     // Mark the triggering component so it can outline itself
     _container->markDisplayedCluster(s);
 
-    resized();
+    auto lbounds = getLocalBounds();
+    int halfBounds = lbounds.getHeight() / 2;
+    lbounds.removeFromTop(halfBounds);
+
+    _detailViewer->setBounds(lbounds);
+    if (_displayedCluster != nullptr)
+      _displayedCluster->setHeight(lbounds.getHeight() - 20); // magic numbers are bad but eh;
+
     repaint();
   }
 }
