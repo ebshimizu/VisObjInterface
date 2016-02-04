@@ -111,7 +111,7 @@ AttributeControls::AttributeControls()
 
   _clusters = new Slider(Slider::IncDecButtons, Slider::TextEntryBoxPosition::TextBoxLeft);
   _clusters->addListener(this);
-  _clusters->setRange(1, 100);
+  _clusters->setRange(1, 100, 1);
   _clusters->setValue(getGlobalSettings()->_numDisplayClusters, dontSendNotification);
   _clusters->setName("clusters");
   addAndMakeVisible(_clusters);

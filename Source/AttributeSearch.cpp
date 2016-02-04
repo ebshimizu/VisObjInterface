@@ -197,7 +197,7 @@ string editTypeToString(EditType t) {
 vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results, int c)
 {
   // kmeans setup
-  dlib::kcentroid<kernelType> kkmeansKernel(kernelType(0.1), 0.01);
+  dlib::kcentroid<kernelType> kkmeansKernel(kernelType(), 0.001);
   dlib::kkmeans<kernelType> k(kkmeansKernel);
 
   vector<sampleType> samples;
@@ -274,7 +274,7 @@ vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results, int c)
 
 vector<Eigen::VectorXd> clusterResults(vector<Eigen::VectorXd> results, int c) {
   // kmeans setup
-  dlib::kcentroid<kernelType> kkmeansKernel(kernelType(0.1), 0.01);
+  dlib::kcentroid<kernelType> kkmeansKernel(kernelType(), 0.001);
   dlib::kkmeans<kernelType> k(kkmeansKernel);
 
   vector<sampleType> samples;
@@ -419,6 +419,36 @@ void filterResults(vector<Eigen::VectorXd>& results, double t)
   }
 }
 
+vector<SearchResult*> getClosestScenesToCenters(vector<SearchResult*>& results, vector<Eigen::VectorXd>& centers)
+{
+  vector<multimap<double, SearchResult*> > res;
+  for (int i = 0; i < centers.size(); i++)
+    res.push_back(multimap<double, SearchResult*>());
+
+  // Place scenes sorted by distance to center into their clusters
+  for (auto r : results) {
+    double dist = (r->_scene - centers[r->_cluster]).norm();
+    res[r->_cluster].insert(pair<double, SearchResult*>(dist, r));
+  }
+
+  // put first element in to results vector, delete the rest
+  vector<SearchResult*> filteredResults;
+  for (auto c : res) {
+    bool first = true;
+    for (auto kvp : c) {
+      if (first) {
+        filteredResults.push_back(kvp.second);
+        first = false;
+      }
+      else {
+        delete kvp.second;
+      }
+    }
+  }
+
+  return filteredResults;
+}
+
 Eigen::VectorXd snapshotToVector(Snapshot * s)
 {
   // Param order: Intensity, polar, azimuth, R, G, B, Softness (penumbra angle)
@@ -559,10 +589,17 @@ void AttributeSearchThread::run()
     }
     _results.clear();
 
-    // cluster and filter
-    auto centers = clusterResults(newResults);
-    auto filtered = filterResults(newResults, centers);
-    _results = filtered;
+    // cluster and filter for final run
+    if (i == _editDepth - 1) {
+      auto centers = clusterResults(newResults);
+      auto filtered = filterResults(newResults, centers);
+      _results = filtered;
+    }
+    else {
+      auto centers = clusterResults(newResults, getGlobalSettings()->_numEditScenes);
+      auto filtered = getClosestScenesToCenters(newResults, centers);
+      _results = filtered;
+    }
 
     if (threadShouldExit()) {
       // delete results before cancelling search

@@ -120,7 +120,7 @@ public:
 
 // kmeans typedefs
 typedef dlib::matrix<double, 0, 1> sampleType;
-typedef dlib::radial_basis_kernel<sampleType> kernelType;
+typedef dlib::linear_kernel<sampleType> kernelType;
 
 // Entry point to the search algorithm
 vector<SearchResult*> attributeSearch(map<string, AttributeControllerBase*> active, int editDepth = 1);
@@ -142,6 +142,9 @@ vector<SearchResult*> filterResults(vector<SearchResult*>& results, vector<Eigen
 // Remove vectors from the set that are within a specified threshold of other elements
 // in the set
 void filterResults(vector<Eigen::VectorXd>& results, double t);
+
+// For each center, return the closest search result to that center
+vector<SearchResult*> getClosestScenesToCenters(vector<SearchResult*>& results, vector<Eigen::VectorXd>& centers);
 
 // Returns a vector representation of the rig state contained in the snapshot
 // Order of parameters detailed in implementation

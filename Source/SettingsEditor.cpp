@@ -163,7 +163,7 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Number of Clusters", 1, 25, 1));
   searchComponents.add(new SettingsSlider("Edit Depth", 1, 10, 1));
   searchComponents.add(new SettingsSlider("Minimum Edit Distance", 0, 100, 0.01));
-  searchComponents.add(new SettingsSlider("Scenes per Edit", 1, 100, 1));
+  searchComponents.add(new SettingsSlider("Scenes per Edit", -1, 100, 1));
   searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1, 1e-7));
   searchComponents.add(new SettingsSlider("Cluster Distance Threshold", 1e-3, 5, 1e-3));
   searchComponents.add(new SettingsSlider("Result Difference Threshold", 1e-3, 5, 1e-3));
@@ -175,12 +175,12 @@ SettingsEditor::SettingsEditor()
   mcmcComponents.add(new SettingsSlider("MCMC Max Iterations", 1, 1e5, 1));
   _settings.addSection("MCMC Search", mcmcComponents);
 
-  Array<PropertyComponent*> gdSearchComponents;
-  gdSearchComponents.add(new SettingsSlider("GD - Tolerance", 0, 1e-2, 1e-7));
-  gdSearchComponents.add(new SettingsSlider("GD - Gamma", 0, 25, 1e-3));  
-  gdSearchComponents.add(new SettingsSlider("GD - Momentum", 1e-3, 1, 1e-3));
-  gdSearchComponents.add(new SettingsSlider("Max Iterations", 1, 10000, 1));
-  _settings.addSection("Gradient Descent Search", gdSearchComponents);
+  //Array<PropertyComponent*> gdSearchComponents;
+  //gdSearchComponents.add(new SettingsSlider("GD - Tolerance", 0, 1e-2, 1e-7));
+  //gdSearchComponents.add(new SettingsSlider("GD - Gamma", 0, 25, 1e-3));  
+  //gdSearchComponents.add(new SettingsSlider("GD - Momentum", 1e-3, 1, 1e-3));
+  //gdSearchComponents.add(new SettingsSlider("Max Iterations", 1, 10000, 1));
+  //_settings.addSection("Gradient Descent Search", gdSearchComponents);
 
   Array<PropertyComponent*> renderComponents;
   _width = new SettingsSlider("Frame Width", 1, 3840, 1);
