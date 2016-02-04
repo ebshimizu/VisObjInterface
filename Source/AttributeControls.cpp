@@ -108,6 +108,13 @@ AttributeControls::AttributeControls()
   _search = new TextButton("Search", "Perform a search with the current attribute constraints");
   _search->addListener(this);
   addAndMakeVisible(_search);
+
+  _clusters = new Slider(Slider::IncDecButtons, Slider::TextEntryBoxPosition::TextBoxLeft);
+  _clusters->addListener(this);
+  _clusters->setRange(1, 100);
+  _clusters->setValue(getGlobalSettings()->_numDisplayClusters, dontSendNotification);
+  _clusters->setName("clusters");
+  addAndMakeVisible(_clusters);
 }
 
 AttributeControls::~AttributeControls()
@@ -116,6 +123,7 @@ AttributeControls::~AttributeControls()
   _componentView->setViewedComponent(nullptr);
   delete _componentView;
   delete _search;
+  delete _clusters;
 }
 
 void AttributeControls::paint (Graphics& g)
@@ -127,7 +135,9 @@ void AttributeControls::resized()
 {
   auto lbounds = getLocalBounds();
 
-  _search->setBounds(lbounds.removeFromBottom(30).removeFromRight(150).reduced(5));
+  auto botBounds = lbounds.removeFromBottom(30);
+  _search->setBounds(botBounds.removeFromRight(150).reduced(5));
+  _clusters->setBounds(botBounds.reduced(5));
 
   _componentView->setBounds(lbounds);
   _container->setWidth(_componentView->getMaximumVisibleWidth());
@@ -138,6 +148,17 @@ void AttributeControls::buttonClicked(Button * b)
   if (b->getName() == "Search") {
     // perform a search action
     getApplicationCommandManager()->invokeDirectly(SEARCH, true);
+  }
+}
+
+void AttributeControls::sliderValueChanged(Slider * slider)
+{
+  if (slider->getName() == "clusters") {
+    int newVal = (int)slider->getValue();
+    if (newVal != getGlobalSettings()->_numDisplayClusters) {
+      getGlobalSettings()->_numDisplayClusters = newVal;
+      getApplicationCommandManager()->invokeDirectly(command::RECLUSTER, true);
+    }
   }
 }
 

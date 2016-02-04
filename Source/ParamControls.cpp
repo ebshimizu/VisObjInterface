@@ -378,6 +378,7 @@ void ParamControls::initProperties()
     components.add(new HSVColorPropertySlider(d->getId(), "color", "H", d->getColor()));
     components.add(new HSVColorPropertySlider(d->getId(), "color", "S", d->getColor()));
     components.add(new HSVColorPropertySlider(d->getId(), "color", "V", d->getColor()));
+    components.add(new FloatPropertySlider(d->getId(), "penumbraAngle", d->getParam<LumiverseFloat>("penumbraAngle")));
 
     
     // these are really internal components and probably shouldn't be user editable

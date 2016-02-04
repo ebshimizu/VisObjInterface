@@ -39,6 +39,10 @@ enum EditType {
   KEY_HSV,
   FILL_HSV,
   RIM_HSV,
+  KEY_SOFT,
+  FILL_SOFT,
+  RIM_SOFT,
+  ALL_SOFT,
   KEY_FILL_INTENS,
   KEY_RIM_INTENS,
   FILL_RIM_INTENS,
@@ -80,7 +84,8 @@ enum EditParam {
   GREEN,
   BLUE,
   POLAR,
-  AZIMUTH
+  AZIMUTH,
+  SOFT
 };
 
 // these constraints define an edit (or rather, which parameters an edit can deal with)

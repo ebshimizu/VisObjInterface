@@ -19,7 +19,8 @@ map<EditType, vector<EditConstraint> > editConstraints = {
            EditConstraint(L_FILL, RED), EditConstraint(L_FILL, GREEN), EditConstraint(L_FILL, BLUE),
            EditConstraint(L_FILL, INTENSITY), EditConstraint(L_FILL, POLAR), EditConstraint(L_FILL, AZIMUTH),
            EditConstraint(L_RIM, RED), EditConstraint(L_RIM, GREEN), EditConstraint(L_RIM, BLUE),
-           EditConstraint(L_RIM, INTENSITY), EditConstraint(L_RIM, POLAR), EditConstraint(L_RIM, AZIMUTH) } },
+           EditConstraint(L_RIM, INTENSITY), EditConstraint(L_RIM, POLAR), EditConstraint(L_RIM, AZIMUTH),
+           EditConstraint(L_KEY, SOFT), EditConstraint(L_FILL, SOFT), EditConstraint(L_RIM, SOFT) } },
   { ALL_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE),
                EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE), 
                EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } },
@@ -46,6 +47,10 @@ map<EditType, vector<EditConstraint> > editConstraints = {
   { KEY_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE) } },
   { FILL_HSV, { EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE) } },
   { RIM_HSV, { EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } },
+  { KEY_SOFT, { EditConstraint(L_KEY, SOFT) } },
+  { FILL_SOFT, { EditConstraint(L_FILL, SOFT) } },
+  { RIM_SOFT, { EditConstraint(L_RIM, SOFT) } },
+  { ALL_SOFT, { EditConstraint(L_KEY, SOFT), EditConstraint(L_FILL, SOFT), EditConstraint(L_RIM, SOFT) } },
   { KEY_FILL_INTENS, { EditConstraint(L_KEY, INTENSITY), EditConstraint(L_FILL, INTENSITY) } },
   { KEY_RIM_INTENS, { EditConstraint(L_KEY, INTENSITY), EditConstraint(L_RIM, INTENSITY) } },
   { FILL_RIM_INTENS, { EditConstraint(L_FILL, INTENSITY), EditConstraint(L_RIM, INTENSITY) } },
@@ -1153,6 +1158,12 @@ void AttributeSearchThread::setDeviceValue(EditConstraint c, EditType t, double 
 
     break;
   }
+  case SOFT:
+  {
+    LumiverseFloat* s = d->getParam<LumiverseFloat>("penumbraAngle");
+    s->setValAsPercent(val);
+    break;
+  }
   default:
     break;
   }
@@ -1196,6 +1207,11 @@ double AttributeSearchThread::getDeviceValue(EditConstraint c, Snapshot * s)
   {
     LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("azimuth");
     return o->asPercent();
+  }
+  case SOFT:
+  {
+    LumiverseFloat* s = d->getParam<LumiverseFloat>("penumbraAngle");
+    return s->asPercent();
   }
   default:
     break;

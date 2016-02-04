@@ -42,7 +42,7 @@ private:
 //==============================================================================
 /*
 */
-class AttributeControls : public Component, public Button::Listener
+class AttributeControls : public Component, public Button::Listener, public Slider::Listener
 {
 public:
   AttributeControls();
@@ -52,13 +52,15 @@ public:
   void resized();
   
   virtual void buttonClicked(Button* b) override;
+  virtual void sliderValueChanged(Slider* slider) override;
 
   map<string, AttributeControllerBase*> getActiveAttributes();
 
 private:
   AttributeControlsList* _container;
   Viewport* _componentView;
-
+  
+  Slider* _clusters;
   TextButton* _search;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AttributeControls)
