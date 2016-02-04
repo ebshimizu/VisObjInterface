@@ -823,7 +823,7 @@ pair<vector<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Sna
     double diff = abs(fxp - fx);
     double a = 0;
 
-    if (fxp < fx)
+    if (getGlobalSettings()->_randomMode || fxp < fx)
       a = 1;
     else {
       // Rescale a based on normal distribution with a std dev decided on by

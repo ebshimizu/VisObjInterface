@@ -131,6 +131,30 @@ void SettingsSlider::sliderValueChanged(Slider * s)
   getRecorder()->log(SYSTEM, "Setting " + _id + " set to " + String(s->getValue()).toStdString());
 }
 
+SettingsBoolButton::SettingsBoolButton(string id) : 
+  BooleanPropertyComponent(id, "On", "Off"), _id(id)
+{
+}
+
+SettingsBoolButton::~SettingsBoolButton()
+{
+}
+
+void SettingsBoolButton::setState(bool newState)
+{
+  if (_id == "Random Mode")
+    getGlobalSettings()->_randomMode = newState;
+
+  refresh();
+}
+
+bool SettingsBoolButton::getState() const
+{
+  if (_id == "Random Mode")
+    return getGlobalSettings()->_randomMode;
+
+  return false;
+}
 
 //==============================================================================
 SettingsEditor::SettingsEditor()
@@ -143,6 +167,7 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1, 1e-7));
   searchComponents.add(new SettingsSlider("Cluster Distance Threshold", 1e-3, 5, 1e-3));
   searchComponents.add(new SettingsSlider("Result Difference Threshold", 1e-3, 5, 1e-3));
+  searchComponents.add(new SettingsBoolButton("Random Mode"));
   _settings.addSection("Search Shared", searchComponents);
 
   Array<PropertyComponent*> mcmcComponents;

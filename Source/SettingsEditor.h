@@ -30,6 +30,18 @@ private:
   string _id;
 };
 
+class SettingsBoolButton : public BooleanPropertyComponent
+{
+public:
+  SettingsBoolButton(string id);
+  ~SettingsBoolButton();
+
+  virtual void setState(bool newState) override;
+  virtual bool getState() const override;
+private:
+  string _id;
+};
+
 //==============================================================================
 /*
 */
