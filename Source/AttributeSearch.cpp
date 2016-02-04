@@ -147,6 +147,12 @@ string editTypeToString(EditType t) {
     return "Fill HSV";
   case RIM_HSV:
     return "Rim HSV";
+  case KEY_SOFT:
+    return "Key Softness";
+  case FILL_SOFT:
+    return "Fill Softness";
+  case RIM_SOFT:
+    return "Rim Softness";
   case KEY_FILL_INTENS:
     return "Key-Fill Intensity";
   case KEY_RIM_INTENS:
@@ -415,9 +421,9 @@ void filterResults(vector<Eigen::VectorXd>& results, double t)
 
 Eigen::VectorXd snapshotToVector(Snapshot * s)
 {
-  // Param order: Intensity, polar, azimuth, R, G, B
+  // Param order: Intensity, polar, azimuth, R, G, B, Softness (penumbra angle)
   // Device order: Key, Fill, Rim, L/R indicator
-  int numFeats = 6;
+  int numFeats = 7;
   Eigen::VectorXd features;
   features.resize(numFeats * 3 + 1);
   
@@ -434,19 +440,22 @@ Eigen::VectorXd snapshotToVector(Snapshot * s)
   features[3] = key->getParam<LumiverseColor>("color")->getColorChannel("Red");
   features[4] = key->getParam<LumiverseColor>("color")->getColorChannel("Green");
   features[5] = key->getParam<LumiverseColor>("color")->getColorChannel("Blue");
-  features[6] = fill->getParam<LumiverseFloat>("intensity")->asPercent();
-  features[7] = fill->getParam<LumiverseOrientation>("polar")->asPercent();
-  features[8] = fill->getParam<LumiverseOrientation>("azimuth")->asPercent();
-  features[9] = fill->getParam<LumiverseColor>("color")->getColorChannel("Red");
-  features[10] = fill->getParam<LumiverseColor>("color")->getColorChannel("Green");
-  features[11] = fill->getParam<LumiverseColor>("color")->getColorChannel("Blue");
-  features[12] = rim->getParam<LumiverseFloat>("intensity")->asPercent();
-  features[13] = rim->getParam<LumiverseOrientation>("polar")->asPercent();
-  features[14] = rim->getParam<LumiverseOrientation>("azimuth")->asPercent();
-  features[15] = rim->getParam<LumiverseColor>("color")->getColorChannel("Red");
-  features[16] = rim->getParam<LumiverseColor>("color")->getColorChannel("Green");
-  features[17] = rim->getParam<LumiverseColor>("color")->getColorChannel("Blue");
-  features[18] = (key->getId() == "right") ? 1e-6 : -1e-6;  // tiny little sign bit for recreating snapshot
+  features[6] = key->getParam<LumiverseFloat>("penumbraAngle")->asPercent();
+  features[7] = fill->getParam<LumiverseFloat>("intensity")->asPercent();
+  features[8] = fill->getParam<LumiverseOrientation>("polar")->asPercent();
+  features[9] = fill->getParam<LumiverseOrientation>("azimuth")->asPercent();
+  features[10] = fill->getParam<LumiverseColor>("color")->getColorChannel("Red");
+  features[11] = fill->getParam<LumiverseColor>("color")->getColorChannel("Green");
+  features[12] = fill->getParam<LumiverseColor>("color")->getColorChannel("Blue");
+  features[13] = fill->getParam<LumiverseFloat>("penumbraAngle")->asPercent();
+  features[14] = rim->getParam<LumiverseFloat>("intensity")->asPercent();
+  features[15] = rim->getParam<LumiverseOrientation>("polar")->asPercent();
+  features[16] = rim->getParam<LumiverseOrientation>("azimuth")->asPercent();
+  features[17] = rim->getParam<LumiverseColor>("color")->getColorChannel("Red");
+  features[18] = rim->getParam<LumiverseColor>("color")->getColorChannel("Green");
+  features[19] = rim->getParam<LumiverseColor>("color")->getColorChannel("Blue");
+  features[20] = rim->getParam<LumiverseFloat>("penumbraAngle")->asPercent();
+  features[21] = (key->getId() == "right") ? 1e-6 : -1e-6;  // tiny little sign bit for recreating snapshot
 
   return features;
 }
@@ -456,28 +465,32 @@ Snapshot * vectorToSnapshot(Eigen::VectorXd v)
   Snapshot* s = new Snapshot(getRig(), nullptr);
   auto devices = s->getRigData();
 
-  auto key = (v[18] > 0) ? devices["right"] : devices["left"];
-  auto fill = (v[18] > 0) ? devices["left"] : devices["right"];
+  auto key = (v[21] > 0) ? devices["right"] : devices["left"];
+  auto fill = (v[21] > 0) ? devices["left"] : devices["right"];
   auto rim = devices["rim"];
 
+  // NEED TO ADD SOFT TO VECTOR REPRESENTATION
   key->getParam<LumiverseFloat>("intensity")->setValAsPercent(v[0]);
   key->getParam<LumiverseOrientation>("polar")->setValAsPercent(v[1]);
   key->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(v[2]);
   key->getParam<LumiverseColor>("color")->setColorChannel("Red", v[3]);
   key->getParam<LumiverseColor>("color")->setColorChannel("Green", v[4]);
   key->getParam<LumiverseColor>("color")->setColorChannel("Blue", v[5]);
-  fill->getParam<LumiverseFloat>("intensity")->setValAsPercent(v[6]);
-  fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(v[7]);
-  fill->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(v[8]);
-  fill->getParam<LumiverseColor>("color")->setColorChannel("Red", v[9]);
-  fill->getParam<LumiverseColor>("color")->setColorChannel("Green", v[10]);
-  fill->getParam<LumiverseColor>("color")->setColorChannel("Blue", v[11]);
-  rim->getParam<LumiverseFloat>("intensity")->setValAsPercent(v[12]);
-  rim->getParam<LumiverseOrientation>("polar")->setValAsPercent(v[13]);
-  rim->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(v[14]);
-  rim->getParam<LumiverseColor>("color")->setColorChannel("Red", v[15]);
-  rim->getParam<LumiverseColor>("color")->setColorChannel("Green", v[16]);
-  rim->getParam<LumiverseColor>("color")->setColorChannel("Blue", v[17]);
+  key->getParam<LumiverseFloat>("penumbraAngle")->setValAsPercent(v[6]);
+  fill->getParam<LumiverseFloat>("intensity")->setValAsPercent(v[7]);
+  fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(v[8]);
+  fill->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(v[9]);
+  fill->getParam<LumiverseColor>("color")->setColorChannel("Red", v[10]);
+  fill->getParam<LumiverseColor>("color")->setColorChannel("Green", v[11]);
+  fill->getParam<LumiverseColor>("color")->setColorChannel("Blue", v[12]);
+  fill->getParam<LumiverseFloat>("penumbraAngle")->setValAsPercent(v[13]);
+  rim->getParam<LumiverseFloat>("intensity")->setValAsPercent(v[14]);
+  rim->getParam<LumiverseOrientation>("polar")->setValAsPercent(v[15]);
+  rim->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(v[16]);
+  rim->getParam<LumiverseColor>("color")->setColorChannel("Red", v[17]);
+  rim->getParam<LumiverseColor>("color")->setColorChannel("Green", v[18]);
+  rim->getParam<LumiverseColor>("color")->setColorChannel("Blue", v[19]);
+  rim->getParam<LumiverseFloat>("penumbraAngle")->setValAsPercent(v[20]);
 
   return s;
 }
