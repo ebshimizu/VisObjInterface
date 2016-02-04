@@ -123,7 +123,7 @@ typedef dlib::matrix<double, 0, 1> sampleType;
 typedef dlib::linear_kernel<sampleType> kernelType;
 
 // Entry point to the search algorithm
-vector<SearchResult*> attributeSearch(map<string, AttributeControllerBase*> active, int editDepth = 1);
+list<SearchResult*> attributeSearch(map<string, AttributeControllerBase*>& active, int editDepth = 1);
 
 string editTypeToString(EditType t);
 
@@ -131,20 +131,20 @@ string editTypeToString(EditType t);
 // mean distance from every scene to the cluster center until it is below
 // a specified threshold (global setting)
 // Returns the cluster centers as vectors
-vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results, int c = -1);
+vector<Eigen::VectorXd> clusterResults(list<SearchResult*> results, int c = -1);
 
 // Filters out scenes that are too similar to each other.
 // - Sorts scenes into clusters
 // - then from closest to farthest from the center, removes scenes that are
 //   within a threshold from the point being considered
-vector<SearchResult*> filterResults(vector<SearchResult*>& results, vector<Eigen::VectorXd>& centers);
+list<SearchResult*> filterResults(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers);
 
 // Remove vectors from the set that are within a specified threshold of other elements
 // in the set
-void filterResults(vector<Eigen::VectorXd>& results, double t);
+void filterResults(list<Eigen::VectorXd>& results, double t);
 
 // For each center, return the closest search result to that center
-vector<SearchResult*> getClosestScenesToCenters(vector<SearchResult*>& results, vector<Eigen::VectorXd>& centers);
+list<SearchResult*> getClosestScenesToCenters(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers);
 
 // Returns a vector representation of the rig state contained in the snapshot
 // Order of parameters detailed in implementation
@@ -166,26 +166,23 @@ public:
   void run() override;
   void threadComplete(bool userPressedCancel) override;
 
-  vector<SearchResult*> getResults() { return _results; }
+  list<SearchResult*> getResults() { return _results; }
 
 private:
   map<string, AttributeControllerBase*> _active;
   int _editDepth;
-  vector<SearchResult*> _results;
+  list<SearchResult*> _results;
   Snapshot* _original;
 
   // Runs a single level iteration of the search algorithm, starting at the given scenes.
-  vector<SearchResult*> runSingleLevelSearch(vector<SearchResult*> startScenes, int level);
-
-  // Given a current configuration, perform an edit on the configuration
-  vector<Snapshot*> performEdit(EditType t, Snapshot* orig, attrObjFunc f);
+  list<SearchResult*> runSingleLevelSearch(list<SearchResult*> startScenes, int level);
 
   // Given a current configuration, use MCMC to perform an edit on the configuration
-  vector<Eigen::VectorXd> performEditMCMC(EditType t, Snapshot* orig, attrObjFunc f);
+  list<Eigen::VectorXd> performEdit(EditType t, Snapshot* orig, attrObjFunc f);
 
   // Do MCMC with the given parameters. Returns the list of samples and number of accepted samples.
   // Samples list will be empty if saveSamples is false.
-  pair<vector<Eigen::VectorXd>, int> doMCMC(EditType t, Snapshot* start, attrObjFunc f, int iters, double sigma, bool saveSamples);
+  pair<list<Eigen::VectorXd>, int> doMCMC(EditType t, Snapshot* start, attrObjFunc f, int iters, double sigma, bool saveSamples);
 
   // computes the numeric derivative for the particular lighting parameter and
   // specified attribute

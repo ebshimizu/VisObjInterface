@@ -305,7 +305,7 @@ void MainContentComponent::search()
   getRecorder()->log(ACTION, "Exploratory search started.");
 
   // Break out actual search alg into different function to prevent main from getting too cluttered.
-  vector<SearchResult*> results = attributeSearch(_attrs->getActiveAttributes(), getGlobalSettings()->_editDepth);
+  list<SearchResult*> results = attributeSearch(_attrs->getActiveAttributes(), getGlobalSettings()->_editDepth);
 
   if (results.size() > 0) {
     // display results in the explorer (handles rendering and clustering)

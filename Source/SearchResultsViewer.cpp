@@ -105,7 +105,7 @@ void SearchResultsContainer::resized()
   }
 }
 
-void SearchResultsContainer::display(vector<SearchResult*> results)
+void SearchResultsContainer::display(list<SearchResult*>& results)
 {
   for (const auto& c : _results) {
     delete c;
@@ -145,7 +145,7 @@ void SearchResultsContainer::display(vector<SearchResult*> results)
 void SearchResultsContainer::recluster()
 {
   // Retrieve results from containers
-  vector<SearchResult*> results;
+  list<SearchResult*> results;
   vector<AttributeSearchResult*> resultContainers;
 
   for (auto r : _results) {
@@ -180,10 +180,11 @@ void SearchResultsContainer::recluster()
   }
 
   // Reassign results into the proper clusters.
-  for (int i = 0; i < results.size(); i++) {
-    _results[results[i]->_cluster]->addClusterElement(resultContainers[i]);
-
-    // Do not need to re-render
+  int i = 0;
+  for (auto r : results)
+  {
+    _results[r->_cluster]->addClusterElement(resultContainers[i]);
+    i++;
   }
 
   // Render cluster centers
@@ -257,7 +258,7 @@ void SearchResultsViewer::resized()
     _displayedCluster->setHeight(lbounds.getHeight() - 20); // magic numbers are bad but eh
 }
 
-void SearchResultsViewer::display(vector<SearchResult*> results)
+void SearchResultsViewer::display(list<SearchResult*>& results)
 {
   _container->display(results);
   _container->resized();

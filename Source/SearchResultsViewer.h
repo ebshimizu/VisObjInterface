@@ -41,7 +41,7 @@ public:
   void resized();
 
   // Display a new set of results in the container
-  void display(vector<SearchResult*> results);
+  void display(list<SearchResult*>& results);
 
   // Recluster results
   void recluster();
@@ -74,7 +74,7 @@ public:
   void paint (Graphics&);
   void resized();
 
-  void display(vector<SearchResult*> results);
+  void display(list<SearchResult*>& results);
   void redisplay();
 
   void setBotComponent(Component* c, Component* source);

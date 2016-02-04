@@ -86,16 +86,16 @@ SearchResult::~SearchResult() {
 // Search functions
 // ==============================================================================
 
-vector<SearchResult*> attributeSearch(map<string, AttributeControllerBase*> active, int editDepth)
+list<SearchResult*> attributeSearch(map<string, AttributeControllerBase*>& active, int editDepth)
 {
   // If there's no active attribute, just leave
   if (active.size() == 0)
-    return vector<SearchResult*>();
+    return list<SearchResult*>();
 
   AttributeSearchThread* t = new AttributeSearchThread(active, editDepth);
   t->runThread();
 
-  vector<SearchResult*> scenes = t->getResults();
+  list<SearchResult*> scenes = t->getResults();
   delete t;
 
   return scenes;
@@ -194,7 +194,7 @@ string editTypeToString(EditType t) {
   }
 }
 
-vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results, int c)
+vector<Eigen::VectorXd> clusterResults(list<SearchResult*> results, int c)
 {
   // kmeans setup
   dlib::kcentroid<kernelType> kkmeansKernel(kernelType(), 0.001);
@@ -238,13 +238,15 @@ vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results, int c)
 
     // assign results to clusters and compute distance
     double sumDist = 0;
-    for (int i = 0; i < results.size(); i++) {
+    int i = 0;
+    for (auto r : results) {
       unsigned long center = dlib::nearest_center(centers, samples[i]);
-      results[i]->_cluster = center;
+      r->_cluster = center;
 
       // get the center and compute the distance
       auto centroid = centers[center];
       sumDist += length(centroid - samples[i]);
+      i++;
     }
 
     msd = sumDist / results.size();
@@ -272,7 +274,7 @@ vector<Eigen::VectorXd> clusterResults(vector<SearchResult*> results, int c)
   return clusterCenters;
 }
 
-vector<Eigen::VectorXd> clusterResults(vector<Eigen::VectorXd> results, int c) {
+vector<Eigen::VectorXd> clusterResults(list<Eigen::VectorXd> results, int c) {
   // kmeans setup
   dlib::kcentroid<kernelType> kkmeansKernel(kernelType(), 0.001);
   dlib::kkmeans<kernelType> k(kkmeansKernel);
@@ -347,7 +349,7 @@ vector<Eigen::VectorXd> clusterResults(vector<Eigen::VectorXd> results, int c) {
   return clusterCenters;
 }
 
-vector<SearchResult*> filterResults(vector<SearchResult*>& results, vector<Eigen::VectorXd>& centers)
+list<SearchResult*> filterResults(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers)
 {
   vector<multimap<double, SearchResult*> > res;
   for (int i = 0; i < centers.size(); i++)
@@ -384,8 +386,8 @@ vector<SearchResult*> filterResults(vector<SearchResult*>& results, vector<Eigen
     }
   }
 
-  // put results back in to vector
-  vector<SearchResult*> filteredResults;
+  // put results back in to list
+  list<SearchResult*> filteredResults;
   for (auto c : res) {
     for (auto kvp : c) {
       filteredResults.push_back(kvp.second);
@@ -395,7 +397,7 @@ vector<SearchResult*> filterResults(vector<SearchResult*>& results, vector<Eigen
   return filteredResults;
 }
 
-void filterResults(vector<Eigen::VectorXd>& results, double t)
+void filterResults(list<Eigen::VectorXd>& results, double t)
 {
   // starting at the first element
   for (auto it = results.begin(); it != results.end(); it++) {
@@ -419,7 +421,7 @@ void filterResults(vector<Eigen::VectorXd>& results, double t)
   }
 }
 
-vector<SearchResult*> getClosestScenesToCenters(vector<SearchResult*>& results, vector<Eigen::VectorXd>& centers)
+list<SearchResult*> getClosestScenesToCenters(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers)
 {
   vector<multimap<double, SearchResult*> > res;
   for (int i = 0; i < centers.size(); i++)
@@ -432,7 +434,7 @@ vector<SearchResult*> getClosestScenesToCenters(vector<SearchResult*>& results, 
   }
 
   // put first element in to results vector, delete the rest
-  vector<SearchResult*> filteredResults;
+  list<SearchResult*> filteredResults;
   for (auto c : res) {
     bool first = true;
     for (auto kvp : c) {
@@ -580,7 +582,7 @@ void AttributeSearchThread::run()
   for (int i = 0; i < _editDepth; i++) {
     setProgress((float)i / _editDepth);
 
-    vector<SearchResult*> newResults = runSingleLevelSearch(_results, i);
+    list<SearchResult*> newResults = runSingleLevelSearch(_results, i);
 
     // delete old results
     for (auto r : _results)
@@ -625,9 +627,9 @@ void AttributeSearchThread::threadComplete(bool userPressedCancel)
   }
 }
 
-vector<SearchResult*> AttributeSearchThread::runSingleLevelSearch(vector<SearchResult*> startScenes, int level)
+list<SearchResult*> AttributeSearchThread::runSingleLevelSearch(list<SearchResult*> startScenes, int level)
 {
-  vector<SearchResult*> searchResults;
+  list<SearchResult*> searchResults;
 
   // objective function for combined set of active attributes.
   attrObjFunc f = [this](Snapshot* s) {
@@ -658,11 +660,10 @@ vector<SearchResult*> AttributeSearchThread::runSingleLevelSearch(vector<SearchR
     for (const auto& edits : editConstraints) {
       opCt++;
       setStatusMessage("Level " + String(level) + "\nScene " + String(i+1) + "/" + String(startScenes.size()) + "\nRunning Edit " + String(j+1) + "/" + String(editConstraints.size()));
-      //vector<Snapshot*> editScenes = performEdit(edits.first, scene->_scene, f);
-      vector<Eigen::VectorXd> editScenes = performEditMCMC(edits.first, vectorToSnapshot(scene->_scene), f);
+      list<Eigen::VectorXd> editScenes = performEdit(edits.first, vectorToSnapshot(scene->_scene), f);
       
       if (threadShouldExit())
-        return vector<SearchResult*>();
+        return list<SearchResult*>();
 
       for (auto s : editScenes) {
         SearchResult* r = new SearchResult();
@@ -684,104 +685,7 @@ vector<SearchResult*> AttributeSearchThread::runSingleLevelSearch(vector<SearchR
   return searchResults;
 }
 
-vector<Snapshot*> AttributeSearchThread::performEdit(EditType t, Snapshot * orig, attrObjFunc f)
-{
-  // note of interest: which light is they key may vary though the course of this function,
-  // potentially causing discontinuitous jumps in the objective function.
-  // whether or not this is fatal remains to be seen.
-
-  // duplicate initial state for internal use
-  Snapshot* s = new Snapshot(*orig);
-
-  // load settings
-  double minDist = getGlobalSettings()->_minEditDist;   // may want to set min dist based on how large deriv changes are at start point
-  int numScenes = getGlobalSettings()->_numEditScenes;
-  double gamma = getGlobalSettings()->_searchGDGamma;
-  double thresh = getGlobalSettings()->_searchGDTol;
-  double alpha = getGlobalSettings()->_searchMomentum;
-
-  // Save start value
-  double startAttrVal = f(s);
-  double attrVal = startAttrVal;
-
-  int vecSize = editConstraints[t].size();
-  Eigen::VectorXd oldX;
-  Eigen::VectorXd newX;
-  Eigen::VectorXd oldDx;
-  vector<Snapshot*> scenes;
-
-  oldX.resize(vecSize);
-  newX.resize(vecSize);
-  oldDx.resize(vecSize);
-
-  // Initalize the x (variable) vector
-  int i = 0;
-  for (const auto& c : editConstraints[t]) {
-    newX[i] = getDeviceValue(c, s);
-    oldDx[i] = 0;
-    i++;
-  }
-
-  // run gradient descent until number of scenes to return
-  // meets minimum, or the optimization is done.
-  int m = 0;
-  do {
-    if (m > getGlobalSettings()->_maxEditIters)
-      break;
-
-    if (threadShouldExit()) {
-      for (auto scene : scenes)
-        delete scene;
-      scenes.clear();
-      break;
-    }
-
-    oldX = newX;
-    
-    // Get derivative
-    Eigen::VectorXd dX;
-    dX.resize(vecSize);
-    i = 0;
-    for (const auto& c : editConstraints[t]) {
-      dX[i] = numericDeriv(c, t, s, f);
-      i++;
-    }
-    
-    // If the derivative is a 0 vector, break and return immediately since we're 
-    // clearly not going anywhere
-    if (dX.norm() == 0)
-      break;
-
-    // Descent - grad descent with momenutm
-    auto change = gamma * dX + alpha * oldDx;
-    newX = oldX - change;
-    oldDx = change;
-
-    // Update scene
-    i = 0;
-    for (const auto& c : editConstraints[t]) {
-      setDeviceValue(c, t, newX[i], s);
-      i++;
-    }
-
-    // Determine if scene should go in the list of scenes to return
-    attrVal = f(s);
-    if (abs(attrVal - startAttrVal) > minDist && scenes.size() < numScenes && attrVal < startAttrVal) {
-      scenes.push_back(new Snapshot(*s));
-    }
-    if (scenes.size() >= numScenes) {
-      // scenes full, stop
-      break;      
-    }
-    m++;
-  // continue loop while we're making sufficient progress and the attribute value is actually changing
-  } while ((oldX - newX).norm() > thresh && abs(attrVal - startAttrVal) > thresh);
-  
-  delete s;
-  return scenes;
-}
-
-vector<Eigen::VectorXd> AttributeSearchThread::performEditMCMC(EditType t, Snapshot* orig, attrObjFunc f) {
+list<Eigen::VectorXd> AttributeSearchThread::performEdit(EditType t, Snapshot* orig, attrObjFunc f) {
   // Determine accept parameters
   double targetAcceptRate = 0.5;  // +/- 5%
   double sigma = 0.05;
@@ -810,13 +714,13 @@ vector<Eigen::VectorXd> AttributeSearchThread::performEditMCMC(EditType t, Snaps
   return res.first;
 }
 
-pair<vector<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snapshot * start, attrObjFunc f, int iters, double sigma, bool saveSamples)
+pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snapshot * start, attrObjFunc f, int iters, double sigma, bool saveSamples)
 {
   // duplicate initial state
   Snapshot* s = new Snapshot(*start);
 
   // Set up return list
-  vector<Eigen::VectorXd> results;
+  list<Eigen::VectorXd> results;
 
   // RNG
   unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
@@ -892,7 +796,7 @@ pair<vector<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Sna
   // filter results
   filterResults(results, getGlobalSettings()->_jndThreshold);
 
-  return pair<vector<Eigen::VectorXd>, int>(results, accepted);
+  return pair<list<Eigen::VectorXd>, int>(results, accepted);
 }
 
 double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapshot* s, attrObjFunc f)
