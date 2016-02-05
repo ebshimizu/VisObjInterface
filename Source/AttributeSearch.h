@@ -111,8 +111,7 @@ public:
   
   Eigen::VectorXd _scene;
   Array<EditType> _editHistory;
-  map<string, double> _attrVals;
-  attrObjFunc _f;
+  double _objFuncVal;
 
   // Paired with a vector of cluster centers, indicates which cluster the result belongs to.
   unsigned long _cluster;

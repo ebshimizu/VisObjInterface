@@ -49,6 +49,8 @@ public:
   // Indicates if the result is displaying its current cluster contents
   bool _isShowingCluster;
 
+  int compareElements(AttributeSearchResult* first, AttributeSearchResult* second);
+
 private:
   // Search result object from the attribute search
   SearchResult* _result;

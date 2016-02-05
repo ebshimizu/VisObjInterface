@@ -18,14 +18,20 @@ AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(res
   // In your constructor, you should add any child components, and
   // initialise any special settings that your component needs.
   String tt;
-  for (const auto& kvp : result->_attrVals) {
-    tt = tt + kvp.first + ": " + String(kvp.second) + "\n";
-  }
 
   tt = tt + "Edit History: ";
+  bool first = true;
   for (const auto& t : result->_editHistory) {
-    tt = tt + editTypeToString(t) + " ";
+    if (!first) {
+      tt = tt + " -> " + editTypeToString(t);
+    }
+    else {
+      tt = tt + editTypeToString(t);
+      first = false;
+    }
   }
+
+  tt = tt + "(" + String(result->_objFuncVal) + ")";
   setTooltip(tt);
   _isShowingCluster = false;
 }
@@ -162,12 +168,27 @@ void AttributeSearchResult::addClusterElement(AttributeSearchResult * elem)
   _clusterElems.add(elem);
 }
 
+int AttributeSearchResult::compareElements(AttributeSearchResult * first, AttributeSearchResult * second)
+{
+  double firstScore = first->getSearchResult()->_objFuncVal;
+  double secondScore = second->getSearchResult()->_objFuncVal;
+
+  if (firstScore < secondScore)
+    return -1;
+  if (firstScore > secondScore)
+    return 1;
+  else
+    return 0;
+}
+
 
 //==============================================================================
 AttributeSearchCluster::AttributeSearchCluster(Array<AttributeSearchResult*> elems) :
   _elems(elems)
 {
-  for (auto e : elems) {
+  _elems.sort(*elems[0]);
+
+  for (auto e : _elems) {
     addAndMakeVisible(e);
   }
 }

@@ -75,7 +75,7 @@ map<EditType, vector<EditConstraint> > editConstraints = {
 SearchResult::SearchResult() { }
 
 SearchResult::SearchResult(const SearchResult & other) :
-  _scene(other._scene), _editHistory(other._editHistory), _attrVals(other._attrVals)
+  _scene(other._scene), _editHistory(other._editHistory), _objFuncVal(other._objFuncVal)
 {
 }
 
@@ -153,6 +153,8 @@ string editTypeToString(EditType t) {
     return "Fill Softness";
   case RIM_SOFT:
     return "Rim Softness";
+  case ALL_SOFT:
+    return "All Softness";
   case KEY_FILL_INTENS:
     return "Key-Fill Intensity";
   case KEY_RIM_INTENS:
@@ -670,7 +672,9 @@ list<SearchResult*> AttributeSearchThread::runSingleLevelSearch(list<SearchResul
         r->_scene = s;
         r->_editHistory.addArray(scene->_editHistory);
         r->_editHistory.add(edits.first);
-        r->_f = f;
+        Snapshot* sn = vectorToSnapshot(s);
+        r->_objFuncVal = f(sn);
+        delete sn;
 
         // We evaluate the function value on demand and just save the function itself
         searchResults.push_back(r);
