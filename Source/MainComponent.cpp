@@ -47,6 +47,8 @@ MainContentComponent::~MainContentComponent()
 {
   if (_settingsWindow != nullptr)
     delete _settingsWindow;
+  if (_clusterWindow != nullptr)
+    delete _clusterWindow;
 
   getRecorder()->log(SYSTEM, "Interface shutting down.");
 }
@@ -82,7 +84,8 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
   // Add new commands to handle here.
   const CommandID ids[] = {
     command::OPEN, command::REFRESH_PARAMS, command::ARNOLD_RENDER, command::SETTINGS,
-    command::SEARCH, command::REFRESH_ATTR, command::SAVE, command::SAVE_AS, command::RECLUSTER
+    command::SEARCH, command::REFRESH_ATTR, command::SAVE, command::SAVE_AS, command::RECLUSTER,
+    command::VIEW_CLUSTERS
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -101,7 +104,7 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     break;
   case command::ARNOLD_RENDER:
     result.setInfo("Render", "Renders the current scene with the current settings", "Render", 0);
-    result.addDefaultKeypress('r', ModifierKeys::noModifiers);
+    result.addDefaultKeypress('r', ModifierKeys::commandModifier);
     break;
   case command::SETTINGS:
     result.setInfo("Settings...", "Opens the application settings window", "Edit", 0);
@@ -122,7 +125,10 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.addDefaultKeypress('s', ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
     break;
   case command::RECLUSTER:
-    result.setInfo("Recluster", "Recluster results based on uuser settings", "Explore", 0);
+    result.setInfo("Recluster", "Recluster results based on user settings", "Explore", 0);
+    break;
+  case command::VIEW_CLUSTERS:
+    result.setInfo("Show Clusters", "Open window showing all clusters at once", "Explore", 0);
     break;
   default:
     return;
@@ -158,6 +164,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::RECLUSTER:
     _search->redisplay();
+    break;
+  case command::VIEW_CLUSTERS:
+    openClusters();
     break;
   default:
     return false;
@@ -298,6 +307,19 @@ void MainContentComponent::openSettings()
   _settingsWindow->setResizable(true, false);
   _settingsWindow->setUsingNativeTitleBar(true);
   _settingsWindow->setVisible(true);
+}
+
+void MainContentComponent::openClusters()
+{
+  if (_clusterWindow != nullptr)
+    return;
+
+  _clusterWindow = new ClusterBusterWindow(_search->getResults());
+  juce::Rectangle<int> area(50, 50, 1280, 720);
+  _clusterWindow->setBounds(area);
+  _clusterWindow->setResizable(true, false);
+  _clusterWindow->setUsingNativeTitleBar(true);
+  _clusterWindow->setVisible(true);
 }
 
 void MainContentComponent::search()

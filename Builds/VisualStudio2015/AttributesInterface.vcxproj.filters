@@ -322,6 +322,9 @@
     <ClCompile Include="..\..\..\..\..\..\..\..\..\..\lib\dlib-18.18\dlib\all\source.cpp">
       <Filter>AttributesInterface\Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\ClusterBuster.cpp">
+      <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\MainMenu.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
@@ -1629,6 +1632,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\ClusterBuster.h">
+      <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\MainMenu.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClInclude>

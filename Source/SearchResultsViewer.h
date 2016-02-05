@@ -51,6 +51,9 @@ public:
 
   void markDisplayedCluster(AttributeSearchResult* c);
 
+  // Return the results for some other use
+  Array<AttributeSearchResult*> getResults();
+
 private:
   int _width;
   int _height;
@@ -78,6 +81,8 @@ public:
   void redisplay();
 
   void setBotComponent(Component* c, Component* source);
+
+  Array<AttributeSearchResult*> getResults();
 
 private:
   Viewport* _viewer;

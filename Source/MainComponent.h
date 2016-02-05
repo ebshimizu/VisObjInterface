@@ -15,6 +15,7 @@
 #include "AttributeControls.h"
 #include "SceneViewer.h"
 #include "SettingsEditor.h"
+#include "ClusterBuster.h"
 
 
 //==============================================================================
@@ -65,6 +66,9 @@ private:
   // Opens the settings window
   void openSettings();
 
+  // Opens the clusters window
+  void openClusters();
+
   // Private vars
   File _parentDir;
   String _showName;
@@ -89,6 +93,7 @@ private:
   ScopedPointer<SceneViewer> _viewer;
 
   SafePointer<SettingsWindow> _settingsWindow;
+  SafePointer<ClusterBusterWindow> _clusterWindow;
 
   TooltipWindow _tips;
 

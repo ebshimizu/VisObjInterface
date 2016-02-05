@@ -104,7 +104,8 @@ enum command {
 
   // Explore
   SEARCH = 0x5000,
-  RECLUSTER = 0x5001
+  RECLUSTER = 0x5001,
+  VIEW_CLUSTERS = 0x5002
 
   // Window
 };

@@ -31,7 +31,7 @@ AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(res
     }
   }
 
-  tt = tt + "(" + String(result->_objFuncVal) + ")";
+  tt = tt + "(" + String(-result->_objFuncVal) + ")";
   setTooltip(tt);
   _isShowingCluster = false;
 }

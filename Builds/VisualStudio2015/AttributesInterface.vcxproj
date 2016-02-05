@@ -135,6 +135,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\..\..\..\..\..\..\lib\dlib-18.18\dlib\all\source.cpp"/>
+    <ClCompile Include="..\..\Source\ClusterBuster.cpp"/>
     <ClCompile Include="..\..\Source\MainMenu.cpp"/>
     <ClCompile Include="..\..\Source\Recorder.cpp"/>
     <ClCompile Include="..\..\Source\SceneViewer.cpp"/>
@@ -1305,6 +1306,7 @@
     <ClCompile Include="..\..\JuceLibraryCode\modules\juce_video\juce_video.cpp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\ClusterBuster.h"/>
     <ClInclude Include="..\..\Source\MainMenu.h"/>
     <ClInclude Include="..\..\Source\Recorder.h"/>
     <ClInclude Include="..\..\Source\SceneViewer.h"/>

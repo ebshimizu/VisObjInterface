@@ -31,6 +31,7 @@ public:
 
   // Sets the image for this component.
   void setImage(Image img);
+  Image getImage() { return _render; }
 
   SearchResult* getSearchResult() { return _result; }
   Array<AttributeSearchResult*> getClusterElements() { return _clusterElems; }

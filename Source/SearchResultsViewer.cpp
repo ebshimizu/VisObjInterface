@@ -212,6 +212,11 @@ void SearchResultsContainer::markDisplayedCluster(AttributeSearchResult * c)
   }
 }
 
+Array<AttributeSearchResult*> SearchResultsContainer::getResults()
+{
+  return _results;
+}
+
 //==============================================================================
 SearchResultsViewer::SearchResultsViewer()
 {
@@ -293,4 +298,9 @@ void SearchResultsViewer::setBotComponent(Component * c, Component* source)
 
     repaint();
   }
+}
+
+Array<AttributeSearchResult*> SearchResultsViewer::getResults()
+{
+  return _container->getResults();
 }
