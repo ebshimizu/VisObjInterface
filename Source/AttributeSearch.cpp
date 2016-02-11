@@ -92,6 +92,19 @@ list<SearchResult*> attributeSearch(map<string, AttributeControllerBase*>& activ
   if (active.size() == 0)
     return list<SearchResult*>();
 
+  string log = "Search attribute params: ";
+  for (auto& kvp : active) {
+    log = log + " {" + kvp.first + " : ";
+    if (kvp.second->getStatus() == A_MORE)
+      log = log + "MORE";
+    if (kvp.second->getStatus() == A_LESS)
+      log = log + "LESS";
+    if (kvp.second->getStatus() == A_EQUAL)
+      log = log + "SAME";
+    log = log + "}";
+  }
+  getRecorder()->log(ACTION, log);
+
   AttributeSearchThread* t = new AttributeSearchThread(active, editDepth);
   t->runThread();
 

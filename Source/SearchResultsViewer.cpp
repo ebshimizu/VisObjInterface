@@ -117,16 +117,19 @@ void SearchResultsContainer::display(list<SearchResult*>& results)
   Array<AttributeSearchResult*> renderBatch;
 
   // create searchresult elements for cluster centers
+  int i = 0;
   for (auto& c : centers) {
     SearchResult* s = new SearchResult();
     s->_scene = c;
     s->_editHistory.add(CLUSTER_CENTER);
+    s->_cluster = i;
 
     AttributeSearchResult* cluster = new AttributeSearchResult(s);
 
     addAndMakeVisible(cluster);
     _results.add(cluster);
     renderBatch.add(cluster);
+    i++;
   }
 
   // iterate: for each cluster, put the proper attributeSearchResult into the
@@ -137,6 +140,8 @@ void SearchResultsContainer::display(list<SearchResult*>& results)
     _results[result->_cluster]->addClusterElement(res);
     renderBatch.add(res);
   }
+
+  getRecorder()->log(ACTION, "Results displayed in " + String(centers.size()).toStdString() + " clusters");
 
   // render cluster centers
   (new SearchResultsRenderer(renderBatch))->runThread();
@@ -167,25 +172,30 @@ void SearchResultsContainer::recluster()
   Array<AttributeSearchResult*> renderBatch;
 
   // This time we probably only need to render the cluster centers again
+  int i = 0;
   for (auto& c : centers) {
     SearchResult* s = new SearchResult();
     s->_scene = c;
     s->_editHistory.add(CLUSTER_CENTER);
+    s->_cluster = i;
 
     AttributeSearchResult* cluster = new AttributeSearchResult(s);
 
     addAndMakeVisible(cluster);
     _results.add(cluster);
     renderBatch.add(cluster);
+    i++;
   }
 
   // Reassign results into the proper clusters.
-  int i = 0;
+  i = 0;
   for (auto r : results)
   {
     _results[r->_cluster]->addClusterElement(resultContainers[i]);
     i++;
   }
+
+  getRecorder()->log(ACTION, "Results reclusterd in " + String(centers.size()).toStdString() + " clusters");
 
   // Render cluster centers
   (new SearchResultsRenderer(renderBatch))->runThread();

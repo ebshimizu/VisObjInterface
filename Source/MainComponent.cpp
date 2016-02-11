@@ -213,6 +213,7 @@ void MainContentComponent::undo()
     _viewer->setRender(e->_thumb);
 
     h->addRedoItem(e);
+    getRecorder()->log(ACTION, "Undo Called");
   }
 }
 
@@ -225,6 +226,7 @@ void MainContentComponent::redo()
     _viewer->setRender(e->_thumb);
 
     h->addHistoryItem(e);
+    getRecorder()->log(ACTION, "Redo Called");
   }
 }
 
@@ -370,6 +372,8 @@ void MainContentComponent::openClusters()
   _clusterWindow->setResizable(true, false);
   _clusterWindow->setUsingNativeTitleBar(true);
   _clusterWindow->setVisible(true);
+
+  getRecorder()->log(ACTION, "All Clusters window opened");
 }
 
 void MainContentComponent::search()
@@ -384,5 +388,5 @@ void MainContentComponent::search()
     _search->display(results);
   }
 
-  getRecorder()->log(ACTION, "Exploratory search ended.");
+  getRecorder()->log(ACTION, (String("Exploratory search ended. Returned ") + String(results.size()) + String(" results.")).toStdString());
 }

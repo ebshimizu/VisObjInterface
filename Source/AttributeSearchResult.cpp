@@ -17,9 +17,7 @@ AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(res
 {
   // In your constructor, you should add any child components, and
   // initialise any special settings that your component needs.
-  String tt;
-
-  tt = tt + "Edit History: ";
+  String tt = "";
   bool first = true;
   for (const auto& t : result->_editHistory) {
     if (!first) {
@@ -95,6 +93,7 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
         mc->refreshParams();
         mc->refreshAttr();
         mc->arnoldRender();
+        getRecorder()->log(ACTION, "User picked scene for stage: " + getTooltip().toStdString());
       }
     }
     else if (result == 2) {
@@ -130,6 +129,8 @@ void AttributeSearchResult::mouseEnter(const MouseEvent & event)
   // (which can be displayed in an AttributeSearchCluster object) in the bottom half
   // of the search results window
   if (_clusterElems.size() > 0) {
+    getRecorder()->log(ACTION, "Cluster " + String(_result->_cluster).toStdString() + " hovered");
+
     AttributeSearchCluster* cluster = new AttributeSearchCluster(_clusterElems);
 
     // We have to reach all the way up to the main component to do this

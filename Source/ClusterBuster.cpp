@@ -64,6 +64,7 @@ ClusterBusterWindow::ClusterBusterWindow(Array<AttributeSearchResult*> results) 
 
 ClusterBusterWindow::~ClusterBusterWindow()
 {
+  getRecorder()->log(ACTION, "All Clusters window closed");
   delete _viewer;
 }
 
