@@ -80,23 +80,11 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
   if (event.mods.isRightButtonDown()) {
     PopupMenu m;
     m.addItem(1, "Move to Stage");
-    m.addItem(2, "Move to Stage and Render");
     m.addItem(3, "Repeat Search with Selected");
 
     const int result = m.show();
 
     if (result == 1) {
-      Snapshot* s = vectorToSnapshot(_result->_scene);
-      s->loadRig(getRig());
-      delete s;
-      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-
-      if (mc != nullptr) {
-        mc->refreshParams();
-        mc->refreshAttr();
-      }
-    }
-    else if (result == 2) {
       Snapshot* s = vectorToSnapshot(_result->_scene);
       s->loadRig(getRig());
       delete s;
@@ -109,7 +97,7 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
         mc->arnoldRender();
       }
     }
-    else if (result == 3) {
+    else if (result == 2) {
       Snapshot* s = vectorToSnapshot(_result->_scene);
       s->loadRig(getRig());
       delete s;
