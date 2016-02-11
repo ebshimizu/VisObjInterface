@@ -228,6 +228,11 @@ SearchResultsViewer::SearchResultsViewer()
   _displayedCluster = nullptr;
   _detailViewer = new Viewport();
   addAndMakeVisible(_detailViewer);
+
+  _history = new HistoryPanel();
+  _historyViewer = new Viewport();
+  _historyViewer->setViewedComponent(_history);
+  addAndMakeVisible(_historyViewer);
 }
 
 SearchResultsViewer::~SearchResultsViewer()
@@ -236,6 +241,8 @@ SearchResultsViewer::~SearchResultsViewer()
   delete _viewer;
   delete _displayedCluster;
   delete _detailViewer;
+  delete _history;
+  delete _historyViewer;
 }
 
 void SearchResultsViewer::paint (Graphics& g)
@@ -248,11 +255,21 @@ void SearchResultsViewer::paint (Graphics& g)
   */
 
   g.fillAll(Colour(0xff333333));
+
+  g.setColour(Colours::grey);
+  auto lbounds = getLocalBounds();
+  lbounds.removeFromRight(300);
+  g.fillRect(lbounds.removeFromRight(2));
 }
 
 void SearchResultsViewer::resized()
 {
   auto lbounds = getLocalBounds();
+
+  _historyViewer->setBounds(lbounds.removeFromRight(300));
+  _history->setWidth(_historyViewer->getMaximumVisibleWidth());
+
+  lbounds.removeFromRight(2);
   int halfBounds = lbounds.getHeight() / 2;
 
   _viewer->setBounds(lbounds.removeFromTop(halfBounds));
@@ -289,6 +306,7 @@ void SearchResultsViewer::setBotComponent(Component * c, Component* source)
     _container->markDisplayedCluster(s);
 
     auto lbounds = getLocalBounds();
+    lbounds.removeFromRight(302);
     int halfBounds = lbounds.getHeight() / 2;
     lbounds.removeFromTop(halfBounds);
 

@@ -11,6 +11,12 @@
         <FILE id="q5vj4R" name="ClusterBuster.cpp" compile="1" resource="0"
               file="Source/ClusterBuster.cpp"/>
         <FILE id="cOOJrX" name="ClusterBuster.h" compile="0" resource="0" file="Source/ClusterBuster.h"/>
+        <FILE id="cmHY0e" name="HistoryEntry.cpp" compile="1" resource="0"
+              file="Source/HistoryEntry.cpp"/>
+        <FILE id="EcgfET" name="HistoryEntry.h" compile="0" resource="0" file="Source/HistoryEntry.h"/>
+        <FILE id="QrDmda" name="HistoryPanel.cpp" compile="1" resource="0"
+              file="Source/HistoryPanel.cpp"/>
+        <FILE id="J4et5w" name="HistoryPanel.h" compile="0" resource="0" file="Source/HistoryPanel.h"/>
         <FILE id="EzqHGX" name="MainMenu.cpp" compile="1" resource="0" file="Source/MainMenu.cpp"/>
         <FILE id="xzEXk8" name="MainMenu.h" compile="0" resource="0" file="Source/MainMenu.h"/>
         <FILE id="LxBlMk" name="Recorder.cpp" compile="1" resource="0" file="Source/Recorder.cpp"/>
@@ -85,11 +91,11 @@
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        isDebug="1" optimisation="1" targetName="AttributesInterfaceDebug"
                        headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include&#10;C:\lib\dlib-18.18"
-                       libraryPath="C:\Program Files\Lumiverse\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib"
+                       libraryPath="C:\Program Files\Lumiverse\Debug\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib"
                        useRuntimeLibDLL="1"/>
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        isDebug="0" optimisation="3" targetName="AttributesInterface"
-                       libraryPath="C:\Program Files\Lumiverse\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib"
+                       libraryPath="C:\Program Files\Lumiverse\Release\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib"
                        headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include&#10;C:\lib\dlib-18.18"
                        useRuntimeLibDLL="1"/>
       </CONFIGURATIONS>

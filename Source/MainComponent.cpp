@@ -10,6 +10,7 @@
 #include "globals.h"
 #include "SettingsEditor.h"
 #include "AttributeSearch.h"
+#include "HistoryPanel.h"
 
 //==============================================================================
 MainContentComponent::MainContentComponent()
@@ -85,7 +86,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
   const CommandID ids[] = {
     command::OPEN, command::REFRESH_PARAMS, command::ARNOLD_RENDER, command::SETTINGS,
     command::SEARCH, command::REFRESH_ATTR, command::SAVE, command::SAVE_AS, command::RECLUSTER,
-    command::VIEW_CLUSTERS
+    command::VIEW_CLUSTERS, command::UNDO, command::REDO
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -104,7 +105,7 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     break;
   case command::ARNOLD_RENDER:
     result.setInfo("Render", "Renders the current scene with the current settings", "Render", 0);
-    result.addDefaultKeypress('r', ModifierKeys::commandModifier);
+    result.addDefaultKeypress('r', ModifierKeys::noModifiers);
     break;
   case command::SETTINGS:
     result.setInfo("Settings...", "Opens the application settings window", "Edit", 0);
@@ -129,6 +130,14 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     break;
   case command::VIEW_CLUSTERS:
     result.setInfo("Show Clusters", "Open window showing all clusters at once", "Explore", 0);
+    break;
+  case command::UNDO:
+    result.setInfo("Undo", "Undo", "Edit", 0);
+    result.addDefaultKeypress('z', ModifierKeys::commandModifier);
+    break;
+  case command::REDO:
+    result.setInfo("Redo", "Redo", "Edit", 0);
+    result.addDefaultKeypress('y', ModifierKeys::commandModifier);
     break;
   default:
     return;
@@ -168,6 +177,12 @@ bool MainContentComponent::perform(const InvocationInfo & info)
   case command::VIEW_CLUSTERS:
     openClusters();
     break;
+  case command::UNDO:
+    undo();
+    break;
+  case command::REDO:
+    redo();
+    break;
   default:
     return false;
   }
@@ -178,6 +193,39 @@ bool MainContentComponent::perform(const InvocationInfo & info)
 void MainContentComponent::setBottomSearchComponent(Component* c, Component* source)
 {
   _search->setBotComponent(c, source);
+}
+
+void MainContentComponent::addHistory()
+{
+  HistoryPanel* h = _search->getHistory();
+  h->clearRedo();
+  h->addHistoryItem(new HistoryEntry(new Snapshot(getRig(), nullptr), "History", _viewer->getRender()));
+  _search->resized();
+  _search->repaint();
+}
+
+void MainContentComponent::undo()
+{
+  HistoryPanel* h = _search->getHistory();
+  HistoryEntry* e = h->removeHistoryItem();
+  if (e != nullptr) {
+    e->_sceneState->loadRig(getRig());
+    _viewer->setRender(e->_thumb);
+
+    h->addRedoItem(e);
+  }
+}
+
+void MainContentComponent::redo()
+{
+  HistoryPanel* h = _search->getHistory();
+  HistoryEntry* e = h->removeRedoItem();
+  if (e != nullptr) {
+    e->_sceneState->loadRig(getRig());
+    _viewer->setRender(e->_thumb);
+
+    h->addHistoryItem(e);
+  }
 }
 
 void MainContentComponent::openRig() {
@@ -292,6 +340,8 @@ void MainContentComponent::refreshAttr()
 void MainContentComponent::arnoldRender()
 {
   _viewer->renderScene();
+  // always add history element after a render
+  addHistory();
 }
 
 void MainContentComponent::openSettings()

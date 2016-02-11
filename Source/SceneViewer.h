@@ -48,6 +48,9 @@ public:
   // Does a synchronous render of the current scene specified in the Rig
   void renderScene();
 
+  Image getRender() { return _currentRender; }
+  void setRender(Image img);
+
 private:
   Image _currentRender;
 

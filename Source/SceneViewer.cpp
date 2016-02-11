@@ -123,3 +123,9 @@ void SceneViewer::renderScene() {
 
   repaint();
 }
+
+void SceneViewer::setRender(Image img)
+{
+  _currentRender = img;
+  repaint();
+}

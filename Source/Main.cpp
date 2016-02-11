@@ -101,6 +101,8 @@ public:
             setMenuBar(_menu, 0);
 
             getApplicationCommandManager()->registerAllCommandsForTarget(cmp);
+            getApplicationCommandManager()->getKeyMappings()->resetToDefaultMappings();
+            addKeyListener(getApplicationCommandManager()->getKeyMappings());
             getRecorder()->log(SYSTEM, "Interface ready.");
             getGlobalSettings();
         }

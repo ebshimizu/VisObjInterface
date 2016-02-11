@@ -325,6 +325,12 @@
     <ClCompile Include="..\..\Source\ClusterBuster.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\HistoryEntry.cpp">
+      <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\HistoryPanel.cpp">
+      <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\MainMenu.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
@@ -1633,6 +1639,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\ClusterBuster.h">
+      <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\HistoryEntry.h">
+      <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\HistoryPanel.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\MainMenu.h">

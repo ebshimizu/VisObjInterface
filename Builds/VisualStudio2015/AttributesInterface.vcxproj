@@ -42,10 +42,10 @@
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AttributesInterfaceDebug</TargetName>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(LibraryPath);C:\Program Files\Lumiverse\lib;C:\Program Files\libpng\lib;C:\Program Files\zlib\lib</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(LibraryPath);C:\Program Files\Lumiverse\Debug\lib;C:\Program Files\libpng\lib;C:\Program Files\zlib\lib</LibraryPath>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AttributesInterface</TargetName>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(LibraryPath);C:\Program Files\Lumiverse\lib;C:\Program Files\libpng\lib;C:\Program Files\zlib\lib</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(LibraryPath);C:\Program Files\Lumiverse\Release\lib;C:\Program Files\libpng\lib;C:\Program Files\zlib\lib</LibraryPath>
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -81,7 +81,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(IntDir)\AttributesInterfaceDebug.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>C:\Program Files\Lumiverse\lib;C:\Program Files\libpng\lib;C:\Program Files\zlib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Program Files\Lumiverse\Debug\lib;C:\Program Files\libpng\lib;C:\Program Files\zlib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalDependencies>LumiverseCore.lib;LumiverseShowControl.lib;libjson.lib;clp.lib;ai.lib;libpng16_static.lib;ftd2xx.lib;zlibstatic.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -124,7 +124,7 @@
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <AdditionalLibraryDirectories>C:\Program Files\Lumiverse\lib;C:\Program Files\libpng\lib;C:\Program Files\zlib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Program Files\Lumiverse\Release\lib;C:\Program Files\libpng\lib;C:\Program Files\zlib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LargeAddressAware>true</LargeAddressAware>
       <AdditionalDependencies>LumiverseCore.lib;LumiverseShowControl.lib;libjson.lib;clp.lib;ai.lib;libpng16_static.lib;ftd2xx.lib;zlibstatic.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -136,6 +136,8 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\..\..\..\..\..\..\lib\dlib-18.18\dlib\all\source.cpp"/>
     <ClCompile Include="..\..\Source\ClusterBuster.cpp"/>
+    <ClCompile Include="..\..\Source\HistoryEntry.cpp"/>
+    <ClCompile Include="..\..\Source\HistoryPanel.cpp"/>
     <ClCompile Include="..\..\Source\MainMenu.cpp"/>
     <ClCompile Include="..\..\Source\Recorder.cpp"/>
     <ClCompile Include="..\..\Source\SceneViewer.cpp"/>
@@ -1307,6 +1309,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\ClusterBuster.h"/>
+    <ClInclude Include="..\..\Source\HistoryEntry.h"/>
+    <ClInclude Include="..\..\Source\HistoryPanel.h"/>
     <ClInclude Include="..\..\Source\MainMenu.h"/>
     <ClInclude Include="..\..\Source\Recorder.h"/>
     <ClInclude Include="..\..\Source\SceneViewer.h"/>

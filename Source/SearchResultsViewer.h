@@ -15,6 +15,7 @@
 #include "globals.h"
 #include "AttributeSearch.h"
 #include "AttributeSearchResult.h"
+#include "HistoryPanel.h"
 
 class SearchResultsRenderer : public ThreadWithProgressWindow
 {
@@ -84,11 +85,15 @@ public:
 
   Array<AttributeSearchResult*> getResults();
 
+  HistoryPanel* getHistory() { return _history; }
+
 private:
   Viewport* _viewer;
   Viewport* _detailViewer;
+  Viewport* _historyViewer;
   SearchResultsContainer* _container;
   AttributeSearchCluster* _displayedCluster;
+  HistoryPanel* _history;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SearchResultsViewer)
 };

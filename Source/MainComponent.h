@@ -52,6 +52,15 @@ public:
   // Typically called from an AttributeSearchResult to place results in the bottom part
   // of the search results viewer
   void setBottomSearchComponent(Component* c, Component* source);
+
+  // Adds the current state of the rig and rendered image to the history panel.
+  void addHistory();
+
+  // Undoes the previous operation (pops off the history stack)
+  void undo();
+
+  // Redoes the previous operation (returns history item to stack)
+  void redo();
 private:
   // Open a Lumiverse file
   void openRig();
