@@ -109,18 +109,6 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
       }
     }
   }
-  //if (event.mods.isLeftButtonDown()) {
-  //  if (_clusterElems.size() > 0) {
-  //    AttributeSearchCluster* cluster = new AttributeSearchCluster(_clusterElems);
-  //    Viewport* v = new Viewport();
-  //    v->setViewedComponent(cluster, true);
-
-  //    cluster->setWidth(450);
-  //    v->setBounds(0, 0, 450, 300);
-  //    cluster->setWidth(v->getMaximumVisibleWidth());
-  //    CallOutBox& cb = CallOutBox::launchAsynchronously(v, getScreenBounds(), nullptr);
-  //  }
-  //}
 }
 
 void AttributeSearchResult::mouseEnter(const MouseEvent & event)

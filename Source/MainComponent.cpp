@@ -384,8 +384,12 @@ void MainContentComponent::search()
   list<SearchResult*> results = attributeSearch(_attrs->getActiveAttributes(), getGlobalSettings()->_editDepth);
 
   if (results.size() > 0) {
+    getStatusBar()->setStatusMessage("Search finished with " + String(results.size()) + " results.");
     // display results in the explorer (handles rendering and clustering)
     _search->display(results);
+  }
+  else {
+    getStatusBar()->setStatusMessage("WARNING: No results displayed because search yielded no results.");
   }
 
   getRecorder()->log(ACTION, (String("Exploratory search ended. Returned ") + String(results.size()) + String(" results.")).toStdString());

@@ -192,6 +192,9 @@ private:
 
   // Retrieves the current value for a Lumiverse parameter
   double getDeviceValue(EditConstraint c, Snapshot* s);
+
+  // Returns true if the specified device parameter is locked in the Rig
+  bool isParamLocked(EditConstraint c, EditType t, Snapshot* s);
 };
 
 #endif  // ATTRIBUTESEARCH_H_INCLUDED

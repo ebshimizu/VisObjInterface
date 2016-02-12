@@ -755,10 +755,23 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snaps
   Eigen::VectorXd x;
   x.resize(vecSize);
 
+  // Parameter restrictions
+  vector<bool> canEdit;
+  bool cantEditAll = true;
+
   int i = 0;
   for (const auto& c : editConstraints[t]) {
     x[i] = getDeviceValue(c, s);
+    bool lock = isParamLocked(c, t, s);
+    canEdit.push_back(!lock);
+    cantEditAll = cantEditAll & lock;
     i++;
+  }
+
+  // if we can't actually edit any parameters at all just exit now
+  if (cantEditAll) {
+    delete s;
+    return pair<list<Eigen::VectorXd>, int>(results, 0);
   }
 
   // diagnostics
@@ -772,8 +785,10 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snaps
 
     // displace by gaussian dist
     for (int j = 0; j < xp.size(); j++) {
-      xp[j] += gdist(gen);
-      setDeviceValue(editConstraints[t][j], t, xp[j], sp);
+      if (canEdit[j]) {
+        xp[j] += gdist(gen);
+        setDeviceValue(editConstraints[t][j], t, xp[j], sp);
+      }
     }
 
     // check for acceptance
@@ -1186,5 +1201,35 @@ double AttributeSearchThread::getDeviceValue(EditConstraint c, Snapshot * s)
   }
   default:
     break;
+  }
+}
+
+bool AttributeSearchThread::isParamLocked(EditConstraint c, EditType t, Snapshot* s)
+{
+  Device* d = getSpecifiedDevice(c._light, s);
+
+  switch (c._param) {
+  case INTENSITY:
+    return isDeviceParamLocked(d->getId(), "intensity");
+  case HUE:
+    return isDeviceParamLocked(d->getId(), "colorH");
+  case SAT:
+    return isDeviceParamLocked(d->getId(), "colorS");
+  case VALUE:
+    return isDeviceParamLocked(d->getId(), "colorV");
+  case RED:
+    return isDeviceParamLocked(d->getId(), "colorRed");
+  case GREEN:
+    return isDeviceParamLocked(d->getId(), "colorGreen");
+  case BLUE:
+    return isDeviceParamLocked(d->getId(), "colorBlue");
+  case POLAR:
+    return isDeviceParamLocked(d->getId(), "polar");
+  case AZIMUTH:
+    return isDeviceParamLocked(d->getId(), "azimuth");
+  case SOFT:
+    return isDeviceParamLocked(d->getId(), "penumbraAngle");
+  default:
+    return false;
   }
 }
