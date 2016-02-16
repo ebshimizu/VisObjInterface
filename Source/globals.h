@@ -53,6 +53,9 @@ public:
 
   int _numDisplayClusters;      // Number of clusters to display in the results
 
+  // Current sorting method to use
+  string _currentSortMode;
+
   map<string, string> _commandLineArgs;
 };
 

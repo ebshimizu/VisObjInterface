@@ -150,7 +150,9 @@
     <ClCompile Include="..\..\Source\AttributeControllerBase.cpp"/>
     <ClCompile Include="..\..\Source\AttributeControls.cpp"/>
     <ClCompile Include="..\..\Source\AttributeSearch.cpp"/>
+    <ClCompile Include="..\..\Source\AttributeSearchCluster.cpp"/>
     <ClCompile Include="..\..\Source\AttributeSearchResult.cpp"/>
+    <ClCompile Include="..\..\Source\AttributeSorting.cpp"/>
     <ClCompile Include="..\..\Source\SearchResultsViewer.cpp"/>
     <ClCompile Include="..\..\Source\ParamControls.cpp"/>
     <ClCompile Include="..\..\Source\globals.cpp"/>
@@ -1325,7 +1327,9 @@
     <ClInclude Include="..\..\Source\AttributeControllers.h"/>
     <ClInclude Include="..\..\Source\AttributeControls.h"/>
     <ClInclude Include="..\..\Source\AttributeSearch.h"/>
+    <ClInclude Include="..\..\Source\AttributeSearchCluster.h"/>
     <ClInclude Include="..\..\Source\AttributeSearchResult.h"/>
+    <ClInclude Include="..\..\Source\AttributeSorting.h"/>
     <ClInclude Include="..\..\Source\SearchResultsViewer.h"/>
     <ClInclude Include="..\..\Source\ParamControls.h"/>
     <ClInclude Include="..\..\Source\globals.h"/>

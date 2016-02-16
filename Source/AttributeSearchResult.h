@@ -15,8 +15,6 @@
 #include "globals.h"
 #include "AttributeSearch.h"
 
-class AttributeSearchCluster;
-
 //==============================================================================
 /*
 */
@@ -65,21 +63,5 @@ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AttributeSearchResult)
 };
 
-
-//==============================================================================
-class AttributeSearchCluster : public Component
-{
-public:
-  AttributeSearchCluster(Array<AttributeSearchResult*> elems);
-  ~AttributeSearchCluster();
-
-  void paint(Graphics& g);
-  void resized();
-
-  void setHeight(int height);
-
-private:
-  Array<AttributeSearchResult*> _elems;
-};
 
 #endif  // ATTRIBUTESEARCHRESULT_H_INCLUDED

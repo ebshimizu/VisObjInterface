@@ -10,9 +10,8 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "AttributeControls.h"
-
 #include "AttributeControllers.h"
-
+#include "MainComponent.h"
 
 AttributeControlsList::AttributeControlsList()
 {
@@ -115,6 +114,15 @@ AttributeControls::AttributeControls()
   _clusters->setValue(getGlobalSettings()->_numDisplayClusters, dontSendNotification);
   _clusters->setName("clusters");
   addAndMakeVisible(_clusters);
+
+  // Add the sort methods to the combo box
+  _sort = new ComboBox("sort mode");
+  _sort->addListener(this);
+  _sort->setEditableText(false);
+  _sort->addItem("Attribute Default", 1);
+  _sort->addItem("Average Hue", 2);
+  _sort->setSelectedId(1);
+  addAndMakeVisible(_sort);
 }
 
 AttributeControls::~AttributeControls()
@@ -124,6 +132,7 @@ AttributeControls::~AttributeControls()
   delete _componentView;
   delete _search;
   delete _clusters;
+  delete _sort;
 }
 
 void AttributeControls::paint (Graphics& g)
@@ -137,7 +146,8 @@ void AttributeControls::resized()
 
   auto botBounds = lbounds.removeFromBottom(30);
   _search->setBounds(botBounds.removeFromRight(150).reduced(5));
-  _clusters->setBounds(botBounds.reduced(5));
+  _clusters->setBounds(botBounds.removeFromRight(100).reduced(5));
+  _sort->setBounds(botBounds.reduced(5));
 
   _componentView->setBounds(lbounds);
   _container->setWidth(_componentView->getMaximumVisibleWidth());
@@ -159,6 +169,19 @@ void AttributeControls::sliderValueChanged(Slider * slider)
       getGlobalSettings()->_numDisplayClusters = newVal;
       getApplicationCommandManager()->invokeDirectly(command::RECLUSTER, true);
     }
+  }
+}
+
+void AttributeControls::comboBoxChanged(ComboBox * b)
+{
+  String id = b->getItemText(b->getSelectedId() - 1);
+  getGlobalSettings()->_currentSortMode = id.toStdString();
+
+  // do the re-sort
+  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+  if (mc != nullptr) {
+    mc->sortCluster();
   }
 }
 

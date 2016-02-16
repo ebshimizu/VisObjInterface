@@ -367,7 +367,13 @@
     <ClCompile Include="..\..\Source\AttributeSearch.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\AttributeSearchCluster.cpp">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\AttributeSearchResult.cpp">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\AttributeSorting.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SearchResultsViewer.cpp">
@@ -1689,7 +1695,13 @@
     <ClInclude Include="..\..\Source\AttributeSearch.h">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\AttributeSearchCluster.h">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\AttributeSearchResult.h">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\AttributeSorting.h">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SearchResultsViewer.h">

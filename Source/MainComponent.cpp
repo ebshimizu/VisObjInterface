@@ -230,6 +230,11 @@ void MainContentComponent::redo()
   }
 }
 
+void MainContentComponent::sortCluster()
+{
+  _search->sortDisplayedCluster();
+}
+
 void MainContentComponent::openRig() {
   FileChooser fc("Load Show (pick a .rig.json or .playback.json file)", File::getCurrentWorkingDirectory(),
     "*.rig.json;*.playback.json", true);

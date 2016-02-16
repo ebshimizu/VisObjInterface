@@ -166,6 +166,7 @@ GlobalSettings::GlobalSettings()
   _numDisplayClusters = 3;
   _jndThreshold = 0.05;
   _randomMode = false;
+  _currentSortMode = "Attribute Default";
 }
 
 GlobalSettings::~GlobalSettings()

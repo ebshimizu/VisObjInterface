@@ -516,7 +516,6 @@ Snapshot * vectorToSnapshot(Eigen::VectorXd v)
   auto fill = (v[21] > 0) ? devices["left"] : devices["right"];
   auto rim = devices["rim"];
 
-  // NEED TO ADD SOFT TO VECTOR REPRESENTATION
   key->getParam<LumiverseFloat>("intensity")->setValAsPercent(v[0]);
   key->getParam<LumiverseOrientation>("polar")->setValAsPercent(v[1]);
   key->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(v[2]);
@@ -719,11 +718,11 @@ list<Eigen::VectorXd> AttributeSearchThread::performEdit(EditType t, Snapshot* o
   //  if (acceptRate < 0.5)
   //    sigma += 0.01;
 
-  //  if (sigma <= 0) {
+   // if (sigma <= 0) {
       // if we can't solve the problem with sigma, for now we'll just set it to default and continue
-  //    sigma = 0.05;
-  //    break;
-  //  }
+   //   sigma = 0.05;
+   //   break;
+   // }
   //}
 
   auto res = doMCMC(t, orig, f, getGlobalSettings()->_maxMCMCIters, sigma, true);

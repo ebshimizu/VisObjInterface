@@ -304,6 +304,13 @@ void SearchResultsViewer::redisplay()
   resized();
 }
 
+void SearchResultsViewer::sortDisplayedCluster()
+{
+  if (_displayedCluster != nullptr) {
+    _displayedCluster->sort();
+  }
+}
+
 void SearchResultsViewer::setBotComponent(Component * c, Component* source)
 {
   auto cl = dynamic_cast<AttributeSearchCluster*>(c);

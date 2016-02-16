@@ -11,6 +11,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "AttributeSearchResult.h"
 #include "MainComponent.h"
+#include "AttributeSearchCluster.h"
 
 //==============================================================================
 AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(result)
@@ -75,10 +76,13 @@ void AttributeSearchResult::clearSearchResult()
 
 void AttributeSearchResult::mouseDown(const MouseEvent & event)
 {
+  if (_clusterElems.size() > 0)
+    return;
+
   if (event.mods.isRightButtonDown()) {
     PopupMenu m;
     m.addItem(1, "Move to Stage");
-    m.addItem(3, "Repeat Search with Selected");
+    m.addItem(2, "Repeat Search with Selected");
 
     const int result = m.show();
 
@@ -123,6 +127,8 @@ void AttributeSearchResult::mouseEnter(const MouseEvent & event)
 
     // We have to reach all the way up to the main component to do this
     MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+    cluster->sort(&DefaultSorter());
+    cluster->sort();
 
     if (mc != nullptr) {
       mc->setBottomSearchComponent(cluster, this);
@@ -156,44 +162,4 @@ int AttributeSearchResult::compareElements(AttributeSearchResult * first, Attrib
     return 1;
   else
     return 0;
-}
-
-
-//==============================================================================
-AttributeSearchCluster::AttributeSearchCluster(Array<AttributeSearchResult*> elems) :
-  _elems(elems)
-{
-  _elems.sort(*elems[0]);
-
-  for (auto e : _elems) {
-    addAndMakeVisible(e);
-  }
-}
-
-AttributeSearchCluster::~AttributeSearchCluster()
-{
-}
-
-void AttributeSearchCluster::paint(Graphics & g)
-{
-  g.fillAll(Colour(0xff333333));
-}
-
-void AttributeSearchCluster::resized()
-{
-  auto lbounds = getLocalBounds();
-  int elemHeight = lbounds.getHeight();
-  int elemWidth = elemHeight * (16.0 / 9.0);
-
-  for (int i = 0; i < _elems.size(); i++) {
-    _elems[i]->setBounds(lbounds.removeFromLeft(elemWidth).reduced(1));
-  }
-}
-
-void AttributeSearchCluster::setHeight(int height)
-{
-  int elemWidth = height * (16.0 / 9.0);
-  int elemHeight = height;
-  int width = elemWidth * _elems.size();
-  setBounds(0, 0, width, height);
 }

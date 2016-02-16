@@ -16,6 +16,7 @@
 #include "AttributeSearch.h"
 #include "AttributeSearchResult.h"
 #include "HistoryPanel.h"
+#include "AttributeSearchCluster.h"
 
 class SearchResultsRenderer : public ThreadWithProgressWindow
 {
@@ -80,6 +81,7 @@ public:
 
   void display(list<SearchResult*>& results);
   void redisplay();
+  void sortDisplayedCluster();
 
   void setBotComponent(Component* c, Component* source);
 
