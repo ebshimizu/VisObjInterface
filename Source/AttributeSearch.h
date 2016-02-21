@@ -142,6 +142,9 @@ list<SearchResult*> filterResults(list<SearchResult*>& results, vector<Eigen::Ve
 // in the set
 void filterResults(list<Eigen::VectorXd>& results, double t);
 
+// Remove scenes from the set that are within a specified threshold of other elements
+void filterResults(list<SearchResult*>& results, double t);
+
 // For each center, return the closest search result to that center
 list<SearchResult*> getClosestScenesToCenters(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers);
 
@@ -172,9 +175,10 @@ private:
   int _editDepth;
   list<SearchResult*> _results;
   Snapshot* _original;
+  double _fc;
 
   // Runs a single level iteration of the search algorithm, starting at the given scenes.
-  list<SearchResult*> runSingleLevelSearch(list<SearchResult*> startScenes, int level);
+  list<SearchResult*> runSingleLevelSearch(list<SearchResult*> startScenes, int level, attrObjFunc f);
 
   // Given a current configuration, use MCMC to perform an edit on the configuration
   list<Eigen::VectorXd> performEdit(EditType t, Snapshot* orig, attrObjFunc f);

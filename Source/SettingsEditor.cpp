@@ -38,7 +38,7 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_thumbnailRenderSamples = (int)newValue;
   else if (_id == "Minimum Edit Distance")
     getGlobalSettings()->_minEditDist = newValue;
-  else if (_id == "Scenes per Edit")
+  else if (_id == "Number of Scenes Between Layers")
     getGlobalSettings()->_numEditScenes = (int)newValue;
   else if (_id == "Finite Difference Window")
     getGlobalSettings()->_searchDerivDelta = newValue;
@@ -76,6 +76,8 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_maxMCMCIters = (int)newValue;
   else if (_id == "Number of Clusters")
     getGlobalSettings()->_numDisplayClusters = (int)newValue;
+  else if (_id == "JND Threshold")
+    getGlobalSettings()->_jndThreshold = newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -92,7 +94,7 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_thumbnailRenderSamples;
   else if (_id == "Minimum Edit Distance")
     return getGlobalSettings()->_minEditDist;
-  else if (_id == "Scenes per Edit")
+  else if (_id == "Number of Scenes Between Layers")
     return getGlobalSettings()->_numEditScenes;
   else if (_id == "Finite Difference Window")
     return getGlobalSettings()->_searchDerivDelta;
@@ -122,13 +124,15 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_maxMCMCIters;
   else if (_id == "Number of Clusters")
     return getGlobalSettings()->_numDisplayClusters;
+  else if (_id == "JND Threshold")
+    return getGlobalSettings()->_jndThreshold;
 }
 
 void SettingsSlider::sliderValueChanged(Slider * s)
 {
   SliderPropertyComponent::sliderValueChanged(s);
   
-  getRecorder()->log(SYSTEM, "Setting " + _id + " set to " + String(s->getValue()).toStdString());
+  getRecorder()->log(SYSTEM, _id + " set to " + String(s->getValue()).toStdString());
 }
 
 SettingsBoolButton::SettingsBoolButton(string id) : 
@@ -160,9 +164,10 @@ bool SettingsBoolButton::getState() const
 SettingsEditor::SettingsEditor()
 {
   Array<PropertyComponent*> searchComponents;
-  searchComponents.add(new SettingsSlider("Number of Clusters", 1, 25, 1));
+  searchComponents.add(new SettingsSlider("Number of Scenes Between Layers", 1, 25, 1));
   searchComponents.add(new SettingsSlider("Edit Depth", 1, 10, 1));
   searchComponents.add(new SettingsSlider("Minimum Edit Distance", 0, 100, 0.01));
+  searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 100, 0.01));
   searchComponents.add(new SettingsSlider("Scenes per Edit", -1, 100, 1));
   searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1, 1e-7));
   searchComponents.add(new SettingsSlider("Cluster Distance Threshold", 1e-3, 5, 1e-3));

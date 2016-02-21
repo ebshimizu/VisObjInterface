@@ -157,14 +157,14 @@ GlobalSettings::GlobalSettings()
   _renderHeight = 0;
   _thumbnailRenderScale = 0.25;
   _editDepth = 1;
-  _clusterDistThreshold = 0.20;
-  _clusterDiffThreshold = 0.125;
+  _clusterDistThreshold = 0.30;
+  _clusterDiffThreshold = 0.25;
   _maxEditIters = 2000;
   _searchMomentum = 0.5;
   _editStepSize = 0.003;
   _maxMCMCIters = 1e3;
   _numDisplayClusters = 3;
-  _jndThreshold = 0.05;
+  _jndThreshold = 0.25;
   _randomMode = false;
   _currentSortMode = "Attribute Default";
 }

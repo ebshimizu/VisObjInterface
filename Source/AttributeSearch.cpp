@@ -436,6 +436,31 @@ void filterResults(list<Eigen::VectorXd>& results, double t)
   }
 }
 
+void filterResults(list<SearchResult*>& results, double t)
+{
+  // starting at the first element
+  for (auto it = results.begin(); it != results.end(); it++) {
+    // See how close all other elements are
+    for (auto it2 = results.begin(); it2 != results.end(); ) {
+      if (it == it2) {
+        it2++;
+        continue;
+      }
+
+      double dist = ((*it)->_scene - (*it2)->_scene).norm();
+
+      // delete element if it's too close
+      if (dist < t) {
+        delete *it2;
+        it2 = results.erase(it2);
+      }
+      else {
+        it2++;
+      }
+    }
+  }
+}
+
 list<SearchResult*> getClosestScenesToCenters(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers)
 {
   vector<multimap<double, SearchResult*> > res;
@@ -593,10 +618,28 @@ void AttributeSearchThread::run()
   start->_scene = snapshotToVector(_original);
   _results.push_back(start);
 
+  // objective function for combined set of active attributes.
+  attrObjFunc f = [this](Snapshot* s) {
+    double sum = 0;
+    for (const auto& kvp : _active) {
+      if (kvp.second->getStatus() == A_LESS)
+        sum += kvp.second->evaluateScene(s->getRigData());
+      else if (kvp.second->getStatus() == A_MORE)
+        sum -= kvp.second->evaluateScene(s->getRigData());
+      else if (kvp.second->getStatus() == A_EQUAL)
+        sum += pow(kvp.second->evaluateScene(s->getRigData()) - kvp.second->evaluateScene(_original->getRigData()), 2);
+    }
+
+    return sum;
+  };
+
+  // save the original attribute function valuee
+  _fc = f(_original);
+
   for (int i = 0; i < _editDepth; i++) {
     setProgress((float)i / _editDepth);
 
-    list<SearchResult*> newResults = runSingleLevelSearch(_results, i);
+    list<SearchResult*> newResults = runSingleLevelSearch(_results, i, f);
 
     // delete old results
     for (auto r : _results)
@@ -607,9 +650,8 @@ void AttributeSearchThread::run()
 
     // cluster and filter for final run
     if (i == _editDepth - 1) {
-      auto centers = clusterResults(newResults);
-      auto filtered = filterResults(newResults, centers);
-      _results = filtered;
+      filterResults(newResults, getGlobalSettings()->_jndThreshold);
+      _results = newResults;
     }
     else {
       auto centers = clusterResults(newResults, getGlobalSettings()->_numEditScenes);
@@ -641,24 +683,9 @@ void AttributeSearchThread::threadComplete(bool userPressedCancel)
   }
 }
 
-list<SearchResult*> AttributeSearchThread::runSingleLevelSearch(list<SearchResult*> startScenes, int level)
+list<SearchResult*> AttributeSearchThread::runSingleLevelSearch(list<SearchResult*> startScenes, int level, attrObjFunc f)
 {
   list<SearchResult*> searchResults;
-
-  // objective function for combined set of active attributes.
-  attrObjFunc f = [this](Snapshot* s) {
-    double sum = 0;
-    for (const auto& kvp : _active) {
-      if (kvp.second->getStatus() == A_LESS)
-        sum += kvp.second->evaluateScene(s->getRigData());
-      else if (kvp.second->getStatus() == A_MORE)
-        sum -= kvp.second->evaluateScene(s->getRigData());
-      else if (kvp.second->getStatus() == A_EQUAL)
-        sum += pow(kvp.second->evaluateScene(s->getRigData()) - kvp.second->evaluateScene(_original->getRigData()), 2);
-    }
-
-    return sum;
-  };
 
   float seqPct = ((float)level / _editDepth);
 
@@ -705,25 +732,26 @@ list<Eigen::VectorXd> AttributeSearchThread::performEdit(EditType t, Snapshot* o
   // Determine accept parameters
   double targetAcceptRate = 0.5;  // +/- 5%
   double sigma = 0.05;
-  //while (1) {
-  //  auto res = doMCMC(t, orig, f, 100, sigma, false);
-  //  double acceptRate = res.second / 100.0;
+  // limit number of tuning iterations
+  for (int i = 0; i < 20; i++) {
+    auto res = doMCMC(t, orig, f, 100, sigma, false);
+    double acceptRate = res.second / 100.0;
     
-  //  if (abs(acceptRate - 0.5) <= 0.05) {
-  //    break;
-  //  }
+    if (abs(acceptRate - targetAcceptRate) <= 0.05) {
+      break;
+    }
     
-  //  if (acceptRate > 0.5)
-  //    sigma -= 0.01;
-  //  if (acceptRate < 0.5)
-  //    sigma += 0.01;
+    if (acceptRate > targetAcceptRate)
+      sigma -= 0.005;
+    if (acceptRate < targetAcceptRate)
+      sigma += 0.01;
 
-   // if (sigma <= 0) {
+    if (sigma <= 0) {
       // if we can't solve the problem with sigma, for now we'll just set it to default and continue
-   //   sigma = 0.05;
-   //   break;
-   // }
-  //}
+      sigma = 0.05;
+      break;
+   }
+  }
 
   auto res = doMCMC(t, orig, f, getGlobalSettings()->_maxMCMCIters, sigma, true);
   delete orig;
@@ -747,7 +775,6 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snaps
   // Constants
   double minEditDist = getGlobalSettings()->_minEditDist;
   int maxIters = iters;
-  double startVal = f(s);
 
   // Set up relevant feature vector
   int vecSize = editConstraints[t].size();
@@ -776,7 +803,7 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snaps
   // diagnostics
   int accepted = 0;
   Snapshot* sp = new Snapshot(*start);
-  double fx = startVal;
+  double fx = f(s);
 
   for (int i = 0; i < maxIters; i++) {
     // generate candidate x'
@@ -805,7 +832,7 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snaps
 
     // accept if a >= 1 or with probability a
     if (a >= 1 || udist(gen) <= a) {
-      if (saveSamples && fxp < startVal && abs(fxp - startVal) > minEditDist) {
+      if (saveSamples && fxp < _fc && abs(fxp - _fc) >= minEditDist) {
         // save sample in list
         results.push_back(snapshotToVector(sp));
       }
