@@ -25,7 +25,7 @@ public:
   void paint(Graphics& g);
   void resized();
 
-  void setHeight(int height);
+  void setWidth(int width);
   void sort();  // Uses the value in the globals to sort
   void sort(AttributeSorter* s);
 

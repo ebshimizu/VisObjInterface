@@ -287,7 +287,7 @@ void SearchResultsViewer::resized()
 
   _detailViewer->setBounds(lbounds);
   if (_displayedCluster != nullptr)
-    _displayedCluster->setHeight(lbounds.getHeight() - 20); // magic numbers are bad but eh
+    _displayedCluster->setWidth(lbounds.getWidth() - 20); // magic numbers are bad but eh
 }
 
 void SearchResultsViewer::display(list<SearchResult*>& results)
@@ -329,7 +329,7 @@ void SearchResultsViewer::setBotComponent(Component * c, Component* source)
 
     _detailViewer->setBounds(lbounds);
     if (_displayedCluster != nullptr)
-      _displayedCluster->setHeight(lbounds.getHeight() - 20); // magic numbers are bad but eh;
+      _displayedCluster->setWidth(lbounds.getWidth() - 20); // magic numbers are bad but eh;
 
     repaint();
   }

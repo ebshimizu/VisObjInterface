@@ -50,6 +50,7 @@ public:
   int _maxMCMCIters;            // MCMC: Max number of iterations
   double _jndThreshold;         // For two feature vectors, how far apart they can be to be considered equivalent
   bool _randomMode;             // Primarily for debugging, turning this on ignores parameter values when searching
+  int _clusterElemsPerRow;      // Number of elements to show in a cluster detail view
 
   int _numDisplayClusters;      // Number of clusters to display in the results
 

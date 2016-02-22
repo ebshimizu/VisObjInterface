@@ -78,6 +78,8 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_numDisplayClusters = (int)newValue;
   else if (_id == "JND Threshold")
     getGlobalSettings()->_jndThreshold = newValue;
+  else if (_id == "Thumbnails Per Row")
+    getGlobalSettings()->_clusterElemsPerRow = (int)newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -126,6 +128,8 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_numDisplayClusters;
   else if (_id == "JND Threshold")
     return getGlobalSettings()->_jndThreshold;
+  else if (_id == "Thumbnails Per Row")
+    return getGlobalSettings()->_clusterElemsPerRow;
 }
 
 void SettingsSlider::sliderValueChanged(Slider * s)
@@ -198,6 +202,7 @@ SettingsEditor::SettingsEditor()
   renderComponents.add(_width);
   renderComponents.add(_height);
   renderComponents.add(new SettingsSlider("Thumbnail Scale", 0, 1, 0.01));
+  renderComponents.add(new SettingsSlider("Thumbnails Per Row", 1, 20, 1));
 
   _settings.addSection("Render", renderComponents);
 

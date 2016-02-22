@@ -31,19 +31,24 @@ void AttributeSearchCluster::paint(Graphics & g)
 void AttributeSearchCluster::resized()
 {
   auto lbounds = getLocalBounds();
-  int elemHeight = lbounds.getHeight();
-  int elemWidth = elemHeight * (16.0 / 9.0);
+  int elemWidth = lbounds.getWidth() / getGlobalSettings()->_clusterElemsPerRow;
+  int elemHeight = elemWidth * (9.0 / 16.0);
 
+  Rectangle<int> row;
   for (int i = 0; i < _elems.size(); i++) {
-    _elems[i]->setBounds(lbounds.removeFromLeft(elemWidth).reduced(1));
+    if (i % getGlobalSettings()->_clusterElemsPerRow == 0)
+      row = lbounds.removeFromTop(elemHeight);
+
+    _elems[i]->setBounds(row.removeFromLeft(elemWidth).reduced(1));
   }
 }
 
-void AttributeSearchCluster::setHeight(int height)
+void AttributeSearchCluster::setWidth(int width)
 {
-  int elemWidth = height * (16.0 / 9.0);
-  int elemHeight = height;
-  int width = elemWidth * _elems.size();
+  int elemWidth = width / getGlobalSettings()->_clusterElemsPerRow;
+  int elemHeight = elemWidth * (9.0 / 16.0);
+  int rows = ceil((float)_elems.size() / getGlobalSettings()->_clusterElemsPerRow);
+  int height = elemHeight * rows;
   setBounds(0, 0, width, height);
 }
 
