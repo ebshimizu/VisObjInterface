@@ -280,7 +280,7 @@ void SearchResultsViewer::resized()
   _history->setWidth(_historyViewer->getMaximumVisibleWidth());
 
   lbounds.removeFromRight(2);
-  int halfBounds = lbounds.getHeight() / 2;
+  int halfBounds = min(250, lbounds.getHeight() / 2);
 
   _viewer->setBounds(lbounds.removeFromTop(halfBounds));
   _container->setHeight(halfBounds - 20);
@@ -324,7 +324,7 @@ void SearchResultsViewer::setBotComponent(Component * c, Component* source)
 
     auto lbounds = getLocalBounds();
     lbounds.removeFromRight(302);
-    int halfBounds = lbounds.getHeight() / 2;
+    int halfBounds = min(250, lbounds.getHeight() / 2);
     lbounds.removeFromTop(halfBounds);
 
     _detailViewer->setBounds(lbounds);

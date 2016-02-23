@@ -191,8 +191,8 @@ private:
   // specified attribute
   double numericDeriv(EditConstraint c, EditType t, Snapshot* s, attrObjFunc f);
 
-  // updates the value for a Lumiverse parameter
-  void setDeviceValue(EditConstraint c, EditType t, double val, Snapshot* s);
+  // updates the value for a Lumiverse parameter and returns the actual value after the update
+  double setDeviceValue(EditConstraint c, EditType t, double val, Snapshot* s);
 
   // Retrieves the current value for a Lumiverse parameter
   double getDeviceValue(EditConstraint c, Snapshot* s);

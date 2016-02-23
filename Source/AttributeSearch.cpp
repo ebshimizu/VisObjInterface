@@ -813,7 +813,9 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snaps
     for (int j = 0; j < xp.size(); j++) {
       if (canEdit[j]) {
         xp[j] += gdist(gen);
-        setDeviceValue(editConstraints[t][j], t, xp[j], sp);
+        // The next line acts as a physically based clamp function of sorts.
+        // It updates the lighting scene and also returns the value of the parameter after the update.
+        xp[j] = setDeviceValue(editConstraints[t][j], t, xp[j], sp);
       }
     }
 
@@ -1080,7 +1082,7 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapsho
   return (f2 - f1) / h;
 }
 
-void AttributeSearchThread::setDeviceValue(EditConstraint c, EditType t, double val, Snapshot * s)
+double AttributeSearchThread::setDeviceValue(EditConstraint c, EditType t, double val, Snapshot * s)
 {
   Device* d = getSpecifiedDevice(c._light, s);
 
@@ -1102,7 +1104,7 @@ void AttributeSearchThread::setDeviceValue(EditConstraint c, EditType t, double 
       }
     }
     
-    break;
+    return d->getIntensity()->asPercent();
   }
   case HUE:
   {
@@ -1123,29 +1125,29 @@ void AttributeSearchThread::setDeviceValue(EditConstraint c, EditType t, double 
       }
     }
 
-    break;
+    return d->getColor()->getHSV()[0] / 360.0;
   }
   case SAT:
   {
     Eigen::Vector3d hsv = d->getColor()->getHSV();
     d->getColor()->setHSV(hsv[0], val, hsv[2]);
-    break;
+    return d->getColor()->getHSV()[1];
   }
   case VALUE:
   {
     Eigen::Vector3d hsv = d->getColor()->getHSV();
     d->getColor()->setHSV(hsv[0], hsv[1], val);
-    break;
+    return d->getColor()->getHSV()[2];
   }
   case RED:
     d->getColor()->setColorChannel("Red", val);
-    break;
+    return d->getColor()->getColorChannel("Red");
   case BLUE:
     d->getColor()->setColorChannel("Blue", val);
-    break;
+    return d->getColor()->getColorChannel("Blue");
   case GREEN:
     d->getColor()->setColorChannel("Green", val);
-    break;
+    return d->getColor()->getColorChannel("Green");
   case POLAR:
   {
     LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("polar");
@@ -1156,7 +1158,7 @@ void AttributeSearchThread::setDeviceValue(EditConstraint c, EditType t, double 
       fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(-val);
     }
 
-    break;
+    return o->asPercent();
   }
   case AZIMUTH:
   {
@@ -1168,16 +1170,16 @@ void AttributeSearchThread::setDeviceValue(EditConstraint c, EditType t, double 
       fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(val);
     }
 
-    break;
+    return o->asPercent();
   }
   case SOFT:
   {
     LumiverseFloat* s = d->getParam<LumiverseFloat>("penumbraAngle");
     s->setValAsPercent(val);
-    break;
+    return s->asPercent();
   }
   default:
-    break;
+    return 0;
   }
 
 }
