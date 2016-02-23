@@ -116,20 +116,33 @@ void SearchResultsContainer::display(list<SearchResult*>& results)
   vector<Eigen::VectorXd> centers = clusterResults(results);
   Array<AttributeSearchResult*> renderBatch;
 
-  // create searchresult elements for cluster centers
-  int i = 0;
-  for (auto& c : centers) {
-    SearchResult* s = new SearchResult();
-    s->_scene = c;
-    s->_editHistory.add(CLUSTER_CENTER);
-    s->_cluster = i;
+  // special case for 1 result (the k-means library hates it)
+  if (results.size() == 1) {
+    SearchResult* s = new SearchResult(**(results.begin()));
+    s->_cluster = 0;
+    (*(results.begin()))->_cluster = 0;
 
     AttributeSearchResult* cluster = new AttributeSearchResult(s);
-
     addAndMakeVisible(cluster);
     _results.add(cluster);
     renderBatch.add(cluster);
-    i++;
+  }
+  else {
+    // create searchresult elements for cluster centers
+    int i = 0;
+    for (auto& c : centers) {
+      SearchResult* s = new SearchResult();
+      s->_scene = c;
+      s->_editHistory.add(CLUSTER_CENTER);
+      s->_cluster = i;
+
+      AttributeSearchResult* cluster = new AttributeSearchResult(s);
+
+      addAndMakeVisible(cluster);
+      _results.add(cluster);
+      renderBatch.add(cluster);
+      i++;
+    }
   }
 
   // iterate: for each cluster, put the proper attributeSearchResult into the
