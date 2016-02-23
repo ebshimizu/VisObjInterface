@@ -60,6 +60,15 @@ void AttributeSearchCluster::sort()
     sort(&DefaultSorter());
   else if (id == "Average Hue")
     sort(&AvgHueSorter());
+  else if (id == "Key Hue")
+    sort(&KeyHueSorter());
+  else if (id == "Average Intensity")
+    sort(&AvgBrightSorter());
+  else if (id == "Key Intensity")
+    sort(&KeyBrightSorter());
+  else if (id == "Key Azimuth Angle")
+    sort(&KeyAzmSorter());
+
 }
 
 void AttributeSearchCluster::sort(AttributeSorter* s)

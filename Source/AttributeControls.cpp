@@ -121,6 +121,10 @@ AttributeControls::AttributeControls()
   _sort->setEditableText(false);
   _sort->addItem("Attribute Default", 1);
   _sort->addItem("Average Hue", 2);
+  _sort->addItem("Key Hue", 3);
+  _sort->addItem("Average Intensity", 4);
+  _sort->addItem("Key Intensity", 5);
+  _sort->addItem("Key Azimuth Angle", 6);
   _sort->setSelectedId(1);
   addAndMakeVisible(_sort);
 }
