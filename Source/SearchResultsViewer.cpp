@@ -113,7 +113,11 @@ void SearchResultsContainer::display(list<SearchResult*>& results)
   _results.clear();
 
   // Find clusters
-  vector<Eigen::VectorXd> centers = clusterResults(results);
+  if (getGlobalSettings()->_numDisplayClusters > results.size()) {
+    getGlobalSettings()->_numDisplayClusters = results.size();
+  }
+
+  vector<Eigen::VectorXd> centers = clusterResults(results, getGlobalSettings()->_numDisplayClusters);
   Array<AttributeSearchResult*> renderBatch;
 
   // special case for 1 result (the k-means library hates it)
@@ -180,6 +184,10 @@ void SearchResultsContainer::recluster()
   // Remove things from results list
   _results.clear();
 
+  if (getGlobalSettings()->_numDisplayClusters > results.size()) {
+    getGlobalSettings()->_numDisplayClusters = results.size();
+  }
+  
   // Find clusters
   vector<Eigen::VectorXd> centers = clusterResults(results, getGlobalSettings()->_numDisplayClusters);
   Array<AttributeSearchResult*> renderBatch;
