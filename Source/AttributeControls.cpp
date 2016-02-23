@@ -145,8 +145,8 @@ void AttributeControls::resized()
   auto lbounds = getLocalBounds();
 
   auto botBounds = lbounds.removeFromBottom(30);
-  _search->setBounds(botBounds.removeFromRight(150).reduced(5));
-  _clusters->setBounds(botBounds.removeFromRight(100).reduced(5));
+  _search->setBounds(botBounds.removeFromRight(80).reduced(5));
+  _clusters->setBounds(botBounds.removeFromRight(140).reduced(5));
   _sort->setBounds(botBounds.reduced(5));
 
   _componentView->setBounds(lbounds);

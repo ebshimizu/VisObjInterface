@@ -211,82 +211,101 @@ string editTypeToString(EditType t) {
 
 vector<Eigen::VectorXd> clusterResults(list<SearchResult*> results, int c)
 {
-  // kmeans setup
-  dlib::kcentroid<kernelType> kkmeansKernel(kernelType(), 0.001);
-  dlib::kkmeans<kernelType> k(kkmeansKernel);
+  // Special case for 1 requested cluster
+  if (c == 1) {
+    // 1 cluster, center is average of all other elements
+    Eigen::VectorXd avg;
+    avg.resize((*results.begin())->_scene.size());
+    avg.setZero();
 
-  vector<sampleType> samples;
-  for (auto result : results) {
-    samples.push_back(dlib::mat(result->_scene));
+    for (auto r : results) {
+      avg += r->_scene;
+      r->_cluster = 0;
+    }
+    avg /= (double)results.size();
+    
+    vector<Eigen::VectorXd> ret;
+    ret.push_back(avg);
+    return ret;
   }
-  vector<sampleType> centers;
+  else {
+    // kmeans setup
+    dlib::kcentroid<kernelType> kkmeansKernel(kernelType(), 0.001);
+    dlib::kkmeans<kernelType> k(kkmeansKernel);
 
-  // Start at or number of clusters specified by centers
-  int numCenters = (c < 0) ? 2 : c;
+    vector<sampleType> samples;
+    for (auto result : results) {
+      samples.push_back(dlib::mat(result->_scene));
+    }
+    vector<sampleType> centers;
 
-  // Make sure user gave us something reasonable for centers
-  if (results.size() < numCenters)
-    return vector<Eigen::VectorXd>();
+    // Start at or number of clusters specified by centers
+    int numCenters = (c < 0) ? 2 : c;
 
-  double msd = INFINITY;
+    // Make sure user gave us something reasonable for centers
+    if (results.size() < numCenters)
+      return vector<Eigen::VectorXd>();
 
-  while (msd > getGlobalSettings()->_clusterDistThreshold) {
-    if (numCenters == samples.size()) {
-      vector<Eigen::VectorXd> clusterCenters;
+    double msd = INFINITY;
+
+    while (msd > getGlobalSettings()->_clusterDistThreshold) {
+      if (numCenters == samples.size()) {
+        vector<Eigen::VectorXd> clusterCenters;
+        int i = 0;
+        for (auto c : results) {
+          clusterCenters.push_back(c->_scene);
+          c->_cluster = i;
+          i++;
+        }
+        return clusterCenters;
+      }
+
+      // clear vectors
+      centers.clear();
+
+      // use dlib to get the initial centers
+      dlib::pick_initial_centers(numCenters, centers, samples, k.get_kernel());
+
+      // Run kmeans
+      dlib::find_clusters_using_kmeans(samples, centers);
+
+      // assign results to clusters and compute distance
+      double sumDist = 0;
       int i = 0;
-      for (auto c : results) {
-        clusterCenters.push_back(c->_scene);
-        c->_cluster = i;
+      for (auto r : results) {
+        unsigned long center = dlib::nearest_center(centers, samples[i]);
+        r->_cluster = center;
+
+        // get the center and compute the distance
+        auto centroid = centers[center];
+        sumDist += length(centroid - samples[i]);
         i++;
       }
-      return clusterCenters;
+
+      msd = sumDist / results.size();
+      numCenters++;
+
+      // Immediately return if user specified an exact number of clusters
+      if (c > 0)
+        break;
     }
 
-    // clear vectors
-    centers.clear();
+    // convert centers to eigen representation
+    vector<Eigen::VectorXd> clusterCenters;
+    for (auto c : centers)
+    {
+      Eigen::VectorXd eCenter;
+      eCenter.resize(c.nr());
 
-    // use dlib to get the initial centers
-    dlib::pick_initial_centers(numCenters, centers, samples, k.get_kernel());
+      for (int i = 0; i < c.nr(); i++) {
+        eCenter[i] = c(i);
+      }
 
-    // Run kmeans
-    dlib::find_clusters_using_kmeans(samples, centers);
-
-    // assign results to clusters and compute distance
-    double sumDist = 0;
-    int i = 0;
-    for (auto r : results) {
-      unsigned long center = dlib::nearest_center(centers, samples[i]);
-      r->_cluster = center;
-
-      // get the center and compute the distance
-      auto centroid = centers[center];
-      sumDist += length(centroid - samples[i]);
-      i++;
+      clusterCenters.push_back(eCenter);
     }
 
-    msd = sumDist / results.size();
-    numCenters++;
-
-    // Immediately return if user specified an exact number of clusters
-    if (c > 0)
-      break;
+    return clusterCenters;
   }
-
-  // convert centers to eigen representation
-  vector<Eigen::VectorXd> clusterCenters;
-  for (auto c : centers)
-  {
-    Eigen::VectorXd eCenter;
-    eCenter.resize(c.nr());
-
-    for (int i = 0; i < c.nr(); i++) {
-      eCenter[i] = c(i);
-    }
-
-    clusterCenters.push_back(eCenter);
-  }
-
-  return clusterCenters;
 }
 
 vector<Eigen::VectorXd> clusterResults(list<Eigen::VectorXd> results, int c) {
