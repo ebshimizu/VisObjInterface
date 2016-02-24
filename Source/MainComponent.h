@@ -64,6 +64,9 @@ public:
 
   // Tells the currently displayed cluster, if it exists, to sort itself
   void sortCluster();
+
+  // Updates the cluster display gui element
+  void refreshClusterDisplay();
 private:
   // Open a Lumiverse file
   void openRig();

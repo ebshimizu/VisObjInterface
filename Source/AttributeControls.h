@@ -50,6 +50,7 @@ public:
 
   void paint (Graphics&);
   void resized();
+  void refresh();
   
   virtual void buttonClicked(Button* b) override;
   virtual void sliderValueChanged(Slider* slider) override;

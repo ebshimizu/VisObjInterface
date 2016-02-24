@@ -235,6 +235,11 @@ void MainContentComponent::sortCluster()
   _search->sortDisplayedCluster();
 }
 
+void MainContentComponent::refreshClusterDisplay()
+{
+  _attrs->refresh();
+}
+
 void MainContentComponent::openRig() {
   FileChooser fc("Load Show (pick a .rig.json or .playback.json file)", File::getCurrentWorkingDirectory(),
     "*.rig.json;*.playback.json", true);

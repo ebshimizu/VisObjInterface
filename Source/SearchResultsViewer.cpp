@@ -10,6 +10,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "SearchResultsViewer.h"
+#include "MainComponent.h"
 //#include <vld.h>
 
 SearchResultsRenderer::SearchResultsRenderer(Array<AttributeSearchResult*> results) :
@@ -115,6 +116,12 @@ void SearchResultsContainer::display(list<SearchResult*>& results)
   // Find clusters
   if (getGlobalSettings()->_numDisplayClusters > results.size()) {
     getGlobalSettings()->_numDisplayClusters = results.size();
+
+    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+    if (mc != nullptr) {
+      mc->refreshClusterDisplay();
+    }
   }
 
   vector<Eigen::VectorXd> centers = clusterResults(results, getGlobalSettings()->_numDisplayClusters);
@@ -186,6 +193,11 @@ void SearchResultsContainer::recluster()
 
   if (getGlobalSettings()->_numDisplayClusters > results.size()) {
     getGlobalSettings()->_numDisplayClusters = results.size();
+    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+    if (mc != nullptr) {
+      mc->refreshClusterDisplay();
+    }
   }
   
   // Find clusters

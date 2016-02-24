@@ -157,6 +157,11 @@ void AttributeControls::resized()
   _container->setWidth(_componentView->getMaximumVisibleWidth());
 }
 
+void AttributeControls::refresh()
+{
+  _clusters->setValue(getGlobalSettings()->_numDisplayClusters, dontSendNotification);
+}
+
 void AttributeControls::buttonClicked(Button * b)
 {
   if (b->getName() == "Search") {
