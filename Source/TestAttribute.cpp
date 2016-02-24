@@ -54,7 +54,7 @@ double TestAttribute::evaluateScene(Device* key, Device* fill, Device* rim)
   err += (300 - (warmest - Eigen::Vector2d(rcolor[1], rcolor[2])).norm()) * _rimWeight;
 
   // Max for this function should be at 100
-  return err / 9.0;
+  return err / 3.0;
 
   // this test function attempts to define a measure of "warmness" of a scene
   // it does this by measuring how far away the average cct is from a target value

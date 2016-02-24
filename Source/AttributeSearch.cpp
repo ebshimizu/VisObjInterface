@@ -620,6 +620,14 @@ AttributeSearchThread::AttributeSearchThread(map<string, AttributeControllerBase
   Rig* rig = getRig();
   _original = new Snapshot(rig, nullptr);
 
+  // flag for special casing searching for the same of a single attribute
+  if (_active.size() == 1 && _active.begin()->second->getStatus() == A_EQUAL) {
+    _singleSame = true;
+  }
+  else {
+    _singleSame = false;
+  }
+
   setProgress(-1);
 }
 
@@ -651,6 +659,20 @@ void AttributeSearchThread::run()
 
     return sum;
   };
+
+  if (_singleSame) {
+    // Reassign starting scene is working with same for a single attribute
+    Snapshot* sStart = new Snapshot(*_original);
+    for (auto c : editConstraints[ALL]) {
+      if (!isParamLocked(c, ALL, sStart)) {
+        double dx = numericDeriv(c, ALL, sStart, f);
+        double x = getDeviceValue(c, sStart);
+        setDeviceValue(c, ALL, x - dx * 0.5, sStart);
+      }
+    }
+    start->_scene = snapshotToVector(sStart);
+    delete sStart;
+  }
 
   // save the original attribute function valuee
   _fc = f(_original);
@@ -853,9 +875,17 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snaps
 
     // accept if a >= 1 or with probability a
     if (a >= 1 || udist(gen) <= a) {
-      if (saveSamples && fxp < _fc && abs(fxp - _fc) >= minEditDist) {
-        // save sample in list
-        results.push_back(snapshotToVector(sp));
+      if (_singleSame) {
+        if (saveSamples && abs(fxp - _fc) < 2) {
+          // save sample in list
+          results.push_back(snapshotToVector(sp));
+        }
+      }
+      else {
+        if (saveSamples && fxp < _fc && abs(fxp - _fc) >= minEditDist) {
+          // save sample in list
+          results.push_back(snapshotToVector(sp));
+        }
       }
       // update x
       x = xp;

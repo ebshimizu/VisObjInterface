@@ -39,7 +39,7 @@ void AttributeSearchCluster::resized()
     if (i % getGlobalSettings()->_clusterElemsPerRow == 0)
       row = lbounds.removeFromTop(elemHeight);
 
-    _elems[i]->setBounds(row.removeFromLeft(elemWidth).reduced(1));
+    _elems[i]->setBounds(row.removeFromLeft(elemWidth));
   }
 }
 
