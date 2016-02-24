@@ -176,6 +176,7 @@ private:
   list<SearchResult*> _results;
   Snapshot* _original;
   double _fc;
+  bool _singleSame;
 
   // Runs a single level iteration of the search algorithm, starting at the given scenes.
   list<SearchResult*> runSingleLevelSearch(list<SearchResult*> startScenes, int level, attrObjFunc f);

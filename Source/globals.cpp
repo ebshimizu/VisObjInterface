@@ -167,7 +167,7 @@ GlobalSettings::GlobalSettings()
   _jndThreshold = 0.25;
   _randomMode = false;
   _currentSortMode = "Attribute Default";
-  _clusterElemsPerRow = 8;
+  _clusterElemsPerRow = 6;
 }
 
 GlobalSettings::~GlobalSettings()
