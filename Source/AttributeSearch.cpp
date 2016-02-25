@@ -960,7 +960,7 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapsho
   }
   case HUE:
   {
-    if (isDeviceParamLocked(d->getId(), "colorH"))
+    if (isDeviceParamLocked(d->getId(), "color"))
       return 0;
 
     Eigen::Vector3d hsv = d->getColor()->getHSV();
@@ -1005,7 +1005,7 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapsho
   }
   case SAT:
   {
-    if (isDeviceParamLocked(d->getId(), "colorS"))
+    if (isDeviceParamLocked(d->getId(), "color"))
       return 0;
 
     Eigen::Vector3d hsv = d->getColor()->getHSV();
@@ -1019,7 +1019,7 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapsho
   }
   case VALUE:
   {
-    if (isDeviceParamLocked(d->getId(), "colorV"))
+    if (isDeviceParamLocked(d->getId(), "color"))
       return 0;
 
     Eigen::Vector3d hsv = d->getColor()->getHSV();
@@ -1033,7 +1033,7 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapsho
   }
   case RED:
   {
-    if (isDeviceParamLocked(d->getId(), "colorRed"))
+    if (isDeviceParamLocked(d->getId(), "color"))
       return 0;
 
     double r = d->getColor()->getColorChannel("Red");
@@ -1047,7 +1047,7 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapsho
   }
   case BLUE:
   {
-    if (isDeviceParamLocked(d->getId(), "colorBlue"))
+    if (isDeviceParamLocked(d->getId(), "color"))
       return 0;
 
     double b = d->getColor()->getColorChannel("Blue");
@@ -1061,7 +1061,7 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapsho
   }
   case GREEN:
   {
-    if (isDeviceParamLocked(d->getId(), "colorGreen"))
+    if (isDeviceParamLocked(d->getId(), "color"))
       return 0;
 
     double g = d->getColor()->getColorChannel("Green");
@@ -1289,17 +1289,17 @@ bool AttributeSearchThread::isParamLocked(EditConstraint c, EditType t, Snapshot
   case INTENSITY:
     return isDeviceParamLocked(d->getId(), "intensity");
   case HUE:
-    return isDeviceParamLocked(d->getId(), "colorH");
+    return isDeviceParamLocked(d->getId(), "color");
   case SAT:
-    return isDeviceParamLocked(d->getId(), "colorS");
+    return isDeviceParamLocked(d->getId(), "color");
   case VALUE:
-    return isDeviceParamLocked(d->getId(), "colorV");
+    return isDeviceParamLocked(d->getId(), "color");
   case RED:
-    return isDeviceParamLocked(d->getId(), "colorRed");
+    return isDeviceParamLocked(d->getId(), "color");
   case GREEN:
-    return isDeviceParamLocked(d->getId(), "colorGreen");
+    return isDeviceParamLocked(d->getId(), "color");
   case BLUE:
-    return isDeviceParamLocked(d->getId(), "colorBlue");
+    return isDeviceParamLocked(d->getId(), "color");
   case POLAR:
     return isDeviceParamLocked(d->getId(), "polar");
   case AZIMUTH:

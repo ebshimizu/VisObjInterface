@@ -10,6 +10,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "ParamControls.h"
+#include "MainComponent.h"
 #include <sstream>
 
 //==============================================================================
@@ -334,6 +335,91 @@ void HSVColorPropertySlider::sliderDragEnded(Slider * s)
 }
 
 
+ColorPropertyPicker::ColorPropertyPicker(string id, string param, LumiverseColor * val) :
+  ButtonPropertyComponent("Pick Color", false), _id(id), _param(param), _val(val)
+{
+}
+
+ColorPropertyPicker::~ColorPropertyPicker()
+{
+}
+
+void ColorPropertyPicker::paint(Graphics & g)
+{
+  LookAndFeel& lf = getLookAndFeel();
+
+  if (isDeviceParamLocked(_id, _param)) {
+    g.setColour(Colour(0xFFFF3838));
+  }
+  else {
+    g.setColour(this->findColour(PropertyComponent::backgroundColourId));
+  }
+
+  g.fillRect(0, 0, getWidth(), getHeight() - 1);
+
+  lf.drawPropertyComponentLabel(g, getWidth(), getHeight(), *this);
+}
+
+void ColorPropertyPicker::mouseDown(const MouseEvent & event)
+{
+  if (event.mods.isRightButtonDown()) {
+    if (isDeviceParamLocked(_id, _param)) {
+      unlockDeviceParam(_id, _param);
+    }
+    else {
+      lockDeviceParam(_id, _param);
+    }
+
+    getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, false);
+  }
+}
+
+void ColorPropertyPicker::changeListenerCallback(ChangeBroadcaster * source)
+{
+  ColourSelector* cs = dynamic_cast<ColourSelector*>(source);
+  if (!isDeviceParamLocked(_id, _param) && cs != nullptr) {
+    Colour current = cs->getCurrentColour();
+    _val->setColorChannel("Red", current.getFloatRed());
+    _val->setColorChannel("Green", current.getFloatGreen());
+    _val->setColorChannel("Blue", current.getFloatBlue());
+
+    stringstream ss;
+    ss << _id << ":" << _param << " value changed to " << _val->asString();
+    getStatusBar()->setStatusMessage(ss.str());
+    getRecorder()->log(ACTION, ss.str());
+
+    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+    if (mc != nullptr) {
+      mc->refreshParams();
+      mc->refreshAttr();
+    }
+  }
+}
+
+void ColorPropertyPicker::buttonClicked()
+{
+  Eigen::Vector3d c;
+  c[0] = _val->getColorChannel("Red");
+  c[1] = _val->getColorChannel("Green");
+  c[2] = _val->getColorChannel("Blue");
+  c *= 255;
+
+  ColourSelector* cs = new ColourSelector(ColourSelector::showColourAtTop|ColourSelector::showSliders|ColourSelector::showColourspace);
+  cs->setName(_id + " " + _param);
+  cs->setCurrentColour(Colour((uint8)c[0], (uint8)c[1], (uint8)c[2]));
+  cs->setSize(300, 400);
+  cs->addChangeListener(this);
+  CallOutBox::launchAsynchronously(cs, this->getScreenBounds(), nullptr);
+}
+
+String ColorPropertyPicker::getButtonText() const
+{
+  return "Pick Color";
+}
+
+
+
 //==============================================================================
 ParamControls::ParamControls()
 {
@@ -372,12 +458,13 @@ void ParamControls::initProperties()
     components.add(new FloatPropertySlider(d->getId(), "intensity", (LumiverseFloat*)d->getParam("intensity")));
     components.add(new OrientationPropertySlider(d->getId(), "polar", (LumiverseOrientation*)d->getParam("polar")));
     components.add(new OrientationPropertySlider(d->getId(), "azimuth", (LumiverseOrientation*)d->getParam("azimuth")));
-    components.add(new ColorPropertySlider(d->getId(), "color", "Red", d->getColor()));
-    components.add(new ColorPropertySlider(d->getId(), "color", "Green", d->getColor()));
-    components.add(new ColorPropertySlider(d->getId(), "color", "Blue", d->getColor()));
-    components.add(new HSVColorPropertySlider(d->getId(), "color", "H", d->getColor()));
-    components.add(new HSVColorPropertySlider(d->getId(), "color", "S", d->getColor()));
-    components.add(new HSVColorPropertySlider(d->getId(), "color", "V", d->getColor()));
+    //components.add(new ColorPropertySlider(d->getId(), "color", "Red", d->getColor()));
+    //components.add(new ColorPropertySlider(d->getId(), "color", "Green", d->getColor()));
+    //components.add(new ColorPropertySlider(d->getId(), "color", "Blue", d->getColor()));
+    //components.add(new HSVColorPropertySlider(d->getId(), "color", "H", d->getColor()));
+    //components.add(new HSVColorPropertySlider(d->getId(), "color", "S", d->getColor()));
+    //components.add(new HSVColorPropertySlider(d->getId(), "color", "V", d->getColor()));
+    components.add(new ColorPropertyPicker(d->getId(), "color", d->getParam<LumiverseColor>("color")));
     components.add(new FloatPropertySlider(d->getId(), "penumbraAngle", d->getParam<LumiverseFloat>("penumbraAngle")));
 
     

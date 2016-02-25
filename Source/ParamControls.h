@@ -92,6 +92,25 @@ private:
   string _channel;
 };
 
+class ColorPropertyPicker : public ButtonPropertyComponent, public ChangeListener
+{
+public:
+  ColorPropertyPicker(string id, string param, LumiverseColor* val);
+  ~ColorPropertyPicker();
+
+  void paint(Graphics& g) override;
+  void mouseDown(const MouseEvent& event) override;
+  virtual void changeListenerCallback(ChangeBroadcaster* source) override;
+  
+  virtual void buttonClicked() override;
+  virtual String getButtonText() const override;
+
+private:
+  string _id;
+  string _param;
+  LumiverseColor* _val;
+};
+
 
 //==============================================================================
 /*

@@ -454,12 +454,7 @@ void MainContentComponent::lockAllColor()
 {
   auto devices = getRig()->getAllDevices();
   for (auto d : devices.getDevices()) {
-    lockDeviceParam(d->getId(), "colorRed");
-    lockDeviceParam(d->getId(), "colorGreen");
-    lockDeviceParam(d->getId(), "colorBlue");
-    lockDeviceParam(d->getId(), "colorH");
-    lockDeviceParam(d->getId(), "colorS");
-    lockDeviceParam(d->getId(), "colorV");
+    lockDeviceParam(d->getId(), "color");
   }
   repaint();
 }
@@ -488,17 +483,7 @@ void MainContentComponent::unlockAll()
   auto devices = getRig()->getAllDevices();
   for (auto d : devices.getDevices()) {
     for (auto p : d->getParamNames()) {
-      if (p == "color") {
-        unlockDeviceParam(d->getId(), "colorRed");
-        unlockDeviceParam(d->getId(), "colorGreen");
-        unlockDeviceParam(d->getId(), "colorBlue");
-        unlockDeviceParam(d->getId(), "colorH");
-        unlockDeviceParam(d->getId(), "colorS");
-        unlockDeviceParam(d->getId(), "colorV");
-      }
-      else {
-        unlockDeviceParam(d->getId(), p);
-      }
+      unlockDeviceParam(d->getId(), p);
     }
   }
   repaint();
@@ -508,17 +493,7 @@ void MainContentComponent::lockDevice(Device * d)
 {
   string id = d->getId();
   for (auto p : d->getParamNames()) {
-    if (p == "color") {
-      lockDeviceParam(d->getId(), "colorRed");
-      lockDeviceParam(d->getId(), "colorGreen");
-      lockDeviceParam(d->getId(), "colorBlue");
-      lockDeviceParam(d->getId(), "colorH");
-      lockDeviceParam(d->getId(), "colorS");
-      lockDeviceParam(d->getId(), "colorV");
-    }
-    else {
-      lockDeviceParam(d->getId(), p);
-    }
+    lockDeviceParam(d->getId(), p);
   }
   repaint();
 }
