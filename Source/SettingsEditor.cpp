@@ -80,6 +80,30 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_jndThreshold = newValue;
   else if (_id == "Thumbnails Per Row")
     getGlobalSettings()->_clusterElemsPerRow = (int)newValue;
+  else if (_id == "Diffuse Depth")
+    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_diffuse_depth", (int)newValue);
+  else if (_id == "Glossy Depth")
+    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_glossy_depth", (int)newValue);
+  else if (_id == "Reflection Depth")
+    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_reflection_depth", (int)newValue);
+  else if (_id == "Refraction Depth")
+    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_refraction_depth", (int)newValue);
+  else if (_id == "Volume Depth")
+    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_volume_depth", (int)newValue);
+  else if (_id == "Total Depth")
+    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_total_depth", (int)newValue);
+  else if (_id == "Diffuse Samples")
+    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_diffuse_samples", (int)newValue);
+  else if (_id == "Glossy Samples")
+    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_glossy_samples", (int)newValue);
+  else if (_id == "Refraction Samples")
+    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_refraction_samples", (int)newValue);
+  else if (_id == "Reflection Samples")
+    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_reflection_samples", (int)newValue);
+  else if (_id == "SSS Samples")
+    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_sss_samples", (int)newValue);
+  else if (_id == "Volume Samples")
+    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_volume_samples", (int)newValue);
 }
 
 double SettingsSlider::getValue() const
@@ -130,6 +154,30 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_jndThreshold;
   else if (_id == "Thumbnails Per Row")
     return getGlobalSettings()->_clusterElemsPerRow;
+  else if (_id == "Diffuse Depth")
+    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_diffuse_depth");
+  else if (_id == "Glossy Depth")
+    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_glossy_depth");
+  else if (_id == "Reflection Depth")
+    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_reflection_depth");
+  else if (_id == "Refraction Depth")
+    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_refraction_depth");
+  else if (_id == "Volume Depth")
+    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_volume_depth");
+  else if (_id == "Total Depth")
+    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_total_depth");
+  else if (_id == "Diffuse Samples")
+    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_diffuse_samples");
+  else if (_id == "Glossy Samples")
+    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_glossy_samples");
+  else if (_id == "Refraction Samples")
+    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_refraction_samples");
+  else if (_id == "Reflection Samples")
+    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_reflection_samples");
+  else if (_id == "SSS Samples")
+    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_sss_samples");
+  else if (_id == "Volume Samples")
+    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_volume_samples");
 }
 
 void SettingsSlider::sliderValueChanged(Slider * s)
@@ -203,6 +251,18 @@ SettingsEditor::SettingsEditor()
   renderComponents.add(_height);
   renderComponents.add(new SettingsSlider("Thumbnail Scale", 0, 1, 0.01));
   renderComponents.add(new SettingsSlider("Thumbnails Per Row", 1, 20, 1));
+  renderComponents.add(new SettingsSlider("Total Depth", 1, 32, 1));
+  renderComponents.add(new SettingsSlider("Diffuse Depth", 1, 16, 1));
+  renderComponents.add(new SettingsSlider("Glossy Depth", 1, 16, 1));
+  renderComponents.add(new SettingsSlider("Reflection Depth", 1, 16, 1));
+  renderComponents.add(new SettingsSlider("Refraction Depth", 1, 16, 1));
+  renderComponents.add(new SettingsSlider("Volume Depth", 1, 16, 1));
+  renderComponents.add(new SettingsSlider("Diffuse Samples", 1, 16, 1));
+  renderComponents.add(new SettingsSlider("Glossy Samples", 1, 16, 1));
+  renderComponents.add(new SettingsSlider("Refraction Samples", 1, 16, 1));
+  renderComponents.add(new SettingsSlider("Reflection Samples", 1, 16, 1));
+  renderComponents.add(new SettingsSlider("SSS Samples", 1, 16, 1));
+  renderComponents.add(new SettingsSlider("Volume Samples", 1, 16, 1));
 
   _settings.addSection("Render", renderComponents);
 
