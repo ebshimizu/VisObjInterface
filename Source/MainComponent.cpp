@@ -87,7 +87,8 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::OPEN, command::REFRESH_PARAMS, command::ARNOLD_RENDER, command::SETTINGS,
     command::SEARCH, command::REFRESH_ATTR, command::SAVE, command::SAVE_AS, command::RECLUSTER,
     command::VIEW_CLUSTERS, command::UNDO, command::REDO, command::LOCK_ALL_COLOR,
-    command::LOCK_ALL_INTENSITY, command::LOCK_ALL_POSITION, command::UNLOCK_ALL
+    command::LOCK_ALL_INTENSITY, command::LOCK_ALL_POSITION, command::UNLOCK_ALL,
+    command::LOCK_KEY, command::LOCK_FILL, command::LOCK_RIM
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -156,6 +157,18 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Unlock All Parameters", "Unlock all locked parameters", "Explore", 0);
     result.addDefaultKeypress('u', ModifierKeys::shiftModifier);
     break;
+  case command::LOCK_KEY:
+    result.setInfo("Lock Key", "Lock all parameters on the key light", "Explore", 0);
+    result.addDefaultKeypress('1', ModifierKeys::shiftModifier);
+    break;
+  case command::LOCK_FILL:
+    result.setInfo("Lock Fill", "Lock all parameters on the fill light", "Explore", 0);
+    result.addDefaultKeypress('2', ModifierKeys::shiftModifier);
+    break;
+  case command::LOCK_RIM:
+    result.setInfo("Lock Rim", "Lock all parameters on the rim light", "Explore", 0);
+    result.addDefaultKeypress('3', ModifierKeys::shiftModifier);
+    break;
   default:
     return;
   }
@@ -212,6 +225,27 @@ bool MainContentComponent::perform(const InvocationInfo & info)
   case command::UNLOCK_ALL:
     unlockAll();
     break;
+  case command::LOCK_KEY:
+  {
+    Snapshot* s = new Snapshot(getRig(), nullptr);
+    lockDevice(getSpecifiedDevice(L_KEY, s));
+    delete s;
+    break;
+  }
+  case command::LOCK_FILL:
+  {
+    Snapshot* s = new Snapshot(getRig(), nullptr);
+    lockDevice(getSpecifiedDevice(L_FILL, s));
+    delete s;
+    break;
+  }
+  case command::LOCK_RIM:
+  {
+    Snapshot* s = new Snapshot(getRig(), nullptr);
+    lockDevice(getSpecifiedDevice(L_RIM, s));
+    delete s;
+    break;
+  }
   default:
     return false;
   }
@@ -465,6 +499,25 @@ void MainContentComponent::unlockAll()
       else {
         unlockDeviceParam(d->getId(), p);
       }
+    }
+  }
+  repaint();
+}
+
+void MainContentComponent::lockDevice(Device * d)
+{
+  string id = d->getId();
+  for (auto p : d->getParamNames()) {
+    if (p == "color") {
+      lockDeviceParam(d->getId(), "colorRed");
+      lockDeviceParam(d->getId(), "colorGreen");
+      lockDeviceParam(d->getId(), "colorBlue");
+      lockDeviceParam(d->getId(), "colorH");
+      lockDeviceParam(d->getId(), "colorS");
+      lockDeviceParam(d->getId(), "colorV");
+    }
+    else {
+      lockDeviceParam(d->getId(), p);
     }
   }
   repaint();

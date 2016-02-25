@@ -89,7 +89,7 @@ private:
   void lockAllIntensity();
   void lockAllPosition();
   void unlockAll();
-
+  void lockDevice(Device* d);
 
   // Private vars
   File _parentDir;

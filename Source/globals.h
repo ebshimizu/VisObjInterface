@@ -116,6 +116,9 @@ enum command {
   LOCK_ALL_COLOR = 0x5004,
   LOCK_ALL_INTENSITY = 0x5005,
   UNLOCK_ALL = 0x5006,
+  LOCK_KEY = 0x5007,
+  LOCK_FILL = 0x5008,
+  LOCK_RIM = 0x5009,
 
   // Window
 };
