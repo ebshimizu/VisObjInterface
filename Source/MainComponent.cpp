@@ -274,6 +274,8 @@ void MainContentComponent::undo()
   if (e != nullptr) {
     e->_sceneState->loadRig(getRig());
     _viewer->setRender(e->_thumb);
+    refreshAttr();
+    refreshParams();
 
     h->addRedoItem(e);
     getRecorder()->log(ACTION, "Undo Called");
@@ -287,6 +289,9 @@ void MainContentComponent::redo()
   if (e != nullptr) {
     e->_sceneState->loadRig(getRig());
     _viewer->setRender(e->_thumb);
+
+    refreshAttr();
+    refreshParams();
 
     h->addHistoryItem(e);
     getRecorder()->log(ACTION, "Redo Called");
