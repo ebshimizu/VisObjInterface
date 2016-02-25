@@ -52,46 +52,6 @@ private:
   string _param;
 };
 
-class ColorPropertySlider : public SliderPropertyComponent
-{
-public:
-  ColorPropertySlider(string id, string param, string channel, LumiverseColor* val);
-  ~ColorPropertySlider();
-
-  void paint(Graphics& g) override;
-  void mouseDown(const MouseEvent& event) override;
-
-  virtual void setValue(double newValue) override;
-  virtual double getValue() const override;
-  void sliderDragStarted(Slider* s) override;
-  void sliderDragEnded(Slider* s) override;
-
-private:
-  string _id;
-  string _param;
-  string _channel;
-};
-
-class HSVColorPropertySlider : public SliderPropertyComponent
-{
-public:
-  HSVColorPropertySlider(string id, string param, string channel, LumiverseColor* val);
-  ~HSVColorPropertySlider();
-
-  void paint(Graphics& g) override;
-  void mouseDown(const MouseEvent& event) override;
-
-  virtual void setValue(double newValue) override;
-  virtual double getValue() const override;
-  void sliderDragStarted(Slider* s) override;
-  void sliderDragEnded(Slider* s) override;
-
-private:
-  string _id;
-  string _param;
-  string _channel;
-};
-
 class ColorPropertyPicker : public ButtonPropertyComponent, public ChangeListener
 {
 public:
