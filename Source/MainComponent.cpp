@@ -86,7 +86,8 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
   const CommandID ids[] = {
     command::OPEN, command::REFRESH_PARAMS, command::ARNOLD_RENDER, command::SETTINGS,
     command::SEARCH, command::REFRESH_ATTR, command::SAVE, command::SAVE_AS, command::RECLUSTER,
-    command::VIEW_CLUSTERS, command::UNDO, command::REDO
+    command::VIEW_CLUSTERS, command::UNDO, command::REDO, command::LOCK_ALL_COLOR,
+    command::LOCK_ALL_INTENSITY, command::LOCK_ALL_POSITION, command::UNLOCK_ALL
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -139,6 +140,22 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Redo", "Redo", "Edit", 0);
     result.addDefaultKeypress('y', ModifierKeys::commandModifier);
     break;
+  case command::LOCK_ALL_COLOR:
+    result.setInfo("Lock All Color", "Lock all color parameters", "Explore", 0);
+    result.addDefaultKeypress('c', ModifierKeys::shiftModifier);
+    break;
+  case command::LOCK_ALL_INTENSITY:
+    result.setInfo("Lock All Intensity", "Lock all intensity parameters", "Explore", 0);
+    result.addDefaultKeypress('i', ModifierKeys::shiftModifier);
+    break;
+  case command::LOCK_ALL_POSITION:
+    result.setInfo("Lock All Position", "Lock all position parameters", "Explore", 0);
+    result.addDefaultKeypress('p', ModifierKeys::shiftModifier);
+    break;
+  case command::UNLOCK_ALL:
+    result.setInfo("Unlock All Parameters", "Unlock all locked parameters", "Explore", 0);
+    result.addDefaultKeypress('u', ModifierKeys::shiftModifier);
+    break;
   default:
     return;
   }
@@ -182,6 +199,18 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::REDO:
     redo();
+    break;
+  case command::LOCK_ALL_COLOR:
+    lockAllColor();
+    break;
+  case command::LOCK_ALL_INTENSITY:
+    lockAllIntensity();
+    break;
+  case command::LOCK_ALL_POSITION:
+    lockAllPosition();
+    break;
+  case command::UNLOCK_ALL:
+    unlockAll();
     break;
   default:
     return false;
@@ -249,6 +278,7 @@ void MainContentComponent::openRig() {
     String fileName = selected.getFullPathName();
     openRig(fileName);
   }
+  repaint();
 }
 
 void MainContentComponent::openRig(String fname)
@@ -384,6 +414,60 @@ void MainContentComponent::openClusters()
   _clusterWindow->setVisible(true);
 
   getRecorder()->log(ACTION, "All Clusters window opened");
+}
+
+void MainContentComponent::lockAllColor()
+{
+  auto devices = getRig()->getAllDevices();
+  for (auto d : devices.getDevices()) {
+    lockDeviceParam(d->getId(), "colorRed");
+    lockDeviceParam(d->getId(), "colorGreen");
+    lockDeviceParam(d->getId(), "colorBlue");
+    lockDeviceParam(d->getId(), "colorH");
+    lockDeviceParam(d->getId(), "colorS");
+    lockDeviceParam(d->getId(), "colorV");
+  }
+  repaint();
+}
+
+void MainContentComponent::lockAllIntensity()
+{
+  auto devices = getRig()->getAllDevices();
+  for (auto d : devices.getDevices()) {
+    lockDeviceParam(d->getId(), "intensity");
+  }
+  repaint();
+}
+
+void MainContentComponent::lockAllPosition()
+{
+  auto devices = getRig()->getAllDevices();
+  for (auto d : devices.getDevices()) {
+    lockDeviceParam(d->getId(), "azimuth");
+    lockDeviceParam(d->getId(), "polar");
+  }
+  repaint();
+}
+
+void MainContentComponent::unlockAll()
+{
+  auto devices = getRig()->getAllDevices();
+  for (auto d : devices.getDevices()) {
+    for (auto p : d->getParamNames()) {
+      if (p == "color") {
+        unlockDeviceParam(d->getId(), "colorRed");
+        unlockDeviceParam(d->getId(), "colorGreen");
+        unlockDeviceParam(d->getId(), "colorBlue");
+        unlockDeviceParam(d->getId(), "colorH");
+        unlockDeviceParam(d->getId(), "colorS");
+        unlockDeviceParam(d->getId(), "colorV");
+      }
+      else {
+        unlockDeviceParam(d->getId(), p);
+      }
+    }
+  }
+  repaint();
 }
 
 void MainContentComponent::search()

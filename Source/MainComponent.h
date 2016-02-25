@@ -84,6 +84,13 @@ private:
   // Opens the clusters window
   void openClusters();
 
+  // parameter locking
+  void lockAllColor();
+  void lockAllIntensity();
+  void lockAllPosition();
+  void unlockAll();
+
+
   // Private vars
   File _parentDir;
   String _showName;
