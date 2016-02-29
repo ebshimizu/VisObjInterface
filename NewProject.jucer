@@ -42,6 +42,18 @@
                 file="Source/BrightAttribute.cpp"/>
           <FILE id="mAgE17" name="BrightAttribute.h" compile="0" resource="0"
                 file="Source/BrightAttribute.h"/>
+          <FILE id="qavHAv" name="ContrastAttribute.cpp" compile="1" resource="0"
+                file="Source/ContrastAttribute.cpp"/>
+          <FILE id="Kzop1g" name="ContrastAttribute.h" compile="0" resource="0"
+                file="Source/ContrastAttribute.h"/>
+          <FILE id="RBeWSd" name="DefinitionAttribute.cpp" compile="1" resource="0"
+                file="Source/DefinitionAttribute.cpp"/>
+          <FILE id="aAP9cl" name="DefinitionAttribute.h" compile="0" resource="0"
+                file="Source/DefinitionAttribute.h"/>
+          <FILE id="XFtxtT" name="HighAngleAttribute.cpp" compile="1" resource="0"
+                file="Source/HighAngleAttribute.cpp"/>
+          <FILE id="dSoelb" name="HighAngleAttribute.h" compile="0" resource="0"
+                file="Source/HighAngleAttribute.h"/>
           <FILE id="WtW8gF" name="SoftAttribute.cpp" compile="1" resource="0"
                 file="Source/SoftAttribute.cpp"/>
           <FILE id="RbNcdN" name="SoftAttribute.h" compile="0" resource="0" file="Source/SoftAttribute.h"/>

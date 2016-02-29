@@ -93,8 +93,7 @@ int AvgBrightSorter::compareElements(AttributeSearchResult * first, AttributeSea
 
   double secondInt = 0;
   for (auto d : secondScene->getDevices()) {
-    auto hsv = d->getParam<LumiverseColor>("color")->getHSV();
-    secondInt += hsv[0];
+    secondInt += d->getIntensity()->asPercent();
   }
   secondInt /= secondScene->getDevices().size();
 

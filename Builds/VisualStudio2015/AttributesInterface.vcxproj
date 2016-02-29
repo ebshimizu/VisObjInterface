@@ -145,6 +145,9 @@
     <ClCompile Include="..\..\Source\StatusBar.cpp"/>
     <ClCompile Include="..\..\Source\BacklitAttribute.cpp"/>
     <ClCompile Include="..\..\Source\BrightAttribute.cpp"/>
+    <ClCompile Include="..\..\Source\ContrastAttribute.cpp"/>
+    <ClCompile Include="..\..\Source\DefinitionAttribute.cpp"/>
+    <ClCompile Include="..\..\Source\HighAngleAttribute.cpp"/>
     <ClCompile Include="..\..\Source\SoftAttribute.cpp"/>
     <ClCompile Include="..\..\Source\TestAttribute.cpp"/>
     <ClCompile Include="..\..\Source\AttributeControllerBase.cpp"/>
@@ -1321,6 +1324,9 @@
     <ClInclude Include="..\..\Source\TopComponentContainer.h"/>
     <ClInclude Include="..\..\Source\BacklitAttribute.h"/>
     <ClInclude Include="..\..\Source\BrightAttribute.h"/>
+    <ClInclude Include="..\..\Source\ContrastAttribute.h"/>
+    <ClInclude Include="..\..\Source\DefinitionAttribute.h"/>
+    <ClInclude Include="..\..\Source\HighAngleAttribute.h"/>
     <ClInclude Include="..\..\Source\SoftAttribute.h"/>
     <ClInclude Include="..\..\Source\TestAttribute.h"/>
     <ClInclude Include="..\..\Source\AttributeControllerBase.h"/>
