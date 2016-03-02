@@ -24,8 +24,8 @@ ContrastAttribute::~ContrastAttribute()
 
 double ContrastAttribute::evaluateScene(Device * key, Device * fill, Device * rim)
 {
-  auto kIntens = key->getIntensity()->asPercent();
-  auto fIntens = fill->getIntensity()->asPercent();
+  auto kIntens = key->getIntensity()->asPercent() * key->getParam<LumiverseColor>("color")->getLab(ReferenceWhite::D65)[0];
+  auto fIntens = fill->getIntensity()->asPercent() * fill->getParam<LumiverseColor>("color")->getLab(ReferenceWhite::D65)[0];
 
   // By definitiion kIntens >= fIntens
   if (kIntens != 0) {

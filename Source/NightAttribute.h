@@ -1,18 +1,18 @@
 /*
   ==============================================================================
 
-    DefinitionAttribute.h
-    Created: 29 Feb 2016 11:28:05am
+    NightAttribute.h
+    Created: 1 Mar 2016 12:18:50pm
     Author:  falindrith
 
   ==============================================================================
 */
 
-#ifndef DEFINITIONATTRIBUTE_H_INCLUDED
-#define DEFINITIONATTRIBUTE_H_INCLUDED
+#ifndef NIGHTATTRIBUTE_H_INCLUDED
+#define NIGHTATTRIBUTE_H_INCLUDED
 
 
 
 
 
-#endif  // DEFINITIONATTRIBUTE_H_INCLUDED
+#endif  // NIGHTATTRIBUTE_H_INCLUDED

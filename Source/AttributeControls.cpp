@@ -98,6 +98,7 @@ AttributeControls::AttributeControls()
   _container->addAttributeController(new BacklitAttribute());
   _container->addAttributeController(new SoftAttribute());
   _container->addAttributeController(new ContrastAttribute());
+  _container->addAttributeController(new HighAngleAttribute());
   _container->setName("attribute list");
   addAndMakeVisible(_container);
 

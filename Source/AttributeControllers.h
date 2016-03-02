@@ -17,5 +17,6 @@
 #include "BacklitAttribute.h"
 #include "SoftAttribute.h"
 #include "ContrastAttribute.h"
+#include "HighAngleAttribute.h"
 
 #endif  // ATTRIBUTECONTROLLERS_H_INCLUDED

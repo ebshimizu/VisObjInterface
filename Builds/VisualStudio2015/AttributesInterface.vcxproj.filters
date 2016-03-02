@@ -355,10 +355,10 @@
     <ClCompile Include="..\..\Source\ContrastAttribute.cpp">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\DefinitionAttribute.cpp">
+    <ClCompile Include="..\..\Source\HighAngleAttribute.cpp">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\HighAngleAttribute.cpp">
+    <ClCompile Include="..\..\Source\NightAttribute.cpp">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SoftAttribute.cpp">
@@ -1689,10 +1689,10 @@
     <ClInclude Include="..\..\Source\ContrastAttribute.h">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\DefinitionAttribute.h">
+    <ClInclude Include="..\..\Source\HighAngleAttribute.h">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\HighAngleAttribute.h">
+    <ClInclude Include="..\..\Source\NightAttribute.h">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SoftAttribute.h">
