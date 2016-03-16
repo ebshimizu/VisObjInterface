@@ -14,62 +14,44 @@
 //#include <vld.h>
 
 map<EditType, vector<EditConstraint> > editConstraints = {
-  { ALL, { EditConstraint(L_KEY, RED), EditConstraint(L_KEY, GREEN), EditConstraint(L_KEY, BLUE),
-           EditConstraint(L_KEY, INTENSITY), EditConstraint(L_KEY, POLAR), EditConstraint(L_KEY, AZIMUTH),
-           EditConstraint(L_FILL, RED), EditConstraint(L_FILL, GREEN), EditConstraint(L_FILL, BLUE),
-           EditConstraint(L_FILL, INTENSITY), EditConstraint(L_FILL, POLAR), EditConstraint(L_FILL, AZIMUTH),
-           EditConstraint(L_RIM, RED), EditConstraint(L_RIM, GREEN), EditConstraint(L_RIM, BLUE),
-           EditConstraint(L_RIM, INTENSITY), EditConstraint(L_RIM, POLAR), EditConstraint(L_RIM, AZIMUTH),
-           EditConstraint(L_KEY, SOFT), EditConstraint(L_FILL, SOFT), EditConstraint(L_RIM, SOFT) } },
-  { ALL_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE),
-               EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE), 
-               EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } },
-  { ALL_RGB, { EditConstraint(L_KEY, RED), EditConstraint(L_KEY, GREEN), EditConstraint(L_KEY, BLUE),
-               EditConstraint(L_FILL, RED), EditConstraint(L_FILL, GREEN), EditConstraint(L_FILL, BLUE),
-               EditConstraint(L_RIM, RED), EditConstraint(L_RIM, GREEN), EditConstraint(L_RIM, BLUE) } },
-  { ALL_SAT, { EditConstraint(L_KEY, SAT), EditConstraint(L_FILL, SAT), EditConstraint(L_RIM, SAT) } },
-  { ALL_HUE, { EditConstraint(L_KEY, HUE), EditConstraint(L_FILL, HUE), EditConstraint(L_RIM, HUE) } },
-  { ALL_INTENS, { EditConstraint(L_KEY, INTENSITY), EditConstraint(L_FILL, INTENSITY), EditConstraint(L_RIM, INTENSITY) } },
-  { ALL_POS, { EditConstraint(L_KEY, POLAR), EditConstraint(L_FILL, POLAR), EditConstraint(L_RIM, POLAR),
-               EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_FILL, AZIMUTH), EditConstraint(L_RIM, AZIMUTH) } },
-  { KEY_HUE, { EditConstraint(L_KEY, HUE) } },
-  { FILL_HUE, { EditConstraint(L_FILL, HUE) } },
-  { RIM_HUE, { EditConstraint(L_RIM, HUE) } },
-  { KEY_INTENS, { EditConstraint(L_KEY, INTENSITY) } },
-  { FILL_INTENS, { EditConstraint(L_FILL, INTENSITY) } },
-  { RIM_INTENS, { EditConstraint(L_RIM, INTENSITY) } },
-  { KEY_POS, { EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_KEY, POLAR) } },
-  { FILL_POS, { EditConstraint(L_FILL, AZIMUTH), EditConstraint(L_FILL, POLAR) } },
-  { RIM_POS, { EditConstraint(L_RIM, AZIMUTH), EditConstraint(L_RIM, POLAR) } },
-  { KEY_SAT, { EditConstraint(L_KEY, SAT) } },
-  { FILL_SAT, { EditConstraint(L_FILL, SAT) } },
-  { RIM_SAT, { EditConstraint(L_RIM, SAT) } },
-  { KEY_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE) } },
-  { FILL_HSV, { EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE) } },
-  { RIM_HSV, { EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } },
-  { KEY_SOFT, { EditConstraint(L_KEY, SOFT) } },
-  { FILL_SOFT, { EditConstraint(L_FILL, SOFT) } },
-  { RIM_SOFT, { EditConstraint(L_RIM, SOFT) } },
-  { ALL_SOFT, { EditConstraint(L_KEY, SOFT), EditConstraint(L_FILL, SOFT), EditConstraint(L_RIM, SOFT) } },
-  { KEY_FILL_INTENS, { EditConstraint(L_KEY, INTENSITY), EditConstraint(L_FILL, INTENSITY) } },
-  { KEY_RIM_INTENS, { EditConstraint(L_KEY, INTENSITY), EditConstraint(L_RIM, INTENSITY) } },
-  { FILL_RIM_INTENS, { EditConstraint(L_FILL, INTENSITY), EditConstraint(L_RIM, INTENSITY) } },
-  { KEY_FILL_HUE, { EditConstraint(L_KEY, HUE), EditConstraint(L_FILL, HUE) } },
-  { KEY_FILL_SAT, { EditConstraint(L_KEY, SAT), EditConstraint(L_FILL, SAT) } },
-  { KEY_FILL_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE),
-                    EditConstraint(L_FILL, HUE), EditConstraint(L_FILL, SAT), EditConstraint(L_FILL, VALUE) } },
-  { KEY_FILL_POS, { EditConstraint(L_KEY, POLAR), EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_FILL, POLAR), EditConstraint(L_FILL, POLAR) } },
-  { KEY_RIM_HSV, { EditConstraint(L_KEY, HUE), EditConstraint(L_KEY, SAT), EditConstraint(L_KEY, VALUE),
-                   EditConstraint(L_RIM, HUE), EditConstraint(L_RIM, SAT), EditConstraint(L_RIM, VALUE) } },
-  { KEY_RIM_POS, { EditConstraint(L_KEY, POLAR), EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_RIM, POLAR), EditConstraint(L_RIM, AZIMUTH) } },
-  { KEY_RGB, { EditConstraint(L_KEY, RED), EditConstraint(L_KEY, GREEN), EditConstraint(L_KEY, BLUE) } },
-  { FILL_RGB, { EditConstraint(L_FILL, RED), EditConstraint(L_FILL, GREEN), EditConstraint(L_FILL, BLUE) } },
-  { RIM_RGB, { EditConstraint(L_RIM, RED), EditConstraint(L_RIM, GREEN), EditConstraint(L_RIM, BLUE) } },
-  { KEY_POS_FILL_POS_MATCH, { EditConstraint(L_KEY, AZIMUTH), EditConstraint(L_KEY, POLAR) } },
-  { KEY_INTENS_RIM_CONTRAST_MATCH, { EditConstraint(L_KEY, INTENSITY) } },
-  { KEY_INTENS_FILL_CONTRAST_MATCH, { EditConstraint(L_KEY, INTENSITY) } },
-  { KEY_HUE_FILL_HUE_MATCH, { EditConstraint(L_KEY, HUE) } },
-  { KEY_HUE_FILL_RIM_HUE_MATCH, { EditConstraint(L_KEY, HUE) } }
+  { ALL, { EditConstraint(FG_PRIMARY, INTENSITY, D_ALL), EditConstraint(FG_PRIMARY, HUE, D_ALL),
+           EditConstraint(FG_PRIMARY, SAT, D_ALL), EditConstraint(FG_PRIMARY, VALUE, D_ALL),
+           EditConstraint(FG_PRIMARY, POLAR, D_ALL), EditConstraint(FG_PRIMARY, AZIMUTH, D_ALL),
+           EditConstraint(FG_PRIMARY, SOFT, D_ALL),
+           EditConstraint(FG_SECONDARY, INTENSITY, D_ALL), EditConstraint(FG_SECONDARY, HUE, D_ALL),
+           EditConstraint(FG_SECONDARY, SAT, D_ALL), EditConstraint(FG_SECONDARY, VALUE, D_ALL),
+           EditConstraint(FG_SECONDARY, POLAR, D_ALL), EditConstraint(FG_SECONDARY, AZIMUTH, D_ALL),
+           EditConstraint(FG_SECONDARY, SOFT, D_ALL),
+           EditConstraint(FG_TONER, INTENSITY, D_ALL), EditConstraint(FG_TONER, HUE, D_ALL),
+           EditConstraint(FG_TONER, SAT, D_ALL), EditConstraint(FG_TONER, VALUE, D_ALL),
+           EditConstraint(FG_TONER, POLAR, D_ALL), EditConstraint(FG_TONER, AZIMUTH, D_ALL),
+           EditConstraint(FG_TONER, SOFT, D_ALL),
+           EditConstraint(FG_AMBIENT, INTENSITY, D_ALL), EditConstraint(FG_AMBIENT, HUE, D_ALL),
+           EditConstraint(FG_AMBIENT, SAT, D_ALL), EditConstraint(FG_AMBIENT, VALUE, D_ALL),
+           EditConstraint(FG_AMBIENT, POLAR, D_ALL), EditConstraint(FG_AMBIENT, AZIMUTH, D_ALL),
+           EditConstraint(FG_AMBIENT, SOFT, D_ALL),
+           EditConstraint(BG_PRIMARY, INTENSITY, D_ALL), EditConstraint(BG_PRIMARY, HUE, D_ALL),
+           EditConstraint(BG_PRIMARY, SAT, D_ALL), EditConstraint(BG_PRIMARY, VALUE, D_ALL),
+           EditConstraint(BG_PRIMARY, POLAR, D_ALL), EditConstraint(BG_PRIMARY, AZIMUTH, D_ALL),
+           EditConstraint(BG_PRIMARY, SOFT, D_ALL),
+           EditConstraint(BG_SECONDARY, INTENSITY, D_ALL), EditConstraint(BG_SECONDARY, HUE, D_ALL),
+           EditConstraint(BG_SECONDARY, SAT, D_ALL), EditConstraint(BG_SECONDARY, VALUE, D_ALL),
+           EditConstraint(BG_SECONDARY, POLAR, D_ALL), EditConstraint(BG_SECONDARY, AZIMUTH, D_ALL),
+           EditConstraint(BG_SECONDARY, SOFT, D_ALL),
+           EditConstraint(BG_TONER, INTENSITY, D_ALL), EditConstraint(BG_TONER, HUE, D_ALL),
+           EditConstraint(BG_TONER, SAT, D_ALL), EditConstraint(BG_TONER, VALUE, D_ALL),
+           EditConstraint(BG_TONER, POLAR, D_ALL), EditConstraint(BG_TONER, AZIMUTH, D_ALL),
+           EditConstraint(BG_TONER, SOFT, D_ALL),
+           EditConstraint(BG_AMBIENT, INTENSITY, D_ALL), EditConstraint(BG_AMBIENT, HUE, D_ALL),
+           EditConstraint(BG_AMBIENT, SAT, D_ALL), EditConstraint(BG_AMBIENT, VALUE, D_ALL),
+           EditConstraint(BG_AMBIENT, POLAR, D_ALL), EditConstraint(BG_AMBIENT, AZIMUTH, D_ALL),
+           EditConstraint(BG_AMBIENT, SOFT, D_ALL),
+  } },
+  { FG_PRIMARY_ALL, { EditConstraint(FG_PRIMARY, INTENSITY, D_ALL), EditConstraint(FG_PRIMARY, HUE, D_ALL),
+                      EditConstraint(FG_PRIMARY, SAT, D_ALL), EditConstraint(FG_PRIMARY, VALUE, D_ALL),
+                      EditConstraint(FG_PRIMARY, POLAR, D_ALL), EditConstraint(FG_PRIMARY, AZIMUTH, D_ALL),
+                      EditConstraint(FG_PRIMARY, SOFT, D_ALL)
+  } }
 };
 
 SearchResult::SearchResult() { }
@@ -118,90 +100,8 @@ string editTypeToString(EditType t) {
   switch (t) {
   case ALL:
     return "All";
-  case ALL_HSV:
-    return "All HSV";
-  case ALL_RGB:
-    return "All RGB";
-  case ALL_SAT:
-    return "All Saturation";
-  case ALL_HUE:
-    return "All Hue";
-  case ALL_INTENS:
-    return "All Intensity";
-  case ALL_POS:
-    return "All Position";
-  case KEY_HUE:
-    return "Key Hue";
-  case FILL_HUE:
-    return "Fill Hue";
-  case RIM_HUE:
-    return "Rim Hue";
-  case KEY_INTENS:
-    return "Key Intensity";
-  case FILL_INTENS:
-    return "Fill Intensity";
-  case RIM_INTENS:
-    return "Rim Intensity";
-  case KEY_POS:
-    return "Key Position";
-  case FILL_POS:
-    return "Fill Position";
-  case RIM_POS:
-    return "Rim Position";
-  case KEY_SAT:
-    return "Key Saturation";
-  case FILL_SAT:
-    return "Fill Saturation";
-  case RIM_SAT:
-    return "Rim Saturation";
-  case KEY_HSV:
-    return "Key HSV";
-  case FILL_HSV:
-    return "Fill HSV";
-  case RIM_HSV:
-    return "Rim HSV";
-  case KEY_SOFT:
-    return "Key Softness";
-  case FILL_SOFT:
-    return "Fill Softness";
-  case RIM_SOFT:
-    return "Rim Softness";
-  case ALL_SOFT:
-    return "All Softness";
-  case KEY_FILL_INTENS:
-    return "Key-Fill Intensity";
-  case KEY_RIM_INTENS:
-    return "Key-Rim Intensity";
-  case FILL_RIM_INTENS:
-    return "Fill-Rim Intensity";
-  case KEY_FILL_HUE:
-    return "Key-Fill Hue";
-  case KEY_FILL_SAT:
-    return "Key-Fill Saturation";
-  case KEY_FILL_HSV:
-    return "Key-Fill HSV";
-  case KEY_FILL_POS:
-    return "Key-Fill Position";
-  case KEY_RIM_HSV:
-    return "Key-Rim HSV";
-  case KEY_RIM_POS:
-    return "Key-Rim Position";
-  case KEY_RGB:
-    return "Key RGB";
-  case FILL_RGB:
-    return "Fill RGB";
-  case RIM_RGB:
-    return "Rim RGB";
-  case KEY_POS_FILL_POS_MATCH:
-    return "Key Position (Fill Match)";
-  case KEY_INTENS_RIM_CONTRAST_MATCH:
-    return "Key Intensity (Rim Match)";
-  case KEY_INTENS_FILL_CONTRAST_MATCH:
-    return "Key Intensity (Fill Match)";
-  case KEY_HUE_FILL_HUE_MATCH:
-    return "Key Hue (Fill Match)";
-  case KEY_HUE_FILL_RIM_HUE_MATCH:
-    return "Key Hue (Fill, Rim Match)";
+  case FG_PRIMARY_ALL:
+    return "Foreground Primary All";
   case CLUSTER_CENTER:
     return "Cluster Center";
   default:
@@ -811,21 +711,51 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snaps
   int maxIters = iters;
 
   // Set up relevant feature vector
-  int vecSize = editConstraints[t].size();
+  // Length of feature vector determined by type and number of devices in the rig
+  int vecSize = getVecLength(t, start);
   Eigen::VectorXd x;
   x.resize(vecSize);
 
   // Parameter restrictions
   vector<bool> canEdit;
   bool cantEditAll = true;
+  map<EditLightType, DeviceSet> affected = getAffectedDevices(t, start);
+
+  // This map is now necessary to track which devices correspond to which parameters in the
+  // vector used in the search space, and tells the system how to modify the parameter during
+  // search
+  map<int, DeviceInfo> deviceLookup;
 
   int i = 0;
-  for (const auto& c : editConstraints[t]) {
-    x[i] = getDeviceValue(c, s);
-    bool lock = isParamLocked(c, t, s);
-    canEdit.push_back(!lock);
-    cantEditAll = cantEditAll & lock;
-    i++;
+  for (auto& c : editConstraints[t]) {
+    // Add all device parameters individually to the list
+    if (c._qty == D_ALL) {
+      for (auto d : affected[c._light].getDevices()) {
+        x[i] = getDeviceValue(c, s, d->getId());
+        deviceLookup[i] = DeviceInfo(c, d->getId());
+        bool lock = isParamLocked(c, t, s, d->getId());
+        canEdit.push_back(!lock);
+
+        cantEditAll = cantEditAll & lock;
+        i++;
+      }
+    }
+    // Joint adds a delta to every light's parameter, while leaving the
+    // starting value unaffected.
+    else if (c._qty == D_JOINT) {
+      x[i] = 0;
+      deviceLookup[i] = DeviceInfo(c, string());
+      i++;
+
+      // Check for locks
+      for (auto d : affected[c._light].getDevices()) {
+        bool lock = isParamLocked(c, t, s, d->getId());
+        canEdit.push_back(!lock);
+
+        cantEditAll = cantEditAll & lock;
+      }
+    }
+    // Single runs a separate search for every device in the rig
   }
 
   // if we can't actually edit any parameters at all just exit now
@@ -847,9 +777,16 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snaps
     for (int j = 0; j < xp.size(); j++) {
       if (canEdit[j]) {
         xp[j] += gdist(gen);
-        // The next line acts as a physically based clamp function of sorts.
-        // It updates the lighting scene and also returns the value of the parameter after the update.
-        xp[j] = setDeviceValue(editConstraints[t][j], t, xp[j], sp);
+        if (deviceLookup[j]._c._qty == D_JOINT) {
+          // Joint adds the delta (xp[j]) to the start value to get the new value
+          // for all devices affected by the joint param
+          // TODO: IMPLEMENT JOINT
+        }
+        else {
+          // The next line acts as a physically based clamp function of sorts.
+          // It updates the lighting scene and also returns the value of the parameter after the update.
+          xp[j] = setDeviceValue(deviceLookup[j], xp[j], sp);
+        }
       }
     }
 
@@ -1124,11 +1061,11 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapsho
   return (f2 - f1) / h;
 }
 
-double AttributeSearchThread::setDeviceValue(EditConstraint c, EditType t, double val, Snapshot * s)
+double AttributeSearchThread::setDeviceValue(DeviceInfo& info, double val, Snapshot * s)
 {
-  Device* d = getSpecifiedDevice(c._light, s);
-
-  switch (c._param) {
+  Device* d = s->getRigData()[info._id];
+  
+  switch (info._c._param) {
   case INTENSITY:
   {
     d->getIntensity()->setValAsPercent(val);
@@ -1226,7 +1163,7 @@ double AttributeSearchThread::setDeviceValue(EditConstraint c, EditType t, doubl
 
 }
 
-double AttributeSearchThread::getDeviceValue(EditConstraint c, Snapshot * s)
+double AttributeSearchThread::getDeviceValue(EditConstraint c, Snapshot * s, string& id)
 {
   Device* d = getSpecifiedDevice(c._light, s);
 
@@ -1274,7 +1211,7 @@ double AttributeSearchThread::getDeviceValue(EditConstraint c, Snapshot * s)
   }
 }
 
-bool AttributeSearchThread::isParamLocked(EditConstraint c, EditType t, Snapshot* s)
+bool AttributeSearchThread::isParamLocked(EditConstraint c, EditType t, Snapshot* s, string& id)
 {
   Device* d = getSpecifiedDevice(c._light, s);
 
