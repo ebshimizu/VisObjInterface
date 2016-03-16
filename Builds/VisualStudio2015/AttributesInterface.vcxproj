@@ -59,7 +59,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>..\..\JuceLibraryCode;..\..\JuceLibraryCode\modules;C:\Program Files\Lumiverse\include;C:\Program Files\libpng\include;C:\Program Files\Lumiverse\include\lib\arnold\include;C:\Program Files\zlib\include;C:\lib\dlib-18.18;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\JuceLibraryCode;..\..\JuceLibraryCode\modules;C:\Program Files\Lumiverse\include;C:\Program Files\libpng\include;C:\Program Files\Lumiverse\include\lib\arnold\include;C:\Program Files\zlib\include;C:\lib\dlib-18.18;C:\lib\libsvm-3.21;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;DEBUG;_DEBUG;JUCER_VS2015_78A5022=1;JUCE_APP_VERSION=0.01;JUCE_APP_VERSION_HEX=0x100;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -100,7 +100,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>..\..\JuceLibraryCode;..\..\JuceLibraryCode\modules;C:\Program Files\Lumiverse\include;C:\Program Files\libpng\include;C:\Program Files\Lumiverse\include\lib\arnold\include;C:\Program Files\zlib\include;C:\lib\dlib-18.18;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\JuceLibraryCode;..\..\JuceLibraryCode\modules;C:\Program Files\Lumiverse\include;C:\Program Files\libpng\include;C:\Program Files\Lumiverse\include\lib\arnold\include;C:\Program Files\zlib\include;C:\lib\dlib-18.18;C:\lib\libsvm-3.21;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;NDEBUG;JUCER_VS2015_78A5022=1;JUCE_APP_VERSION=0.01;JUCE_APP_VERSION_HEX=0x100;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -134,6 +134,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\..\..\..\..\..\lib\libsvm-3.21\svm.cpp"/>
     <ClCompile Include="..\..\..\..\..\..\..\..\..\..\lib\dlib-18.18\dlib\all\source.cpp"/>
     <ClCompile Include="..\..\Source\ClusterBuster.cpp"/>
     <ClCompile Include="..\..\Source\HistoryEntry.cpp"/>
@@ -149,6 +150,7 @@
     <ClCompile Include="..\..\Source\HighAngleAttribute.cpp"/>
     <ClCompile Include="..\..\Source\NightAttribute.cpp"/>
     <ClCompile Include="..\..\Source\SoftAttribute.cpp"/>
+    <ClCompile Include="..\..\Source\SVRAttribute.cpp"/>
     <ClCompile Include="..\..\Source\TestAttribute.cpp"/>
     <ClCompile Include="..\..\Source\AttributeControllerBase.cpp"/>
     <ClCompile Include="..\..\Source\AttributeControls.cpp"/>
@@ -1328,6 +1330,7 @@
     <ClInclude Include="..\..\Source\HighAngleAttribute.h"/>
     <ClInclude Include="..\..\Source\NightAttribute.h"/>
     <ClInclude Include="..\..\Source\SoftAttribute.h"/>
+    <ClInclude Include="..\..\Source\SVRAttribute.h"/>
     <ClInclude Include="..\..\Source\TestAttribute.h"/>
     <ClInclude Include="..\..\Source\AttributeControllerBase.h"/>
     <ClInclude Include="..\..\Source\AttributeControllers.h"/>

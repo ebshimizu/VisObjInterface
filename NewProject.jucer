@@ -6,6 +6,9 @@
               companyWebsite="graphics.cs.cmu.edu" companyEmail="eshimizu@cs.cmu.edu">
   <MAINGROUP id="upFVKV" name="AttributesInterface">
     <GROUP id="{E33A23C0-94A8-8A6D-0624-83F1C8438329}" name="Source">
+      <GROUP id="{87E6B34E-AD15-F89C-D590-669F122FB46E}" name="third_party">
+        <FILE id="sxSeLk" name="svm.cpp" compile="1" resource="0" file="../../../../../../../../lib/libsvm-3.21/svm.cpp"/>
+      </GROUP>
       <FILE id="jQPzfO" name="source.cpp" compile="1" resource="0" file="C:/lib/dlib-18.18/dlib/all/source.cpp"/>
       <GROUP id="{4DA39040-8D72-1165-28A1-9B56CCADE37F}" name="GUI">
         <FILE id="q5vj4R" name="ClusterBuster.cpp" compile="1" resource="0"
@@ -57,6 +60,9 @@
           <FILE id="WtW8gF" name="SoftAttribute.cpp" compile="1" resource="0"
                 file="Source/SoftAttribute.cpp"/>
           <FILE id="RbNcdN" name="SoftAttribute.h" compile="0" resource="0" file="Source/SoftAttribute.h"/>
+          <FILE id="Ia8uzM" name="SVRAttribute.cpp" compile="1" resource="0"
+                file="Source/SVRAttribute.cpp"/>
+          <FILE id="rJhqsM" name="SVRAttribute.h" compile="0" resource="0" file="Source/SVRAttribute.h"/>
           <FILE id="GGdIAz" name="TestAttribute.cpp" compile="1" resource="0"
                 file="Source/TestAttribute.cpp"/>
           <FILE id="I0a1vF" name="TestAttribute.h" compile="0" resource="0" file="Source/TestAttribute.h"/>
@@ -110,13 +116,13 @@
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        isDebug="1" optimisation="1" targetName="AttributesInterfaceDebug"
-                       headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include&#10;C:\lib\dlib-18.18"
+                       headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include&#10;C:\lib\dlib-18.18&#10;C:\lib\libsvm-3.21"
                        libraryPath="C:\Program Files\Lumiverse\Debug\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib"
                        useRuntimeLibDLL="1"/>
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        isDebug="0" optimisation="3" targetName="AttributesInterface"
                        libraryPath="C:\Program Files\Lumiverse\Release\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib"
-                       headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include&#10;C:\lib\dlib-18.18"
+                       headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include&#10;C:\lib\dlib-18.18&#10;C:\lib\libsvm-3.21"
                        useRuntimeLibDLL="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>

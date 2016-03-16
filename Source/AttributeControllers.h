@@ -18,5 +18,6 @@
 #include "SoftAttribute.h"
 #include "ContrastAttribute.h"
 #include "HighAngleAttribute.h"
+#include "SVRAttribute.h"
 
 #endif  // ATTRIBUTECONTROLLERS_H_INCLUDED

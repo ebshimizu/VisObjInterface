@@ -155,6 +155,9 @@ Eigen::VectorXd snapshotToVector(Snapshot* s);
 // Returns a snapshot consisting of the state contained in the vector
 Snapshot* vectorToSnapshot(Eigen::VectorXd v);
 
+// Serializes a vector to a CSV row
+String vectorToString(Eigen::VectorXd v);
+
 // Given an EditLightType, get the corresponding light in the rig
 Device* getSpecifiedDevice(EditLightType l, Snapshot* s);
 

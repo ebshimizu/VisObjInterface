@@ -585,6 +585,22 @@ Snapshot * vectorToSnapshot(Eigen::VectorXd v)
   return s;
 }
 
+String vectorToString(Eigen::VectorXd v)
+{
+  String ret = "";
+
+  bool first = true;
+  for (int i = 0; i < v.size(); i++) {
+    if (!first) {
+      ret += ", ";
+    }
+    ret += String(v[i]);
+    first = false;
+  }
+
+  return ret;
+}
+
 Device* getSpecifiedDevice(EditLightType l, Snapshot * s)
 {
   auto& devices = s->getRigData();

@@ -88,7 +88,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::SEARCH, command::REFRESH_ATTR, command::SAVE, command::SAVE_AS, command::RECLUSTER,
     command::VIEW_CLUSTERS, command::UNDO, command::REDO, command::LOCK_ALL_COLOR,
     command::LOCK_ALL_INTENSITY, command::LOCK_ALL_POSITION, command::UNLOCK_ALL,
-    command::LOCK_KEY, command::LOCK_FILL, command::LOCK_RIM
+    command::LOCK_KEY, command::LOCK_FILL, command::LOCK_RIM, command::SAVE_RENDER
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -169,6 +169,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Lock Rim", "Lock all parameters on the rim light", "Explore", 0);
     result.addDefaultKeypress('3', ModifierKeys::shiftModifier);
     break;
+  case command::SAVE_RENDER:
+    result.setInfo("Save Render", "Saves the current render of the rig", "File", 0);
+    break;
   default:
     return;
   }
@@ -246,6 +249,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     delete s;
     break;
   }
+  case command::SAVE_RENDER:
+    saveRender();
+    break;
   default:
     return false;
   }
@@ -395,6 +401,33 @@ void MainContentComponent::saveAs()
       getStatusBar()->setStatusMessage("Error saving rig file for show.");
       getRecorder()->log(SYSTEM, "Failed to save show.");
     }
+  }
+}
+
+void MainContentComponent::saveRender() {
+  FileChooser fc("Save Render",
+    File::getCurrentWorkingDirectory(),
+    "*.png",
+    true);
+
+  if (fc.browseForFileToSave(true))
+  {
+    File selected = fc.getResult();
+    String fileName = selected.getFileName();
+    fileName = fileName.upToFirstOccurrenceOf(".", false, false);
+
+    _parentDir = selected.getParentDirectory();
+
+    File img = _parentDir.getChildFile(fileName + ".png");
+    FileOutputStream os(img);
+    PNGImageFormat pngif;
+    pngif.writeImageToStream(_viewer->getRender(), os);
+
+    File description = _parentDir.getChildFile(fileName + ".csv");
+    FileOutputStream dos(description);
+
+    Snapshot s(getRig(), nullptr);
+    dos.writeString(vectorToString(snapshotToVector(&s)));
   }
 }
 

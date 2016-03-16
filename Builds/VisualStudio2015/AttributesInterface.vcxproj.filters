@@ -8,6 +8,9 @@
     <Filter Include="AttributesInterface\Source">
       <UniqueIdentifier>{D8656C32-6E47-B142-596E-8CA44AAD28DD}</UniqueIdentifier>
     </Filter>
+    <Filter Include="AttributesInterface\Source\third_party">
+      <UniqueIdentifier>{ADF50322-549C-225D-798C-D5B3AE74CE52}</UniqueIdentifier>
+    </Filter>
     <Filter Include="AttributesInterface\Source\GUI">
       <UniqueIdentifier>{DDC2ADB9-D561-438D-C9F6-602C92B55677}</UniqueIdentifier>
     </Filter>
@@ -319,6 +322,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\..\..\..\..\..\lib\libsvm-3.21\svm.cpp">
+      <Filter>AttributesInterface\Source\third_party</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\..\..\..\..\..\..\lib\dlib-18.18\dlib\all\source.cpp">
       <Filter>AttributesInterface\Source</Filter>
     </ClCompile>
@@ -362,6 +368,9 @@
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SoftAttribute.cpp">
+      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\SVRAttribute.cpp">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\TestAttribute.cpp">
@@ -1696,6 +1705,9 @@
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SoftAttribute.h">
+      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SVRAttribute.h">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\TestAttribute.h">

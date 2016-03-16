@@ -95,6 +95,7 @@ enum command {
   OPEN = 0x0001,
   SAVE = 0x0002,
   SAVE_AS = 0x0003,
+  SAVE_RENDER = 0x0004,
 
   // Internal
   REFRESH_PARAMS = 0x2000,

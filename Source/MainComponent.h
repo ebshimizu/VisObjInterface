@@ -74,6 +74,7 @@ private:
 
   void saveRig();
   void saveAs();
+  void saveRender();
 
   // Initializes the components in the interface after loading a rig
   void loadComponents();
