@@ -67,6 +67,7 @@ enum EditType {
 };
 
 // Don't want to use strings for this for speed reasons
+// These categories may encompass multiple lights
 enum EditLightType {
   L_KEY,
   L_FILL,

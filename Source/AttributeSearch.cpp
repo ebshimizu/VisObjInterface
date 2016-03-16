@@ -513,40 +513,28 @@ list<SearchResult*> getClosestScenesToCenters(list<SearchResult*>& results, vect
 Eigen::VectorXd snapshotToVector(Snapshot * s)
 {
   // Param order: Intensity, polar, azimuth, R, G, B, Softness (penumbra angle)
-  // Device order: Key, Fill, Rim, L/R indicator
+  // Device order: Alphabetical
+  auto& devices = s->getRigData();
   int numFeats = 7;
   Eigen::VectorXd features;
-  features.resize(numFeats * 3 + 1);
+  features.resize(numFeats * devices.size());
   
-  auto& device = s->getRigData();
+  int idx = 0;
 
-  auto key = getSpecifiedDevice(L_KEY, s);
-  auto fill = getSpecifiedDevice(L_FILL, s);
-  auto rim = getSpecifiedDevice(L_RIM, s);
-
-  // Normalize features if needed
-  features[0] = key->getParam<LumiverseFloat>("intensity")->asPercent();
-  features[1] = key->getParam<LumiverseOrientation>("polar")->asPercent();
-  features[2] = key->getParam<LumiverseOrientation>("azimuth")->asPercent();
-  features[3] = key->getParam<LumiverseColor>("color")->getColorChannel("Red");
-  features[4] = key->getParam<LumiverseColor>("color")->getColorChannel("Green");
-  features[5] = key->getParam<LumiverseColor>("color")->getColorChannel("Blue");
-  features[6] = key->getParam<LumiverseFloat>("penumbraAngle")->asPercent();
-  features[7] = fill->getParam<LumiverseFloat>("intensity")->asPercent();
-  features[8] = fill->getParam<LumiverseOrientation>("polar")->asPercent();
-  features[9] = fill->getParam<LumiverseOrientation>("azimuth")->asPercent();
-  features[10] = fill->getParam<LumiverseColor>("color")->getColorChannel("Red");
-  features[11] = fill->getParam<LumiverseColor>("color")->getColorChannel("Green");
-  features[12] = fill->getParam<LumiverseColor>("color")->getColorChannel("Blue");
-  features[13] = fill->getParam<LumiverseFloat>("penumbraAngle")->asPercent();
-  features[14] = rim->getParam<LumiverseFloat>("intensity")->asPercent();
-  features[15] = rim->getParam<LumiverseOrientation>("polar")->asPercent();
-  features[16] = rim->getParam<LumiverseOrientation>("azimuth")->asPercent();
-  features[17] = rim->getParam<LumiverseColor>("color")->getColorChannel("Red");
-  features[18] = rim->getParam<LumiverseColor>("color")->getColorChannel("Green");
-  features[19] = rim->getParam<LumiverseColor>("color")->getColorChannel("Blue");
-  features[20] = rim->getParam<LumiverseFloat>("penumbraAngle")->asPercent();
-  features[21] = (key->getId() == "right") ? 1e-6 : -1e-6;  // tiny little sign bit for recreating snapshot
+  // This is a std::map which is always sorted, and thus always traversed
+  // in ascending sort order. We'll use this to construct and reconstruct
+  // vectors reliably without knowing a lot of details about the lights
+  for (const auto& d : devices) {
+    int base = idx * numFeats;
+    features[base] = d.second->getParam<LumiverseFloat>("intensity")->asPercent();
+    features[base + 1] = d.second->getParam<LumiverseOrientation>("polar")->asPercent();
+    features[base + 2] = d.second->getParam<LumiverseOrientation>("azimuth")->asPercent();
+    features[base + 3] = d.second->getParam<LumiverseColor>("color")->getColorChannel("Red");
+    features[base + 4] = d.second->getParam<LumiverseColor>("color")->getColorChannel("Green");
+    features[base + 5] = d.second->getParam<LumiverseColor>("color")->getColorChannel("Blue");
+    features[base + 6] = d.second->getParam<LumiverseFloat>("penumbraAngle")->asPercent();
+    idx++;
+  }
 
   return features;
 }
@@ -555,32 +543,21 @@ Snapshot * vectorToSnapshot(Eigen::VectorXd v)
 {
   Snapshot* s = new Snapshot(getRig(), nullptr);
   auto devices = s->getRigData();
+  int numFeats = 7;
 
-  auto key = (v[21] > 0) ? devices["right"] : devices["left"];
-  auto fill = (v[21] > 0) ? devices["left"] : devices["right"];
-  auto rim = devices["rim"];
+  int idx = 0;
 
-  key->getParam<LumiverseFloat>("intensity")->setValAsPercent(v[0]);
-  key->getParam<LumiverseOrientation>("polar")->setValAsPercent(v[1]);
-  key->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(v[2]);
-  key->getParam<LumiverseColor>("color")->setColorChannel("Red", v[3]);
-  key->getParam<LumiverseColor>("color")->setColorChannel("Green", v[4]);
-  key->getParam<LumiverseColor>("color")->setColorChannel("Blue", v[5]);
-  key->getParam<LumiverseFloat>("penumbraAngle")->setValAsPercent(v[6]);
-  fill->getParam<LumiverseFloat>("intensity")->setValAsPercent(v[7]);
-  fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(v[8]);
-  fill->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(v[9]);
-  fill->getParam<LumiverseColor>("color")->setColorChannel("Red", v[10]);
-  fill->getParam<LumiverseColor>("color")->setColorChannel("Green", v[11]);
-  fill->getParam<LumiverseColor>("color")->setColorChannel("Blue", v[12]);
-  fill->getParam<LumiverseFloat>("penumbraAngle")->setValAsPercent(v[13]);
-  rim->getParam<LumiverseFloat>("intensity")->setValAsPercent(v[14]);
-  rim->getParam<LumiverseOrientation>("polar")->setValAsPercent(v[15]);
-  rim->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(v[16]);
-  rim->getParam<LumiverseColor>("color")->setColorChannel("Red", v[17]);
-  rim->getParam<LumiverseColor>("color")->setColorChannel("Green", v[18]);
-  rim->getParam<LumiverseColor>("color")->setColorChannel("Blue", v[19]);
-  rim->getParam<LumiverseFloat>("penumbraAngle")->setValAsPercent(v[20]);
+  for (const auto& d : devices) {
+    int base = idx * numFeats;
+    d.second->getParam<LumiverseFloat>("intensity")->setValAsPercent(v[base]);
+    d.second->getParam<LumiverseOrientation>("polar")->setValAsPercent(v[base + 1]);
+    d.second->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(v[base + 2]);
+    d.second->getParam<LumiverseColor>("color")->setColorChannel("Red", v[base + 3]);
+    d.second->getParam<LumiverseColor>("color")->setColorChannel("Green", v[base + 4]);
+    d.second->getParam<LumiverseColor>("color")->setColorChannel("Blue", v[base + 5]);
+    d.second->getParam<LumiverseFloat>("penumbraAngle")->setValAsPercent(v[base + 6]);
+    idx++;
+  }
 
   return s;
 }
