@@ -63,21 +63,7 @@ int KeyHueSorter::compareElements(AttributeSearchResult * first, AttributeSearch
   Snapshot* firstScene = vectorToSnapshot(first->getSearchResult()->_scene);
   Snapshot* secondScene = vectorToSnapshot(second->getSearchResult()->_scene);
 
-  Device* d1 = getSpecifiedDevice(L_KEY, firstScene);
-  Device* d2 = getSpecifiedDevice(L_KEY, secondScene);
-
-  double d1Hue = d1->getColor()->getHSV()[0];
-  double d2Hue = d2->getColor()->getHSV()[0];
-
-  delete firstScene;
-  delete secondScene;
-
-  if (d1Hue < d2Hue)
-    return -1;
-  if (d1Hue > d2Hue)
-    return 1;
-  else
-    return 0;
+  return 0;
 }
 
 int AvgBrightSorter::compareElements(AttributeSearchResult * first, AttributeSearchResult * second)
@@ -113,21 +99,7 @@ int KeyBrightSorter::compareElements(AttributeSearchResult * first, AttributeSea
   Snapshot* firstScene = vectorToSnapshot(first->getSearchResult()->_scene);
   Snapshot* secondScene = vectorToSnapshot(second->getSearchResult()->_scene);
 
-  Device* d1 = getSpecifiedDevice(L_KEY, firstScene);
-  Device* d2 = getSpecifiedDevice(L_KEY, secondScene);
-
-  double d1Int = d1->getIntensity()->asPercent();
-  double d2Int = d2->getIntensity()->asPercent();
-
-  delete firstScene;
-  delete secondScene;
-
-  if (d1Int < d2Int)
-    return -1;
-  if (d1Int > d2Int)
-    return 1;
-  else
-    return 0;
+  return 0;
 }
 
 int KeyAzmSorter::compareElements(AttributeSearchResult * first, AttributeSearchResult * second)
@@ -135,19 +107,5 @@ int KeyAzmSorter::compareElements(AttributeSearchResult * first, AttributeSearch
   Snapshot* firstScene = vectorToSnapshot(first->getSearchResult()->_scene);
   Snapshot* secondScene = vectorToSnapshot(second->getSearchResult()->_scene);
 
-  Device* d1 = getSpecifiedDevice(L_KEY, firstScene);
-  Device* d2 = getSpecifiedDevice(L_KEY, secondScene);
-
-  double d1Azm = d1->getParam<LumiverseOrientation>("azimuth")->asPercent();
-  double d2Azm = d2->getParam<LumiverseOrientation>("azimuth")->asPercent();
-
-  delete firstScene;
-  delete secondScene;
-
-  if (d1Azm < d2Azm)
-    return -1;
-  if (d1Azm > d2Azm)
-    return 1;
-  else
-    return 0;
+  return 0;
 }

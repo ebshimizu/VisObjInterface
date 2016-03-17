@@ -230,23 +230,17 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::LOCK_KEY:
   {
-    Snapshot* s = new Snapshot(getRig(), nullptr);
-    lockDevice(getSpecifiedDevice(L_KEY, s));
-    delete s;
+    // TODO: REIMPLEMENT LOCK FUNCTIONS
     break;
   }
   case command::LOCK_FILL:
   {
-    Snapshot* s = new Snapshot(getRig(), nullptr);
-    lockDevice(getSpecifiedDevice(L_FILL, s));
-    delete s;
+    // TODO: REIMPLEMENT LOCK FUNCTIONS
     break;
   }
   case command::LOCK_RIM:
   {
-    Snapshot* s = new Snapshot(getRig(), nullptr);
-    lockDevice(getSpecifiedDevice(L_RIM, s));
-    delete s;
+    // TODO: REIMPLEMENT LOCK FUNCTIONS
     break;
   }
   case command::SAVE_RENDER:
@@ -345,6 +339,8 @@ void MainContentComponent::openRig(String fname)
     getRig()->init();
 
     loadComponents();
+
+    // Here we should pre-fetch the 
 
     _showName = rig.getFileName();
     getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);

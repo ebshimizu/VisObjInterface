@@ -478,33 +478,6 @@ String vectorToString(Eigen::VectorXd v)
   return ret;
 }
 
-Device* getSpecifiedDevice(EditLightType l, Snapshot * s)
-{
-  auto& devices = s->getRigData();
-
-  // Rim is easy to identify
-  if (l == L_RIM)
-    return devices["rim"];
-
-  Device* key = devices["right"];
-  Device* fill = devices["left"];
-
-  // If right is key assumption is false, swap
-  if (fill->getIntensity()->getVal() > key->getIntensity()->getVal()) {
-    Device* temp = key;
-    key = fill;
-    fill = temp;
-  }
-
-  if (l == L_FILL)
-    return fill;
-  else if (l == L_KEY)
-    return key;
-
-  // If this ever happens, something's gone terribly wrong
-  return nullptr;
-}
-
 //=============================================================================
 
 AttributeSearchThread::AttributeSearchThread(map<string, AttributeControllerBase*> active, int editDepth) :
@@ -554,17 +527,18 @@ void AttributeSearchThread::run()
   };
 
   if (_singleSame) {
+    // TODO: Reimplement single same for arbitrary number of devices
     // Reassign starting scene is working with same for a single attribute
-    Snapshot* sStart = new Snapshot(*_original);
-    for (auto c : editConstraints[ALL]) {
-      if (!isParamLocked(c, ALL, sStart)) {
-        double dx = numericDeriv(c, ALL, sStart, f);
-        double x = getDeviceValue(c, sStart);
-        setDeviceValue(c, ALL, x - dx * 0.5, sStart);
-      }
-    }
-    start->_scene = snapshotToVector(sStart);
-    delete sStart;
+    //Snapshot* sStart = new Snapshot(*_original);
+    //for (auto c : editConstraints[ALL]) {
+    //  if (!isParamLocked(c, ALL, sStart, )) {
+    //    double dx = numericDeriv(c, ALL, sStart, f);
+    //    double x = getDeviceValue(c, sStart);
+    //    setDeviceValue(c, ALL, x - dx * 0.5, sStart);
+    //  }
+    //}
+    //start->_scene = snapshotToVector(sStart);
+    //delete sStart;
   }
 
   // save the original attribute function valuee
@@ -838,11 +812,11 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snaps
   return pair<list<Eigen::VectorXd>, int>(results, accepted);
 }
 
-double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapshot* s, attrObjFunc f)
+double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrObjFunc f, string& id)
 {
   // load the appropriate settings and get the proper device.
   double h = getGlobalSettings()->_searchDerivDelta;
-  Device* d = getSpecifiedDevice(c._light, s);
+  Device* d = s->getRigData()[id];
   double f1 = f(s);
   double f2;
 
@@ -856,36 +830,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapsho
     if (o >= 1)
       h = -h;
 
-    if (c._light == L_KEY) {
-      if (t == KEY_INTENS_RIM_CONTRAST_MATCH) {
-        Device* rim = getSpecifiedDevice(L_RIM, s);
-        double r = rim->getIntensity()->asPercent() / o;
-        rim->getIntensity()->setValAsPercent((o * r) + h);
-      }
-      else if (t == KEY_INTENS_FILL_CONTRAST_MATCH) {
-        Device* fill = getSpecifiedDevice(L_FILL, s);
-        double r = fill->getIntensity()->asPercent() / o;
-        fill->getIntensity()->setValAsPercent((o * r) + h);
-      }
-    }
-
     d->getIntensity()->setValAsPercent(o + h);
     f2 = f(s);
     d->getIntensity()->setValAsPercent(o);
-
-    if (c._light == L_KEY) {
-      if (t == KEY_INTENS_RIM_CONTRAST_MATCH) {
-        Device* rim = getSpecifiedDevice(L_RIM, s);
-        double r = rim->getIntensity()->asPercent() / o;
-        rim->getIntensity()->setValAsPercent(o * r);
-      }
-      else if (t == KEY_INTENS_FILL_CONTRAST_MATCH) {
-        Device* fill = getSpecifiedDevice(L_FILL, s);
-        double r = fill->getIntensity()->asPercent() / o;
-        fill->getIntensity()->setValAsPercent((o * r));
-      }
-    }
-
     break;
   }
   case HUE:
@@ -896,40 +843,10 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapsho
     Eigen::Vector3d hsv = d->getColor()->getHSV();
     float huePct = hsv[0] / 360.0;
 
-    if (c._light == L_KEY) {
-      if (t == KEY_HUE_FILL_HUE_MATCH || t == KEY_HUE_FILL_RIM_HUE_MATCH) {
-        auto fill = getSpecifiedDevice(L_FILL, s);
-        Eigen::Vector3d fhsv = fill->getColor()->getHSV();
-        float fhuePct = fhsv[0] / 360.0;
-        fill->getColor()->setHSV((fhuePct + h) * 360.0, fhsv[1], fhsv[2]);
-      }
-      if (t == KEY_HUE_FILL_RIM_HUE_MATCH) {
-        auto rim = getSpecifiedDevice(L_RIM, s);
-        Eigen::Vector3d rhsv = rim->getColor()->getHSV();
-        float rhuePct = rhsv[0] / 360.0;
-        rim->getColor()->setHSV((rhuePct + h) * 360.0, rhsv[1], rhsv[2]);
-      }
-    }
-
     // hue wraps around, derivative should be fine if hue is at max/min
     d->getColor()->setHSV((huePct + h) * 360.0, hsv[1], hsv[2]);
     f2 = f(s);
     d->getColor()->setHSV(hsv[0], hsv[1], hsv[2]);
-
-    if (c._light == L_KEY) {
-      if (t == KEY_HUE_FILL_HUE_MATCH || t == KEY_HUE_FILL_RIM_HUE_MATCH) {
-        auto fill = getSpecifiedDevice(L_FILL, s);
-        Eigen::Vector3d fhsv = fill->getColor()->getHSV();
-        float fhuePct = fhsv[0] / 360.0;
-        fill->getColor()->setHSV((fhuePct - h) * 360.0, fhsv[1], fhsv[2]);
-      }
-      if (t == KEY_HUE_FILL_RIM_HUE_MATCH) {
-        auto rim = getSpecifiedDevice(L_RIM, s);
-        Eigen::Vector3d rhsv = rim->getColor()->getHSV();
-        float rhuePct = rhsv[0] / 360.0;
-        rim->getColor()->setHSV((rhuePct - h) * 360, rhsv[1], rhsv[2]);
-      }
-    }
 
     break;
   }
@@ -1013,19 +930,9 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapsho
     if (p >= 1)
       h = -h;
 
-    if (c._light == L_KEY && t == KEY_POS_FILL_POS_MATCH) {
-      auto fill = getSpecifiedDevice(L_FILL, s);
-      fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(-p + h);
-    }
-
     val->setValAsPercent(p + h);
     f2 = f(s);
     val->setValAsPercent(p);
-
-    if (c._light == L_KEY && t == KEY_POS_FILL_POS_MATCH) {
-      auto fill = getSpecifiedDevice(L_FILL, s);
-      fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(-p);
-    }
 
     break;
   }
@@ -1039,19 +946,10 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, EditType t, Snapsho
     if (a >= 1)
       h = -h;
 
-    if (c._light == L_KEY && t == KEY_POS_FILL_POS_MATCH) {
-      auto fill = getSpecifiedDevice(L_FILL, s);
-      fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(a + h);
-    }
-
     val->setValAsPercent(a + h);
     f2 = f(s);
     val->setValAsPercent(a);
 
-    if (c._light == L_KEY && t == KEY_POS_FILL_POS_MATCH) {
-      auto fill = getSpecifiedDevice(L_FILL, s);
-      fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(a);
-    }
     break;
   }
   default:
@@ -1069,20 +967,6 @@ double AttributeSearchThread::setDeviceValue(DeviceInfo& info, double val, Snaps
   case INTENSITY:
   {
     d->getIntensity()->setValAsPercent(val);
-    
-    if (c._light == L_KEY) {
-      if (t == KEY_INTENS_RIM_CONTRAST_MATCH) {
-        Device* rim = getSpecifiedDevice(L_RIM, s);
-        double r = rim->getIntensity()->asPercent() / d->getIntensity()->asPercent();
-        rim->getIntensity()->setValAsPercent(val * r);
-      }
-      if (t == KEY_INTENS_FILL_CONTRAST_MATCH) {
-        Device* fill = getSpecifiedDevice(L_FILL, s);
-        double r = fill->getIntensity()->asPercent() / d->getIntensity()->asPercent();
-        fill->getIntensity()->setValAsPercent(val * r);
-      }
-    }
-    
     return d->getIntensity()->asPercent();
   }
   case HUE:
@@ -1090,20 +974,6 @@ double AttributeSearchThread::setDeviceValue(DeviceInfo& info, double val, Snaps
     val *= 360;
     Eigen::Vector3d hsv = d->getColor()->getHSV();
     d->getColor()->setHSV(val, hsv[1], hsv[2]);
-
-    if (c._light == L_KEY) {
-      if (t == KEY_HUE_FILL_HUE_MATCH || t == KEY_HUE_FILL_RIM_HUE_MATCH) {
-        auto fill = getSpecifiedDevice(L_FILL, s);
-        Eigen::Vector3d fhsv = fill->getColor()->getHSV();
-        fill->getColor()->setHSV(fhsv[0] + (val - hsv[0]), fhsv[1], fhsv[2]);
-      }
-      if (t == KEY_HUE_FILL_RIM_HUE_MATCH) {
-        auto rim = getSpecifiedDevice(L_RIM, s);
-        Eigen::Vector3d rhsv = rim->getColor()->getHSV();
-        rim->getColor()->setHSV(rhsv[0] + (val - hsv[0]), rhsv[1], rhsv[2]);
-      }
-    }
-
     return d->getColor()->getHSV()[0] / 360.0;
   }
   case SAT:
@@ -1131,23 +1001,12 @@ double AttributeSearchThread::setDeviceValue(DeviceInfo& info, double val, Snaps
   {
     LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("polar");
     o->setValAsPercent(val);
-
-    if (c._light == L_KEY && t == KEY_POS_FILL_POS_MATCH) {
-      auto fill = getSpecifiedDevice(L_FILL, s);
-      fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(-val);
-    }
-
     return o->asPercent();
   }
   case AZIMUTH:
   {
     LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("azimuth");
     o->setValAsPercent(val);
-
-    if (c._light == L_KEY && t == KEY_POS_FILL_POS_MATCH) {
-      auto fill = getSpecifiedDevice(L_FILL, s);
-      fill->getParam<LumiverseOrientation>("polar")->setValAsPercent(val);
-    }
 
     return o->asPercent();
   }
@@ -1165,7 +1024,7 @@ double AttributeSearchThread::setDeviceValue(DeviceInfo& info, double val, Snaps
 
 double AttributeSearchThread::getDeviceValue(EditConstraint c, Snapshot * s, string& id)
 {
-  Device* d = getSpecifiedDevice(c._light, s);
+  Device* d = s->getRigData()[id];
 
   switch (c._param) {
   case INTENSITY:
@@ -1213,7 +1072,7 @@ double AttributeSearchThread::getDeviceValue(EditConstraint c, Snapshot * s, str
 
 bool AttributeSearchThread::isParamLocked(EditConstraint c, EditType t, Snapshot* s, string& id)
 {
-  Device* d = getSpecifiedDevice(c._light, s);
+  Device* d = s->getRigData()[id];
 
   switch (c._param) {
   case INTENSITY:

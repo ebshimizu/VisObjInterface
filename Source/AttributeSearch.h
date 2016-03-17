@@ -162,6 +162,7 @@ enum EditNumDevices {
 // Some more uncommon edits may have additional constraints (maintain position of
 // fill for example) and will be treated separately
 struct EditConstraint {
+  EditConstraint() { }
   EditConstraint(EditLightType t, EditParam p, EditNumDevices q) : _light(t), _param(p), _qty(q) { }
 
   EditLightType _light;
@@ -170,6 +171,7 @@ struct EditConstraint {
 };
 
 struct DeviceInfo {
+  DeviceInfo() { }
   DeviceInfo(EditConstraint& c, string& id) : _c(c), _id(id) { }
 
   EditConstraint _c;
@@ -236,9 +238,6 @@ Snapshot* vectorToSnapshot(Eigen::VectorXd v);
 // Serializes a vector to a CSV row
 String vectorToString(Eigen::VectorXd v);
 
-// Given an EditLightType, get the corresponding light in the rig
-Device* getSpecifiedDevice(EditLightType l, Snapshot* s);
-
 // Run with progress window to allow user to abort search early
 class AttributeSearchThread : public ThreadWithProgressWindow
 {
@@ -271,7 +270,7 @@ private:
 
   // computes the numeric derivative for the particular lighting parameter and
   // specified attribute
-  double numericDeriv(EditConstraint c, EditType t, Snapshot* s, attrObjFunc f);
+  double numericDeriv(EditConstraint c, Snapshot* s, attrObjFunc f, string& id);
 
   // updates the value for a Lumiverse parameter and returns the actual value after the update
   double setDeviceValue(DeviceInfo& info, double val, Snapshot* s);
