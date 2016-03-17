@@ -52,7 +52,7 @@ void AttributeControllerBase::paint (Graphics& g)
   g.drawFittedText(_name, top, Justification::left, 1);
 
   Snapshot* s = new Snapshot(getRig(), nullptr);
-  double attrVal = evaluateScene(s->getRigData());
+  double attrVal = evaluateScene(s);
   delete s;
   g.drawFittedText(String(attrVal), top, Justification::right, 1);
 }
@@ -95,34 +95,5 @@ void AttributeControllerBase::buttonClicked(Button * b)
   }
   if (buttonName == "More") {
     _status = A_MORE;
-  }
-}
-
-double AttributeControllerBase::evaluateScene(map<string, Device*>& devices)
-{
-  // Here we assume the explicit presence of just three lights: right, left, and rim.
-  // The key light is defined to be the light with the highest intensity between
-  // the right and left lights. The rim light is always the same light.
-
-  Device* key;
-  Device* fill;
-  Device* rim;
-
-  if (devices.count("left") > 0 && devices.count("right") > 0 && devices.count("rim") > 0) {
-    if (devices["right"]->getIntensity()->getVal() > devices["left"]->getIntensity()->getVal()) {
-      key = devices["right"];
-      fill = devices["left"];
-    }
-    else {
-      key = devices["left"];
-      fill = devices["right"];
-    }
-    rim = devices["rim"];
-
-    return evaluateScene(key, fill, rim);
-  }
-  else {
-    // Rig missing proper fixtures
-    return -1;
   }
 }

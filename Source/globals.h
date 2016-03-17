@@ -90,6 +90,10 @@ bool isDeviceParamLocked(string id, string param);
 void lockDeviceParam(string id, string param);
 void unlockDeviceParam(string id, string param);
 
+// Create caches for device bins
+void setDeviceGroups();
+DeviceSet getDeviceGroup(int id);
+
 enum command {
   // File
   OPEN = 0x0001,

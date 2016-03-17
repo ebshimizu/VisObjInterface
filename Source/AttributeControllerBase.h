@@ -30,17 +30,11 @@ public:
 
   virtual void buttonClicked(Button* b) override;
 
-  // This function does a tiny preprocess step in identifying the key, fill, and
-  // rim lights before calling the subclass-defined objective function.
-	double evaluateScene(map<string, Device*>& devices);
+  // This function is implemented by every subclass.
+  // The return value should be the strenght of the attribute in ths scene.
+	virtual double evaluateScene(Snapshot* s) = 0;
 
 protected:
-  // This function evaluates the current scene and returns a numeric value
-  // indicating how much of the attribute is present in the scene.
-  // NOTE: this may change to indicate relative strength (like >)
-  // All attribute controls must implement this function
-  virtual double evaluateScene(Device* key, Device* fill, Device* rim) = 0;
-
 	// Attribute name
 	String _name;
 

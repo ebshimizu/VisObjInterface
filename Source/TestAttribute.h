@@ -25,7 +25,7 @@ public:
   ~TestAttribute();
 
 protected: 
-  virtual double evaluateScene(Device* key, Device* fill, Device* rim) override;
+  virtual double evaluateScene(Snapshot* s) override;
 
 private:
   double cctPenalty(double cct);

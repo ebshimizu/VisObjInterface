@@ -13,11 +13,11 @@
 
 // Attribute includes
 #include "TestAttribute.h"
-#include "BrightAttribute.h"
-#include "BacklitAttribute.h"
-#include "SoftAttribute.h"
-#include "ContrastAttribute.h"
-#include "HighAngleAttribute.h"
-#include "SVRAttribute.h"
+//#include "BrightAttribute.h"
+//#include "BacklitAttribute.h"
+//#include "SoftAttribute.h"
+//#include "ContrastAttribute.h"
+//#include "HighAngleAttribute.h"
+//#include "SVRAttribute.h"
 
 #endif  // ATTRIBUTECONTROLLERS_H_INCLUDED

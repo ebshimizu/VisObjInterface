@@ -10,12 +10,14 @@
 
 #include "globals.h"
 #include "MainComponent.h"
+#include "AttributeSearch.h"
 
 static ApplicationCommandManager* _manager;
 static Rig* _rig;
 static StatusBar* _status;
 static Recorder* _recorder;
 static GlobalSettings* _globalSettings;
+static map<int, DeviceSet> _bins;
 
 ApplicationCommandManager* getApplicationCommandManager() {
   if (_manager == nullptr) {
@@ -74,6 +76,23 @@ void unlockDeviceParam(string id, string param)
     return;
 
   d->setMetadata(param + "_lock", "n");
+}
+
+void setDeviceGroups()
+{
+  _bins[FG_PRIMARY] = getRig()->select("$bin=FG Primary");
+  _bins[FG_SECONDARY] = getRig()->select("$bin=FG Secondary");
+  _bins[FG_TONER] = getRig()->select("$bin=FG Toner");
+  _bins[FG_AMBIENT] = getRig()->select("$bin=FG Ambient");
+  _bins[BG_PRIMARY] = getRig()->select("$bin=BG Primary");
+  _bins[BG_SECONDARY] = getRig()->select("$bin=BG Secondary");
+  _bins[BG_TONER] = getRig()->select("$bin=BG Toner");
+  _bins[BG_AMBIENT] = getRig()->select("$bin=BG Ambient");
+}
+
+DeviceSet getDeviceGroup(int id)
+{
+  return _bins[id];
 }
 
 Rig* getRig() {

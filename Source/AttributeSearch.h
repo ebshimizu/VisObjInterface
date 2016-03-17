@@ -283,10 +283,6 @@ private:
 
   // Returns the number of features in the vector used for search
   int getVecLength(EditType t, Snapshot* s);
-
-  // Returns a map consisting of the devices affected by the specified edit in that
-  // particular category
-  map<EditLightType, DeviceSet> getAffectedDevices(EditType t, Snapshot* s);
 };
 
 #endif  // ATTRIBUTESEARCH_H_INCLUDED

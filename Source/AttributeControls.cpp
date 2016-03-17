@@ -94,12 +94,12 @@ AttributeControls::AttributeControls()
 {
   _container = new AttributeControlsList();
   _container->addAttributeController(new TestAttribute());
-  _container->addAttributeController(new BrightAttribute());
-  _container->addAttributeController(new BacklitAttribute());
-  _container->addAttributeController(new SoftAttribute());
-  _container->addAttributeController(new ContrastAttribute());
-  _container->addAttributeController(new HighAngleAttribute());
-  _container->addAttributeController(new SVRAttribute("C:/Users/falindrith/Documents/GitHub/pairwise-collector/server/romantic_p2g.svm", "Romantic"));
+  //_container->addAttributeController(new BrightAttribute());
+  //_container->addAttributeController(new BacklitAttribute());
+  //_container->addAttributeController(new SoftAttribute());
+  //_container->addAttributeController(new ContrastAttribute());
+  //_container->addAttributeController(new HighAngleAttribute());
+  //_container->addAttributeController(new SVRAttribute("C:/Users/falindrith/Documents/GitHub/pairwise-collector/server/romantic_p2g.svm", "Romantic"));
   _container->setName("attribute list");
   addAndMakeVisible(_container);
 

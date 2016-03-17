@@ -516,11 +516,11 @@ void AttributeSearchThread::run()
     double sum = 0;
     for (const auto& kvp : _active) {
       if (kvp.second->getStatus() == A_LESS)
-        sum += kvp.second->evaluateScene(s->getRigData());
+        sum += kvp.second->evaluateScene(s);
       else if (kvp.second->getStatus() == A_MORE)
-        sum -= kvp.second->evaluateScene(s->getRigData());
+        sum -= kvp.second->evaluateScene(s);
       else if (kvp.second->getStatus() == A_EQUAL)
-        sum += pow(kvp.second->evaluateScene(s->getRigData()) - kvp.second->evaluateScene(_original->getRigData()), 2);
+        sum += pow(kvp.second->evaluateScene(s) - kvp.second->evaluateScene(_original), 2);
     }
 
     return sum;
@@ -641,25 +641,25 @@ list<Eigen::VectorXd> AttributeSearchThread::performEdit(EditType t, Snapshot* o
   double targetAcceptRate = 0.5;  // +/- 5%
   double sigma = 0.05;
   // limit number of tuning iterations
-  for (int i = 0; i < 20; i++) {
-    auto res = doMCMC(t, orig, f, 100, sigma, false);
-    double acceptRate = res.second / 100.0;
+  //for (int i = 0; i < 20; i++) {
+  //  auto res = doMCMC(t, orig, f, 100, sigma, false);
+  //  double acceptRate = res.second / 100.0;
     
-    if (abs(acceptRate - targetAcceptRate) <= 0.05) {
-      break;
-    }
+  //  if (abs(acceptRate - targetAcceptRate) <= 0.05) {
+  //    break;
+  //  }
     
-    if (acceptRate > targetAcceptRate)
-      sigma -= 0.005;
-    if (acceptRate < targetAcceptRate)
-      sigma += 0.01;
+  //  if (acceptRate > targetAcceptRate)
+  //    sigma -= 0.005;
+  //  if (acceptRate < targetAcceptRate)
+  //    sigma += 0.01;
 
-    if (sigma <= 0) {
+  //  if (sigma <= 0) {
       // if we can't solve the problem with sigma, for now we'll just set it to default and continue
-      sigma = 0.05;
-      break;
-   }
-  }
+  //    sigma = 0.05;
+  //    break;
+  // }
+  //}
 
   auto res = doMCMC(t, orig, f, getGlobalSettings()->_maxMCMCIters, sigma, true);
   delete orig;
@@ -693,7 +693,6 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snaps
   // Parameter restrictions
   vector<bool> canEdit;
   bool cantEditAll = true;
-  map<EditLightType, DeviceSet> affected = getAffectedDevices(t, start);
 
   // This map is now necessary to track which devices correspond to which parameters in the
   // vector used in the search space, and tells the system how to modify the parameter during
@@ -703,8 +702,9 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snaps
   int i = 0;
   for (auto& c : editConstraints[t]) {
     // Add all device parameters individually to the list
+    auto devices = getDeviceGroup(c._light).getDevices();
     if (c._qty == D_ALL) {
-      for (auto d : affected[c._light].getDevices()) {
+      for (auto d : devices) {
         x[i] = getDeviceValue(c, s, d->getId());
         deviceLookup[i] = DeviceInfo(c, d->getId());
         bool lock = isParamLocked(c, t, s, d->getId());
@@ -722,7 +722,7 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snaps
       i++;
 
       // Check for locks
-      for (auto d : affected[c._light].getDevices()) {
+      for (auto d : devices) {
         bool lock = isParamLocked(c, t, s, d->getId());
         canEdit.push_back(!lock);
 
@@ -754,7 +754,11 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(EditType t, Snaps
         if (deviceLookup[j]._c._qty == D_JOINT) {
           // Joint adds the delta (xp[j]) to the start value to get the new value
           // for all devices affected by the joint param
-          // TODO: IMPLEMENT JOINT
+          auto devices = getDeviceGroup(deviceLookup[j]._c._light).getDevices();
+          for (auto& d : devices) {
+            double initVal = getDeviceValue(deviceLookup[i]._c, start, d->getId());
+            setDeviceValue(deviceLookup[j], xp[j] + initVal, sp);
+          }
         }
         else {
           // The next line acts as a physically based clamp function of sorts.
@@ -1098,4 +1102,19 @@ bool AttributeSearchThread::isParamLocked(EditConstraint c, EditType t, Snapshot
   default:
     return false;
   }
+}
+
+int AttributeSearchThread::getVecLength(EditType t, Snapshot * s)
+{
+  int size = 0;
+  for (auto& c : editConstraints[t]) {
+    if (c._qty == D_ALL) {
+      size += getDeviceGroup(c._light).getDevices().size();
+    }
+    else if (c._qty == D_JOINT) {
+      size += 1;
+    }
+  }
+
+  return size;
 }
