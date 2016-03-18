@@ -144,7 +144,7 @@ void SearchResultsContainer::display(list<SearchResult*>& results)
     for (auto& c : centers) {
       SearchResult* s = new SearchResult();
       s->_scene = c;
-      s->_editHistory.add(CLUSTER_CENTER);
+      s->_editHistory.add("Cluster Center");
       s->_cluster = i;
 
       AttributeSearchResult* cluster = new AttributeSearchResult(s);
@@ -209,7 +209,7 @@ void SearchResultsContainer::recluster()
   for (auto& c : centers) {
     SearchResult* s = new SearchResult();
     s->_scene = c;
-    s->_editHistory.add(CLUSTER_CENTER);
+    s->_editHistory.add("Cluster Center");
     s->_cluster = i;
 
     AttributeSearchResult* cluster = new AttributeSearchResult(s);

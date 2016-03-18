@@ -22,10 +22,10 @@ AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(res
   bool first = true;
   for (const auto& t : result->_editHistory) {
     if (!first) {
-      tt = tt + " -> " + editTypeToString(t);
+      tt = tt + " -> " + t;
     }
     else {
-      tt = tt + editTypeToString(t);
+      tt = tt + t;
       first = false;
     }
   }

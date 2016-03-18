@@ -15,109 +15,6 @@
 #include "AttributeControllerBase.h"
 #include <dlib/clustering.h>
 
-enum EditType {
-  // Normal edits - edits that manipulate specific lighting parameters
-  ALL,
-  ALL_INTENSITY,
-  ALL_COLOR,
-  ALL_HUE,
-  ALL_POSITION,
-  ALL_SOFTNESS,
-  ALL_PRIMARY,
-  ALL_SECONDARY,
-  ALL_TONER,
-  ALL_AMBIENT,
-  ALL_PRIMARY_INTENSITY,
-  ALL_PRIMARY_COLOR,
-  ALL_PRIMARY_HUE,
-  ALL_PRIMARY_POSITION,
-  ALL_PRIMARY_SOFTNESS,
-  ALL_SECONDARY_INTENSITY,
-  ALL_SECONDARY_COLOR,
-  ALL_SECONDARY_HUE,
-  ALL_SECONDARY_POSITION,
-  ALL_SECONDARY_SOFTNESS,
-  ALL_TONER_INTENSITY,
-  ALL_TONER_COLOR,
-  ALL_TONER_HUE,
-  ALL_TONER_POSITION,
-  ALL_TONER_SOFTNESS,
-  ALL_AMBIENT_INTENSITY,
-  ALL_AMBIENT_COLOR,
-  ALL_AMBIENT_HUE,
-  ALL_AMBIENT_POSITION,
-  ALL_AMBIENT_SOFTNESS,
-  FG_ALL,
-  FG_ALL_INTENSITY,
-  FG_ALL_COLOR,
-  FG_ALL_HUE,
-  FG_ALL_POSITION,
-  FG_ALL_SOFTNESS,
-  FG_PRIMARY_ALL,
-  FG_PRIMARY_INTENSITY,
-  FG_PRIMARY_COLOR,
-  FG_PRIMARY_HUE,
-  FG_PRIMARY_POSITION,
-  FG_PRIMARY_SOFTNESS,
-  FG_SECONDARY_ALL,
-  FG_SECONDARY_INTENSITY,
-  FG_SECONDARY_COLOR,
-  FG_SECONDARY_HUE,
-  FG_SECONDARY_POSITION,
-  FG_SECONDARY_SOFTNESS,
-  FG_TONER_ALL,
-  FG_TONER_INTENSITY,
-  FG_TONER_COLOR,
-  FG_TONER_HUE,
-  FG_TONER_POSITION,
-  FG_TONER_SOFTNESS,
-  FG_AMBIENT_ALL,
-  FG_AMBIENT_INTENSITY,
-  FG_AMBIENT_COLOR,
-  FG_AMBIENT_HUE,
-  FG_AMBIENT_POSITION,
-  FG_AMBIENT_SOFTNESS,
-  BG_ALL,
-  BG_ALL_INTENSITY,
-  BG_ALL_COLOR,
-  BG_ALL_HUE,
-  BG_ALL_POSITION,
-  BG_ALL_SOFTNESS,
-  BG_PRIMARY_ALL,
-  BG_PRIMARY_INTENSITY,
-  BG_PRIMARY_COLOR,
-  BG_PRIMARY_HUE,
-  BG_PRIMARY_POSITION,
-  BG_PRIMARY_SOFTNESS,
-  BG_SECONDARY_ALL,
-  BG_SECONDARY_INTENSITY,
-  BG_SECONDARY_COLOR,
-  BG_SECONDARY_HUE,
-  BG_SECONDARY_POSITION,
-  BG_SECONDARY_SOFTNESS,
-  BG_TONER_ALL,
-  BG_TONER_INTENSITY,
-  BG_TONER_COLOR,
-  BG_TONER_HUE,
-  BG_TONER_POSITION,
-  BG_TONER_SOFTNESS,
-  BG_AMBIENT_ALL,
-  BG_AMBIENT_INTENSITY,
-  BG_AMBIENT_COLOR,
-  BG_AMBIENT_HUE,
-  BG_AMBIENT_POSITION,
-  
-  // Special edits - edits that require additional constraints to be matched
-  // when they are performed.
-  FG_PRIMARY_BG_PRIMARY_INTENSITY,    // Foreground and background intensity changes matched
-  FG_PRIMARY_BG_PRIMARY_COLOR,        // Foreground and background color changes matched (color wheel rotation)
-  FG_TONER_JOINT_COLOR,
-  BG_TONER_JOINT_COLOR,
-
-  // Special type for GUI
-  CLUSTER_CENTER
-};
-
 // controllable lighting parameters. Split here since don't want to waste time
 // parsing strings for things like color.hue
 enum EditParam {
@@ -125,12 +22,12 @@ enum EditParam {
   HUE,
   SAT,
   VALUE,
-  RED,
-  GREEN,
-  BLUE,
   POLAR,
   AZIMUTH,
-  SOFT
+  SOFT,
+  RED,
+  GREEN,
+  BLUE
 };
 
 // Since we're dealing with a variable number of lights, the system needs
@@ -188,8 +85,6 @@ typedef dlib::linear_kernel<sampleType> kernelType;
 // Entry point to the search algorithm
 list<SearchResult*> attributeSearch(map<string, AttributeControllerBase*>& active, int editDepth = 1);
 
-string editTypeToString(EditType t);
-
 // Clusters results using k-means. K is chosen iteratively by computing the
 // mean distance from every scene to the cluster center until it is below
 // a specified threshold (global setting)
@@ -245,6 +140,9 @@ private:
 
   // Populates the _edits map. Basically tells the search how to search the things.
   void generateEdits();
+
+  // Generates the default set of edits for the select string
+  void generateDefaultEdits(string select);
 
   // Runs a single level iteration of the search algorithm, starting at the given scenes.
   list<SearchResult*> runSingleLevelSearch(list<SearchResult*> startScenes, int level, attrObjFunc f);

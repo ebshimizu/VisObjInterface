@@ -340,9 +340,6 @@ void MainContentComponent::openRig(String fname)
 
     loadComponents();
 
-    // Here we should pre-fetch the categories of lights used in the search algorithm.
-    setDeviceGroups();
-
     _showName = rig.getFileName();
     getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);
   }

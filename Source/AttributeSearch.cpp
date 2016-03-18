@@ -55,57 +55,6 @@ list<SearchResult*> attributeSearch(map<string, AttributeControllerBase*>& activ
   return scenes;
 }
 
-string editTypeToString(EditType t) {
-  switch (t) {
-  case ALL:
-    return "All";
-  case ALL_INTENSITY:
-    return "All Intensity";
-  case ALL_COLOR:
-    return "All Color";
-  case ALL_HUE:
-    return "All Hue";
-  case ALL_POSITION:
-    return "All Position";
-  case ALL_SOFTNESS:
-    return "All Softness";
-  case ALL_PRIMARY:
-    return "All Primary";
-  case ALL_SECONDARY:
-    return "All Secondary";
-  case ALL_TONER:
-    return "All Toner";
-  case ALL_AMBIENT:
-    return "All Ambient";
-  case ALL_PRIMARY_INTENSITY:
-    return "All Primary Intensity";
-  case ALL_PRIMARY_COLOR:
-    return "All Primary Color";
-  case ALL_PRIMARY_HUE:
-    return "All Primary Hue";
-  case ALL_PRIMARY_POSITION:
-    return "All Primary Position";
-  case ALL_PRIMARY_SOFTNESS:
-    return "All Primary Softness";
-  case ALL_SECONDARY_INTENSITY:
-    return "All Secondary Intensity";
-  case ALL_SECONDARY_COLOR:
-    return "All Secondary Color";
-  case ALL_SECONDARY_HUE:
-    return "All Secondary Hue";
-  case ALL_SECONDARY_POSITION:
-    return "All Secondary Position";
-  case ALL_SECONDARY_SOFTNESS:
-    return "All Secondary Softness";
-  case FG_PRIMARY_ALL:
-    return "Foreground Primary All";
-  case CLUSTER_CENTER:
-    return "Cluster Center";
-  default:
-    return "";
-  }
-}
-
 vector<Eigen::VectorXd> clusterResults(list<SearchResult*> results, int c)
 {
   // Special case for 1 requested cluster
@@ -588,6 +537,97 @@ void AttributeSearchThread::threadComplete(bool userPressedCancel)
       "Exploratory Search",
       "Search canceled");
   }
+}
+
+void AttributeSearchThread::generateEdits()
+{
+  // here we dynamically create all of the edits used by the search algorithm for all
+  // levels of the search. This is the function to change if we want to change
+  // how the search goes through the lighting space.
+  _edits.clear();
+
+  // The search assumes two things: the existence of a metadata field called 'system'
+  // and the existence of a metadata field called 'area' on every device. It does not
+  // care what you call the things in these fields, but it does care that they exist.
+  // These two fields are the primitives for how the system sets up its lights.
+  // A system is a group of lights that achieve the same logical effect (i.e. all fill lights).
+  // An area is a common focal point for a set of lights. Lights from multiple systems can be
+  // in the same area.
+  // It is up to the user to decide how to split lights into groups and systems.
+  set<string> systems = getRig()->getMetadataValues("system");
+  set<string> areas = getRig()->getMetadataValues("area");
+
+  // Create all devices edit types
+  generateDefaultEdits("*");
+
+  // Create edits for each system
+  for (const auto& s : systems) {
+    generateDefaultEdits("$system=" + s);
+  }
+
+  // Create edits for each area
+  for (const auto& a : areas) {
+    generateDefaultEdits("$area=" + a);
+  }
+
+  // Create edits for each system within an area
+  for (const auto& s : systems) {
+    for (const auto& a : areas) {
+      generateDefaultEdits("$area=" + a + "[$system=" + s + "]");
+    }
+  }
+
+  // Special edit types
+  // left blank for now.
+  // may be used for user specified edits? May do cross-system/area edits?
+}
+
+void AttributeSearchThread::generateDefaultEdits(string select)
+{
+  vector<EditConstraint> allParams;
+  // looks a bit arbitrary, but see definition of EditParam. Includes all params except RGB.
+  for (int i = 0; i <= 6; i++) {
+    allParams.push_back(EditConstraint(select, (EditParam)i, D_ALL));
+  }
+  _edits[select + "_all"] = allParams;
+
+  // Intensity
+  vector<EditConstraint> intens;
+  intens.push_back(EditConstraint(select, INTENSITY, D_ALL));
+  _edits[select + "_intens"] = intens;
+
+  // Hue
+  vector<EditConstraint> hue;
+  hue.push_back(EditConstraint(select, HUE, D_ALL));
+  _edits[select + "_hue"] = hue;
+
+  // Color
+  vector<EditConstraint> color;
+  color.push_back(EditConstraint(select, HUE, D_ALL));
+  color.push_back(EditConstraint(select, SAT, D_ALL));
+  color.push_back(EditConstraint(select, VALUE, D_ALL));
+  _edits[select + "_color"] = color;
+
+  // Position
+  vector<EditConstraint> position;
+  position.push_back(EditConstraint(select, POLAR, D_ALL));
+  position.push_back(EditConstraint(select, AZIMUTH, D_ALL));
+  _edits[select + "_pos"] = position;
+
+  // Softness
+  vector<EditConstraint> soft;
+  soft.push_back(EditConstraint(select, SOFT, D_ALL));
+  _edits[select + "_soft"] = soft;
+
+  // Joint intensity
+  vector<EditConstraint> jintens;
+  jintens.push_back(EditConstraint(select, INTENSITY, D_JOINT));
+  _edits[select + "_jointIntens"] = jintens;
+
+  // Joint Hue
+  vector<EditConstraint> jhue;
+  jhue.push_back(EditConstraint(select, HUE, D_JOINT));
+  _edits[select + "_jointHue"] = jhue;
 }
 
 list<SearchResult*> AttributeSearchThread::runSingleLevelSearch(list<SearchResult*> startScenes, int level, attrObjFunc f)
