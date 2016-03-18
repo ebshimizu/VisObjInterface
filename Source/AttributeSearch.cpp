@@ -45,12 +45,115 @@ map<EditType, vector<EditConstraint> > editConstraints = {
            EditConstraint(BG_AMBIENT, INTENSITY, D_ALL), EditConstraint(BG_AMBIENT, HUE, D_ALL),
            EditConstraint(BG_AMBIENT, SAT, D_ALL), EditConstraint(BG_AMBIENT, VALUE, D_ALL),
            EditConstraint(BG_AMBIENT, POLAR, D_ALL), EditConstraint(BG_AMBIENT, AZIMUTH, D_ALL),
-           EditConstraint(BG_AMBIENT, SOFT, D_ALL),
+           EditConstraint(BG_AMBIENT, SOFT, D_ALL)
   } },
-  { FG_PRIMARY_ALL, { EditConstraint(FG_PRIMARY, INTENSITY, D_ALL), EditConstraint(FG_PRIMARY, HUE, D_ALL),
-                      EditConstraint(FG_PRIMARY, SAT, D_ALL), EditConstraint(FG_PRIMARY, VALUE, D_ALL),
-                      EditConstraint(FG_PRIMARY, POLAR, D_ALL), EditConstraint(FG_PRIMARY, AZIMUTH, D_ALL),
-                      EditConstraint(FG_PRIMARY, SOFT, D_ALL)
+  { ALL_INTENSITY,{ EditConstraint(FG_PRIMARY, INTENSITY, D_ALL), 
+                    EditConstraint(FG_SECONDARY, INTENSITY, D_ALL), 
+                    EditConstraint(FG_TONER, INTENSITY, D_ALL),
+                    EditConstraint(FG_AMBIENT, INTENSITY, D_ALL),
+                    EditConstraint(BG_PRIMARY, INTENSITY, D_ALL), 
+                    EditConstraint(BG_SECONDARY, INTENSITY, D_ALL),
+                    EditConstraint(BG_TONER, INTENSITY, D_ALL), 
+                    EditConstraint(BG_AMBIENT, INTENSITY, D_ALL) 
+  } },
+  { ALL_COLOR,{ EditConstraint(FG_PRIMARY, HUE, D_ALL),
+                EditConstraint(FG_PRIMARY, SAT, D_ALL), EditConstraint(FG_PRIMARY, VALUE, D_ALL),
+                EditConstraint(FG_SECONDARY, HUE, D_ALL),
+                EditConstraint(FG_SECONDARY, SAT, D_ALL), EditConstraint(FG_SECONDARY, VALUE, D_ALL),
+                EditConstraint(FG_TONER, HUE, D_ALL),
+                EditConstraint(FG_TONER, SAT, D_ALL), EditConstraint(FG_TONER, VALUE, D_ALL),
+                EditConstraint(FG_AMBIENT, HUE, D_ALL),
+                EditConstraint(FG_AMBIENT, SAT, D_ALL), EditConstraint(FG_AMBIENT, VALUE, D_ALL),
+                EditConstraint(BG_PRIMARY, HUE, D_ALL),
+                EditConstraint(BG_PRIMARY, SAT, D_ALL), EditConstraint(BG_PRIMARY, VALUE, D_ALL),
+                EditConstraint(BG_SECONDARY, HUE, D_ALL),
+                EditConstraint(BG_SECONDARY, SAT, D_ALL), EditConstraint(BG_SECONDARY, VALUE, D_ALL),
+                EditConstraint(BG_TONER, HUE, D_ALL),
+                EditConstraint(BG_TONER, SAT, D_ALL), EditConstraint(BG_TONER, VALUE, D_ALL),
+                EditConstraint(BG_AMBIENT, HUE, D_ALL),
+                EditConstraint(BG_AMBIENT, SAT, D_ALL), EditConstraint(BG_AMBIENT, VALUE, D_ALL)
+
+  } },
+  { ALL_HUE,{ EditConstraint(FG_PRIMARY, HUE, D_ALL), EditConstraint(FG_SECONDARY, HUE, D_ALL),
+              EditConstraint(FG_TONER, HUE, D_ALL), EditConstraint(FG_AMBIENT, HUE, D_ALL),
+              EditConstraint(BG_PRIMARY, HUE, D_ALL), EditConstraint(BG_SECONDARY, HUE, D_ALL),
+              EditConstraint(BG_TONER, HUE, D_ALL), EditConstraint(BG_AMBIENT, HUE, D_ALL)
+
+  } },
+  { ALL_POSITION, { EditConstraint(FG_PRIMARY, POLAR, D_ALL), EditConstraint(FG_PRIMARY, AZIMUTH, D_ALL),
+                    EditConstraint(FG_SECONDARY, POLAR, D_ALL), EditConstraint(FG_SECONDARY, AZIMUTH, D_ALL),
+                    EditConstraint(FG_TONER, POLAR, D_ALL), EditConstraint(FG_TONER, AZIMUTH, D_ALL),
+                    EditConstraint(FG_AMBIENT, POLAR, D_ALL), EditConstraint(FG_AMBIENT, AZIMUTH, D_ALL),
+                    EditConstraint(BG_PRIMARY, POLAR, D_ALL), EditConstraint(BG_PRIMARY, AZIMUTH, D_ALL),
+                    EditConstraint(BG_SECONDARY, POLAR, D_ALL), EditConstraint(BG_SECONDARY, AZIMUTH, D_ALL),
+                    EditConstraint(BG_TONER, POLAR, D_ALL), EditConstraint(BG_TONER, AZIMUTH, D_ALL),
+                    EditConstraint(BG_AMBIENT, POLAR, D_ALL), EditConstraint(BG_AMBIENT, AZIMUTH, D_ALL),
+  } },
+  { ALL_SOFTNESS, { EditConstraint(FG_PRIMARY, SOFT, D_ALL), EditConstraint(FG_SECONDARY, SOFT, D_ALL),
+                    EditConstraint(FG_TONER, SOFT, D_ALL), EditConstraint(FG_AMBIENT, SOFT, D_ALL),
+                    EditConstraint(BG_PRIMARY, SOFT, D_ALL), EditConstraint(BG_SECONDARY, SOFT, D_ALL),
+                    EditConstraint(BG_TONER, SOFT, D_ALL), EditConstraint(BG_AMBIENT, SOFT, D_ALL)
+  } },
+  { ALL_PRIMARY, { EditConstraint(FG_PRIMARY, INTENSITY, D_ALL), EditConstraint(FG_PRIMARY, HUE, D_ALL),
+                   EditConstraint(FG_PRIMARY, SAT, D_ALL), EditConstraint(FG_PRIMARY, VALUE, D_ALL),
+                   EditConstraint(FG_PRIMARY, POLAR, D_ALL), EditConstraint(FG_PRIMARY, AZIMUTH, D_ALL),
+                   EditConstraint(FG_PRIMARY, SOFT, D_ALL),
+                   EditConstraint(BG_PRIMARY, INTENSITY, D_ALL), EditConstraint(BG_PRIMARY, HUE, D_ALL),
+                   EditConstraint(BG_PRIMARY, SAT, D_ALL), EditConstraint(BG_PRIMARY, VALUE, D_ALL),
+                   EditConstraint(BG_PRIMARY, POLAR, D_ALL), EditConstraint(BG_PRIMARY, AZIMUTH, D_ALL),
+                   EditConstraint(BG_PRIMARY, SOFT, D_ALL)
+  } },
+  { ALL_SECONDARY, { EditConstraint(FG_SECONDARY, INTENSITY, D_ALL), EditConstraint(FG_SECONDARY, HUE, D_ALL),
+                     EditConstraint(FG_SECONDARY, SAT, D_ALL), EditConstraint(FG_SECONDARY, VALUE, D_ALL),
+                     EditConstraint(FG_SECONDARY, POLAR, D_ALL), EditConstraint(FG_SECONDARY, AZIMUTH, D_ALL),
+                     EditConstraint(FG_SECONDARY, SOFT, D_ALL),
+                     EditConstraint(BG_SECONDARY, INTENSITY, D_ALL), EditConstraint(BG_SECONDARY, HUE, D_ALL),
+                     EditConstraint(BG_SECONDARY, SAT, D_ALL), EditConstraint(BG_SECONDARY, VALUE, D_ALL),
+                     EditConstraint(BG_SECONDARY, POLAR, D_ALL), EditConstraint(BG_SECONDARY, AZIMUTH, D_ALL),
+                     EditConstraint(BG_SECONDARY, SOFT, D_ALL)
+  } },
+  { ALL_TONER, { EditConstraint(FG_TONER, INTENSITY, D_ALL), EditConstraint(FG_TONER, HUE, D_ALL),
+                 EditConstraint(FG_TONER, SAT, D_ALL), EditConstraint(FG_TONER, VALUE, D_ALL),
+                 EditConstraint(FG_TONER, POLAR, D_ALL), EditConstraint(FG_TONER, AZIMUTH, D_ALL),
+                 EditConstraint(FG_TONER, SOFT, D_ALL),
+                 EditConstraint(BG_TONER, INTENSITY, D_ALL), EditConstraint(BG_TONER, HUE, D_ALL),
+                 EditConstraint(BG_TONER, SAT, D_ALL), EditConstraint(BG_TONER, VALUE, D_ALL),
+                 EditConstraint(BG_TONER, POLAR, D_ALL), EditConstraint(BG_TONER, AZIMUTH, D_ALL),
+                 EditConstraint(BG_TONER, SOFT, D_ALL)
+  } },
+  { ALL_AMBIENT, { EditConstraint(FG_AMBIENT, INTENSITY, D_ALL), EditConstraint(FG_AMBIENT, HUE, D_ALL),
+                   EditConstraint(FG_AMBIENT, SAT, D_ALL), EditConstraint(FG_AMBIENT, VALUE, D_ALL),
+                   EditConstraint(FG_AMBIENT, POLAR, D_ALL), EditConstraint(FG_AMBIENT, AZIMUTH, D_ALL),
+                   EditConstraint(FG_AMBIENT, SOFT, D_ALL),
+                   EditConstraint(BG_AMBIENT, INTENSITY, D_ALL), EditConstraint(BG_AMBIENT, HUE, D_ALL),
+                   EditConstraint(BG_AMBIENT, SAT, D_ALL), EditConstraint(BG_AMBIENT, VALUE, D_ALL),
+                   EditConstraint(BG_AMBIENT, POLAR, D_ALL), EditConstraint(BG_AMBIENT, AZIMUTH, D_ALL),
+                   EditConstraint(BG_AMBIENT, SOFT, D_ALL)
+  } },
+  { ALL_PRIMARY_INTENSITY, { EditConstraint(FG_PRIMARY, INTENSITY, D_ALL), EditConstraint(BG_PRIMARY, INTENSITY, D_ALL) } },
+  { ALL_PRIMARY_COLOR, { EditConstraint(FG_PRIMARY, HUE, D_ALL), EditConstraint(BG_PRIMARY, HUE, D_ALL), 
+                        EditConstraint(FG_PRIMARY, SAT, D_ALL), EditConstraint(BG_PRIMARY, SAT, D_ALL),
+                        EditConstraint(FG_PRIMARY, VALUE, D_ALL), EditConstraint(BG_PRIMARY, VALUE, D_ALL) 
+  } },
+  { ALL_PRIMARY_HUE, { EditConstraint(FG_PRIMARY, HUE, D_ALL), EditConstraint(BG_PRIMARY, HUE, D_ALL) } },
+  { ALL_PRIMARY_POSITION, { EditConstraint(FG_PRIMARY, POLAR, D_ALL), EditConstraint(BG_PRIMARY, POLAR, D_ALL),
+                            EditConstraint(FG_PRIMARY, AZIMUTH, D_ALL), EditConstraint(BG_PRIMARY, AZIMUTH, D_ALL) 
+  } },
+  { ALL_PRIMARY_SOFTNESS,{ EditConstraint(FG_PRIMARY, SOFT, D_ALL), EditConstraint(BG_PRIMARY, SOFT, D_ALL) } },
+  { ALL_SECONDARY_INTENSITY,{ EditConstraint(FG_SECONDARY, INTENSITY, D_ALL), EditConstraint(BG_SECONDARY, INTENSITY, D_ALL) } },
+  { ALL_SECONDARY_COLOR,{ EditConstraint(FG_SECONDARY, HUE, D_ALL), EditConstraint(BG_SECONDARY, HUE, D_ALL),
+             EditConstraint(FG_SECONDARY, SAT, D_ALL), EditConstraint(BG_SECONDARY, SAT, D_ALL),
+             EditConstraint(FG_SECONDARY, VALUE, D_ALL), EditConstraint(BG_SECONDARY, VALUE, D_ALL)
+  } },
+  { ALL_SECONDARY_HUE,{ EditConstraint(FG_SECONDARY, HUE, D_ALL), EditConstraint(BG_SECONDARY, HUE, D_ALL) } },
+  { ALL_SECONDARY_POSITION,{ EditConstraint(FG_SECONDARY, POLAR, D_ALL), EditConstraint(BG_SECONDARY, POLAR, D_ALL),
+             EditConstraint(FG_SECONDARY, AZIMUTH, D_ALL), EditConstraint(BG_SECONDARY, AZIMUTH, D_ALL)
+  } },
+  { ALL_SECONDARY_SOFTNESS,{ EditConstraint(FG_SECONDARY, SOFT, D_ALL), EditConstraint(BG_SECONDARY, SOFT, D_ALL) } },
+  { FG_PRIMARY_ALL, { EditConstraint(FG_SECONDARY, INTENSITY, D_ALL), EditConstraint(FG_PRIMARY, HUE, D_ALL),
+                      EditConstraint(FG_SECONDARY, SAT, D_ALL), EditConstraint(FG_PRIMARY, VALUE, D_ALL),
+                      EditConstraint(FG_SECONDARY, POLAR, D_ALL), EditConstraint(FG_PRIMARY, AZIMUTH, D_ALL),
+                      EditConstraint(FG_SECONDARY, SOFT, D_ALL)
   } }
 };
 
@@ -100,6 +203,44 @@ string editTypeToString(EditType t) {
   switch (t) {
   case ALL:
     return "All";
+  case ALL_INTENSITY:
+    return "All Intensity";
+  case ALL_COLOR:
+    return "All Color";
+  case ALL_HUE:
+    return "All Hue";
+  case ALL_POSITION:
+    return "All Position";
+  case ALL_SOFTNESS:
+    return "All Softness";
+  case ALL_PRIMARY:
+    return "All Primary";
+  case ALL_SECONDARY:
+    return "All Secondary";
+  case ALL_TONER:
+    return "All Toner";
+  case ALL_AMBIENT:
+    return "All Ambient";
+  case ALL_PRIMARY_INTENSITY:
+    return "All Primary Intensity";
+  case ALL_PRIMARY_COLOR:
+    return "All Primary Color";
+  case ALL_PRIMARY_HUE:
+    return "All Primary Hue";
+  case ALL_PRIMARY_POSITION:
+    return "All Primary Position";
+  case ALL_PRIMARY_SOFTNESS:
+    return "All Primary Softness";
+  case ALL_SECONDARY_INTENSITY:
+    return "All Secondary Intensity";
+  case ALL_SECONDARY_COLOR:
+    return "All Secondary Color";
+  case ALL_SECONDARY_HUE:
+    return "All Secondary Hue";
+  case ALL_SECONDARY_POSITION:
+    return "All Secondary Position";
+  case ALL_SECONDARY_SOFTNESS:
+    return "All Secondary Softness";
   case FG_PRIMARY_ALL:
     return "Foreground Primary All";
   case CLUSTER_CENTER:

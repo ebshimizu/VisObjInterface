@@ -154,7 +154,7 @@ enum EditParam {
 // to know how many devices to change on one edit.
 enum EditNumDevices {
   D_ALL,    // Search though all devices at once
-  D_SINGLE, // Search through one device at a time (sub-edit)
+  D_UNIFORM, // Search through one device at a time (sub-edit)
   D_JOINT   // All lights get the same change applied to them
 };
 
