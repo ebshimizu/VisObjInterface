@@ -118,23 +118,6 @@ enum EditType {
   CLUSTER_CENTER
 };
 
-// Don't want to use strings for this for speed reasons
-// These categories may encompass multiple lights
-// Primary lights are expected to be key lights in the scene, while
-// secondary lights are expected to be fill lights in the scene. This
-// may or may not actually end up being true when the search runs, however it
-// should be a good guideline to follow when setting up scenes.
-enum EditLightType {
-  FG_PRIMARY,
-  FG_SECONDARY,
-  FG_TONER,
-  FG_AMBIENT,
-  BG_PRIMARY,
-  BG_SECONDARY,
-  BG_TONER,
-  BG_AMBIENT
-};
-
 // controllable lighting parameters. Split here since don't want to waste time
 // parsing strings for things like color.hue
 enum EditParam {
@@ -163,9 +146,10 @@ enum EditNumDevices {
 // fill for example) and will be treated separately
 struct EditConstraint {
   EditConstraint() { }
-  EditConstraint(EditLightType t, EditParam p, EditNumDevices q) : _light(t), _param(p), _qty(q) { }
+  EditConstraint(string select, EditParam p, EditNumDevices q) : _select(select), _param(p), _qty(q) { }
 
-  EditLightType _light;
+  // this is actually a Lumiverse query string indicating which lights should be selected.
+  string _select;
   EditParam _param;
   EditNumDevices _qty;
 };
@@ -190,7 +174,7 @@ public:
   ~SearchResult();
   
   Eigen::VectorXd _scene;
-  Array<EditType> _editHistory;
+  Array<string> _editHistory;
   double _objFuncVal;
 
   // Paired with a vector of cluster centers, indicates which cluster the result belongs to.
@@ -252,21 +236,25 @@ public:
 
 private:
   map<string, AttributeControllerBase*> _active;
+  map<string, vector<EditConstraint> > _edits;
   int _editDepth;
   list<SearchResult*> _results;
   Snapshot* _original;
   double _fc;
   bool _singleSame;
 
+  // Populates the _edits map. Basically tells the search how to search the things.
+  void generateEdits();
+
   // Runs a single level iteration of the search algorithm, starting at the given scenes.
   list<SearchResult*> runSingleLevelSearch(list<SearchResult*> startScenes, int level, attrObjFunc f);
 
   // Given a current configuration, use MCMC to perform an edit on the configuration
-  list<Eigen::VectorXd> performEdit(EditType t, Snapshot* orig, attrObjFunc f);
+  list<Eigen::VectorXd> performEdit(vector<EditConstraint> edit, Snapshot* orig, attrObjFunc f, string name);
 
   // Do MCMC with the given parameters. Returns the list of samples and number of accepted samples.
   // Samples list will be empty if saveSamples is false.
-  pair<list<Eigen::VectorXd>, int> doMCMC(EditType t, Snapshot* start, attrObjFunc f, int iters, double sigma, bool saveSamples);
+  pair<list<Eigen::VectorXd>, int> doMCMC(vector<EditConstraint> edit, Snapshot* start, attrObjFunc f, int iters, double sigma, bool saveSamples, string name);
 
   // computes the numeric derivative for the particular lighting parameter and
   // specified attribute
@@ -279,10 +267,10 @@ private:
   double getDeviceValue(EditConstraint c, Snapshot* s, string& id);
 
   // Returns true if the specified device parameter is locked in the Rig
-  bool isParamLocked(EditConstraint c, EditType t, Snapshot* s, string& id);
+  bool isParamLocked(EditConstraint c, string& id);
 
   // Returns the number of features in the vector used for search
-  int getVecLength(EditType t, Snapshot* s);
+  int getVecLength(vector<EditConstraint>& edit, Snapshot* s);
 };
 
 #endif  // ATTRIBUTESEARCH_H_INCLUDED
