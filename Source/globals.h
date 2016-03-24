@@ -108,6 +108,7 @@ enum command {
   SETTINGS = 0x4000,
   UNDO = 0x4001,
   REDO = 0x4002,
+  GET_FROM_ARNOLD = 0x4003,
 
   // Explore
   SEARCH = 0x5000,

@@ -252,7 +252,7 @@ list<SearchResult*> filterResults(list<SearchResult*>& results, vector<Eigen::Ve
           continue;
         }
 
-        double dist = (it->second->_scene - it2->second->_scene).norm();
+        double dist = (it->second->_scene - it2->second->_scene).squaredNorm();
 
         // delete element if it's too close
         if (dist < getGlobalSettings()->_clusterDiffThreshold) {
@@ -287,8 +287,8 @@ void filterResults(list<Eigen::VectorXd>& results, double t)
         it2++;
         continue;
       }
-      
-      double dist = (*it - *it2).norm();
+
+      double dist = (*it - *it2).squaredNorm();
 
       // delete element if it's too close
       if (dist < t) {
@@ -312,7 +312,7 @@ void filterResults(list<SearchResult*>& results, double t)
         continue;
       }
 
-      double dist = ((*it)->_scene - (*it2)->_scene).norm();
+      double dist = ((*it)->_scene - (*it2)->_scene).squaredNorm();
 
       // delete element if it's too close
       if (dist < t) {

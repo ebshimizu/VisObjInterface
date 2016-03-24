@@ -273,17 +273,16 @@ void ParamControls::initProperties()
   for (const auto d : devices.getDevices()) {
     Array<PropertyComponent*> components;
 
-    components.add(new FloatPropertySlider(d->getId(), "intensity", (LumiverseFloat*)d->getParam("intensity")));
-    components.add(new OrientationPropertySlider(d->getId(), "polar", (LumiverseOrientation*)d->getParam("polar")));
-    components.add(new OrientationPropertySlider(d->getId(), "azimuth", (LumiverseOrientation*)d->getParam("azimuth")));
-    //components.add(new ColorPropertySlider(d->getId(), "color", "Red", d->getColor()));
-    //components.add(new ColorPropertySlider(d->getId(), "color", "Green", d->getColor()));
-    //components.add(new ColorPropertySlider(d->getId(), "color", "Blue", d->getColor()));
-    //components.add(new HSVColorPropertySlider(d->getId(), "color", "H", d->getColor()));
-    //components.add(new HSVColorPropertySlider(d->getId(), "color", "S", d->getColor()));
-    //components.add(new HSVColorPropertySlider(d->getId(), "color", "V", d->getColor()));
-    components.add(new ColorPropertyPicker(d->getId(), "color", d->getParam<LumiverseColor>("color")));
-    components.add(new FloatPropertySlider(d->getId(), "penumbraAngle", d->getParam<LumiverseFloat>("penumbraAngle")));
+    if (d->paramExists("intensity"))
+      components.add(new FloatPropertySlider(d->getId(), "intensity", (LumiverseFloat*)d->getParam("intensity")));
+    if (d->paramExists("polar"))
+      components.add(new OrientationPropertySlider(d->getId(), "polar", (LumiverseOrientation*)d->getParam("polar")));
+    if (d->paramExists("azimuth"))
+      components.add(new OrientationPropertySlider(d->getId(), "azimuth", (LumiverseOrientation*)d->getParam("azimuth")));
+    if (d->paramExists("color"))
+      components.add(new ColorPropertyPicker(d->getId(), "color", d->getParam<LumiverseColor>("color")));
+    if (d->paramExists("penumbraAngle"))
+      components.add(new FloatPropertySlider(d->getId(), "penumbraAngle", d->getParam<LumiverseFloat>("penumbraAngle")));
 
     
     // these are really internal components and probably shouldn't be user editable

@@ -91,6 +91,7 @@ private:
   void lockAllPosition();
   void unlockAll();
   void lockDevice(Device* d);
+  void getDefaultsFromArnold();
 
   // Private vars
   File _parentDir;

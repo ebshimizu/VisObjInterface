@@ -88,7 +88,8 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::SEARCH, command::REFRESH_ATTR, command::SAVE, command::SAVE_AS, command::RECLUSTER,
     command::VIEW_CLUSTERS, command::UNDO, command::REDO, command::LOCK_ALL_COLOR,
     command::LOCK_ALL_INTENSITY, command::LOCK_ALL_POSITION, command::UNLOCK_ALL,
-    command::LOCK_KEY, command::LOCK_FILL, command::LOCK_RIM, command::SAVE_RENDER
+    command::LOCK_KEY, command::LOCK_FILL, command::LOCK_RIM, command::SAVE_RENDER,
+    command::GET_FROM_ARNOLD
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -172,6 +173,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::SAVE_RENDER:
     result.setInfo("Save Render", "Saves the current render of the rig", "File", 0);
     break;
+  case command::GET_FROM_ARNOLD:
+    result.setInfo("Get Defaults From Arnold", "Get device default values from the Arnold .ass file", "Edit", 0);
+    break;
   default:
     return;
   }
@@ -245,6 +249,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
   }
   case command::SAVE_RENDER:
     saveRender();
+    break;
+  case command::GET_FROM_ARNOLD:
+    getDefaultsFromArnold();
     break;
   default:
     return false;
@@ -528,6 +535,14 @@ void MainContentComponent::lockDevice(Device * d)
     lockDeviceParam(d->getId(), p);
   }
   repaint();
+}
+
+void MainContentComponent::getDefaultsFromArnold()
+{
+  auto arnold = getAnimationPatch();
+  //arnold->getPositionFromAss(getRig()->getDeviceRaw());
+  arnold->getBeamPropsFromAss(getRig()->getDeviceRaw());
+  _params->initProperties();
 }
 
 void MainContentComponent::search()

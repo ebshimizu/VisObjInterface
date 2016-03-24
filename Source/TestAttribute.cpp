@@ -45,8 +45,11 @@ double TestAttribute::evaluateScene(Snapshot* s)
   double err = 0;
   int numDevices = s->getDevices().size();
   for (auto& d : s->getDevices()) {
-    auto color = d->getColor()->getLCHab(ReferenceWhite::D65);
-    err += (300 - (warmest - Eigen::Vector2d(color[1], color[2])).norm());
+    auto color = d->getColor();
+    if (color == nullptr)
+      continue;
+    auto lab = color->getLCHab(ReferenceWhite::D65);
+    err += (300 - (warmest - Eigen::Vector2d(lab[1], lab[2])).norm());
   }
 
   err /= (double)numDevices;
