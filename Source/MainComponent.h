@@ -93,6 +93,10 @@ private:
   void lockDevice(Device* d);
   void getDefaultsFromArnold();
 
+  // Opens a selection box presenting a dropdown consisting of the selected
+  // metadata field
+  void selectBox(string metadataKey, bool inv, string title);
+
   // Private vars
   File _parentDir;
   String _showName;

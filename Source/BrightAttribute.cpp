@@ -29,6 +29,37 @@ BrightAttribute::~BrightAttribute()
 
 double BrightAttribute::evaluateScene(Snapshot* s)
 {
+  //// testing performance for rendering thumbnails
+  //auto p = getAnimationPatch();
+
+  //// Quit early if we can't render things
+  //if (p == nullptr)
+  //  return 0;
+
+  //int width = getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale;
+  //int height = getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale;
+  //p->setDims(width, height);
+  //p->setSamples(getGlobalSettings()->_thumbnailRenderSamples);
+
+  //// Render to image
+  //Image *img = new Image(Image::ARGB, width, height, true);
+  //uint8* bufptr = Image::BitmapData(*img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+
+  //p->renderSingleFrameToBuffer(s->getDevices(), bufptr);
+
+  //// calculate brightness, average brightness values across image
+  //double totalY = 0;
+  //for (int x = 0; x < width; x++) {
+  //  for (int y = 0; y < height; y++) {
+  //    auto& color = img->getPixelAt(x, y);
+  //    totalY += (color.getRed() / 255.0) * 0.2126 + (color.getGreen() / 255.0) * 0.7152 + (color.getBlue() / 255.0) * 0.0722;
+  //  }
+  //}
+
+  //totalY /= (double)(width * height);
+  //delete img;
+  //return totalY * 100;
+
   auto devices = s->getDevices();
   double sum = 0;
   for (auto& d : devices) {
@@ -87,6 +118,7 @@ void BrightAttribute::preProcess()
         totalY += (color.getRed() / 255.0) * 0.2126 + (color.getGreen() / 255.0) * 0.7152 + (color.getBlue() / 255.0) * 0.0722;
       }
     }
+    Lumiverse::Logger::log(LDEBUG, String(img.getReferenceCount()).toStdString());
 
     totalY /= (double)(width * height);
     brightness[d.first] = totalY;

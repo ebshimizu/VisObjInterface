@@ -88,8 +88,8 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::SEARCH, command::REFRESH_ATTR, command::SAVE, command::SAVE_AS, command::RECLUSTER,
     command::VIEW_CLUSTERS, command::UNDO, command::REDO, command::LOCK_ALL_COLOR,
     command::LOCK_ALL_INTENSITY, command::LOCK_ALL_POSITION, command::UNLOCK_ALL,
-    command::LOCK_KEY, command::LOCK_FILL, command::LOCK_RIM, command::SAVE_RENDER,
-    command::GET_FROM_ARNOLD
+    command::LOCK_ALL_AREAS_EXCEPT, command::LOCK_AREA, command::LOCK_SYSTEM, command::LOCK_ALL_SYSTEMS_EXCEPT,
+    command::SAVE_RENDER, command::GET_FROM_ARNOLD
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -158,17 +158,21 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Unlock All Parameters", "Unlock all locked parameters", "Explore", 0);
     result.addDefaultKeypress('u', ModifierKeys::shiftModifier);
     break;
-  case command::LOCK_KEY:
-    result.setInfo("Lock Key", "Lock all parameters on the key light", "Explore", 0);
+  case command::LOCK_ALL_AREAS_EXCEPT:
+    result.setInfo("Lock All Areas Except...", "Locks all areas except the specified area.", "Explore", 0);
     result.addDefaultKeypress('1', ModifierKeys::shiftModifier);
     break;
-  case command::LOCK_FILL:
-    result.setInfo("Lock Fill", "Lock all parameters on the fill light", "Explore", 0);
+  case command::LOCK_AREA:
+    result.setInfo("Lock Area...", "Locks a single area.", "Explore", 0);
     result.addDefaultKeypress('2', ModifierKeys::shiftModifier);
     break;
-  case command::LOCK_RIM:
-    result.setInfo("Lock Rim", "Lock all parameters on the rim light", "Explore", 0);
+  case command::LOCK_ALL_SYSTEMS_EXCEPT:
+    result.setInfo("Lock All Systems Except...", "Lock all systems except the specified system", "Explore", 0);
     result.addDefaultKeypress('3', ModifierKeys::shiftModifier);
+    break;
+  case command::LOCK_SYSTEM:
+    result.setInfo("Lock System...", "Lock a single system", "Explore", 0);
+    result.addDefaultKeypress('4', ModifierKeys::shiftModifier);
     break;
   case command::SAVE_RENDER:
     result.setInfo("Save Render", "Saves the current render of the rig", "File", 0);
@@ -232,21 +236,18 @@ bool MainContentComponent::perform(const InvocationInfo & info)
   case command::UNLOCK_ALL:
     unlockAll();
     break;
-  case command::LOCK_KEY:
-  {
-    // TODO: REIMPLEMENT LOCK FUNCTIONS
+  case command::LOCK_ALL_AREAS_EXCEPT:
+    selectBox("area", true, "Lock all areas except");
     break;
-  }
-  case command::LOCK_FILL:
-  {
-    // TODO: REIMPLEMENT LOCK FUNCTIONS
+  case command::LOCK_ALL_SYSTEMS_EXCEPT:
+    selectBox("system", true, "Lock all systems except");
     break;
-  }
-  case command::LOCK_RIM:
-  {
-    // TODO: REIMPLEMENT LOCK FUNCTIONS
+  case command::LOCK_AREA:
+    selectBox("area", false, "Lock one area");
     break;
-  }
+  case command::LOCK_SYSTEM:
+    selectBox("system", false, "Lock one system");
+    break;
   case command::SAVE_RENDER:
     saveRender();
     break;
@@ -544,6 +545,41 @@ void MainContentComponent::getDefaultsFromArnold()
   //arnold->getPositionFromAss(getRig()->getDeviceRaw());
   arnold->getBeamPropsFromAss(getRig()->getDeviceRaw());
   _params->initProperties();
+}
+
+void MainContentComponent::selectBox(string metadataKey, bool inv, string title)
+{
+#if JUCE_MODAL_LOOPS_PERMITTED
+  AlertWindow w(title,
+    "",
+    AlertWindow::QuestionIcon);
+
+  // get list of metadata values
+  auto vals = getRig()->getMetadataValues(metadataKey);
+  StringArray comboVals;
+  for (auto v : vals) {
+    comboVals.add(v);
+  }
+
+  w.addComboBox("metadataKey", comboVals);
+
+  w.addButton("Go", 1, KeyPress(KeyPress::returnKey, 0, 0));
+  w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+  if (w.runModalLoop() != 0) // is they picked 'go'
+  {
+    // this is the item they selected
+    auto box = w.getComboBoxComponent("metadataKey");
+    string selected = comboVals[box->getSelectedItemIndex()].toStdString();
+
+    string query = "$" + metadataKey + (inv ? "!" : "") + "=" + selected;
+    DeviceSet affectedDevices = getRig()->select(query);
+    auto devices = affectedDevices.getDevices();
+    for (auto& d : devices) {
+      lockDevice(d);
+    }
+  }
+#endif
 }
 
 void MainContentComponent::search()
