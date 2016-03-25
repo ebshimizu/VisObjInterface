@@ -25,9 +25,16 @@ public:
   ~BrightAttribute();
 
 protected:
-  virtual double evaluateScene(Device* key, Device* fill, Device* rim) override;
+  virtual double evaluateScene(Snapshot* s) override;
+
+  // Renders an image for each individual light on load
+  // and proceeds to assign weights based on brightness of resulting images.
+  virtual void preProcess() override;
 
 private:
+  // map of device id to numeric weight assosicated with the device
+  map<string, double> _weights;
+
   double getLightIntens(Device* d);
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BrightAttribute)

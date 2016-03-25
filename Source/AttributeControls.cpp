@@ -76,6 +76,13 @@ void AttributeControlsList::removeAttributeController(string name)
   setBounds(0, 0, _width, _height);
 }
 
+void AttributeControlsList::runPreprocess()
+{
+  for (auto& a : _controls) {
+    a.second->preProcess();
+  }
+}
+
 map<string, AttributeControllerBase*> AttributeControlsList::getActiveAttribues()
 {
   map<string, AttributeControllerBase*> active;
@@ -94,7 +101,7 @@ AttributeControls::AttributeControls()
 {
   _container = new AttributeControlsList();
   _container->addAttributeController(new TestAttribute());
-  //_container->addAttributeController(new BrightAttribute());
+  _container->addAttributeController(new BrightAttribute());
   //_container->addAttributeController(new BacklitAttribute());
   //_container->addAttributeController(new SoftAttribute());
   //_container->addAttributeController(new ContrastAttribute());
@@ -163,6 +170,11 @@ void AttributeControls::resized()
 void AttributeControls::refresh()
 {
   _clusters->setValue(getGlobalSettings()->_numDisplayClusters, dontSendNotification);
+}
+
+void AttributeControls::reload()
+{
+  _container->runPreprocess();
 }
 
 void AttributeControls::buttonClicked(Button * b)

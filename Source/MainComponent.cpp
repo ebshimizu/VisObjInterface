@@ -346,6 +346,7 @@ void MainContentComponent::openRig(String fname)
     getRig()->init();
 
     loadComponents();
+    _attrs->reload();
 
     _showName = rig.getFileName();
     getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);

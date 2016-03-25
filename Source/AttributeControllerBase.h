@@ -34,6 +34,10 @@ public:
   // The return value should be the strenght of the attribute in ths scene.
 	virtual double evaluateScene(Snapshot* s) = 0;
 
+  // An optional pre-processing step is available for each attribute to perform
+  // when the application starts.
+  virtual void preProcess() { };
+
 protected:
 	// Attribute name
 	String _name;

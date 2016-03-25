@@ -27,6 +27,7 @@ public:
 
   void addAttributeController(AttributeControllerBase* control);
   void removeAttributeController(string name);
+  void runPreprocess();
 
   map<string, AttributeControllerBase*> getActiveAttribues();
 
@@ -51,6 +52,9 @@ public:
   void paint (Graphics&);
   void resized();
   void refresh();
+
+  // Used for when a new rig gets loaded into the interface
+  void reload();
   
   virtual void buttonClicked(Button* b) override;
   virtual void sliderValueChanged(Slider* slider) override;
