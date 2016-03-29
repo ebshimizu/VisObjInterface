@@ -373,8 +373,17 @@ Eigen::VectorXd snapshotToVector(Snapshot * s)
   for (const auto& d : devices) {
     int base = idx * numFeats;
     features[base] = d.second->getParam<LumiverseFloat>("intensity")->asPercent();
-    features[base + 1] = d.second->getParam<LumiverseOrientation>("polar")->asPercent();
-    features[base + 2] = d.second->getParam<LumiverseOrientation>("azimuth")->asPercent();
+    
+    if (d.second->paramExists("polar"))
+      features[base + 1] = d.second->getParam<LumiverseOrientation>("polar")->asPercent();
+    else
+      features[base + 1] = 0;
+
+    if (d.second->paramExists("azimuth"))
+      features[base + 2] = d.second->getParam<LumiverseOrientation>("azimuth")->asPercent();
+    else
+      features[base + 2] = 0;
+
     features[base + 3] = d.second->getParam<LumiverseColor>("color")->getColorChannel("Red");
     features[base + 4] = d.second->getParam<LumiverseColor>("color")->getColorChannel("Green");
     features[base + 5] = d.second->getParam<LumiverseColor>("color")->getColorChannel("Blue");
@@ -396,8 +405,12 @@ Snapshot * vectorToSnapshot(Eigen::VectorXd v)
   for (const auto& d : devices) {
     int base = idx * numFeats;
     d.second->getParam<LumiverseFloat>("intensity")->setValAsPercent(v[base]);
-    d.second->getParam<LumiverseOrientation>("polar")->setValAsPercent(v[base + 1]);
-    d.second->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(v[base + 2]);
+
+    if (d.second->paramExists("polar"))
+      d.second->getParam<LumiverseOrientation>("polar")->setValAsPercent(v[base + 1]);
+    if (d.second->paramExists("azimuth"))
+      d.second->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(v[base + 2]);
+
     d.second->getParam<LumiverseColor>("color")->setColorChannel("Red", v[base + 3]);
     d.second->getParam<LumiverseColor>("color")->setColorChannel("Green", v[base + 4]);
     d.second->getParam<LumiverseColor>("color")->setColorChannel("Blue", v[base + 5]);
@@ -1044,16 +1057,22 @@ double AttributeSearchThread::setDeviceValue(DeviceInfo& info, double val, Snaps
     return d->getColor()->getColorChannel("Green");
   case POLAR:
   {
-    LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("polar");
-    o->setValAsPercent(val);
-    return o->asPercent();
+    if (d->paramExists("polar")) {
+      LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("polar");
+      o->setValAsPercent(val);
+      return o->asPercent();
+    }
+    return 0;
   }
   case AZIMUTH:
   {
-    LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("azimuth");
-    o->setValAsPercent(val);
+    if (d->paramExists("azimuth")) {
+      LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("azimuth");
+      o->setValAsPercent(val);
 
-    return o->asPercent();
+      return o->asPercent();
+    }
+    return 0;
   }
   case SOFT:
   {
@@ -1097,13 +1116,19 @@ double AttributeSearchThread::getDeviceValue(EditConstraint c, Snapshot * s, str
     return d->getColor()->getColorChannel("Green");
   case POLAR:
   {
-    LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("polar");
-    return o->asPercent();
+    if (d->paramExists("polar")) {
+      LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("polar");
+      return o->asPercent();
+    }
+    return 0;
   }
   case AZIMUTH:
   {
-    LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("azimuth");
-    return o->asPercent();
+    if (d->paramExists("azimuth")) {
+      LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("azimuth");
+      return o->asPercent();
+    }
+    return 0;
   }
   case SOFT:
   {
@@ -1111,7 +1136,7 @@ double AttributeSearchThread::getDeviceValue(EditConstraint c, Snapshot * s, str
     return s->asPercent();
   }
   default:
-    break;
+    return 0;
   }
 }
 

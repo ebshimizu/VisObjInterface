@@ -60,10 +60,10 @@ double BrightAttribute::evaluateScene(Snapshot* s)
   //delete img;
   //return totalY * 100;
 
-  auto devices = s->getDevices();
+  auto& devices = s->getRigData();
   double sum = 0;
   for (auto& d : devices) {
-    sum += d->getIntensity()->asPercent() * _weights[d->getId()];
+    sum += d.second->getIntensity()->asPercent() * _weights[d.first];
   }
 
   return sum * 100;
