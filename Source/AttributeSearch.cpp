@@ -584,11 +584,11 @@ void AttributeSearchThread::generateEdits()
   }
 
   // Create edits for each system within an area
-  for (const auto& s : systems) {
-    for (const auto& a : areas) {
-      generateDefaultEdits("$area=" + a + "[$system=" + s + "]");
-    }
-  }
+  //for (const auto& s : systems) {
+  //  for (const auto& a : areas) {
+  //    generateDefaultEdits("$area=" + a + "[$system=" + s + "]");
+  //  }
+  //}
 
   // Special edit types
   // left blank for now.
@@ -641,6 +641,18 @@ void AttributeSearchThread::generateDefaultEdits(string select)
   vector<EditConstraint> jhue;
   jhue.push_back(EditConstraint(select, HUE, D_JOINT));
   _edits[select + "_jointHue"] = jhue;
+
+  // Uniform intensity
+  vector<EditConstraint> uintens;
+  uintens.push_back(EditConstraint(select, INTENSITY, D_UNIFORM));
+  _edits[select + "_uniformIntens"] = uintens;
+
+  // Uniform color
+  vector<EditConstraint> ucolor;
+  ucolor.push_back(EditConstraint(select, HUE, D_UNIFORM));
+  ucolor.push_back(EditConstraint(select, SAT, D_UNIFORM));
+  ucolor.push_back(EditConstraint(select, VALUE, D_UNIFORM));
+  _edits[select + "_uniformColor"] = ucolor;
 }
 
 list<SearchResult*> AttributeSearchThread::runSingleLevelSearch(list<SearchResult*> startScenes, int level, attrObjFunc f)
@@ -751,6 +763,9 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
   // search
   map<int, DeviceInfo> deviceLookup;
 
+  // map used in certain cases to cache device set queries.
+  map<int, set<Device*> > queryCache;
+
   int i = 0;
   for (auto& c : edit) {
     // Add all device parameters individually to the list
@@ -771,6 +786,7 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
     else if (c._qty == D_JOINT) {
       x[i] = 0;
       deviceLookup[i] = DeviceInfo(c, string());
+      queryCache[i] = devices;
       i++;
 
       // If all affected params are locked, we can't edit this.
@@ -781,9 +797,33 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
         canEditOneJoint = canEditOneJoint | !lock;
       }
       canEdit.push_back(canEditOneJoint);
-      cantEditAll = cantEditAll & canEditOneJoint;
+      cantEditAll = cantEditAll & !canEditOneJoint;
     }
-    // Single runs a separate search for every device in the rig
+    // Uniform sets every parameter to the same value
+    else if (c._qty = D_UNIFORM) {
+      // start at average val
+      double avg = 0;
+      int count = 0;
+      for (auto d : devices) {
+        avg += getDeviceValue(c, s, d->getId());
+        count++;
+      }
+      avg /= (double)count;
+      x[i] = avg;
+      deviceLookup[i] = DeviceInfo(c, string());
+      queryCache[i] = devices;
+      i++;
+
+      // If all affected params are locked, we can't edit this.
+      bool canEditOneJoint = false;
+      // Check for locks
+      for (auto d : devices) {
+        bool lock = isParamLocked(c, d->getId());
+        canEditOneJoint = canEditOneJoint | !lock;
+      }
+      canEdit.push_back(canEditOneJoint);
+      cantEditAll = cantEditAll & !canEditOneJoint;
+    }
   }
 
   // if we can't actually edit any parameters at all just exit now
@@ -808,10 +848,17 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
         if (deviceLookup[j]._c._qty == D_JOINT) {
           // Joint adds the delta (xp[j]) to the start value to get the new value
           // for all devices affected by the joint param
-          auto devices = getRig()->select(deviceLookup[j]._c._select).getDevices();
+          auto& devices = queryCache[j];
           for (auto& d : devices) {
-            double initVal = getDeviceValue(deviceLookup[i]._c, start, d->getId());
-            setDeviceValue(deviceLookup[j], xp[j] + initVal, sp);
+            double initVal = getDeviceValue(deviceLookup[j]._c, start, d->getId());
+            setDeviceValue(DeviceInfo(deviceLookup[j]._c, d->getId()), xp[j] + initVal, sp);
+          }
+        }
+        else if (deviceLookup[j]._c._qty == D_UNIFORM) {
+          // Uniform takes the same value and applies it to every light;
+          auto& devices = queryCache[j];
+          for (auto& d : devices) {
+            xp[j] = setDeviceValue(DeviceInfo(deviceLookup[j]._c, d->getId()), xp[j], sp);
           }
         }
         else {
@@ -846,7 +893,7 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
       else {
         if (saveSamples && fxp < _fc && abs(fxp - _fc) >= minEditDist) {
           // save sample in list
-          results.push_back(snapshotToVector(sp));
+          results.push_back(xp);
         }
       }
       // update x
@@ -856,18 +903,49 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
     }
   }
 
-  if (s != nullptr)
-    delete s;
-  if (s != sp && sp != nullptr)
-    delete sp;
-
   if (saveSamples)
     getRecorder()->log(SYSTEM, "[Debug] " + name + " accepted " + String(((float)accepted / (float)maxIters) * 100).toStdString() + "% of proposals");
 
   // filter results
   filterResults(results, getGlobalSettings()->_jndThreshold);
 
-  return pair<list<Eigen::VectorXd>, int>(results, accepted);
+  // Convert results to full vectors
+  list<Eigen::VectorXd> fullResults;
+  for (const auto& r : results) {
+    // adjust s to match result
+    for (int j = 0; j < r.size(); j++) {
+      if (deviceLookup[j]._c._qty == D_JOINT) {
+        // Joint adds the delta (xp[j]) to the start value to get the new value
+        // for all devices affected by the joint param
+        auto& devices = queryCache[j];
+        for (auto& d : devices) {
+          double initVal = getDeviceValue(deviceLookup[j]._c, start, d->getId());
+          setDeviceValue(DeviceInfo(deviceLookup[j]._c, d->getId()), r[j] + initVal, s);
+        }
+      }
+      else if (deviceLookup[j]._c._qty == D_UNIFORM) {
+        // Uniform takes the same value and applies it to every light;
+        auto& devices = queryCache[j];
+        for (auto& d : devices) {
+          setDeviceValue(DeviceInfo(deviceLookup[j]._c, d->getId()), r[j], s);
+        }
+      }
+      else {
+        // The next line acts as a physically based clamp function of sorts.
+        // It updates the lighting scene and also returns the value of the parameter after the update.
+        setDeviceValue(deviceLookup[j], r[j], s);
+      }
+    }
+
+    fullResults.push_back(snapshotToVector(s));
+  }
+  
+  if (s != nullptr)
+    delete s;
+  if (s != sp && sp != nullptr)
+    delete sp;
+
+  return pair<list<Eigen::VectorXd>, int>(fullResults, accepted);
 }
 
 double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrObjFunc f, string& id)

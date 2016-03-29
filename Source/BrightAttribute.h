@@ -33,7 +33,7 @@ protected:
 
 private:
   // map of device id to numeric weight assosicated with the device
-  map<string, double> _weights;
+  unordered_map<string, double> _weights;
 
   double getLightIntens(Device* d);
 
