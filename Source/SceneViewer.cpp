@@ -33,6 +33,7 @@ void RenderBackgroundThread::run()
 
   float prog = 0;
   setStatusMessage("Rendering...");
+  this_thread::sleep_for(std::chrono::milliseconds(100));
   while (prog < 1) {
     this_thread::sleep_for(std::chrono::milliseconds(20));
     prog = _p->getPercentage() / 100.0f;

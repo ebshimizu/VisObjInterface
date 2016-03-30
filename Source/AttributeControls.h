@@ -27,6 +27,7 @@ public:
 
   void addAttributeController(AttributeControllerBase* control);
   void removeAttributeController(string name);
+  void removeAllControllers();
   void runPreprocess();
 
   map<string, AttributeControllerBase*> getActiveAttribues();
@@ -63,6 +64,8 @@ public:
   map<string, AttributeControllerBase*> getActiveAttributes();
 
 private:
+  void initAttributes();
+
   AttributeControlsList* _container;
   Viewport* _componentView;
   

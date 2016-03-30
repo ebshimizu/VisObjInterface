@@ -16,7 +16,7 @@
 #include "BrightAttribute.h"
 //#include "BacklitAttribute.h"
 //#include "SoftAttribute.h"
-//#include "ContrastAttribute.h"
+#include "ContrastAttribute.h"
 //#include "HighAngleAttribute.h"
 //#include "SVRAttribute.h"
 

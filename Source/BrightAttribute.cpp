@@ -128,7 +128,7 @@ void BrightAttribute::preProcess()
   // Normalize brightnesses to get weight.
   for (auto& b : brightness) {
     _weights[b.first] = b.second / totalBrightness;
-    getRig()->getDevice(b.first)->setMetadata("brigthnessAttributeWeight", String(b.second).toStdString());
+    getRig()->getDevice(b.first)->setMetadata("brightnessAttributeWeight", String(b.second).toStdString());
   }
 
   delete s;

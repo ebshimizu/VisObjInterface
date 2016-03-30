@@ -24,7 +24,6 @@ public:
   BrightAttribute(String name);
   ~BrightAttribute();
 
-protected:
   virtual double evaluateScene(Snapshot* s) override;
 
   // Renders an image for each individual light on load

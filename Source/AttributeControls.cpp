@@ -76,6 +76,17 @@ void AttributeControlsList::removeAttributeController(string name)
   setBounds(0, 0, _width, _height);
 }
 
+void AttributeControlsList::removeAllControllers()
+{
+  for (auto& c : _controls) {
+    delete c.second;
+  }
+
+  _controls.clear();
+  _height = 0;
+  setBounds(0, 0, _width, _height);
+}
+
 void AttributeControlsList::runPreprocess()
 {
   for (auto& a : _controls) {
@@ -100,13 +111,7 @@ map<string, AttributeControllerBase*> AttributeControlsList::getActiveAttribues(
 AttributeControls::AttributeControls()
 {
   _container = new AttributeControlsList();
-  _container->addAttributeController(new TestAttribute());
-  _container->addAttributeController(new BrightAttribute());
-  //_container->addAttributeController(new BacklitAttribute());
-  //_container->addAttributeController(new SoftAttribute());
-  //_container->addAttributeController(new ContrastAttribute());
-  //_container->addAttributeController(new HighAngleAttribute());
-  //_container->addAttributeController(new SVRAttribute("C:/Users/falindrith/Documents/GitHub/pairwise-collector/server/romantic_p2g.svm", "Romantic"));
+  initAttributes();
   _container->setName("attribute list");
   addAndMakeVisible(_container);
 
@@ -174,6 +179,10 @@ void AttributeControls::refresh()
 
 void AttributeControls::reload()
 {
+  // Delete everything and reload attributes
+  _container->removeAllControllers();
+  initAttributes();
+
   _container->runPreprocess();
 }
 
@@ -212,4 +221,34 @@ void AttributeControls::comboBoxChanged(ComboBox * b)
 map<string, AttributeControllerBase*> AttributeControls::getActiveAttributes()
 {
   return _container->getActiveAttribues();
+}
+
+void AttributeControls::initAttributes()
+{
+  _container->addAttributeController(new TestAttribute());
+  _container->addAttributeController(new BrightAttribute());
+
+  // add the contrast attributes
+  auto& areas = getRig()->getMetadataValues("area");
+  // however, skip them if there's just 1 area. contrast within one area
+  // is a different attribute
+  if (areas.size() > 1) {
+    // for convenience we'll stick these keys in a vector
+    vector<string> areaStrings;
+    for (auto s : areas) {
+      areaStrings.push_back(s);
+    }
+
+    for (int i = 0; i < areaStrings.size(); i++) {
+      for (int j = i + 1; j < areaStrings.size(); j++) {
+        _container->addAttributeController(new ContrastAttribute(areaStrings[i], areaStrings[j]));
+      }
+    }
+  }
+
+  //_container->addAttributeController(new BacklitAttribute());
+  //_container->addAttributeController(new SoftAttribute());
+  //_container->addAttributeController(new HighAngleAttribute());
+  //_container->addAttributeController(new SVRAttribute("C:/Users/falindrith/Documents/GitHub/pairwise-collector/server/romantic_p2g.svm", "Romantic"));
+
 }

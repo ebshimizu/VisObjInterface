@@ -16,18 +16,28 @@
 
 //==============================================================================
 /*
+At present there are a few issues with how the contrast attribute works, primarily
+the issue of trying to calculate contrast without actually using pixel values.
+
+This can probably be remedied with a neural net but for speed a basic version
+has been implemented that compares weighted brightnesses.
 */
 class ContrastAttribute : public AttributeControllerBase
 {
 public:
-  ContrastAttribute();
-  ContrastAttribute(String name);
+  ContrastAttribute(string area1, string area2);
   ~ContrastAttribute();
 
-protected:
-  virtual double evaluateScene(Device* key, Device* fill, Device* rim) override;
+  virtual double evaluateScene(Snapshot* s) override;
+
+  virtual void preProcess() override;
 
 private:
+  unordered_map<string, double> _area1Weights;
+  unordered_map<string, double> _area2Weights;
+  string _area1;
+  string _area2;
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ContrastAttribute)
 
 };
