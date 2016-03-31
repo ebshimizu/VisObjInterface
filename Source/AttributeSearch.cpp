@@ -74,6 +74,17 @@ vector<Eigen::VectorXd> clusterResults(list<SearchResult*> results, int c)
     ret.push_back(avg);
     return ret;
   }
+  // another special case for if the number of scenes is less than the number of desired centers
+  if (results.size() <= c) {
+    vector<Eigen::VectorXd> ret;
+    int i = 0;
+    for (auto r : results) {
+      r->_cluster = i;
+      ret.push_back(r->_scene);
+      i++;
+    }
+    return ret;
+  }
   else {
     // kmeans setup
     dlib::kcentroid<kernelType> kkmeansKernel(kernelType(), 0.001);
@@ -570,6 +581,14 @@ void AttributeSearchThread::generateEdits()
   set<string> systems = getRig()->getMetadataValues("system");
   set<string> areas = getRig()->getMetadataValues("area");
 
+  // generate locked params
+  _lockedParams.clear();
+  for (auto& a : _active) {
+    for (auto& p : a.second->_autoLockParams) {
+      _lockedParams.insert(p);
+    }
+  }
+
   // Create all devices edit types
   generateDefaultEdits("*");
 
@@ -604,55 +623,63 @@ void AttributeSearchThread::generateDefaultEdits(string select)
   }
   _edits[select + "_all"] = allParams;
 
+  if (_lockedParams.count("intensity") == 0) {
   // Intensity
-  vector<EditConstraint> intens;
-  intens.push_back(EditConstraint(select, INTENSITY, D_ALL));
-  _edits[select + "_intens"] = intens;
+    vector<EditConstraint> intens;
+    intens.push_back(EditConstraint(select, INTENSITY, D_ALL));
+    _edits[select + "_intens"] = intens;
 
-  // Hue
-  vector<EditConstraint> hue;
-  hue.push_back(EditConstraint(select, HUE, D_ALL));
-  _edits[select + "_hue"] = hue;
+    // Uniform intensity
+    vector<EditConstraint> uintens;
+    uintens.push_back(EditConstraint(select, INTENSITY, D_UNIFORM));
+    _edits[select + "_uniformIntens"] = uintens;
 
-  // Color
-  vector<EditConstraint> color;
-  color.push_back(EditConstraint(select, HUE, D_ALL));
-  color.push_back(EditConstraint(select, SAT, D_ALL));
-  color.push_back(EditConstraint(select, VALUE, D_ALL));
-  _edits[select + "_color"] = color;
+    // Joint intensity
+    vector<EditConstraint> jintens;
+    jintens.push_back(EditConstraint(select, INTENSITY, D_JOINT));
+    _edits[select + "_jointIntens"] = jintens;
+  }
 
-  // Position
-  vector<EditConstraint> position;
-  position.push_back(EditConstraint(select, POLAR, D_ALL));
-  position.push_back(EditConstraint(select, AZIMUTH, D_ALL));
-  _edits[select + "_pos"] = position;
+  if (_lockedParams.count("color") == 0) {
+    // Hue
+    vector<EditConstraint> hue;
+    hue.push_back(EditConstraint(select, HUE, D_ALL));
+    _edits[select + "_hue"] = hue;
 
-  // Softness
-  vector<EditConstraint> soft;
-  soft.push_back(EditConstraint(select, SOFT, D_ALL));
-  _edits[select + "_soft"] = soft;
+    // Color
+    vector<EditConstraint> color;
+    color.push_back(EditConstraint(select, HUE, D_ALL));
+    color.push_back(EditConstraint(select, SAT, D_ALL));
+    color.push_back(EditConstraint(select, VALUE, D_ALL));
+    _edits[select + "_color"] = color;
 
-  // Joint intensity
-  vector<EditConstraint> jintens;
-  jintens.push_back(EditConstraint(select, INTENSITY, D_JOINT));
-  _edits[select + "_jointIntens"] = jintens;
+    // Joint Hue
+    vector<EditConstraint> jhue;
+    jhue.push_back(EditConstraint(select, HUE, D_JOINT));
+    _edits[select + "_jointHue"] = jhue;
 
-  // Joint Hue
-  vector<EditConstraint> jhue;
-  jhue.push_back(EditConstraint(select, HUE, D_JOINT));
-  _edits[select + "_jointHue"] = jhue;
+    // Uniform color
+    vector<EditConstraint> ucolor;
+    ucolor.push_back(EditConstraint(select, HUE, D_UNIFORM));
+    ucolor.push_back(EditConstraint(select, SAT, D_UNIFORM));
+    ucolor.push_back(EditConstraint(select, VALUE, D_UNIFORM));
+    _edits[select + "_uniformColor"] = ucolor;
+  }
 
-  // Uniform intensity
-  vector<EditConstraint> uintens;
-  uintens.push_back(EditConstraint(select, INTENSITY, D_UNIFORM));
-  _edits[select + "_uniformIntens"] = uintens;
+  if (_lockedParams.count("polar") == 0 && _lockedParams.count("azimuth") == 0) {
+    // Position
+    vector<EditConstraint> position;
+    position.push_back(EditConstraint(select, POLAR, D_ALL));
+    position.push_back(EditConstraint(select, AZIMUTH, D_ALL));
+    _edits[select + "_pos"] = position;
+  }
 
-  // Uniform color
-  vector<EditConstraint> ucolor;
-  ucolor.push_back(EditConstraint(select, HUE, D_UNIFORM));
-  ucolor.push_back(EditConstraint(select, SAT, D_UNIFORM));
-  ucolor.push_back(EditConstraint(select, VALUE, D_UNIFORM));
-  _edits[select + "_uniformColor"] = ucolor;
+  if (_lockedParams.count("penumbraAngle") == 0) {
+    // Softness
+    vector<EditConstraint> soft;
+    soft.push_back(EditConstraint(select, SOFT, D_ALL));
+    _edits[select + "_soft"] = soft;
+  }
 }
 
 list<SearchResult*> AttributeSearchThread::runSingleLevelSearch(list<SearchResult*> startScenes, int level, attrObjFunc f)

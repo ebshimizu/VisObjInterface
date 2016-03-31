@@ -30,7 +30,7 @@ double SaturationAttribute::evaluateScene(Snapshot * s)
     sat += hsv[1] * _weights[d.second->getId()];
   }
 
-  return sat;
+  return sat * 100;
 }
 
 void SaturationAttribute::preProcess()

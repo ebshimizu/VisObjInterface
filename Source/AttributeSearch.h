@@ -137,6 +137,7 @@ private:
   Snapshot* _original;
   double _fc;
   bool _singleSame;
+  set<string> _lockedParams;
 
   // Populates the _edits map. Basically tells the search how to search the things.
   void generateEdits();
