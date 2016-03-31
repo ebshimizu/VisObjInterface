@@ -245,6 +245,14 @@ void AttributeControls::initAttributes()
       }
     }
   }
+  
+  // Add Low-Key attributes
+  for (auto a : areas) {
+    _container->addAttributeController(new LowKeyAttribute(a));
+  }
+
+  // Add saturation
+  _container->addAttributeController(new SaturationAttribute());
 
   //_container->addAttributeController(new BacklitAttribute());
   //_container->addAttributeController(new SoftAttribute());

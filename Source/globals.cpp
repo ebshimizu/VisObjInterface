@@ -170,6 +170,7 @@ GlobalSettings::GlobalSettings()
   _randomMode = false;
   _currentSortMode = "Attribute Default";
   _clusterElemsPerRow = 6;
+  _accceptBandwidth = 0.05;
 }
 
 GlobalSettings::~GlobalSettings()

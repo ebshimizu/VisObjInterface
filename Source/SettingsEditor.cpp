@@ -104,6 +104,8 @@ void SettingsSlider::setValue(double newValue)
     getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_sss_samples", (int)newValue);
   else if (_id == "Volume Samples")
     getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_volume_samples", (int)newValue);
+  else if (_id == "Accept Bandwidth")
+    getGlobalSettings()->_accceptBandwidth = newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -178,6 +180,8 @@ double SettingsSlider::getValue() const
     return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_sss_samples");
   else if (_id == "Volume Samples")
     return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_volume_samples");
+  else if (_id == "Accept Bandwidth")
+    return getGlobalSettings()->_accceptBandwidth;
 }
 
 void SettingsSlider::sliderValueChanged(Slider * s)
@@ -221,15 +225,16 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Minimum Edit Distance", 0, 100, 0.01));
   searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 100, 0.01));
   searchComponents.add(new SettingsSlider("Scenes per Edit", -1, 100, 1));
-  searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1, 1e-7));
+  searchComponents.add(new SettingsSlider("Accept Bandwidth", 0.001, 0.25, 0.001));
+  searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1e-3, 1e-7));
   searchComponents.add(new SettingsSlider("Cluster Distance Threshold", 1e-3, 5, 1e-3));
   searchComponents.add(new SettingsSlider("Result Difference Threshold", 1e-3, 5, 1e-3));
   searchComponents.add(new SettingsBoolButton("Random Mode"));
   _settings.addSection("Search Shared", searchComponents);
 
   Array<PropertyComponent*> mcmcComponents;
-  mcmcComponents.add(new SettingsSlider("MCMC Step Size", 0, 0.5, 0.001));
-  mcmcComponents.add(new SettingsSlider("MCMC Max Iterations", 1, 1e5, 1));
+  mcmcComponents.add(new SettingsSlider("MCMC Step Size", 0, 0.1, 0.001));
+  mcmcComponents.add(new SettingsSlider("MCMC Max Iterations", 1, 10000, 1));
   _settings.addSection("MCMC Search", mcmcComponents);
 
   //Array<PropertyComponent*> gdSearchComponents;

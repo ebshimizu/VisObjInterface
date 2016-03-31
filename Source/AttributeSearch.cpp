@@ -703,7 +703,7 @@ list<SearchResult*> AttributeSearchThread::runSingleLevelSearch(list<SearchResul
 list<Eigen::VectorXd> AttributeSearchThread::performEdit(vector<EditConstraint> edit, Snapshot* orig, attrObjFunc f, string name) {
   // Determine accept parameters
   double targetAcceptRate = 0.5;  // +/- 5%
-  double sigma = 0.05;
+  double sigma = getGlobalSettings()->_accceptBandwidth;
   // limit number of tuning iterations
   //for (int i = 0; i < 20; i++) {
   //  auto res = doMCMC(t, orig, f, 100, sigma, false);

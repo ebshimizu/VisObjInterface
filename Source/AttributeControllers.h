@@ -17,7 +17,9 @@
 //#include "BacklitAttribute.h"
 //#include "SoftAttribute.h"
 #include "ContrastAttribute.h"
+#include "LowKeyAttribute.h"
 //#include "HighAngleAttribute.h"
 //#include "SVRAttribute.h"
+#include "SaturationAttribute.h"
 
 #endif  // ATTRIBUTECONTROLLERS_H_INCLUDED
