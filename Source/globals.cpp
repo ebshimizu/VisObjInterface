@@ -163,7 +163,7 @@ GlobalSettings::GlobalSettings()
   _clusterDiffThreshold = 0.25;
   _maxEditIters = 2000;
   _searchMomentum = 0.5;
-  _editStepSize = 0.005;
+  _editStepSize = 0.02;
   _maxMCMCIters = 25;
   _numDisplayClusters = 3;
   _jndThreshold = 0.25;

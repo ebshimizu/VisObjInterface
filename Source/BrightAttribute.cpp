@@ -14,13 +14,20 @@
 //==============================================================================
 BrightAttribute::BrightAttribute() : AttributeControllerBase("Bright")
 {
-    // In your constructor, you should add any child components, and
-    // initialise any special settings that your component needs.
-
+  // In your constructor, you should add any child components, and
+  // initialise any special settings that your component needs.
+  _autoLockParams.insert("color");
+  _autoLockParams.insert("azimuth");
+  _autoLockParams.insert("polar");
+  _autoLockParams.insert("penumbraAngle");
 }
 
 BrightAttribute::BrightAttribute(String name) : AttributeControllerBase(name)
 {
+  _autoLockParams.insert("color");
+  _autoLockParams.insert("azimuth");
+  _autoLockParams.insert("polar");
+  _autoLockParams.insert("penumbraAngle");
 }
 
 BrightAttribute::~BrightAttribute()
