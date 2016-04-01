@@ -21,5 +21,6 @@
 //#include "HighAngleAttribute.h"
 //#include "SVRAttribute.h"
 #include "SaturationAttribute.h"
+#include "TintAttribute.h"
 
 #endif  // ATTRIBUTECONTROLLERS_H_INCLUDED

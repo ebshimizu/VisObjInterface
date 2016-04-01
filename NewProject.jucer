@@ -74,6 +74,9 @@
           <FILE id="GGdIAz" name="TestAttribute.cpp" compile="1" resource="0"
                 file="Source/TestAttribute.cpp"/>
           <FILE id="I0a1vF" name="TestAttribute.h" compile="0" resource="0" file="Source/TestAttribute.h"/>
+          <FILE id="yPWIek" name="TintAttribute.cpp" compile="1" resource="0"
+                file="Source/TintAttribute.cpp"/>
+          <FILE id="EhNOha" name="TintAttribute.h" compile="0" resource="0" file="Source/TintAttribute.h"/>
         </GROUP>
         <FILE id="W6H6CR" name="AttributeControllerBase.cpp" compile="1" resource="0"
               file="Source/AttributeControllerBase.cpp"/>

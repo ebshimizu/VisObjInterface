@@ -381,6 +381,9 @@
     <ClCompile Include="..\..\Source\TestAttribute.cpp">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\TintAttribute.cpp">
+      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\AttributeControllerBase.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
@@ -1647,6 +1650,9 @@
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\TestAttribute.h">
+      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\TintAttribute.h">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\AttributeControllerBase.h">

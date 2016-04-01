@@ -225,7 +225,7 @@ map<string, AttributeControllerBase*> AttributeControls::getActiveAttributes()
 
 void AttributeControls::initAttributes()
 {
-  _container->addAttributeController(new TestAttribute());
+  //_container->addAttributeController(new TestAttribute());
   _container->addAttributeController(new BrightAttribute());
 
   // add the contrast attributes
@@ -253,6 +253,9 @@ void AttributeControls::initAttributes()
 
   // Add saturation
   _container->addAttributeController(new SaturationAttribute());
+
+  // Tint
+  _container->addAttributeController(new TintAttribute());
 
   //_container->addAttributeController(new BacklitAttribute());
   //_container->addAttributeController(new SoftAttribute());

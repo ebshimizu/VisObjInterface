@@ -23,8 +23,8 @@ public:
   AttributeControllerBase(String name);
   ~AttributeControllerBase();
 
-  void paint (Graphics&);
-  void resized();
+  virtual void paint (Graphics&);
+  virtual void resized();
 
   AttributeConstraint getStatus();
 

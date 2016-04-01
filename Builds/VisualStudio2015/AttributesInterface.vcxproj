@@ -162,6 +162,7 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\Source\TestAttribute.cpp" />
+    <ClCompile Include="..\..\Source\TintAttribute.cpp" />
     <ClCompile Include="..\..\Source\AttributeControllerBase.cpp" />
     <ClCompile Include="..\..\Source\AttributeControls.cpp" />
     <ClCompile Include="..\..\Source\AttributeSearch.cpp" />
@@ -1359,6 +1360,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="..\..\Source\TestAttribute.h" />
+    <ClInclude Include="..\..\Source\TintAttribute.h" />
     <ClInclude Include="..\..\Source\AttributeControllerBase.h" />
     <ClInclude Include="..\..\Source\AttributeControllers.h" />
     <ClInclude Include="..\..\Source\AttributeControls.h" />
