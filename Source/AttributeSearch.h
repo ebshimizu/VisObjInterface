@@ -91,12 +91,6 @@ list<SearchResult*> attributeSearch(map<string, AttributeControllerBase*>& activ
 // Returns the cluster centers as vectors
 vector<Eigen::VectorXd> clusterResults(list<SearchResult*> results, int c = -1);
 
-// Filters out scenes that are too similar to each other.
-// - Sorts scenes into clusters
-// - then from closest to farthest from the center, removes scenes that are
-//   within a threshold from the point being considered
-list<SearchResult*> filterResults(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers);
-
 // Remove vectors from the set that are within a specified threshold of other elements
 // in the set
 void filterResults(list<Eigen::VectorXd>& results, double t);

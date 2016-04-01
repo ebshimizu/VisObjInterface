@@ -240,54 +240,6 @@ vector<Eigen::VectorXd> clusterResults(list<Eigen::VectorXd> results, int c) {
   return clusterCenters;
 }
 
-list<SearchResult*> filterResults(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers)
-{
-  vector<multimap<double, SearchResult*> > res;
-  for (int i = 0; i < centers.size(); i++)
-    res.push_back(multimap<double, SearchResult*>());
-
-  // Place scenes sorted by distance to center into their clusters
-  for (auto r : results) {
-    double dist = (r->_scene - centers[r->_cluster]).norm();
-    res[r->_cluster].insert(pair<double, SearchResult*>(dist, r));
-  }
-
-  // For each cluster
-  for (auto& c : res) {
-    // starting at the first element
-    for (auto it = c.begin(); it != c.end(); it++) {
-      // See how close all other elements are
-      for (auto it2 = c.begin(); it2 != c.end(); ) {
-        if (it == it2) {
-          it2++;
-          continue;
-        }
-
-        double dist = (it->second->_scene - it2->second->_scene).squaredNorm();
-
-        // delete element if it's too close
-        if (dist < getGlobalSettings()->_clusterDiffThreshold) {
-          delete it2->second;
-          c.erase(it2++);
-        }
-        else {
-          it2++;
-        }
-      }
-    }
-  }
-
-  // put results back in to list
-  list<SearchResult*> filteredResults;
-  for (auto c : res) {
-    for (auto kvp : c) {
-      filteredResults.push_back(kvp.second);
-    }
-  }
-
-  return filteredResults;
-}
-
 void filterResults(list<Eigen::VectorXd>& results, double t)
 {
   // starting at the first element

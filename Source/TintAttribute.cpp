@@ -14,6 +14,10 @@
 TintAttribute::TintAttribute() : AttributeControllerBase("Tint")
 {
   _targetColor = Colour(255, 255, 255);
+  _autoLockParams.insert("intensity");
+  _autoLockParams.insert("azimuth");
+  _autoLockParams.insert("polar");
+  _autoLockParams.insert("penumbraAngle");
 }
 
 TintAttribute::~TintAttribute()

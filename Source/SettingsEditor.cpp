@@ -220,12 +220,12 @@ bool SettingsBoolButton::getState() const
 SettingsEditor::SettingsEditor()
 {
   Array<PropertyComponent*> searchComponents;
-  searchComponents.add(new SettingsSlider("Number of Scenes Between Layers", 1, 25, 1));
-  searchComponents.add(new SettingsSlider("Edit Depth", 1, 10, 1));
+  searchComponents.add(new SettingsSlider("Number of Scenes Between Layers", 1, 100, 1));
+  searchComponents.add(new SettingsSlider("Edit Depth", 1, 25, 1));
   searchComponents.add(new SettingsSlider("Minimum Edit Distance", 0, 100, 0.01));
-  searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 100, 0.01));
+  searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 5, 0.01));
   searchComponents.add(new SettingsSlider("Scenes per Edit", -1, 100, 1));
-  searchComponents.add(new SettingsSlider("Accept Bandwidth", 0.001, 0.25, 0.001));
+  searchComponents.add(new SettingsSlider("Accept Bandwidth", 0.001, 0.5, 0.001));
   searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1e-3, 1e-7));
   searchComponents.add(new SettingsSlider("Cluster Distance Threshold", 1e-3, 5, 1e-3));
   searchComponents.add(new SettingsSlider("Result Difference Threshold", 1e-3, 5, 1e-3));
