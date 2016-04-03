@@ -60,3 +60,35 @@ void SaturationAttribute::preProcess()
     _weights[d->getId()] = stof(d->getMetadata("brightnessAttributeWeight"));
   }
 }
+
+list<Snapshot*> SaturationAttribute::nonSemanticSearch()
+{
+  if (getStatus() == A_EQUAL || getStatus() == A_IGNORE)
+    return list<Snapshot*>();
+
+  // increase the saturation of each light by 0.05, do 10 times for good spread.
+  Snapshot* start = new Snapshot(getRig(), nullptr);
+  list<Snapshot*> results;
+  
+  for (int i = 0; i < 10; i++) {
+    auto devices = start->getRigData();
+    for (auto d : devices) {
+      if (!isDeviceParamLocked(d.first, "color")) {
+        auto color = d.second->getColor();
+        if (color != nullptr) {
+          Eigen::Vector3d hsv = color->getHSV();
+          if (getStatus() == A_MORE) {
+            color->setHSV(hsv[0], hsv[1] + 0.05, hsv[2]);
+          }
+          else if (getStatus() == A_LESS) {
+            color->setHSV(hsv[0], hsv[1] - 0.05, hsv[2]);
+          }
+        }
+      }
+    }
+
+    results.push_back(new Snapshot(*start));
+  }
+
+  return results;
+}

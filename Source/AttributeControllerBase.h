@@ -42,6 +42,10 @@ public:
   // allows the search to proceed more quickly though the relevant spaces
   set<string> _autoLockParams;
 
+  // for integration of non-semantic attributes into the system
+  virtual bool isNonSemantic() { return false; }
+  virtual list<Snapshot*> nonSemanticSearch() { return list<Snapshot*>(); }
+
 protected:
 	// Attribute name
 	String _name;

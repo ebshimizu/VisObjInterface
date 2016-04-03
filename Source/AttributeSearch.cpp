@@ -465,6 +465,30 @@ void AttributeSearchThread::run()
     //delete sStart;
   }
 
+  // For non-semantic attributes
+  if (_active.size() == 1) {
+    if (_active.begin()->second->isNonSemantic()) {
+      setProgress(-1);
+      setStatusMessage("Generating Non-Semantic Scenes");
+      list<Snapshot*> results = _active.begin()->second->nonSemanticSearch();
+      _results.clear();
+
+      for (auto s : results) {
+        SearchResult* res = new SearchResult();
+        res->_editHistory.add("Non-Semantic " + _active.begin()->first);
+        res->_scene = snapshotToVector(s);
+        res->_objFuncVal = _active.begin()->second->evaluateScene(s);
+        delete s;
+        _results.push_back(res);
+      }
+      
+      // eliminate near duplicate scenes
+      filterResults(_results, 0.01);
+      setProgress(1);
+      return;
+    }
+  }
+
   // save the original attribute function valuee
   _fc = f(_original);
 
@@ -1201,25 +1225,25 @@ bool AttributeSearchThread::isParamLocked(EditConstraint c, string& id)
 {
   switch (c._param) {
   case INTENSITY:
-    return isDeviceParamLocked(id, "intensity");
+    return isDeviceParamLocked(id, "intensity") || _lockedParams.count("intensity") > 0;
   case HUE:
-    return isDeviceParamLocked(id, "color");
+    return isDeviceParamLocked(id, "color") || _lockedParams.count("color") > 0;
   case SAT:
-    return isDeviceParamLocked(id, "color");
+    return isDeviceParamLocked(id, "color") || _lockedParams.count("color") > 0;
   case VALUE:
-    return isDeviceParamLocked(id, "color");
+    return isDeviceParamLocked(id, "color") || _lockedParams.count("color") > 0;
   case RED:
-    return isDeviceParamLocked(id, "color");
+    return isDeviceParamLocked(id, "color") || _lockedParams.count("color") > 0;
   case GREEN:
-    return isDeviceParamLocked(id, "color");
+    return isDeviceParamLocked(id, "color") || _lockedParams.count("color") > 0;
   case BLUE:
-    return isDeviceParamLocked(id, "color");
+    return isDeviceParamLocked(id, "color") || _lockedParams.count("color") > 0;
   case POLAR:
-    return isDeviceParamLocked(id, "polar");
+    return isDeviceParamLocked(id, "polar") || _lockedParams.count("polar") > 0;
   case AZIMUTH:
-    return isDeviceParamLocked(id, "azimuth");
+    return isDeviceParamLocked(id, "azimuth") || _lockedParams.count("azimuth") > 0;
   case SOFT:
-    return isDeviceParamLocked(id, "penumbraAngle");
+    return isDeviceParamLocked(id, "penumbraAngle") || _lockedParams.count("penumbraAngle") > 0;
   default:
     return false;
   }
