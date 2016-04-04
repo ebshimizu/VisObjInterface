@@ -167,6 +167,7 @@ GlobalSettings::GlobalSettings()
   _clusterElemsPerRow = 6;
   _accceptBandwidth = 0.05;
   _maxReturnedScenes = 100;
+  _jndInc = 0.01;
 }
 
 GlobalSettings::~GlobalSettings()

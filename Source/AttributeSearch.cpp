@@ -506,8 +506,17 @@ void AttributeSearchThread::run()
 
     // cluster and filter for final run
     if (i == _editDepth - 1) {
-      filterResults(newResults, getGlobalSettings()->_jndThreshold);
+      getRecorder()->log(SYSTEM, "Number of initial results: " + String(newResults.size()).toStdString());
+      double thresh = getGlobalSettings()->_jndThreshold;
+      filterResults(newResults, thresh);
       _results = newResults;
+
+      // additional filtering if too many results are still present
+      while (_results.size() > getGlobalSettings()->_maxReturnedScenes) {
+        thresh += getGlobalSettings()->_jndInc;
+        filterResults(_results, thresh);
+      }
+      getRecorder()->log(SYSTEM, "JND Threshold at end of Search: " + String(thresh).toStdString());
     }
     else {
       auto centers = clusterResults(newResults, getGlobalSettings()->_numEditScenes);

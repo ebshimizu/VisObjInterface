@@ -96,6 +96,10 @@ void SettingsSlider::setValue(double newValue)
     getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_volume_samples", (int)newValue);
   else if (_id == "Accept Bandwidth")
     getGlobalSettings()->_accceptBandwidth = newValue;
+  else if (_id == "JND Increment")
+    getGlobalSettings()->_jndInc = newValue;
+  else if (_id == "Max Results")
+    getGlobalSettings()->_maxReturnedScenes = (int)newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -162,6 +166,10 @@ double SettingsSlider::getValue() const
     return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_volume_samples");
   else if (_id == "Accept Bandwidth")
     return getGlobalSettings()->_accceptBandwidth;
+  else if (_id == "JND Increment")
+    return getGlobalSettings()->_jndInc;
+  else if (_id == "Max Results")
+    return getGlobalSettings()->_maxReturnedScenes;
 }
 
 void SettingsSlider::sliderValueChanged(Slider * s)
@@ -204,9 +212,11 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Edit Depth", 1, 25, 1));
   searchComponents.add(new SettingsSlider("Minimum Edit Distance", 0, 100, 0.01));
   searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 5, 0.01));
+  searchComponents.add(new SettingsSlider("JND Increment", 0.01, 0.5, 0.01));
   searchComponents.add(new SettingsSlider("Accept Bandwidth", 0.001, 0.5, 0.001));
   searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1e-3, 1e-7));
   //searchComponents.add(new SettingsSlider("Cluster Distance Threshold", 1e-3, 5, 1e-3));
+  searchComponents.add(new SettingsSlider("Max Results", 1, 500, 1));
   searchComponents.add(new SettingsBoolButton("Random Mode"));
   _settings.addSection("Search Shared", searchComponents);
 
