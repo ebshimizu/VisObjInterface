@@ -34,24 +34,20 @@ public:
   int _thumbnailRenderSamples;
   int _stageRenderSamples;
   double _searchDerivDelta;     // h, size of window for finite difference derivative
-  double _searchGDGamma;        // gamma, controls speed of gradient descent
-  double _searchGDTol;          // Tolerance, how small difference should be to be equivalent to zero (stopping condition)
   double _minEditDist;          // Minimum attribute difference needed to be returned from an edit
-  int _numEditScenes;           // Number of scenes per edit that get returned to the search algorithm
+  int _numEditScenes;           // Number of scenes per iteration that get passed on to the next stage. i.e. frontier size
   int _renderWidth;             // Render width
   int _renderHeight;            // Render height
   double _thumbnailRenderScale; // Thumbnail size 
   int _editDepth;               // Maximum edit depth
   double _clusterDistThreshold; // Required average distance from every element to the cluster center
-  double _clusterDiffThreshold; // Used to filter out results that are too close to each other in search
-  int _maxEditIters;            // In case the search gets hung up on something
-  double _searchMomentum;       // For momentum gradient descent, the alpha parameter controlling the strength of the backprop
   double _editStepSize;         // MCMC: Std dev of gaussian sample 
   int _maxMCMCIters;            // MCMC: Max number of iterations
   double _jndThreshold;         // For two feature vectors, how far apart they can be to be considered equivalent
   bool _randomMode;             // Primarily for debugging, turning this on ignores parameter values when searching
   int _clusterElemsPerRow;      // Number of elements to show in a cluster detail view
   double _accceptBandwidth;     // For MCMC samples that are bad, how tolerant we should be of them
+  int _maxReturnedScenes;       // Limiter for how many scenes get returned from a search, primarily limited by thumbnail render speed
 
   int _numDisplayClusters;      // Number of clusters to display in the results
 

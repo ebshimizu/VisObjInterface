@@ -153,16 +153,11 @@ GlobalSettings::GlobalSettings()
   _searchDerivDelta = 1e-4;
   _minEditDist = 0.5;
   _numEditScenes = 15;
-  _searchGDTol = 1e-6;
-  _searchGDGamma = 5;
   _renderWidth = 0;
   _renderHeight = 0;
   _thumbnailRenderScale = 0.25;
   _editDepth = 3;
   _clusterDistThreshold = 0.30;
-  _clusterDiffThreshold = 0.25;
-  _maxEditIters = 2000;
-  _searchMomentum = 0.5;
   _editStepSize = 0.02;
   _maxMCMCIters = 25;
   _numDisplayClusters = 3;
@@ -171,6 +166,7 @@ GlobalSettings::GlobalSettings()
   _currentSortMode = "Attribute Default";
   _clusterElemsPerRow = 6;
   _accceptBandwidth = 0.05;
+  _maxReturnedScenes = 100;
 }
 
 GlobalSettings::~GlobalSettings()
