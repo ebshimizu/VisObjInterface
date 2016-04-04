@@ -15,6 +15,8 @@ ContrastAttribute::ContrastAttribute(string area1, string area2) : AttributeCont
 {
   _area1 = area1;
   _area2 = area2;
+  _autoLockParams.insert("polar");
+  _autoLockParams.insert("azimuth");
 }
 
 ContrastAttribute::~ContrastAttribute()

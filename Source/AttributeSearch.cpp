@@ -483,7 +483,7 @@ void AttributeSearchThread::run()
       }
       
       // eliminate near duplicate scenes
-      filterResults(_results, 0.01);
+      filterResults(_results, 0.001);
       setProgress(1);
       return;
     }
@@ -568,9 +568,24 @@ void AttributeSearchThread::generateEdits()
 
   // generate locked params
   _lockedParams.clear();
+
+  // in order for a parameter to be autolocked, it must be present in the autolock list
+  // for all active attributes
+  map<string, int> lockedParams;
   for (auto& a : _active) {
     for (auto& p : a.second->_autoLockParams) {
-      _lockedParams.insert(p);
+      if (lockedParams.count(p) == 0) {
+        lockedParams[p] = 1;
+      }
+      else {
+        lockedParams[p] += 1;
+      }
+    }
+  }
+
+  for (auto& p : lockedParams) {
+    if (p.second == _active.size()) {
+      _lockedParams.insert(p.first);
     }
   }
 

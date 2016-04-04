@@ -42,7 +42,7 @@ double LowKeyAttribute::evaluateScene(Snapshot * s)
   if (abs(0 - sum) < 1e-3)
     return max;
 
-  return max / sum;
+  return (max / sum) * 10;
 }
 
 void LowKeyAttribute::preProcess()
