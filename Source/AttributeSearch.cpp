@@ -600,10 +600,10 @@ void AttributeSearchThread::generateDefaultEdits(string select)
   _edits[select + "_all"] = allParams;
 
   if (_lockedParams.count("intensity") == 0) {
-  // Intensity
-    vector<EditConstraint> intens;
-    intens.push_back(EditConstraint(select, INTENSITY, D_ALL));
-    _edits[select + "_intens"] = intens;
+    // Intensity
+    //vector<EditConstraint> intens;
+    //intens.push_back(EditConstraint(select, INTENSITY, D_ALL));
+    //_edits[select + "_intens"] = intens;
 
     // Uniform intensity
     vector<EditConstraint> uintens;
@@ -759,6 +759,7 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
 
   // Parameter restrictions
   vector<bool> canEdit;
+  unordered_map<string, bool> canEditDevice;  // For uniform and joint, says which devices can actually be edited.
   bool cantEditAll = true;
 
   // This map is now necessary to track which devices correspond to which parameters in the
@@ -797,6 +798,7 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
       // Check for locks
       for (auto d : devices) {
         bool lock = isParamLocked(c, d->getId());
+        canEditDevice[d->getId()] = !lock;
         canEditOneJoint = canEditOneJoint | !lock;
       }
       canEdit.push_back(canEditOneJoint);
@@ -822,6 +824,7 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
       // Check for locks
       for (auto d : devices) {
         bool lock = isParamLocked(c, d->getId());
+        canEditDevice[d->getId()] = !lock;
         canEditOneJoint = canEditOneJoint | !lock;
       }
       canEdit.push_back(canEditOneJoint);
@@ -853,15 +856,19 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
           // for all devices affected by the joint param
           auto& devices = queryCache[j];
           for (auto& d : devices) {
-            double initVal = getDeviceValue(deviceLookup[j]._c, start, d->getId());
-            setDeviceValue(DeviceInfo(deviceLookup[j]._c, d->getId()), xp[j] + initVal, sp);
+            if (canEditDevice[d->getId()]) {
+              double initVal = getDeviceValue(deviceLookup[j]._c, start, d->getId());
+              setDeviceValue(DeviceInfo(deviceLookup[j]._c, d->getId()), xp[j] + initVal, sp);
+            }
           }
         }
         else if (deviceLookup[j]._c._qty == D_UNIFORM) {
           // Uniform takes the same value and applies it to every light;
           auto& devices = queryCache[j];
           for (auto& d : devices) {
-            xp[j] = setDeviceValue(DeviceInfo(deviceLookup[j]._c, d->getId()), xp[j], sp);
+            if (canEditDevice[d->getId()]) {
+              xp[j] = setDeviceValue(DeviceInfo(deviceLookup[j]._c, d->getId()), xp[j], sp);
+            }
           }
         }
         else {
@@ -922,15 +929,19 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
         // for all devices affected by the joint param
         auto& devices = queryCache[j];
         for (auto& d : devices) {
-          double initVal = getDeviceValue(deviceLookup[j]._c, start, d->getId());
-          setDeviceValue(DeviceInfo(deviceLookup[j]._c, d->getId()), r[j] + initVal, s);
+          if (canEditDevice[d->getId()]) {
+            double initVal = getDeviceValue(deviceLookup[j]._c, start, d->getId());
+            setDeviceValue(DeviceInfo(deviceLookup[j]._c, d->getId()), r[j] + initVal, s);
+          }
         }
       }
       else if (deviceLookup[j]._c._qty == D_UNIFORM) {
         // Uniform takes the same value and applies it to every light;
         auto& devices = queryCache[j];
         for (auto& d : devices) {
-          setDeviceValue(DeviceInfo(deviceLookup[j]._c, d->getId()), r[j], s);
+          if (canEditDevice[d->getId()]) {
+            setDeviceValue(DeviceInfo(deviceLookup[j]._c, d->getId()), r[j], s);
+          }
         }
       }
       else {
