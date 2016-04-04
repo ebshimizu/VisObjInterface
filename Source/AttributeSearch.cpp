@@ -477,7 +477,7 @@ void AttributeSearchThread::run()
         SearchResult* res = new SearchResult();
         res->_editHistory.add("Non-Semantic " + _active.begin()->first);
         res->_scene = snapshotToVector(s);
-        res->_objFuncVal = _active.begin()->second->evaluateScene(s);
+        res->_objFuncVal = -_active.begin()->second->evaluateScene(s);
         delete s;
         _results.push_back(res);
       }
