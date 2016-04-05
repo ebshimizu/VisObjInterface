@@ -169,6 +169,7 @@ GlobalSettings::GlobalSettings()
   _maxReturnedScenes = 100;
   _jndInc = 0.01;
   _showThumbnailImg = false;
+  _explorationTolerance = 10;
 }
 
 GlobalSettings::~GlobalSettings()

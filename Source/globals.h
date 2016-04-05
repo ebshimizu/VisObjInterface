@@ -50,6 +50,7 @@ public:
   int _maxReturnedScenes;       // Limiter for how many scenes get returned from a search, primarily limited by thumbnail render speed
   double _jndInc;               // Increment to use for adaptive filtering
   bool _showThumbnailImg;       // Flag to show thumbnail image in the render area.
+  double _explorationTolerance; // In the exploration phase, how far we can be off the other attribute values to still be ok
 
   int _numDisplayClusters;      // Number of clusters to display in the results
 
@@ -131,7 +132,45 @@ enum AttributeConstraint {
   A_IGNORE,
   A_LESS,
   A_EQUAL,
-  A_MORE
+  A_MORE,
+  A_EXPLORE
+};
+
+// Search data structures
+// controllable lighting parameters. Split here since don't want to waste time
+// parsing strings for things like color.hue
+enum EditParam {
+  INTENSITY,
+  HUE,
+  SAT,
+  VALUE,
+  POLAR,
+  AZIMUTH,
+  SOFT,
+  RED,
+  GREEN,
+  BLUE
+};
+
+// Since we're dealing with a variable number of lights, the system needs
+// to know how many devices to change on one edit.
+enum EditNumDevices {
+  D_ALL,    // Search though all devices at once
+  D_UNIFORM, // Search through one device at a time (sub-edit)
+  D_JOINT   // All lights get the same change applied to them
+};
+
+// these constraints define an edit (or rather, which parameters an edit can deal with)
+// Some more uncommon edits may have additional constraints (maintain position of
+// fill for example) and will be treated separately
+struct EditConstraint {
+  EditConstraint() { }
+  EditConstraint(string select, EditParam p, EditNumDevices q) : _select(select), _param(p), _qty(q) { }
+
+  // this is actually a Lumiverse query string indicating which lights should be selected.
+  string _select;
+  EditParam _param;
+  EditNumDevices _qty;
 };
 
 #endif  // GLOBALS_H_INCLUDED

@@ -106,3 +106,26 @@ void TintAttribute::changeListenerCallback(ChangeBroadcaster * source)
   _targetColor = cs->getCurrentColour();
   repaint();
 }
+
+map<string, vector<EditConstraint>> TintAttribute::getExploreEdits()
+{
+  set<string> areas = getRig()->getMetadataValues("area");
+  map<string, vector<EditConstraint> > edits;
+
+  //vector<EditConstraint> allColor;
+  //allColor.push_back(EditConstraint("*", HUE, D_UNIFORM));
+  //allColor.push_back(EditConstraint("*", SAT, D_UNIFORM));
+  //allColor.push_back(EditConstraint("*", VALUE, D_UNIFORM));
+  //edits["*_uniformColor"] = allColor;
+
+  for (auto& area : areas) {
+    vector<EditConstraint> areaColor;
+    areaColor.push_back(EditConstraint("$area=" + area, HUE, D_UNIFORM));
+    areaColor.push_back(EditConstraint("$area=" + area, SAT, D_UNIFORM));
+    areaColor.push_back(EditConstraint("$area=" + area, VALUE, D_UNIFORM));
+    edits[area + "_uniformColor"] = areaColor;
+
+  }
+
+  return edits;
+}

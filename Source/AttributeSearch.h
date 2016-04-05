@@ -15,42 +15,6 @@
 #include "AttributeControllerBase.h"
 #include <dlib/clustering.h>
 
-// controllable lighting parameters. Split here since don't want to waste time
-// parsing strings for things like color.hue
-enum EditParam {
-  INTENSITY,
-  HUE,
-  SAT,
-  VALUE,
-  POLAR,
-  AZIMUTH,
-  SOFT,
-  RED,
-  GREEN,
-  BLUE
-};
-
-// Since we're dealing with a variable number of lights, the system needs
-// to know how many devices to change on one edit.
-enum EditNumDevices {
-  D_ALL,    // Search though all devices at once
-  D_UNIFORM, // Search through one device at a time (sub-edit)
-  D_JOINT   // All lights get the same change applied to them
-};
-
-// these constraints define an edit (or rather, which parameters an edit can deal with)
-// Some more uncommon edits may have additional constraints (maintain position of
-// fill for example) and will be treated separately
-struct EditConstraint {
-  EditConstraint() { }
-  EditConstraint(string select, EditParam p, EditNumDevices q) : _select(select), _param(p), _qty(q) { }
-
-  // this is actually a Lumiverse query string indicating which lights should be selected.
-  string _select;
-  EditParam _param;
-  EditNumDevices _qty;
-};
-
 struct DeviceInfo {
   DeviceInfo() { }
   DeviceInfo(EditConstraint& c, string& id) : _c(c), _id(id) { }
@@ -133,8 +97,14 @@ private:
   bool _singleSame;
   set<string> _lockedParams;
 
+  // Runs a search with the current scenes in results as the starting scenes.
+  void runStandardSearch();
+
+  // runs an exploratory search using results as the starting scenes
+  void runExploreSearch();
+
   // Populates the _edits map. Basically tells the search how to search the things.
-  void generateEdits();
+  void generateEdits(bool explore);
 
   // Generates the default set of edits for the select string
   void generateDefaultEdits(string select);
@@ -142,12 +112,16 @@ private:
   // Runs a single level iteration of the search algorithm, starting at the given scenes.
   list<SearchResult*> runSingleLevelSearch(list<SearchResult*> startScenes, int level, attrObjFunc f);
 
+  // Runs a single level iteration of the search algorithm, starting at the given scenes.
+  list<SearchResult*> runSingleLevelExploreSearch(list<SearchResult*> startScenes, int level);
+
   // Given a current configuration, use MCMC to perform an edit on the configuration
-  list<Eigen::VectorXd> performEdit(vector<EditConstraint> edit, Snapshot* orig, attrObjFunc f, string name);
+  list<Eigen::VectorXd> performEdit(vector<EditConstraint> edit, Snapshot* orig, attrObjFunc f, string name, bool acceptStd = true);
 
   // Do MCMC with the given parameters. Returns the list of samples and number of accepted samples.
   // Samples list will be empty if saveSamples is false.
-  pair<list<Eigen::VectorXd>, int> doMCMC(vector<EditConstraint> edit, Snapshot* start, attrObjFunc f, int iters, double sigma, bool saveSamples, string name);
+  pair<list<Eigen::VectorXd>, int> doMCMC(vector<EditConstraint> edit, Snapshot* start,
+    attrObjFunc f, int iters, double sigma, bool saveSamples, string name, bool acceptStd);
 
   // computes the numeric derivative for the particular lighting parameter and
   // specified attribute

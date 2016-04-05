@@ -27,6 +27,7 @@ public:
   virtual void resized();
 
   AttributeConstraint getStatus();
+  void setStatus(AttributeConstraint c);
 
   virtual void buttonClicked(Button* b) override;
 
@@ -45,6 +46,12 @@ public:
   // for integration of non-semantic attributes into the system
   virtual bool isNonSemantic() { return false; }
   virtual list<Snapshot*> nonSemanticSearch() { return list<Snapshot*>(); }
+
+  // Each attribute returns a set of exploratory edits. By default, this
+  // function returns an empty map and should be overriden in base classes.
+  virtual map<string, vector<EditConstraint> > getExploreEdits() {
+    return map<string, vector<EditConstraint> >();
+  }
 
 protected:
 	// Attribute name

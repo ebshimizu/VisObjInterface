@@ -42,6 +42,8 @@ list<SearchResult*> attributeSearch(map<string, AttributeControllerBase*>& activ
       log = log + "LESS";
     if (kvp.second->getStatus() == A_EQUAL)
       log = log + "SAME";
+    if (kvp.second->getStatus() == A_EXPLORE)
+      log = log + "EXPLORE";
     log = log + "}";
   }
   getRecorder()->log(ACTION, log);
@@ -428,12 +430,66 @@ AttributeSearchThread::~AttributeSearchThread()
 
 void AttributeSearchThread::run()
 {
-  generateEdits();
-
+  // Clear the results set for a clean first run
   _results.clear();
   SearchResult* start = new SearchResult();
   start->_scene = snapshotToVector(_original);
   _results.push_back(start);
+
+  // Check the active set and disable any exploration attributes
+  // for the first run
+  map<string, AttributeControllerBase*> original = _active;
+  vector<string> toRemove;
+  for (const auto& attr : _active) {
+    if (attr.second->getStatus() == A_EXPLORE) {
+      toRemove.push_back(attr.first);
+    }
+  }
+
+  for (const auto& e : toRemove) {
+    _active.erase(e);
+  }
+
+  runStandardSearch();
+
+  // If we actually had attributes that were marked as explore, do the next step
+  // otherwise we're actually done
+  if (toRemove.size() > 0) {
+    // restore full active set of attributes
+    _active = original;
+    map<string, AttributeConstraint> originalConstraints;
+    
+    // mark all non-explore attributes as same
+    for (const auto& attr : _active) {
+      if (attr.second->getStatus() != A_EXPLORE) {
+        originalConstraints[attr.first] = attr.second->getStatus();
+        attr.second->setStatus(A_EQUAL);
+      }
+    }
+
+    // Explore again, using results from the search as starting points
+    runExploreSearch();
+
+    // restore defaults before exit (consistency with user buttons)
+    for (const auto& attr : original) {
+      attr.second->setStatus(originalConstraints[attr.first]);
+    }
+  }
+}
+
+void AttributeSearchThread::threadComplete(bool userPressedCancel)
+{
+  if (userPressedCancel) {
+    AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
+      "Exploratory Search",
+      "Search canceled");
+  }
+}
+
+void AttributeSearchThread::runStandardSearch()
+{
+  // edit generation
+  generateEdits(false);
 
   // objective function for combined set of active attributes.
   attrObjFunc f = [this](Snapshot* s) {
@@ -481,7 +537,7 @@ void AttributeSearchThread::run()
         delete s;
         _results.push_back(res);
       }
-      
+
       // eliminate near duplicate scenes
       filterResults(_results, 0.001);
       setProgress(1);
@@ -519,9 +575,19 @@ void AttributeSearchThread::run()
       getRecorder()->log(SYSTEM, "JND Threshold at end of Search: " + String(thresh).toStdString());
     }
     else {
-      auto centers = clusterResults(newResults, getGlobalSettings()->_numEditScenes);
-      auto filtered = getClosestScenesToCenters(newResults, centers);
-      _results = filtered;
+      double thresh = getGlobalSettings()->_jndThreshold;
+      filterResults(newResults, thresh);
+      _results = newResults;
+
+      // additional filtering if too many results are still present
+      while (_results.size() > getGlobalSettings()->_numEditScenes) {
+        thresh += getGlobalSettings()->_jndInc;
+        filterResults(_results, thresh);
+      }
+      
+      //auto centers = clusterResults(newResults, getGlobalSettings()->_numEditScenes);
+      //auto filtered = getClosestScenesToCenters(newResults, centers);
+      //_results = filtered;
     }
 
     if (threadShouldExit()) {
@@ -531,7 +597,7 @@ void AttributeSearchThread::run()
         delete r;
       }
       _results.clear();
-      
+
       return;
     }
   }
@@ -539,34 +605,79 @@ void AttributeSearchThread::run()
   setProgress(1);
 }
 
-void AttributeSearchThread::threadComplete(bool userPressedCancel)
-{
-  if (userPressedCancel) {
-    AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
-      "Exploratory Search",
-      "Search canceled");
+void AttributeSearchThread::runExploreSearch() {
+  // The exploratory search is basically the same as the normal search except for a few
+  // key differences:
+  // - The evaluation function evaluates itself at every start scene, not just _original
+  // - The acceptance criteria now accepts scenes within a certain tolerance (i.e. sufficiently similar)
+  // - Edits generated are pulled from the attributes' set of exploratory edits
+  // edit generation
+  generateEdits(true);
+
+  // here the original objective function value changes on each run in the search results
+
+  for (int i = 0; i < _editDepth; i++) {
+    setProgress((float)i / _editDepth);
+    list<SearchResult*> newResults = runSingleLevelExploreSearch(_results, i);
+
+    // delete old results
+    for (auto r : _results)
+    {
+      delete r;
+    }
+    _results.clear();
+
+    // cluster and filter for final run
+    if (i == _editDepth - 1) {
+      getRecorder()->log(SYSTEM, "Number of initial results: " + String(newResults.size()).toStdString());
+      double thresh = getGlobalSettings()->_jndThreshold;
+      filterResults(newResults, thresh);
+      _results = newResults;
+
+      // additional filtering if too many results are still present
+      while (_results.size() > getGlobalSettings()->_maxReturnedScenes) {
+        thresh += getGlobalSettings()->_jndInc;
+        filterResults(_results, thresh);
+      }
+      getRecorder()->log(SYSTEM, "JND Threshold at end of Search: " + String(thresh).toStdString());
+    }
+    else {
+      double thresh = getGlobalSettings()->_jndThreshold;
+      filterResults(newResults, thresh);
+      _results = newResults;
+
+      // additional filtering if too many results are still present
+      while (_results.size() > getGlobalSettings()->_numEditScenes) {
+        thresh += getGlobalSettings()->_jndInc;
+        filterResults(_results, thresh);
+      }
+
+      //auto centers = clusterResults(newResults, getGlobalSettings()->_numEditScenes);
+      //auto filtered = getClosestScenesToCenters(newResults, centers);
+      //_results = filtered;
+    }
+
+    if (threadShouldExit()) {
+      // delete results before cancelling search
+      for (auto r : _results)
+      {
+        delete r;
+      }
+      _results.clear();
+
+      return;
+    }
   }
+
+  setProgress(1);
 }
 
-void AttributeSearchThread::generateEdits()
+void AttributeSearchThread::generateEdits(bool explore)
 {
   // here we dynamically create all of the edits used by the search algorithm for all
   // levels of the search. This is the function to change if we want to change
   // how the search goes through the lighting space.
   _edits.clear();
-
-  // The search assumes two things: the existence of a metadata field called 'system'
-  // and the existence of a metadata field called 'area' on every device. It does not
-  // care what you call the things in these fields, but it does care that they exist.
-  // These two fields are the primitives for how the system sets up its lights.
-  // A system is a group of lights that achieve the same logical effect (i.e. all fill lights).
-  // An area is a common focal point for a set of lights. Lights from multiple systems can be
-  // in the same area.
-  // It is up to the user to decide how to split lights into groups and systems.
-  set<string> systems = getRig()->getMetadataValues("system");
-  set<string> areas = getRig()->getMetadataValues("area");
-
-  // generate locked params
   _lockedParams.clear();
 
   // in order for a parameter to be autolocked, it must be present in the autolock list
@@ -588,6 +699,31 @@ void AttributeSearchThread::generateEdits()
       _lockedParams.insert(p.first);
     }
   }
+
+  // for exploratory search, we ask the attributes what to do and then return
+  if (explore) {
+    for (auto& a : _active) {
+      if (a.second->getStatus() == A_EXPLORE) {
+        auto edits = a.second->getExploreEdits();
+        for (auto& e : edits) {
+          _edits[e.first] = e.second;
+        }
+      }
+    }
+
+    return;
+  }
+
+  // The search assumes two things: the existence of a metadata field called 'system'
+  // and the existence of a metadata field called 'area' on every device. It does not
+  // care what you call the things in these fields, but it does care that they exist.
+  // These two fields are the primitives for how the system sets up its lights.
+  // A system is a group of lights that achieve the same logical effect (i.e. all fill lights).
+  // An area is a common focal point for a set of lights. Lights from multiple systems can be
+  // in the same area.
+  // It is up to the user to decide how to split lights into groups and systems.
+  set<string> systems = getRig()->getMetadataValues("system");
+  set<string> areas = getRig()->getMetadataValues("area");
 
   // Create all devices edit types
   generateDefaultEdits("*");
@@ -727,7 +863,70 @@ list<SearchResult*> AttributeSearchThread::runSingleLevelSearch(list<SearchResul
   return searchResults;
 }
 
-list<Eigen::VectorXd> AttributeSearchThread::performEdit(vector<EditConstraint> edit, Snapshot* orig, attrObjFunc f, string name) {
+list<SearchResult*> AttributeSearchThread::runSingleLevelExploreSearch(list<SearchResult*> startScenes, int level)
+{
+  list<SearchResult*> searchResults;
+
+  float seqPct = ((float)level / _editDepth);
+
+  int totalOps = startScenes.size() * _edits.size();
+  int opCt = 0;
+
+  int i = 0, j = 0;
+
+  // For each scene in the initial set
+  for (const auto& scene : startScenes) {
+    // For the exploratory search, we pull the base scenes out and use them as the start point
+    // also at this point all non-explore functions are guaranteed to be equal, so 
+    // we just have this one case
+    Snapshot* initScene = vectorToSnapshot(scene->_scene);
+    attrObjFunc f = [this, initScene](Snapshot* s) {
+      double sum = 0;
+      for (const auto& kvp : _active) {
+        if (kvp.second->getStatus() == A_EQUAL)
+          sum += pow(kvp.second->evaluateScene(s) - kvp.second->evaluateScene(initScene), 2);
+      }
+
+      return sum;
+    };
+
+    // this should be 0
+    _fc = f(initScene);
+
+    // For each edit, get a list of scenes returned and just add it to the overall list.
+    j = 0;
+    for (const auto& edits : _edits) {
+      opCt++;
+      setStatusMessage("Level " + String(level) + "\nScene " + String(i + 1) + "/" + String(startScenes.size()) + "\nRunning Edit " + String(j + 1) + "/" + String(_edits.size()));
+      list<Eigen::VectorXd> editScenes = performEdit(edits.second, vectorToSnapshot(scene->_scene), f, edits.first, false);
+
+      if (threadShouldExit())
+        return list<SearchResult*>();
+
+      for (auto s : editScenes) {
+        SearchResult* r = new SearchResult();
+        r->_scene = s;
+        r->_editHistory.addArray(scene->_editHistory);
+        r->_editHistory.add(edits.first);
+        Snapshot* sn = vectorToSnapshot(s);
+        r->_objFuncVal = f(sn);
+        delete sn;
+
+        // We evaluate the function value on demand and just save the function itself
+        searchResults.push_back(r);
+      }
+
+      setProgress(seqPct + ((float)opCt / (float)totalOps)* (1.0 / _editDepth));
+      j++;
+    }
+    delete initScene;
+    i++;
+  }
+
+  return searchResults;
+}
+
+list<Eigen::VectorXd> AttributeSearchThread::performEdit(vector<EditConstraint> edit, Snapshot* orig, attrObjFunc f, string name, bool acceptStd) {
   // Determine accept parameters
   double targetAcceptRate = 0.5;  // +/- 5%
   double sigma = getGlobalSettings()->_accceptBandwidth;
@@ -752,12 +951,13 @@ list<Eigen::VectorXd> AttributeSearchThread::performEdit(vector<EditConstraint> 
   // }
   //}
 
-  auto res = doMCMC(edit, orig, f, getGlobalSettings()->_maxMCMCIters, sigma, true, name);
+  auto res = doMCMC(edit, orig, f, getGlobalSettings()->_maxMCMCIters, sigma, true, name, acceptStd);
   delete orig;
   return res.first;
 }
 
-pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstraint> edit, Snapshot * start, attrObjFunc f, int iters, double sigma, bool saveSamples, string name)
+pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstraint> edit, Snapshot * start,
+  attrObjFunc f, int iters, double sigma, bool saveSamples, string name, bool acceptStd)
 {
   // duplicate initial state
   Snapshot* s = new Snapshot(*start);
@@ -908,32 +1108,64 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
     double diff = abs(fxp - fx);
     double a = 0;
 
-    if (getGlobalSettings()->_randomMode || fxp < fx)
-      a = 1;
-    else {
-      // Rescale a based on normal distribution with a std dev decided on by
-      // tuning (or in this case, compeltely arbitrarily for now)
-      a = 1 - (0.5 * erfc(-diff / (sqrt(2) * sigma)) - 0.5 * erfc(-diff / (sqrt(2) * -sigma)));
-    }
-
-    // accept if a >= 1 or with probability a
-    if (a >= 1 || udist(gen) <= a) {
-      if (_singleSame) {
-        if (saveSamples && abs(fxp - _fc) < 2) {
-          // save sample in list
-          results.push_back(snapshotToVector(sp));
-        }
-      }
+    // Standard acceptance mode, if better auto accept and add to list
+    // if satisfies different enough criteria
+    if (acceptStd) {
+      if (getGlobalSettings()->_randomMode || fxp < fx)
+        a = 1;
       else {
-        if (saveSamples && fxp < _fc && abs(fxp - _fc) >= minEditDist) {
-          // save sample in list
+        // Rescale a based on normal distribution with a std dev decided on by
+        // tuning (or in this case, compeltely arbitrarily for now)
+        a = 1 - (0.5 * erfc(-diff / (sqrt(2) * sigma)) - 0.5 * erfc(-diff / (sqrt(2) * -sigma)));
+      }
+
+      // accept if a >= 1 or with probability a
+      if (a >= 1 || udist(gen) <= a) {
+        if (_singleSame) {
+          if (saveSamples && abs(fxp - _fc) < 2) {
+            // save sample in list
+            results.push_back(snapshotToVector(sp));
+          }
+        }
+        else {
+          if (saveSamples && fxp < _fc && abs(fxp - _fc) >= minEditDist) {
+            // save sample in list
+            results.push_back(xp);
+          }
+        }
+        // update x
+        x = xp;
+        accepted++;
+        fx = fxp;
+      }
+    }
+    // Bandwidth acceptance mode, autoaccept if new value within tolerance,
+    // chance of accepting if out of tolerance range
+    else {
+      // redefine diff as difference from base scene, not current scene
+      diff = abs(_fc - fxp);
+      if (getGlobalSettings()->_randomMode || diff < getGlobalSettings()->_explorationTolerance)
+        a = 1;
+      else {
+        // Calculate how far we are from the boundary (diff guaranteed to be >= _explorationTolerance)
+        double boundDiff = diff - getGlobalSettings()->_explorationTolerance;
+        // Rescale a based on normal distribution with a std dev decided on by
+        // tuning (or in this case, compeltely arbitrarily for now)
+        a = 1 - (0.5 * erfc(-boundDiff / (sqrt(2) * sigma)) - 0.5 * erfc(-boundDiff / (sqrt(2) * -sigma)));
+      }
+
+      // accept if a >= 1 or with probability a
+      if (a >= 1 || udist(gen) <= a) {
+        if (saveSamples && diff < getGlobalSettings()->_explorationTolerance) {
+          // save sample in list if it's within tolerance
           results.push_back(xp);
         }
+
+        // update x regardless of if it was saved or not
+        x = xp;
+        accepted++;
+        fx = fxp;
       }
-      // update x
-      x = xp;
-      accepted++;
-      fx = fxp;
     }
   }
 
