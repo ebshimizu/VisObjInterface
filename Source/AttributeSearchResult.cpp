@@ -136,6 +136,24 @@ void AttributeSearchResult::mouseEnter(const MouseEvent & event)
   }
 }
 
+void AttributeSearchResult::mouseMove(const MouseEvent & event)
+{
+  if (KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey)) {
+    // move the thumbnail to the main viewer window.
+    getGlobalSettings()->_showThumbnailImg = true;
+
+    // We have to reach all the way up to the main component to do this too
+    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+    mc->setThumbImage(_render);
+  }
+  else
+  {
+    getGlobalSettings()->_showThumbnailImg = false;
+    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+    mc->repaintRenderArea();
+  }
+}
+
 void AttributeSearchResult::setClusterElements(Array<AttributeSearchResult*> elems)
 {
   for (auto s : _clusterElems) {

@@ -89,7 +89,12 @@ void SceneViewer::paint (Graphics& g)
   */
   g.fillAll(Colour(0xff333333));
 
-  g.drawImageWithin(_currentRender, 0, 0, getWidth(), getHeight(), RectanglePlacement::centred);
+  if (getGlobalSettings()->_showThumbnailImg) {
+    g.drawImageWithin(_preview, 0, 0, getWidth(), getHeight(), RectanglePlacement::centred);
+  }
+  else {
+    g.drawImageWithin(_currentRender, 0, 0, getWidth(), getHeight(), RectanglePlacement::centred);
+  }
 }
 
 void SceneViewer::resized()
@@ -129,4 +134,9 @@ void SceneViewer::setRender(Image img)
 {
   _currentRender = img;
   repaint();
+}
+
+void SceneViewer::setPreview(Image prev)
+{
+  _preview = prev;
 }

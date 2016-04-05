@@ -50,9 +50,11 @@ public:
 
   Image getRender() { return _currentRender; }
   void setRender(Image img);
+  void setPreview(Image prev);
 
 private:
   Image _currentRender;
+  Image _preview;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SceneViewer)
 };

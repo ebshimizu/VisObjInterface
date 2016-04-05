@@ -41,6 +41,7 @@ public:
   // Clicking does things.
   virtual void mouseDown(const MouseEvent& event);
   virtual void mouseEnter(const MouseEvent& event);
+  virtual void mouseMove(const MouseEvent& event);
 
   void setClusterElements(Array<AttributeSearchResult*> elems);
   void addClusterElement(AttributeSearchResult* elem);

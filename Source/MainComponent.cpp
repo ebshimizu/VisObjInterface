@@ -316,6 +316,17 @@ void MainContentComponent::refreshClusterDisplay()
   _attrs->refresh();
 }
 
+void MainContentComponent::setThumbImage(Image img)
+{
+  _viewer->setPreview(img);
+  _viewer->repaint();
+}
+
+void MainContentComponent::repaintRenderArea()
+{
+  _viewer->repaint();
+}
+
 void MainContentComponent::openRig() {
   FileChooser fc("Load Show (pick a .rig.json or .playback.json file)", File::getCurrentWorkingDirectory(),
     "*.rig.json;*.playback.json", true);

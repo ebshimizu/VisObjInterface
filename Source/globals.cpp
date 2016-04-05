@@ -168,6 +168,7 @@ GlobalSettings::GlobalSettings()
   _accceptBandwidth = 0.05;
   _maxReturnedScenes = 100;
   _jndInc = 0.01;
+  _showThumbnailImg = false;
 }
 
 GlobalSettings::~GlobalSettings()

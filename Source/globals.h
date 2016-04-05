@@ -49,6 +49,7 @@ public:
   double _accceptBandwidth;     // For MCMC samples that are bad, how tolerant we should be of them
   int _maxReturnedScenes;       // Limiter for how many scenes get returned from a search, primarily limited by thumbnail render speed
   double _jndInc;               // Increment to use for adaptive filtering
+  bool _showThumbnailImg;       // Flag to show thumbnail image in the render area.
 
   int _numDisplayClusters;      // Number of clusters to display in the results
 

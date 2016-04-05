@@ -67,6 +67,9 @@ public:
 
   // Updates the cluster display gui element
   void refreshClusterDisplay();
+
+  void setThumbImage(Image img);
+  void repaintRenderArea();
 private:
   // Open a Lumiverse file
   void openRig();
