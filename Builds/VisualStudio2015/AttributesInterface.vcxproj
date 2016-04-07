@@ -154,6 +154,7 @@
     <ClCompile Include="..\..\Source\NightAttribute.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\Source\NoireAttribute.cpp" />
     <ClCompile Include="..\..\Source\SaturationAttribute.cpp" />
     <ClCompile Include="..\..\Source\SoftAttribute.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
@@ -1350,6 +1351,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="..\..\Source\NoireAttribute.h" />
     <ClInclude Include="..\..\Source\SaturationAttribute.h" />
     <ClInclude Include="..\..\Source\SoftAttribute.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

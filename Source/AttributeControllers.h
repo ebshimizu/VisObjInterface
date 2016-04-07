@@ -22,5 +22,6 @@
 //#include "SVRAttribute.h"
 #include "SaturationAttribute.h"
 #include "TintAttribute.h"
+#include "NoireAttribute.h"
 
 #endif  // ATTRIBUTECONTROLLERS_H_INCLUDED

@@ -141,6 +141,65 @@ void BrightAttribute::preProcess()
   delete s;
 }
 
+map<string, vector<EditConstraint>> BrightAttribute::getExploreEdits()
+{
+  map<string, vector<EditConstraint> > edits;
+
+  set<string> systems = getRig()->getMetadataValues("system");
+  set<string> areas = getRig()->getMetadataValues("area");
+
+  // Intensity
+  vector<EditConstraint> intens;
+  intens.push_back(EditConstraint("*", INTENSITY, D_ALL));
+  edits["*_intens"] = intens;
+
+  // Uniform intensity
+  vector<EditConstraint> uintens;
+  uintens.push_back(EditConstraint("*", INTENSITY, D_UNIFORM));
+  edits["*_uniformIntens"] = uintens;
+
+  // Joint intensity
+  vector<EditConstraint> jintens;
+  jintens.push_back(EditConstraint("*", INTENSITY, D_JOINT));
+  edits["*_jointIntens"] = jintens;
+
+  for (const auto& a : areas) {
+    // Intensity
+    vector<EditConstraint> intens;
+    intens.push_back(EditConstraint(a, INTENSITY, D_ALL));
+    edits[a + "_intens"] = intens;
+
+    // Uniform intensity
+    vector<EditConstraint> uintens;
+    uintens.push_back(EditConstraint(a, INTENSITY, D_UNIFORM));
+    edits[a + "_uniformIntens"] = uintens;
+
+    // Joint intensity
+    vector<EditConstraint> jintens;
+    jintens.push_back(EditConstraint(a, INTENSITY, D_JOINT));
+    edits[a + "_jointIntens"] = jintens;
+  }
+
+  for (const auto& s : systems) {
+    // Intensity
+    vector<EditConstraint> intens;
+    intens.push_back(EditConstraint(s, INTENSITY, D_ALL));
+    edits[s + "_intens"] = intens;
+
+    // Uniform intensity
+    vector<EditConstraint> uintens;
+    uintens.push_back(EditConstraint(s, INTENSITY, D_UNIFORM));
+    edits[s + "_uniformIntens"] = uintens;
+
+    // Joint intensity
+    vector<EditConstraint> jintens;
+    jintens.push_back(EditConstraint(s, INTENSITY, D_JOINT));
+    edits[s + "_jointIntens"] = jintens;
+  }
+
+  return edits;
+}
+
 double BrightAttribute::getLightIntens(Device * d)
 {
   return d->getColor()->getLab(ReferenceWhite::D65)[0] * d->getIntensity()->asPercent();

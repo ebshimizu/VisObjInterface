@@ -61,6 +61,10 @@
                 file="Source/NightAttribute.cpp"/>
           <FILE id="GCm5yC" name="NightAttribute.h" compile="0" resource="0"
                 file="Source/NightAttribute.h"/>
+          <FILE id="QLk7Mw" name="NoireAttribute.cpp" compile="1" resource="0"
+                file="Source/NoireAttribute.cpp"/>
+          <FILE id="XuJ2u9" name="NoireAttribute.h" compile="0" resource="0"
+                file="Source/NoireAttribute.h"/>
           <FILE id="WxT0aM" name="SaturationAttribute.cpp" compile="1" resource="0"
                 file="Source/SaturationAttribute.cpp"/>
           <FILE id="MHAEh2" name="SaturationAttribute.h" compile="0" resource="0"

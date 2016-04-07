@@ -17,6 +17,7 @@ ContrastAttribute::ContrastAttribute(string area1, string area2) : AttributeCont
   _area2 = area2;
   _autoLockParams.insert("polar");
   _autoLockParams.insert("azimuth");
+  _autoLockParams.insert("color"); // ok so technically this affects contrast but right now with this function, it doesn't so...
 }
 
 ContrastAttribute::~ContrastAttribute()

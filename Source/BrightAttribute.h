@@ -30,6 +30,8 @@ public:
   // and proceeds to assign weights based on brightness of resulting images.
   virtual void preProcess() override;
 
+  virtual map<string, vector<EditConstraint> > getExploreEdits() override;
+
 private:
   // map of device id to numeric weight assosicated with the device
   unordered_map<string, double> _weights;

@@ -761,9 +761,9 @@ void AttributeSearchThread::generateDefaultEdits(string select)
 
   if (_lockedParams.count("intensity") == 0) {
     // Intensity
-    //vector<EditConstraint> intens;
-    //intens.push_back(EditConstraint(select, INTENSITY, D_ALL));
-    //_edits[select + "_intens"] = intens;
+    vector<EditConstraint> intens;
+    intens.push_back(EditConstraint(select, INTENSITY, D_ALL));
+    _edits[select + "_intens"] = intens;
 
     // Uniform intensity
     vector<EditConstraint> uintens;

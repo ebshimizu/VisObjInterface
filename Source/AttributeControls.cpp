@@ -257,6 +257,9 @@ void AttributeControls::initAttributes()
   // Tint
   _container->addAttributeController(new TintAttribute());
 
+  // noire
+  _container->addAttributeController(new NoireAttribute());
+
   //_container->addAttributeController(new BacklitAttribute());
   //_container->addAttributeController(new SoftAttribute());
   //_container->addAttributeController(new HighAngleAttribute());
