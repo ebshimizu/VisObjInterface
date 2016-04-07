@@ -51,6 +51,7 @@ public:
   double _jndInc;               // Increment to use for adaptive filtering
   bool _showThumbnailImg;       // Flag to show thumbnail image in the render area.
   double _explorationTolerance; // In the exploration phase, how far we can be off the other attribute values to still be ok
+  double _T;                    // Temperature controlling MCMC tolerance to worse suggestions
 
   int _numDisplayClusters;      // Number of clusters to display in the results
 
@@ -58,6 +59,15 @@ public:
   string _currentSortMode;
 
   map<string, string> _commandLineArgs;
+
+  // Diagnostic storage for search
+  vector<double> _fxs;
+  vector<double> _as;
+  vector<string> _editNames;
+
+  // dumps search diagnostics to a file
+  // file is 1 csv: first row is accepted function values, second is the a that accepted the value
+  void dumpDiagnosticData();
 };
 
 // Gets the application command manager for this application.

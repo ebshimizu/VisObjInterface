@@ -475,6 +475,7 @@ void AttributeSearchThread::run()
       attr.second->setStatus(originalConstraints[attr.first]);
     }
   }
+  getGlobalSettings()->dumpDiagnosticData();
 }
 
 void AttributeSearchThread::threadComplete(bool userPressedCancel)
@@ -1064,8 +1065,11 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
 
   // diagnostics
   int accepted = 0;
+  
+  // iteration setup
   Snapshot* sp = new Snapshot(*start);
   double fx = f(s);
+  double T = getGlobalSettings()->_T;
 
   for (int i = 0; i < maxIters; i++) {
     // generate candidate x'
@@ -1106,18 +1110,18 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
     // check for acceptance
     double fxp = f(sp);
     double diff = abs(fxp - fx);
-    double a = 0;
+    double a = min(exp(T * (fx - fxp)), 1.0);
 
     // Standard acceptance mode, if better auto accept and add to list
     // if satisfies different enough criteria
     if (acceptStd) {
-      if (getGlobalSettings()->_randomMode || fxp < fx)
-        a = 1;
-      else {
+      //if (getGlobalSettings()->_randomMode || fxp < fx)
+      //  a = 1;
+      //else {
         // Rescale a based on normal distribution with a std dev decided on by
         // tuning (or in this case, compeltely arbitrarily for now)
-        a = 1 - (0.5 * erfc(-diff / (sqrt(2) * sigma)) - 0.5 * erfc(-diff / (sqrt(2) * -sigma)));
-      }
+      //  a = 1 - (0.5 * erfc(-diff / (sqrt(2) * sigma)) - 0.5 * erfc(-diff / (sqrt(2) * -sigma)));
+      //}
 
       // accept if a >= 1 or with probability a
       if (a >= 1 || udist(gen) <= a) {
@@ -1137,22 +1141,27 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
         x = xp;
         accepted++;
         fx = fxp;
+
+        // diagnostics
+        getGlobalSettings()->_fxs.push_back(fxp);
+        getGlobalSettings()->_as.push_back(a);
+        getGlobalSettings()->_editNames.push_back(name);
       }
     }
     // Bandwidth acceptance mode, autoaccept if new value within tolerance,
     // chance of accepting if out of tolerance range
     else {
       // redefine diff as difference from base scene, not current scene
-      diff = abs(_fc - fxp);
-      if (getGlobalSettings()->_randomMode || diff < getGlobalSettings()->_explorationTolerance)
-        a = 1;
-      else {
+      //diff = abs(_fc - fxp);
+      //if (getGlobalSettings()->_randomMode || diff < getGlobalSettings()->_explorationTolerance)
+      //  a = 1;
+      //else {
         // Calculate how far we are from the boundary (diff guaranteed to be >= _explorationTolerance)
-        double boundDiff = diff - getGlobalSettings()->_explorationTolerance;
+      //  double boundDiff = diff - getGlobalSettings()->_explorationTolerance;
         // Rescale a based on normal distribution with a std dev decided on by
         // tuning (or in this case, compeltely arbitrarily for now)
-        a = 1 - (0.5 * erfc(-boundDiff / (sqrt(2) * sigma)) - 0.5 * erfc(-boundDiff / (sqrt(2) * -sigma)));
-      }
+      //  a = 1 - (0.5 * erfc(-boundDiff / (sqrt(2) * sigma)) - 0.5 * erfc(-boundDiff / (sqrt(2) * -sigma)));
+      //}
 
       // accept if a >= 1 or with probability a
       if (a >= 1 || udist(gen) <= a) {
@@ -1165,6 +1174,11 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
         x = xp;
         accepted++;
         fx = fxp;
+
+        // diagnostics
+        getGlobalSettings()->_fxs.push_back(fxp);
+        getGlobalSettings()->_as.push_back(a);
+        getGlobalSettings()->_editNames.push_back(name);
       }
     }
   }

@@ -78,6 +78,20 @@ void unlockDeviceParam(string id, string param)
   d->setMetadata(param + "_lock", "n");
 }
 
+void GlobalSettings::dumpDiagnosticData()
+{
+  ofstream file;
+  file.open("search.csv", ios::trunc);
+
+  for (int i = 0; i < _fxs.size(); i++) {
+    file << _fxs[i] << "," << _as[i] << "," << _editNames[i] << "\n";
+  }
+
+  file.close();
+  _as.clear();
+  _fxs.clear();
+}
+
 Rig* getRig() {
   if (_rig == nullptr) {
     _rig = new Rig();
@@ -170,6 +184,7 @@ GlobalSettings::GlobalSettings()
   _jndInc = 0.01;
   _showThumbnailImg = false;
   _explorationTolerance = 8;
+  _T = 1;
 }
 
 GlobalSettings::~GlobalSettings()
