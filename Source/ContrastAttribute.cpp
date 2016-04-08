@@ -33,23 +33,23 @@ double ContrastAttribute::evaluateScene(Snapshot* s)
   // compute total brightness for area 1
   double area1Br = 0;
   for (const auto& d : _area1Weights) {
-    double intens = rigData[d.first]->getIntensity()->getVal();
+    double intens = rigData[d.first]->getIntensity()->asPercent();
     area1Br += intens * d.second;
   }
 
   // compute total brightness for area 2
   double area2Br = 0;
   for (const auto& d : _area2Weights) {
-    double intens = rigData[d.first]->getIntensity()->getVal();
+    double intens = rigData[d.first]->getIntensity()->asPercent();
     area2Br += intens * d.second;
   }
 
-  // contrast is max / min
-  double contrast = (area1Br > area2Br) ? (area1Br / area2Br) : (area2Br / area1Br);
+  // contrast here is diff between max and min
+  double contrast = abs(area1Br - area2Br);
 
   // something something normalize this...
 
-  return contrast * 10;
+  return contrast * 100;
 }
 
 void ContrastAttribute::preProcess()
@@ -91,9 +91,11 @@ void ContrastAttribute::preProcess()
   // now that the metadata exists, copy it
   for (const auto& d : a1d) {
     _area1Weights[d->getId()] = stof(d->getMetadata("brightnessAttributeWeight"));
+    _area1Sum += _area1Weights[d->getId()];
   }
 
   for (const auto& d : a2d) {
     _area2Weights[d->getId()] = stof(d->getMetadata("brightnessAttributeWeight"));
+    _area2Sum += _area2Weights[d->getId()];
   }
 }

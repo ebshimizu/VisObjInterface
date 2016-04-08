@@ -39,10 +39,7 @@ double LowKeyAttribute::evaluateScene(Snapshot * s)
   // get ratio of max brightness light to all other light brightness
   sum -= max;
 
-  if (abs(0 - sum) < 1e-3)
-    return max;
-
-  return (max / sum) * 10;
+  return (max - sum) / 200;
 }
 
 void LowKeyAttribute::preProcess()

@@ -80,14 +80,29 @@ void unlockDeviceParam(string id, string param)
 
 void GlobalSettings::dumpDiagnosticData()
 {
-  ofstream file;
-  file.open("search.csv", ios::trunc);
+  if (_exportTraces) {
+    ofstream file;
 
-  for (int i = 0; i < _fxs.size(); i++) {
-    file << _fxs[i] << "," << _as[i] << "," << _editNames[i] << "\n";
+    time_t t = time(0);   // get time now
+    struct tm * now = localtime(&t);
+
+    char buffer[80];
+    strftime(buffer, 80, "%Y-%m-%d-%H%M", now);
+
+    string filename = _traceRootDir + "/search-" + string(buffer) + ".csv";
+    file.open(filename, ios::trunc);
+
+    for (int i = 0; i < _fxs.size(); i++) {
+      file << _fxs[i] << "," << _as[i] << "," << _editNames[i] << "\n";
+    }
+
+    file.close();
+
+    // actually just go generate a report now
+    string cmd = "python C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/dataviz/plotSearchTrace.py " + filename;
+    system(cmd.c_str());
   }
 
-  file.close();
   _as.clear();
   _fxs.clear();
 }
@@ -185,6 +200,8 @@ GlobalSettings::GlobalSettings()
   _showThumbnailImg = false;
   _explorationTolerance = 8;
   _T = 1;
+  _exportTraces = true;
+  _traceRootDir = "C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/traces";
 }
 
 GlobalSettings::~GlobalSettings()

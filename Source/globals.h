@@ -52,6 +52,8 @@ public:
   bool _showThumbnailImg;       // Flag to show thumbnail image in the render area.
   double _explorationTolerance; // In the exploration phase, how far we can be off the other attribute values to still be ok
   double _T;                    // Temperature controlling MCMC tolerance to worse suggestions
+  bool _exportTraces;           // Export trace data for each search operation
+  string _traceRootDir;         // Trace file location
 
   int _numDisplayClusters;      // Number of clusters to display in the results
 

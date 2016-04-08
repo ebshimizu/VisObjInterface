@@ -100,6 +100,8 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_jndInc = newValue;
   else if (_id == "Max Results")
     getGlobalSettings()->_maxReturnedScenes = (int)newValue;
+  else if (_id == "Temperature")
+    getGlobalSettings()->_T = newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -170,6 +172,8 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_jndInc;
   else if (_id == "Max Results")
     return getGlobalSettings()->_maxReturnedScenes;
+  else if (_id == "Temperature")
+    return getGlobalSettings()->_T;
 }
 
 void SettingsSlider::sliderValueChanged(Slider * s)
@@ -192,6 +196,8 @@ void SettingsBoolButton::setState(bool newState)
 {
   if (_id == "Random Mode")
     getGlobalSettings()->_randomMode = newState;
+  if (_id == "Export Traces")
+    getGlobalSettings()->_exportTraces = newState;
 
   refresh();
 }
@@ -200,6 +206,8 @@ bool SettingsBoolButton::getState() const
 {
   if (_id == "Random Mode")
     return getGlobalSettings()->_randomMode;
+  if (_id == "Export Traces")
+    return getGlobalSettings()->_exportTraces;
 
   return false;
 }
@@ -217,7 +225,9 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1e-3, 1e-7));
   //searchComponents.add(new SettingsSlider("Cluster Distance Threshold", 1e-3, 5, 1e-3));
   searchComponents.add(new SettingsSlider("Max Results", 1, 500, 1));
+  searchComponents.add(new SettingsSlider("Temperature", 0, 25, 0.01));
   searchComponents.add(new SettingsBoolButton("Random Mode"));
+  searchComponents.add(new SettingsBoolButton("Export Traces"));
   _settings.addSection("Search Shared", searchComponents);
 
   Array<PropertyComponent*> mcmcComponents;

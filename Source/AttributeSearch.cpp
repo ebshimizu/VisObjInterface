@@ -253,7 +253,7 @@ void filterResults(list<Eigen::VectorXd>& results, double t)
         continue;
       }
 
-      double dist = (*it - *it2).squaredNorm();
+      double dist = (*it - *it2).norm();
 
       // delete element if it's too close
       if (dist < t) {
@@ -277,7 +277,7 @@ void filterResults(list<SearchResult*>& results, double t)
         continue;
       }
 
-      double dist = ((*it)->_scene - (*it2)->_scene).squaredNorm();
+      double dist = ((*it)->_scene - (*it2)->_scene).norm();
 
       // delete element if it's too close
       if (dist < t) {
@@ -475,6 +475,13 @@ void AttributeSearchThread::run()
       attr.second->setStatus(originalConstraints[attr.first]);
     }
   }
+
+  for (auto& r : _results) {
+    getGlobalSettings()->_fxs.push_back(r->_objFuncVal);
+    getGlobalSettings()->_as.push_back(0);
+    getGlobalSettings()->_editNames.push_back("FINAL");
+  }
+
   getGlobalSettings()->dumpDiagnosticData();
 }
 
@@ -576,6 +583,7 @@ void AttributeSearchThread::runStandardSearch()
       getRecorder()->log(SYSTEM, "JND Threshold at end of Search: " + String(thresh).toStdString());
     }
     else {
+      getRecorder()->log(SYSTEM, "Number of initial results at end of level " + String(i).toStdString() + ": " + String(newResults.size()).toStdString());
       double thresh = getGlobalSettings()->_jndThreshold;
       filterResults(newResults, thresh);
       _results = newResults;
@@ -586,6 +594,7 @@ void AttributeSearchThread::runStandardSearch()
         filterResults(_results, thresh);
       }
       
+      getRecorder()->log(SYSTEM, "Number of results at end of level " + String(i).toStdString() + ": " + String(_results.size()).toStdString());
       //auto centers = clusterResults(newResults, getGlobalSettings()->_numEditScenes);
       //auto filtered = getClosestScenesToCenters(newResults, centers);
       //_results = filtered;
@@ -834,6 +843,14 @@ list<SearchResult*> AttributeSearchThread::runSingleLevelSearch(list<SearchResul
   for (const auto& scene : startScenes) {
     // For each edit, get a list of scenes returned and just add it to the overall list.
     j = 0;
+
+    // save diagnostic data
+    Snapshot* d = vectorToSnapshot(scene->_scene);
+    getGlobalSettings()->_fxs.push_back(f(d));
+    getGlobalSettings()->_as.push_back(1);
+    getGlobalSettings()->_editNames.push_back("START");
+    delete d;
+
     for (const auto& edits : _edits) {
       opCt++;
       setStatusMessage("Level " + String(level) + "\nScene " + String(i+1) + "/" + String(startScenes.size()) + "\nRunning Edit " + String(j+1) + "/" + String(_edits.size()));
@@ -1063,13 +1080,13 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
     return pair<list<Eigen::VectorXd>, int>(results, 0);
   }
 
-  // diagnostics
-  int accepted = 0;
-  
   // iteration setup
   Snapshot* sp = new Snapshot(*start);
   double fx = f(s);
   double T = getGlobalSettings()->_T;
+
+  // diagnostics
+  int accepted = 0;
 
   for (int i = 0; i < maxIters; i++) {
     // generate candidate x'
@@ -1110,7 +1127,7 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
     // check for acceptance
     double fxp = f(sp);
     double diff = abs(fxp - fx);
-    double a = min(exp(T * (fx - fxp)), 1.0);
+    double a = min(exp((1 / T) * (fx - fxp)), 1.0);
 
     // Standard acceptance mode, if better auto accept and add to list
     // if satisfies different enough criteria
@@ -1183,11 +1200,13 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
     }
   }
 
-  if (saveSamples)
-    getRecorder()->log(SYSTEM, "[Debug] " + name + " accepted " + String(((float)accepted / (float)maxIters) * 100).toStdString() + "% of proposals");
+  //if (saveSamples)
+  //  getRecorder()->log(SYSTEM, "[Debug] " + name + " accepted " + String(((float)accepted / (float)maxIters) * 100).toStdString() + "% of proposals");
 
   // filter results
+  getRecorder()->log(SYSTEM, "[Debug] " + name + " returned " + String(results.size()).toStdString() + " proposals");
   filterResults(results, getGlobalSettings()->_jndThreshold);
+  getRecorder()->log(SYSTEM, "[Debug] " + name + " after filter returned " + String(results.size()).toStdString() + " proposals");
 
   // Convert results to full vectors
   list<Eigen::VectorXd> fullResults;

@@ -37,6 +37,8 @@ private:
   unordered_map<string, double> _area2Weights;
   string _area1;
   string _area2;
+  double _area1Sum;
+  double _area2Sum;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ContrastAttribute)
 
