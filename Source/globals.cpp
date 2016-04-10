@@ -105,6 +105,7 @@ void GlobalSettings::dumpDiagnosticData()
 
   _as.clear();
   _fxs.clear();
+  _editNames.clear();
 }
 
 Rig* getRig() {
