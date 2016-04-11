@@ -15,6 +15,8 @@ import numpy as Math
 import pylab as Plot
 import math
 import sys
+import plotly.offline as py
+import plotly.graph_objs as go
 
 def Hbeta(D = Math.array([]), beta = 1.0):
 	"""Compute the perplexity and the P-row for a specific value of the precision of a Gaussian distribution."""
@@ -171,12 +173,45 @@ def tsne(X = Math.array([]), no_dims = 2, initial_dims = 50, perplexity = 30.0):
 
 xfname = sys.argv[1]
 vfname = sys.argv[2]
-p = float(sys.argv[3])
+key = Math.loadtxt(sys.argv[3])
+selected = Math.loadtxt(sys.argv[4])
+p = float(sys.argv[5])
 
 # print "Run Y = tsne.tsne(X, no_dims, perplexity) to perform t-SNE on your dataset."
 
 X = Math.loadtxt(xfname);
 labels = Math.loadtxt(vfname);
 Y = tsne(X, 2, 50, p);
-Plot.scatter(Y[:,0], Y[:,1], 20, labels);
-Plot.show();
+
+# plot with plotly
+# all data
+allPoints = go.Scatter(
+	x = Y[:,0],
+	y = Y[:,1],
+	mode = 'markers',
+	name = 'Samples',
+	marker = dict(size=12, color=labels, showscale=True)
+)
+
+# get the selected points
+selX = []
+selY = []
+for i in range(0, len(key)):
+	if key[i] in selected:
+		selX.append(Y[i, 0])
+		selY.append(Y[i, 1])
+
+selPoints = go.Scatter(
+	x = selX,
+	y = selY,
+	mode = 'markers',
+	name = 'Selected Samples',
+	marker = dict(size=24, color='rgb(0,255,0)')
+)
+
+graphData = [allPoints, selPoints]
+
+py.plot(graphData)
+
+#Plot.scatter(Y[:,0], Y[:,1], 20, labels);
+#Plot.show();

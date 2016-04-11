@@ -80,8 +80,14 @@ void unlockDeviceParam(string id, string param)
 
 void exportSearchResults(list<SearchResult*>& results, int depth, string desc)
 {
+  // three files exported here:
+  // vector values
+  // objective function values
+  // Sample IDs for each row of the vectors
+
   ofstream xfile;
   ofstream valfile;
+  ofstream key;
 
   time_t t = time(0);   // get time now
   struct tm * now = localtime(&t);
@@ -91,10 +97,12 @@ void exportSearchResults(list<SearchResult*>& results, int depth, string desc)
 
   string xfname = getGlobalSettings()->_traceRootDir + "/search-vectors-" + string(buffer) + "-depth-" + String(depth).toStdString() + "-" + desc + ".txt";
   string valfname = getGlobalSettings()->_traceRootDir + "/search-vals-" + string(buffer) + "-depth-" + String(depth).toStdString() + "-" + desc + ".txt";
+  string keyname = getGlobalSettings()->_traceRootDir + "/search-ids-" + string(buffer) + "-depth-" + String(depth).toStdString() + "-" + desc + ".txt";
 
   // export vectors and values
   xfile.open(xfname, ios::trunc);
   valfile.open(valfname, ios::trunc);
+  key.open(keyname, ios::trunc);
 
   for (const auto& r : results) {
     for (int i = 0; i < r->_scene.size(); i++) {
@@ -102,18 +110,21 @@ void exportSearchResults(list<SearchResult*>& results, int depth, string desc)
     }
     xfile << "\n";
     valfile << r->_objFuncVal << "\n";
+    key << r->_sampleNo << "\n";
   }
 
   // automatically run t-sne?
   
   xfile.close();
   valfile.close();
+  key.close();
 }
 
 void GlobalSettings::dumpDiagnosticData()
 {
   if (_exportTraces) {
     ofstream file;
+    ofstream indexFile;
 
     time_t t = time(0);   // get time now
     struct tm * now = localtime(&t);
@@ -122,13 +133,21 @@ void GlobalSettings::dumpDiagnosticData()
     strftime(buffer, 80, "%Y-%m-%d-%H%M", now);
 
     string filename = _traceRootDir + "/search-" + string(buffer) + ".csv";
+    string indexFilename = _traceRootDir + "/search-selectedIds-" + string(buffer) + ".csv";
+    
     file.open(filename, ios::trunc);
+    indexFile.open(indexFilename, ios::trunc);
 
     for (int i = 0; i < _fxs.size(); i++) {
       file << _fxs[i] << "," << _as[i] << "," << _editNames[i] << "\n";
     }
 
+    for (const auto& s : _selectedSamples) {
+      indexFile << s << "\n";
+    }
+
     file.close();
+    indexFile.close();
 
     // actually just go generate a report now
     string cmd = "python C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/dataviz/plotSearchTrace.py " + filename;
@@ -138,7 +157,15 @@ void GlobalSettings::dumpDiagnosticData()
   _as.clear();
   _fxs.clear();
   _editNames.clear();
+  _selectedSamples.clear();
   _clusterCounter = 0;
+}
+
+unsigned int GlobalSettings::getSampleID()
+{
+  unsigned int ret = _clusterCounter;
+  _clusterCounter++;
+  return ret;
 }
 
 Rig* getRig() {

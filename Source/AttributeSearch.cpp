@@ -242,7 +242,7 @@ vector<Eigen::VectorXd> clusterResults(list<Eigen::VectorXd> results, int c) {
   return clusterCenters;
 }
 
-void filterResults(list<Eigen::VectorXd>& results, double t)
+void filterResults(list<mcmcSample>& results, double t)
 {
   // starting at the first element
   for (auto it = results.begin(); it != results.end(); it++) {
@@ -253,7 +253,7 @@ void filterResults(list<Eigen::VectorXd>& results, double t)
         continue;
       }
 
-      double dist = (*it - *it2).norm();
+      double dist = (it->first - it2->first).norm();
 
       // delete element if it's too close
       if (dist < t) {
@@ -616,6 +616,10 @@ void AttributeSearchThread::runStandardSearch()
       //_results = filtered;
     }
 
+    for (const auto& r : _results) {
+      getGlobalSettings()->_selectedSamples.push_back(r->_sampleNo);
+    }
+
     if (threadShouldExit()) {
       // delete results before cancelling search
       for (auto r : _results)
@@ -698,6 +702,10 @@ void AttributeSearchThread::runExploreSearch() {
       //auto centers = clusterResults(newResults, getGlobalSettings()->_numEditScenes);
       //auto filtered = getClosestScenesToCenters(newResults, centers);
       //_results = filtered;
+    }
+
+    for (const auto& r : _results) {
+      getGlobalSettings()->_selectedSamples.push_back(r->_sampleNo);
     }
 
     if (threadShouldExit()) {
@@ -887,17 +895,18 @@ list<SearchResult*> AttributeSearchThread::runSingleLevelSearch(list<SearchResul
     for (const auto& edits : _edits) {
       opCt++;
       setStatusMessage("Level " + String(level) + "\nScene " + String(i+1) + "/" + String(startScenes.size()) + "\nRunning Edit " + String(j+1) + "/" + String(_edits.size()));
-      list<Eigen::VectorXd> editScenes = performEdit(edits.second, vectorToSnapshot(scene->_scene), f, edits.first);
+      list<mcmcSample> editScenes = performEdit(edits.second, vectorToSnapshot(scene->_scene), f, edits.first);
       
       if (threadShouldExit())
         return list<SearchResult*>();
 
       for (auto s : editScenes) {
         SearchResult* r = new SearchResult();
-        r->_scene = s;
+        r->_scene = s.first;
         r->_editHistory.addArray(scene->_editHistory);
         r->_editHistory.add(edits.first);
-        Snapshot* sn = vectorToSnapshot(s);
+        r->_sampleNo = s.second;
+        Snapshot* sn = vectorToSnapshot(s.first);
         r->_objFuncVal = f(sn);
         delete sn;
 
@@ -949,17 +958,18 @@ list<SearchResult*> AttributeSearchThread::runSingleLevelExploreSearch(list<Sear
     for (const auto& edits : _edits) {
       opCt++;
       setStatusMessage("Level " + String(level) + "\nScene " + String(i + 1) + "/" + String(startScenes.size()) + "\nRunning Edit " + String(j + 1) + "/" + String(_edits.size()));
-      list<Eigen::VectorXd> editScenes = performEdit(edits.second, vectorToSnapshot(scene->_scene), f, edits.first, false);
+      list<mcmcSample> editScenes = performEdit(edits.second, vectorToSnapshot(scene->_scene), f, edits.first, false);
 
       if (threadShouldExit())
         return list<SearchResult*>();
 
       for (auto s : editScenes) {
         SearchResult* r = new SearchResult();
-        r->_scene = s;
+        r->_scene = s.first;
         r->_editHistory.addArray(scene->_editHistory);
         r->_editHistory.add(edits.first);
-        Snapshot* sn = vectorToSnapshot(s);
+        r->_sampleNo = s.second;
+        Snapshot* sn = vectorToSnapshot(s.first);
         r->_objFuncVal = f(sn);
         delete sn;
 
@@ -977,7 +987,7 @@ list<SearchResult*> AttributeSearchThread::runSingleLevelExploreSearch(list<Sear
   return searchResults;
 }
 
-list<Eigen::VectorXd> AttributeSearchThread::performEdit(vector<EditConstraint> edit, Snapshot* orig, attrObjFunc f, string name, bool acceptStd) {
+list<mcmcSample> AttributeSearchThread::performEdit(vector<EditConstraint> edit, Snapshot* orig, attrObjFunc f, string name, bool acceptStd) {
   // Determine accept parameters
   double targetAcceptRate = 0.5;  // +/- 5%
   double sigma = getGlobalSettings()->_accceptBandwidth;
@@ -1007,14 +1017,14 @@ list<Eigen::VectorXd> AttributeSearchThread::performEdit(vector<EditConstraint> 
   return res.first;
 }
 
-pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstraint> edit, Snapshot * start,
+pair<list<mcmcSample>, int> AttributeSearchThread::doMCMC(vector<EditConstraint> edit, Snapshot * start,
   attrObjFunc f, int iters, double sigma, bool saveSamples, string name, bool acceptStd)
 {
   // duplicate initial state
   Snapshot* s = new Snapshot(*start);
 
   // Set up return list
-  list<Eigen::VectorXd> results;
+  list<mcmcSample> results;
 
   // RNG
   unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
@@ -1110,7 +1120,7 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
   // if we can't actually edit any parameters at all just exit now
   if (cantEditAll) {
     delete s;
-    return pair<list<Eigen::VectorXd>, int>(results, 0);
+    return pair<list<mcmcSample>, int>(results, 0);
   }
 
   // iteration setup
@@ -1175,16 +1185,17 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
 
       // accept if a >= 1 or with probability a
       if (a >= 1 || udist(gen) <= a) {
+        unsigned int sampleId = getGlobalSettings()->getSampleID();
         if (_singleSame) {
           if (saveSamples && abs(fxp - _fc) < 2) {
             // save sample in list
-            results.push_back(snapshotToVector(sp));
+            results.push_back(mcmcSample(snapshotToVector(sp), sampleId));
           }
         }
         else {
           if (saveSamples && fxp < _fc && abs(fxp - _fc) >= minEditDist) {
             // save sample in list
-            results.push_back(xp);
+            results.push_back(mcmcSample(xp, sampleId));
           }
         }
         // update x
@@ -1215,9 +1226,10 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
 
       // accept if a >= 1 or with probability a
       if (a >= 1 || udist(gen) <= a) {
+        unsigned int sampleId = getGlobalSettings()->getSampleID();
         if (saveSamples && diff < getGlobalSettings()->_explorationTolerance) {
           // save sample in list if it's within tolerance
-          results.push_back(xp);
+          results.push_back(mcmcSample(xp, sampleId));
         }
 
         // update x regardless of if it was saved or not
@@ -1242,10 +1254,10 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
   //getRecorder()->log(SYSTEM, "[Debug] " + name + " after filter returned " + String(results.size()).toStdString() + " proposals");
 
   // Convert results to full vectors
-  list<Eigen::VectorXd> fullResults;
+  list<mcmcSample> fullResults;
   for (const auto& r : results) {
     // adjust s to match result
-    for (int j = 0; j < r.size(); j++) {
+    for (int j = 0; j < r.first.size(); j++) {
       if (deviceLookup[j]._c._qty == D_JOINT) {
         // Joint adds the delta (xp[j]) to the start value to get the new value
         // for all devices affected by the joint param
@@ -1253,7 +1265,7 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
         for (auto& d : devices) {
           if (canEditDevice[d->getId()]) {
             double initVal = getDeviceValue(deviceLookup[j]._c, start, d->getId());
-            setDeviceValue(DeviceInfo(deviceLookup[j]._c, d->getId()), r[j] + initVal, s);
+            setDeviceValue(DeviceInfo(deviceLookup[j]._c, d->getId()), r.first[j] + initVal, s);
           }
         }
       }
@@ -1262,18 +1274,18 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
         auto& devices = queryCache[j];
         for (auto& d : devices) {
           if (canEditDevice[d->getId()]) {
-            setDeviceValue(DeviceInfo(deviceLookup[j]._c, d->getId()), r[j], s);
+            setDeviceValue(DeviceInfo(deviceLookup[j]._c, d->getId()), r.first[j], s);
           }
         }
       }
       else {
         // The next line acts as a physically based clamp function of sorts.
         // It updates the lighting scene and also returns the value of the parameter after the update.
-        setDeviceValue(deviceLookup[j], r[j], s);
+        setDeviceValue(deviceLookup[j], r.first[j], s);
       }
     }
 
-    fullResults.push_back(snapshotToVector(s));
+    fullResults.push_back(mcmcSample(snapshotToVector(s), r.second));
   }
   
   if (s != nullptr)
@@ -1281,7 +1293,7 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
   if (s != sp && sp != nullptr)
     delete sp;
 
-  return pair<list<Eigen::VectorXd>, int>(fullResults, accepted);
+  return pair<list<mcmcSample>, int>(fullResults, accepted);
 }
 
 double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrObjFunc f, string& id)

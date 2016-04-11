@@ -22,6 +22,8 @@ using namespace Lumiverse::ShowControl;
 
 class MainWindow;
 
+typedef pair<Eigen::VectorXd, unsigned int> mcmcSample;
+
 enum command {
   // File
   OPEN = 0x0001,
@@ -150,10 +152,13 @@ public:
   vector<double> _fxs;
   vector<double> _as;
   vector<string> _editNames;
+  vector<unsigned int> _selectedSamples;
 
   // dumps search diagnostics to a file
   // file is 1 csv: first row is accepted function values, second is the a that accepted the value
   void dumpDiagnosticData();
+
+  unsigned int getSampleID();
 };
 
 // Results that eventually get returned to the UI layer

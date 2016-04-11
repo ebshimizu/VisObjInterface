@@ -41,7 +41,7 @@ vector<Eigen::VectorXd> clusterResults(list<SearchResult*> results, int c = -1);
 
 // Remove vectors from the set that are within a specified threshold of other elements
 // in the set
-void filterResults(list<Eigen::VectorXd>& results, double t);
+void filterResults(list<mcmcSample>& results, double t);
 
 // Remove scenes from the set that are within a specified threshold of other elements
 void filterResults(list<SearchResult*>& results, double t);
@@ -100,11 +100,11 @@ private:
   list<SearchResult*> runSingleLevelExploreSearch(list<SearchResult*> startScenes, int level);
 
   // Given a current configuration, use MCMC to perform an edit on the configuration
-  list<Eigen::VectorXd> performEdit(vector<EditConstraint> edit, Snapshot* orig, attrObjFunc f, string name, bool acceptStd = true);
+  list<mcmcSample> performEdit(vector<EditConstraint> edit, Snapshot* orig, attrObjFunc f, string name, bool acceptStd = true);
 
   // Do MCMC with the given parameters. Returns the list of samples and number of accepted samples.
   // Samples list will be empty if saveSamples is false.
-  pair<list<Eigen::VectorXd>, int> doMCMC(vector<EditConstraint> edit, Snapshot* start,
+  pair<list<mcmcSample>, int> doMCMC(vector<EditConstraint> edit, Snapshot* start,
     attrObjFunc f, int iters, double sigma, bool saveSamples, string name, bool acceptStd);
 
   // computes the numeric derivative for the particular lighting parameter and
