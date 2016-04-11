@@ -78,6 +78,38 @@ void unlockDeviceParam(string id, string param)
   d->setMetadata(param + "_lock", "n");
 }
 
+void exportSearchResults(list<SearchResult*>& results, int depth, string desc)
+{
+  ofstream xfile;
+  ofstream valfile;
+
+  time_t t = time(0);   // get time now
+  struct tm * now = localtime(&t);
+
+  char buffer[80];
+  strftime(buffer, 80, "%Y-%m-%d-%H%M", now);
+
+  string xfname = getGlobalSettings()->_traceRootDir + "/search-vectors-" + string(buffer) + "-depth-" + String(depth).toStdString() + "-" + desc + ".txt";
+  string valfname = getGlobalSettings()->_traceRootDir + "/search-vals-" + string(buffer) + "-depth-" + String(depth).toStdString() + "-" + desc + ".txt";
+
+  // export vectors and values
+  xfile.open(xfname, ios::trunc);
+  valfile.open(valfname, ios::trunc);
+
+  for (const auto& r : results) {
+    for (int i = 0; i < r->_scene.size(); i++) {
+      xfile << r->_scene[i] << "\t";
+    }
+    xfile << "\n";
+    valfile << r->_objFuncVal << "\n";
+  }
+
+  // automatically run t-sne?
+  
+  xfile.close();
+  valfile.close();
+}
+
 void GlobalSettings::dumpDiagnosticData()
 {
   if (_exportTraces) {
@@ -106,6 +138,7 @@ void GlobalSettings::dumpDiagnosticData()
   _as.clear();
   _fxs.clear();
   _editNames.clear();
+  _clusterCounter = 0;
 }
 
 Rig* getRig() {
@@ -203,6 +236,7 @@ GlobalSettings::GlobalSettings()
   _T = 1;
   _exportTraces = true;
   _traceRootDir = "C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/traces";
+  _clusterCounter = 0;
 }
 
 GlobalSettings::~GlobalSettings()

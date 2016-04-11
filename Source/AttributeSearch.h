@@ -26,22 +26,6 @@ struct DeviceInfo {
 // Objective function type to be passed to performEdit.
 typedef function<double(Snapshot*)> attrObjFunc;
 
-// Results that eventually get returned to the UI layer
-// contains edit history for debug, attribute value, and scene
-class SearchResult {
-public:
-  SearchResult();
-  SearchResult(const SearchResult& other);
-  ~SearchResult();
-  
-  Eigen::VectorXd _scene;
-  Array<string> _editHistory;
-  double _objFuncVal;
-
-  // Paired with a vector of cluster centers, indicates which cluster the result belongs to.
-  unsigned long _cluster;
-};
-
 // kmeans typedefs
 typedef dlib::matrix<double, 0, 1> sampleType;
 typedef dlib::linear_kernel<sampleType> kernelType;

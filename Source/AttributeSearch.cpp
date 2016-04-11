@@ -568,6 +568,11 @@ void AttributeSearchThread::runStandardSearch()
     }
     _results.clear();
 
+    // DEBUG - export set of points and vals for visualization
+    if (getGlobalSettings()->_exportTraces) {
+      exportSearchResults(newResults, i);
+    }
+
     // cluster and filter for final run
     if (i == _editDepth - 1) {
       getRecorder()->log(SYSTEM, "Number of initial results: " + String(newResults.size()).toStdString());
@@ -580,6 +585,12 @@ void AttributeSearchThread::runStandardSearch()
         thresh += getGlobalSettings()->_jndInc;
         filterResults(_results, thresh);
       }
+
+      // DEBUG - export set of points and vals for visualization after filter
+      if (getGlobalSettings()->_exportTraces) {
+        exportSearchResults(_results, i, "finale");
+      }
+
       getRecorder()->log(SYSTEM, "JND Threshold at end of Search: " + String(thresh).toStdString());
     }
     else {
@@ -592,6 +603,11 @@ void AttributeSearchThread::runStandardSearch()
       while (_results.size() > getGlobalSettings()->_numEditScenes) {
         thresh += getGlobalSettings()->_jndInc;
         filterResults(_results, thresh);
+      }
+
+      // DEBUG - export set of points and vals for visualization after filter
+      if (getGlobalSettings()->_exportTraces) {
+        exportSearchResults(_results, i, "filtered");
       }
       
       getRecorder()->log(SYSTEM, "Number of results at end of level " + String(i).toStdString() + ": " + String(_results.size()).toStdString());
@@ -637,9 +653,15 @@ void AttributeSearchThread::runExploreSearch() {
     }
     _results.clear();
 
+    // DEBUG - export set of points and vals for visualization
+    if (getGlobalSettings()->_exportTraces) {
+      exportSearchResults(newResults, i);
+    }
+
     // cluster and filter for final run
     if (i == _editDepth - 1) {
       getRecorder()->log(SYSTEM, "Number of initial results: " + String(newResults.size()).toStdString());
+
       double thresh = getGlobalSettings()->_jndThreshold;
       filterResults(newResults, thresh);
       _results = newResults;
@@ -649,6 +671,12 @@ void AttributeSearchThread::runExploreSearch() {
         thresh += getGlobalSettings()->_jndInc;
         filterResults(_results, thresh);
       }
+
+      // DEBUG - export set of points and vals for visualization after filter
+      if (getGlobalSettings()->_exportTraces) {
+        exportSearchResults(_results, i, "final");
+      }
+
       getRecorder()->log(SYSTEM, "JND Threshold at end of Search: " + String(thresh).toStdString());
     }
     else {
@@ -660,6 +688,11 @@ void AttributeSearchThread::runExploreSearch() {
       while (_results.size() > getGlobalSettings()->_numEditScenes) {
         thresh += getGlobalSettings()->_jndInc;
         filterResults(_results, thresh);
+      }
+
+      // DEBUG - export set of points and vals for visualization after filter
+      if (getGlobalSettings()->_exportTraces) {
+        exportSearchResults(_results, i, "filtered");
       }
 
       //auto centers = clusterResults(newResults, getGlobalSettings()->_numEditScenes);
@@ -1203,10 +1236,10 @@ pair<list<Eigen::VectorXd>, int> AttributeSearchThread::doMCMC(vector<EditConstr
   //if (saveSamples)
   //  getRecorder()->log(SYSTEM, "[Debug] " + name + " accepted " + String(((float)accepted / (float)maxIters) * 100).toStdString() + "% of proposals");
 
-  // filter results
-  getRecorder()->log(SYSTEM, "[Debug] " + name + " returned " + String(results.size()).toStdString() + " proposals");
-  filterResults(results, getGlobalSettings()->_jndThreshold);
-  getRecorder()->log(SYSTEM, "[Debug] " + name + " after filter returned " + String(results.size()).toStdString() + " proposals");
+  // TEMP - only filter practical duplicates
+  //getRecorder()->log(SYSTEM, "[Debug] " + name + " returned " + String(results.size()).toStdString() + " proposals");
+  filterResults(results, 0.001);//getGlobalSettings()->_jndThreshold);
+  //getRecorder()->log(SYSTEM, "[Debug] " + name + " after filter returned " + String(results.size()).toStdString() + " proposals");
 
   // Convert results to full vectors
   list<Eigen::VectorXd> fullResults;

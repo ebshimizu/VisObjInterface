@@ -22,86 +22,6 @@ using namespace Lumiverse::ShowControl;
 
 class MainWindow;
 
-// A container for various things that the entire application may want to access
-// TODO: at some point, have this load from a file
-class GlobalSettings
-{
-public:
-  GlobalSettings();
-  //GlobalSettings(string filename);
-  ~GlobalSettings();
-
-  int _thumbnailRenderSamples;
-  int _stageRenderSamples;
-  double _searchDerivDelta;     // h, size of window for finite difference derivative
-  double _minEditDist;          // Minimum attribute difference needed to be returned from an edit
-  int _numEditScenes;           // Number of scenes per iteration that get passed on to the next stage. i.e. frontier size
-  int _renderWidth;             // Render width
-  int _renderHeight;            // Render height
-  double _thumbnailRenderScale; // Thumbnail size 
-  int _editDepth;               // Maximum edit depth
-  double _clusterDistThreshold; // Required average distance from every element to the cluster center
-  double _editStepSize;         // MCMC: Std dev of gaussian sample 
-  int _maxMCMCIters;            // MCMC: Max number of iterations
-  double _jndThreshold;         // For two feature vectors, how far apart they can be to be considered equivalent
-  bool _randomMode;             // Primarily for debugging, turning this on ignores parameter values when searching
-  int _clusterElemsPerRow;      // Number of elements to show in a cluster detail view
-  double _accceptBandwidth;     // For MCMC samples that are bad, how tolerant we should be of them
-  int _maxReturnedScenes;       // Limiter for how many scenes get returned from a search, primarily limited by thumbnail render speed
-  double _jndInc;               // Increment to use for adaptive filtering
-  bool _showThumbnailImg;       // Flag to show thumbnail image in the render area.
-  double _explorationTolerance; // In the exploration phase, how far we can be off the other attribute values to still be ok
-  double _T;                    // Temperature controlling MCMC tolerance to worse suggestions
-  bool _exportTraces;           // Export trace data for each search operation
-  string _traceRootDir;         // Trace file location
-
-  int _numDisplayClusters;      // Number of clusters to display in the results
-
-  // Current sorting method to use
-  string _currentSortMode;
-
-  map<string, string> _commandLineArgs;
-
-  // Diagnostic storage for search
-  vector<double> _fxs;
-  vector<double> _as;
-  vector<string> _editNames;
-
-  // dumps search diagnostics to a file
-  // file is 1 csv: first row is accepted function values, second is the a that accepted the value
-  void dumpDiagnosticData();
-};
-
-// Gets the application command manager for this application.
-ApplicationCommandManager* getApplicationCommandManager();
-
-// Get status bar object
-StatusBar* getStatusBar();
-
-// Gets the global settings object
-GlobalSettings* getGlobalSettings();
-
-// Gets the lumiverse Rig object present in the entire application
-Rig* getRig();
-
-// Get the action logging object
-Recorder* getRecorder();
-
-DocumentWindow* getAppTopLevelWindow();
-DocumentWindow* getAppMainContentWindow();
-
-// Returns the animation patch from the rig, if one exists.
-ArnoldAnimationPatch* getAnimationPatch();
-
-// Deletes all global variables, should be called on application destroy
-void cleanUpGlobals();
-
-// Returns true if the device has a metadata string equal to 'y' for [param]_lock
-bool isDeviceParamLocked(string id, string param);
-
-void lockDeviceParam(string id, string param);
-void unlockDeviceParam(string id, string param);
-
 enum command {
   // File
   OPEN = 0x0001,
@@ -184,5 +104,105 @@ struct EditConstraint {
   EditParam _param;
   EditNumDevices _qty;
 };
+
+// A container for various things that the entire application may want to access
+// TODO: at some point, have this load from a file
+class GlobalSettings
+{
+public:
+  GlobalSettings();
+  //GlobalSettings(string filename);
+  ~GlobalSettings();
+
+  int _thumbnailRenderSamples;
+  int _stageRenderSamples;
+  double _searchDerivDelta;     // h, size of window for finite difference derivative
+  double _minEditDist;          // Minimum attribute difference needed to be returned from an edit
+  int _numEditScenes;           // Number of scenes per iteration that get passed on to the next stage. i.e. frontier size
+  int _renderWidth;             // Render width
+  int _renderHeight;            // Render height
+  double _thumbnailRenderScale; // Thumbnail size 
+  int _editDepth;               // Maximum edit depth
+  double _clusterDistThreshold; // Required average distance from every element to the cluster center
+  double _editStepSize;         // MCMC: Std dev of gaussian sample 
+  int _maxMCMCIters;            // MCMC: Max number of iterations
+  double _jndThreshold;         // For two feature vectors, how far apart they can be to be considered equivalent
+  bool _randomMode;             // Primarily for debugging, turning this on ignores parameter values when searching
+  int _clusterElemsPerRow;      // Number of elements to show in a cluster detail view
+  double _accceptBandwidth;     // For MCMC samples that are bad, how tolerant we should be of them
+  int _maxReturnedScenes;       // Limiter for how many scenes get returned from a search, primarily limited by thumbnail render speed
+  double _jndInc;               // Increment to use for adaptive filtering
+  bool _showThumbnailImg;       // Flag to show thumbnail image in the render area.
+  double _explorationTolerance; // In the exploration phase, how far we can be off the other attribute values to still be ok
+  double _T;                    // Temperature controlling MCMC tolerance to worse suggestions
+  bool _exportTraces;           // Export trace data for each search operation
+  string _traceRootDir;         // Trace file location
+
+  int _clusterCounter;          // Index for identifying accepted samples
+  int _numDisplayClusters;      // Number of clusters to display in the results
+
+  // Current sorting method to use
+  string _currentSortMode;
+
+  map<string, string> _commandLineArgs;
+
+  // Diagnostic storage for search
+  vector<double> _fxs;
+  vector<double> _as;
+  vector<string> _editNames;
+
+  // dumps search diagnostics to a file
+  // file is 1 csv: first row is accepted function values, second is the a that accepted the value
+  void dumpDiagnosticData();
+};
+
+// Results that eventually get returned to the UI layer
+// contains edit history for debug, attribute value, and scene
+class SearchResult {
+public:
+  SearchResult();
+  SearchResult(const SearchResult& other);
+  ~SearchResult();
+
+  Eigen::VectorXd _scene;
+  Array<string> _editHistory;
+  double _objFuncVal;
+  unsigned int _sampleNo;
+
+  // Paired with a vector of cluster centers, indicates which cluster the result belongs to.
+  unsigned long _cluster;
+};
+
+// Gets the application command manager for this application.
+ApplicationCommandManager* getApplicationCommandManager();
+
+// Get status bar object
+StatusBar* getStatusBar();
+
+// Gets the global settings object
+GlobalSettings* getGlobalSettings();
+
+// Gets the lumiverse Rig object present in the entire application
+Rig* getRig();
+
+// Get the action logging object
+Recorder* getRecorder();
+
+DocumentWindow* getAppTopLevelWindow();
+DocumentWindow* getAppMainContentWindow();
+
+// Returns the animation patch from the rig, if one exists.
+ArnoldAnimationPatch* getAnimationPatch();
+
+// Deletes all global variables, should be called on application destroy
+void cleanUpGlobals();
+
+// Returns true if the device has a metadata string equal to 'y' for [param]_lock
+bool isDeviceParamLocked(string id, string param);
+
+void lockDeviceParam(string id, string param);
+void unlockDeviceParam(string id, string param);
+
+void exportSearchResults(list<SearchResult*>& results, int depth, string desc = "");
 
 #endif  // GLOBALS_H_INCLUDED

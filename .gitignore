@@ -280,3 +280,6 @@ _Pvt_Extensions
 .fake/
 *.csv
 *.html
+
+traces/*
+dataviz/bh_tsne.exe
