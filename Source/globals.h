@@ -208,6 +208,6 @@ bool isDeviceParamLocked(string id, string param);
 void lockDeviceParam(string id, string param);
 void unlockDeviceParam(string id, string param);
 
-void exportSearchResults(list<SearchResult*>& results, int depth, string desc = "");
+void exportSearchResults(list<SearchResult*>& results, int depth, string desc = "", bool makeGraph = false);
 
 #endif  // GLOBALS_H_INCLUDED

@@ -78,7 +78,7 @@ void unlockDeviceParam(string id, string param)
   d->setMetadata(param + "_lock", "n");
 }
 
-void exportSearchResults(list<SearchResult*>& results, int depth, string desc)
+void exportSearchResults(list<SearchResult*>& results, int depth, string desc, bool makeGraph)
 {
   // three files exported here:
   // vector values
@@ -95,9 +95,10 @@ void exportSearchResults(list<SearchResult*>& results, int depth, string desc)
   char buffer[80];
   strftime(buffer, 80, "%Y-%m-%d-%H%M", now);
 
-  string xfname = getGlobalSettings()->_traceRootDir + "/search-vectors-" + string(buffer) + "-depth-" + String(depth).toStdString() + "-" + desc + ".txt";
-  string valfname = getGlobalSettings()->_traceRootDir + "/search-vals-" + string(buffer) + "-depth-" + String(depth).toStdString() + "-" + desc + ".txt";
-  string keyname = getGlobalSettings()->_traceRootDir + "/search-ids-" + string(buffer) + "-depth-" + String(depth).toStdString() + "-" + desc + ".txt";
+  string fnamePrefix = getGlobalSettings()->_traceRootDir + "/search-" + string(buffer) + "-depth-" + String(depth).toStdString() + "-" + desc;
+  string xfname = fnamePrefix + "-vectors.txt";
+  string valfname = fnamePrefix + "-vals.txt";
+  string keyname = fnamePrefix + "-ids.txt";
 
   // export vectors and values
   xfile.open(xfname, ios::trunc);
@@ -105,19 +106,31 @@ void exportSearchResults(list<SearchResult*>& results, int depth, string desc)
   key.open(keyname, ios::trunc);
 
   for (const auto& r : results) {
+    bool vecFirst = true;
     for (int i = 0; i < r->_scene.size(); i++) {
-      xfile << r->_scene[i] << "\t";
+      if (!vecFirst)
+        xfile << "\t";
+      else {
+        vecFirst = false;
+      }
+      xfile << r->_scene[i];
     }
     xfile << "\n";
     valfile << r->_objFuncVal << "\n";
     key << r->_sampleNo << "\n";
   }
 
-  // automatically run t-sne?
-  
+
   xfile.close();
   valfile.close();
   key.close();
+
+  if (makeGraph) {
+    // automatically run t-sne
+    string root = getGlobalSettings()->_traceRootDir + "/search-" + string(buffer) + "-depth-" + String(depth).toStdString();
+    string cmd = "python C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/dataviz/tsne2.py " + root + " 30";
+    system(cmd.c_str());
+  }
 }
 
 void GlobalSettings::dumpDiagnosticData()
@@ -133,7 +146,7 @@ void GlobalSettings::dumpDiagnosticData()
     strftime(buffer, 80, "%Y-%m-%d-%H%M", now);
 
     string filename = _traceRootDir + "/search-" + string(buffer) + ".csv";
-    string indexFilename = _traceRootDir + "/search-selectedIds-" + string(buffer) + ".csv";
+    string indexFilename = _traceRootDir + "/search-" + string(buffer) + "-selectedIds.csv";
     
     file.open(filename, ios::trunc);
     indexFile.open(indexFilename, ios::trunc);
@@ -150,7 +163,7 @@ void GlobalSettings::dumpDiagnosticData()
     indexFile.close();
 
     // actually just go generate a report now
-    string cmd = "python C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/dataviz/plotSearchTrace.py " + filename;
+    string cmd = "python C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/dataviz/plotSearchTrace.py " + _traceRootDir + "/search-" + string(buffer);
     system(cmd.c_str());
   }
 

@@ -588,7 +588,7 @@ void AttributeSearchThread::runStandardSearch()
 
       // DEBUG - export set of points and vals for visualization after filter
       if (getGlobalSettings()->_exportTraces) {
-        exportSearchResults(_results, i, "finale");
+        exportSearchResults(_results, i, "filtered", true);
       }
 
       getRecorder()->log(SYSTEM, "JND Threshold at end of Search: " + String(thresh).toStdString());
@@ -607,7 +607,7 @@ void AttributeSearchThread::runStandardSearch()
 
       // DEBUG - export set of points and vals for visualization after filter
       if (getGlobalSettings()->_exportTraces) {
-        exportSearchResults(_results, i, "filtered");
+        exportSearchResults(_results, i, "filtered", true);
       }
       
       getRecorder()->log(SYSTEM, "Number of results at end of level " + String(i).toStdString() + ": " + String(_results.size()).toStdString());
@@ -678,7 +678,7 @@ void AttributeSearchThread::runExploreSearch() {
 
       // DEBUG - export set of points and vals for visualization after filter
       if (getGlobalSettings()->_exportTraces) {
-        exportSearchResults(_results, i, "final");
+        exportSearchResults(_results, i, "filtered", true);
       }
 
       getRecorder()->log(SYSTEM, "JND Threshold at end of Search: " + String(thresh).toStdString());
@@ -696,7 +696,7 @@ void AttributeSearchThread::runExploreSearch() {
 
       // DEBUG - export set of points and vals for visualization after filter
       if (getGlobalSettings()->_exportTraces) {
-        exportSearchResults(_results, i, "filtered");
+        exportSearchResults(_results, i, "filtered", true);
       }
 
       //auto centers = clusterResults(newResults, getGlobalSettings()->_numEditScenes);

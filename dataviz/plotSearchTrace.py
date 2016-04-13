@@ -15,9 +15,13 @@ def generateColors(n):
 		colors.append("rgb(" + str(rgb[0]*255) + "," + str(rgb[1]*255) + "," + str(rgb[2]*255) + ")")
 	return colors
 
-filename = sys.argv[1]
+prefix = sys.argv[1]
+
+filename = prefix + ".csv"
+idfilename = prefix + "-selectedIds.csv"
 
 data = OrderedDict()
+ysamples = []
 adata = { 'x' : [], 'y' : [] } 
 
 # gather data from csv into dictionaries
@@ -34,6 +38,8 @@ with open(filename, 'rb') as csvfile:
 			data[row[2]]['x'] = [i]
 			data[row[2]]['y'] = [float(row[0])]
 
+		ysamples.append(float(row[0]))
+
 		if previousRow != row[2] and i != 0:
 			data[previousRow]['x'].append(i)
 			data[previousRow]['y'].append(None)
@@ -42,6 +48,16 @@ with open(filename, 'rb') as csvfile:
 		adata['x'].append(i)
 		adata['y'].append(float(row[1]))
 		i = i + 1
+
+selected = []
+yselected = []
+
+# find selected element IDs
+with open(idfilename, 'rb') as selcsv:
+	freader = csv.reader(selcsv, delimiter=",")
+	for row in freader:
+		selected.append(int(row[0]))
+		yselected.append(ysamples[int(row[0])])
 
 graphData = []
 
@@ -81,6 +97,18 @@ for k in data:
 
 	graphData.append(trace)
 	i = i + 1
+
+# create plot for selected elements
+selTrace = go.Scatter(
+	x = selected,
+	y = yselected,
+	name = "Selected Samples",
+	mode = 'markers',
+	type = 'scatter',
+	marker = dict(size=10, color='rgb(255, 0, 0)', symbol='star')
+)
+
+graphData.append(selTrace)
 
 layout = go.Layout(
 	title=filename,

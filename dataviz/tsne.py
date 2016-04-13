@@ -214,4 +214,4 @@ graphData = [allPoints, selPoints]
 py.plot(graphData)
 
 #Plot.scatter(Y[:,0], Y[:,1], 20, labels);
-#Plot.show();
+#Plot.show(); 
