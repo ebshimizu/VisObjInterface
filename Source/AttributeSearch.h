@@ -46,6 +46,9 @@ void filterResults(list<mcmcSample>& results, double t);
 // Remove scenes from the set that are within a specified threshold of other elements
 void filterResults(list<SearchResult*>& results, double t);
 
+// remove points from the set that are within a specified threshold 
+void filterResults(list<Eigen::VectorXd>& points, double t);
+
 // For each center, return the closest search result to that center
 list<SearchResult*> getClosestScenesToCenters(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers);
 
@@ -122,6 +125,12 @@ private:
 
   // Returns the number of features in the vector used for search
   int getVecLength(vector<EditConstraint>& edit, Snapshot* s);
+
+  // Filters the _results set down to a reasonable size;
+  list<SearchResult*> filterSearchResults(list<SearchResult*>& results);
+
+  // Assign each result to the closest center (L2 norm)
+  void clusterResults(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers);
 };
 
 #endif  // ATTRIBUTESEARCH_H_INCLUDED

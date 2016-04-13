@@ -142,23 +142,11 @@
     <ClCompile Include="..\..\Source\SceneViewer.cpp" />
     <ClCompile Include="..\..\Source\SettingsEditor.cpp" />
     <ClCompile Include="..\..\Source\StatusBar.cpp" />
-    <ClCompile Include="..\..\Source\BacklitAttribute.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\Source\BrightAttribute.cpp" />
     <ClCompile Include="..\..\Source\ContrastAttribute.cpp" />
-    <ClCompile Include="..\..\Source\HighAngleAttribute.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\Source\LowKeyAttribute.cpp" />
-    <ClCompile Include="..\..\Source\NightAttribute.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\Source\NoireAttribute.cpp" />
     <ClCompile Include="..\..\Source\SaturationAttribute.cpp" />
-    <ClCompile Include="..\..\Source\SoftAttribute.cpp">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\Source\SVRAttribute.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -170,6 +158,7 @@
     <ClCompile Include="..\..\Source\AttributeSearchCluster.cpp" />
     <ClCompile Include="..\..\Source\AttributeSearchResult.cpp" />
     <ClCompile Include="..\..\Source\AttributeSorting.cpp" />
+    <ClCompile Include="..\..\Source\MeanShift.cpp" />
     <ClCompile Include="..\..\Source\SearchResultsViewer.cpp" />
     <ClCompile Include="..\..\Source\ParamControls.cpp" />
     <ClCompile Include="..\..\Source\globals.cpp" />
@@ -1336,27 +1325,11 @@
     <ClInclude Include="..\..\Source\SettingsEditor.h" />
     <ClInclude Include="..\..\Source\StatusBar.h" />
     <ClInclude Include="..\..\Source\TopComponentContainer.h" />
-    <ClInclude Include="..\..\Source\BacklitAttribute.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="..\..\Source\BrightAttribute.h" />
     <ClInclude Include="..\..\Source\ContrastAttribute.h" />
-    <ClInclude Include="..\..\Source\HighAngleAttribute.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="..\..\Source\LowKeyAttribute.h" />
-    <ClInclude Include="..\..\Source\NightAttribute.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="..\..\Source\NoireAttribute.h" />
     <ClInclude Include="..\..\Source\SaturationAttribute.h" />
-    <ClInclude Include="..\..\Source\SoftAttribute.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="..\..\Source\SVRAttribute.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -1370,6 +1343,7 @@
     <ClInclude Include="..\..\Source\AttributeSearchCluster.h" />
     <ClInclude Include="..\..\Source\AttributeSearchResult.h" />
     <ClInclude Include="..\..\Source\AttributeSorting.h" />
+    <ClInclude Include="..\..\Source\MeanShift.h" />
     <ClInclude Include="..\..\Source\SearchResultsViewer.h" />
     <ClInclude Include="..\..\Source\ParamControls.h" />
     <ClInclude Include="..\..\Source\globals.h" />

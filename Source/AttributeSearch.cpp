@@ -9,6 +9,7 @@
 */
 
 #include "AttributeSearch.h"
+#include "MeanShift.h"
 #include <random>
 #include <list>
 //#include <vld.h>
@@ -291,6 +292,30 @@ void filterResults(list<SearchResult*>& results, double t)
   }
 }
 
+void filterResults(list<Eigen::VectorXd>& results, double t)
+{
+  // starting at the first element
+  for (auto it = results.begin(); it != results.end(); it++) {
+    // See how close all other elements are
+    for (auto it2 = results.begin(); it2 != results.end(); ) {
+      if (it == it2) {
+        it2++;
+        continue;
+      }
+
+      double dist = (*it - *it2).norm();
+
+      // delete element if it's too close
+      if (dist < t) {
+        it2 = results.erase(it2);
+      }
+      else {
+        it2++;
+      }
+    }
+  }
+}
+
 list<SearchResult*> getClosestScenesToCenters(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers)
 {
   vector<multimap<double, SearchResult*> > res;
@@ -559,6 +584,7 @@ void AttributeSearchThread::runStandardSearch()
   for (int i = 0; i < _editDepth; i++) {
     setProgress((float)i / _editDepth);
 
+    // actually get the results with the current set of edits
     list<SearchResult*> newResults = runSingleLevelSearch(_results, i, f);
 
     // delete old results
@@ -595,15 +621,13 @@ void AttributeSearchThread::runStandardSearch()
     }
     else {
       getRecorder()->log(SYSTEM, "Number of initial results at end of level " + String(i).toStdString() + ": " + String(newResults.size()).toStdString());
-      double thresh = getGlobalSettings()->_jndThreshold;
-      filterResults(newResults, thresh);
-      _results = newResults;
 
-      // additional filtering if too many results are still present
-      while (_results.size() > getGlobalSettings()->_numEditScenes) {
-        thresh += getGlobalSettings()->_jndInc;
-        filterResults(_results, thresh);
-      }
+      // Here's what we want from filtering:
+      // -Reasonable sized set of points that both
+      // --reasonably span the current space of possible modes of results
+      // --are also better than the starting position
+      // We will attempt to use mean shift clustering for this
+      _results = filterSearchResults(newResults);
 
       // DEBUG - export set of points and vals for visualization after filter
       if (getGlobalSettings()->_exportTraces) {
@@ -611,9 +635,6 @@ void AttributeSearchThread::runStandardSearch()
       }
       
       getRecorder()->log(SYSTEM, "Number of results at end of level " + String(i).toStdString() + ": " + String(_results.size()).toStdString());
-      //auto centers = clusterResults(newResults, getGlobalSettings()->_numEditScenes);
-      //auto filtered = getClosestScenesToCenters(newResults, centers);
-      //_results = filtered;
     }
 
     for (const auto& r : _results) {
@@ -1607,4 +1628,46 @@ int AttributeSearchThread::getVecLength(vector<EditConstraint>& edit, Snapshot *
   }
 
   return size;
+}
+
+list<SearchResult*> AttributeSearchThread::filterSearchResults(list<SearchResult*>& results)
+{
+  MeanShift shifter;
+
+  // put scenes into list
+  list<Eigen::VectorXd> pt;
+  for (auto& s : results) {
+    pt.push_back(s->_scene);
+  }
+
+  // get the centers
+  list<Eigen::VectorXd> centers = shifter.cluster(pt, 1);
+  filterResults(centers, 1e-3);
+
+  // place centers into a vector (for indexing)
+  vector<Eigen::VectorXd> cs;
+  for (auto& c : centers) {
+    cs.push_back(c);
+  }
+
+  // place search results into clusters
+  clusterResults(results, cs);
+
+  // resturn the closest results to the center of the clusters
+  return getClosestScenesToCenters(results, cs);
+}
+
+void AttributeSearchThread::clusterResults(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers)
+{
+  for (auto& r : results) {
+    // calculate distance to centers, save closest
+    double lowest = 1e10;
+    for (int i = 0; i < centers.size(); i++) {
+      double dist = (r->_scene - centers[i]).norm();
+      if (dist < lowest) {
+        r->_cluster = i;
+        lowest = dist;
+      }
+    }
+  }
 }

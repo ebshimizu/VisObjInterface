@@ -37,10 +37,6 @@
       </GROUP>
       <GROUP id="{2AE89FBF-419D-C3BF-F7EF-2317DD7C267B}" name="attributes">
         <GROUP id="{9D54FF1D-9ACE-EBC7-F1C5-BC6BB3FDA4C7}" name="attribute instances">
-          <FILE id="hfteRf" name="BacklitAttribute.cpp" compile="0" resource="0"
-                file="Source/BacklitAttribute.cpp"/>
-          <FILE id="BR7oXa" name="BacklitAttribute.h" compile="0" resource="0"
-                file="Source/BacklitAttribute.h"/>
           <FILE id="fgXToS" name="BrightAttribute.cpp" compile="1" resource="0"
                 file="Source/BrightAttribute.cpp"/>
           <FILE id="mAgE17" name="BrightAttribute.h" compile="0" resource="0"
@@ -49,18 +45,10 @@
                 file="Source/ContrastAttribute.cpp"/>
           <FILE id="Kzop1g" name="ContrastAttribute.h" compile="0" resource="0"
                 file="Source/ContrastAttribute.h"/>
-          <FILE id="XFtxtT" name="HighAngleAttribute.cpp" compile="0" resource="0"
-                file="Source/HighAngleAttribute.cpp"/>
-          <FILE id="dSoelb" name="HighAngleAttribute.h" compile="0" resource="0"
-                file="Source/HighAngleAttribute.h"/>
           <FILE id="xrUn5N" name="LowKeyAttribute.cpp" compile="1" resource="0"
                 file="Source/LowKeyAttribute.cpp"/>
           <FILE id="jHjxwt" name="LowKeyAttribute.h" compile="0" resource="0"
                 file="Source/LowKeyAttribute.h"/>
-          <FILE id="czODse" name="NightAttribute.cpp" compile="0" resource="0"
-                file="Source/NightAttribute.cpp"/>
-          <FILE id="GCm5yC" name="NightAttribute.h" compile="0" resource="0"
-                file="Source/NightAttribute.h"/>
           <FILE id="QLk7Mw" name="NoireAttribute.cpp" compile="1" resource="0"
                 file="Source/NoireAttribute.cpp"/>
           <FILE id="XuJ2u9" name="NoireAttribute.h" compile="0" resource="0"
@@ -69,9 +57,6 @@
                 file="Source/SaturationAttribute.cpp"/>
           <FILE id="MHAEh2" name="SaturationAttribute.h" compile="0" resource="0"
                 file="Source/SaturationAttribute.h"/>
-          <FILE id="WtW8gF" name="SoftAttribute.cpp" compile="0" resource="0"
-                file="Source/SoftAttribute.cpp"/>
-          <FILE id="RbNcdN" name="SoftAttribute.h" compile="0" resource="0" file="Source/SoftAttribute.h"/>
           <FILE id="Ia8uzM" name="SVRAttribute.cpp" compile="0" resource="0"
                 file="Source/SVRAttribute.cpp"/>
           <FILE id="rJhqsM" name="SVRAttribute.h" compile="0" resource="0" file="Source/SVRAttribute.h"/>
@@ -108,6 +93,8 @@
               file="Source/AttributeSorting.cpp"/>
         <FILE id="flj8HC" name="AttributeSorting.h" compile="0" resource="0"
               file="Source/AttributeSorting.h"/>
+        <FILE id="oCCSvH" name="MeanShift.cpp" compile="1" resource="0" file="Source/MeanShift.cpp"/>
+        <FILE id="sYEPNO" name="MeanShift.h" compile="0" resource="0" file="Source/MeanShift.h"/>
         <FILE id="chc7qJ" name="SearchResultsViewer.cpp" compile="1" resource="0"
               file="Source/SearchResultsViewer.cpp"/>
         <FILE id="sft1RZ" name="SearchResultsViewer.h" compile="0" resource="0"

@@ -139,6 +139,7 @@ public:
   double _T;                    // Temperature controlling MCMC tolerance to worse suggestions
   bool _exportTraces;           // Export trace data for each search operation
   string _traceRootDir;         // Trace file location
+  double _meanShiftEps;         // Mean shift epsilon
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

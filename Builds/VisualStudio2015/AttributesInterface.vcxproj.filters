@@ -351,31 +351,19 @@
     <ClCompile Include="..\..\Source\StatusBar.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\BacklitAttribute.cpp">
-      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\BrightAttribute.cpp">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\ContrastAttribute.cpp">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\HighAngleAttribute.cpp">
-      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\LowKeyAttribute.cpp">
-      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\NightAttribute.cpp">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\NoireAttribute.cpp">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SaturationAttribute.cpp">
-      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\SoftAttribute.cpp">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SVRAttribute.cpp">
@@ -403,6 +391,9 @@
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\AttributeSorting.cpp">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\MeanShift.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SearchResultsViewer.cpp">
@@ -1625,31 +1616,19 @@
     <ClInclude Include="..\..\Source\TopComponentContainer.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\BacklitAttribute.h">
-      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\BrightAttribute.h">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\ContrastAttribute.h">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\HighAngleAttribute.h">
-      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\LowKeyAttribute.h">
-      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\NightAttribute.h">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\NoireAttribute.h">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SaturationAttribute.h">
-      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\SoftAttribute.h">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SVRAttribute.h">
@@ -1680,6 +1659,9 @@
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\AttributeSorting.h">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\MeanShift.h">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SearchResultsViewer.h">

@@ -277,6 +277,7 @@ GlobalSettings::GlobalSettings()
   _exportTraces = true;
   _traceRootDir = "C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/traces";
   _clusterCounter = 0;
+  _meanShiftEps = 1e-4;
 }
 
 GlobalSettings::~GlobalSettings()
