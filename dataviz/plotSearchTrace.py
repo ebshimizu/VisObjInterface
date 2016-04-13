@@ -22,6 +22,7 @@ idfilename = prefix + "-selectedIds.csv"
 
 data = OrderedDict()
 ysamples = []
+xsamples = []	# maps x-axis value to sample number (removes the START elements)
 adata = { 'x' : [], 'y' : [] } 
 
 # gather data from csv into dictionaries
@@ -40,6 +41,9 @@ with open(filename, 'rb') as csvfile:
 
 		ysamples.append(float(row[0]))
 
+		if row[2] != "START":
+			xsamples.append(i)
+
 		if previousRow != row[2] and i != 0:
 			data[previousRow]['x'].append(i)
 			data[previousRow]['y'].append(None)
@@ -56,8 +60,10 @@ yselected = []
 with open(idfilename, 'rb') as selcsv:
 	freader = csv.reader(selcsv, delimiter=",")
 	for row in freader:
-		selected.append(int(row[0]))
-		yselected.append(ysamples[int(row[0])])
+		selected.append(xsamples[int(row[0])])
+		yselected.append(ysamples[xsamples[int(row[0])]])
+
+print selected
 
 graphData = []
 
