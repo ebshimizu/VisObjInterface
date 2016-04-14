@@ -120,13 +120,13 @@ void AttributeSearchResult::mouseEnter(const MouseEvent & event)
   // when the mouse enters one of these components, we want to display the cluster contents
   // (which can be displayed in an AttributeSearchCluster object) in the bottom half
   // of the search results window
+  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
   if (_clusterElems.size() > 0) {
     getRecorder()->log(ACTION, "Cluster " + String(_result->_cluster).toStdString() + " hovered");
 
     AttributeSearchCluster* cluster = new AttributeSearchCluster(_clusterElems);
 
     // We have to reach all the way up to the main component to do this
-    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
     cluster->sort(&DefaultSorter());
     cluster->sort();
 
@@ -134,24 +134,19 @@ void AttributeSearchResult::mouseEnter(const MouseEvent & event)
       mc->setBottomSearchComponent(cluster, this);
     }
   }
+
+  if (mc != nullptr) {
+    getGlobalSettings()->_showThumbnailImg = true;
+    mc->setThumbImage(_render);
+    mc->repaint();
+  }
 }
 
-void AttributeSearchResult::mouseMove(const MouseEvent & event)
+void AttributeSearchResult::mouseExit(const MouseEvent & event)
 {
-  if (KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey)) {
-    // move the thumbnail to the main viewer window.
-    getGlobalSettings()->_showThumbnailImg = true;
-
-    // We have to reach all the way up to the main component to do this too
-    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-    mc->setThumbImage(_render);
-  }
-  else
-  {
-    getGlobalSettings()->_showThumbnailImg = false;
-    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-    mc->repaintRenderArea();
-  }
+  getGlobalSettings()->_showThumbnailImg = false;
+  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+  mc->repaint();
 }
 
 void AttributeSearchResult::setClusterElements(Array<AttributeSearchResult*> elems)
