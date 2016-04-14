@@ -18,15 +18,15 @@
 // instead of vector<double>
 class MeanShift {
 public:
-  MeanShift() { set_kernel(NULL); }
+  MeanShift();
   MeanShift(function<double(double, double)> kernelFunction) { set_kernel(kernelFunction); }
-  list<Eigen::VectorXd> cluster(list<Eigen::VectorXd> points, double kernelBandwidth);
+  list<Eigen::VectorXd> cluster(list<Eigen::VectorXd> points, double kernelBandwidth, vector<double>& weights);
 
 private:
   function<double(double, double)> _kernelFunc;
 
   void set_kernel(function<double(double, double)>);
-  Eigen::VectorXd shift_point(const Eigen::VectorXd& point, const list<Eigen::VectorXd>& points, double kernelBandwidth);
+  Eigen::VectorXd shift_point(const Eigen::VectorXd& point, const list<Eigen::VectorXd>& points, double kernelBandwidth, vector<double>& weights, double w);
 };
 
 

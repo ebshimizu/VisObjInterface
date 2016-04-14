@@ -316,6 +316,49 @@ void filterResults(list<Eigen::VectorXd>& results, double t)
   }
 }
 
+void filterWeightedResults(list<SearchResult*>& results, double t) {
+  // similar to filterResults, but this time the result that has a lower attribute
+  // value is discarded instead.
+
+  // starting at the first element
+  for (auto it = results.begin(); it != results.end(); ) {
+    // See how close all other elements are
+    bool erase = false;
+    for (auto it2 = results.begin(); it2 != results.end(); ) {
+      if (it == it2) {
+        it2++;
+        continue;
+      }
+
+      double dist = ((*it)->_scene - (*it2)->_scene).norm();
+
+      // delete element with lower score if it's too close
+      // remember objFuncVals have lower scores being better
+      if (dist < t) {
+        if ((*it)->_objFuncVal < (*it2)->_objFuncVal) {
+          delete *it2;
+          it2 = results.erase(it2);
+        }
+        else {
+          delete *it;
+          erase = true;
+          break;
+        }
+      }
+      else {
+        it2++;
+      }
+    }
+
+    if (erase) {
+      it = results.erase(it);
+    }
+    else {
+      it++;
+    }
+  }
+}
+
 list<SearchResult*> getClosestScenesToCenters(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers)
 {
   vector<multimap<double, SearchResult*> > res;
@@ -601,23 +644,16 @@ void AttributeSearchThread::runStandardSearch()
 
     // cluster and filter for final run
     if (i == _editDepth - 1) {
-      getRecorder()->log(SYSTEM, "Number of initial results: " + String(newResults.size()).toStdString());
-      double thresh = getGlobalSettings()->_jndThreshold;
-      filterResults(newResults, thresh);
-      _results = newResults;
+      getRecorder()->log(SYSTEM, "Number of initial results at end of level " + String(i).toStdString() + ": " + String(newResults.size()).toStdString());
 
-      // additional filtering if too many results are still present
-      while (_results.size() > getGlobalSettings()->_maxReturnedScenes) {
-        thresh += getGlobalSettings()->_jndInc;
-        filterResults(_results, thresh);
-      }
-
+      _results = filterSearchResults(newResults);
+      
       // DEBUG - export set of points and vals for visualization after filter
       if (getGlobalSettings()->_exportTraces) {
         exportSearchResults(_results, i, "filtered", true);
       }
 
-      getRecorder()->log(SYSTEM, "JND Threshold at end of Search: " + String(thresh).toStdString());
+      getRecorder()->log(SYSTEM, "Number of results at end of level " + String(i).toStdString() + ": " + String(_results.size()).toStdString());
     }
     else {
       getRecorder()->log(SYSTEM, "Number of initial results at end of level " + String(i).toStdString() + ": " + String(newResults.size()).toStdString());
@@ -1630,32 +1666,47 @@ int AttributeSearchThread::getVecLength(vector<EditConstraint>& edit, Snapshot *
   return size;
 }
 
-list<SearchResult*> AttributeSearchThread::filterSearchResults(list<SearchResult*>& results)
-{
-  MeanShift shifter;
+list<SearchResult*> AttributeSearchThread::filterSearchResults(list<SearchResult*>& results) {
+  double eps = getGlobalSettings()->_jndThreshold;
+  do {
+    filterWeightedResults(results, eps);
+    eps += 0.01;
+  } while (results.size() > getGlobalSettings()->_maxReturnedScenes);
 
-  // put scenes into list
-  list<Eigen::VectorXd> pt;
-  for (auto& s : results) {
-    pt.push_back(s->_scene);
-  }
-
-  // get the centers
-  list<Eigen::VectorXd> centers = shifter.cluster(pt, 1);
-  filterResults(centers, 1e-3);
-
-  // place centers into a vector (for indexing)
-  vector<Eigen::VectorXd> cs;
-  for (auto& c : centers) {
-    cs.push_back(c);
-  }
-
-  // place search results into clusters
-  clusterResults(results, cs);
-
-  // resturn the closest results to the center of the clusters
-  return getClosestScenesToCenters(results, cs);
+  return results;
 }
+
+//list<SearchResult*> AttributeSearchThread::filterSearchResults(list<SearchResult*>& results)
+//{
+//  MeanShift shifter;
+//
+//  // eliminate near duplicates
+//  filterResults(results, 1e-3);
+//
+//  // put scenes into list, and weights into vector
+//  list<Eigen::VectorXd> pt;
+//  vector<double> weights;
+//  for (auto& s : results) {
+//    pt.push_back(s->_scene);
+//    weights.push_back(-s->_objFuncVal);
+//  }
+//
+//  // get the centers
+//  list<Eigen::VectorXd> centers = shifter.cluster(pt, getGlobalSettings()->_meanShiftBandwidth, weights);
+//  filterResults(centers, 1e-3);
+//
+//  // place centers into a vector (for indexing)
+//  vector<Eigen::VectorXd> cs;
+//  for (auto& c : centers) {
+//    cs.push_back(c);
+//  }
+//
+//  // place search results into clusters
+//  clusterResults(results, cs);
+//
+//  // resturn the closest results to the center of the clusters
+//  return getClosestScenesToCenters(results, cs);
+//}
 
 void AttributeSearchThread::clusterResults(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers)
 {

@@ -51,4 +51,8 @@ selPoints = go.Scatter(
 
 graphData = [allPoints, selPoints]
 
-py.plot(graphData, filename=prefix + "-graph.html")
+layout = go.Layout(
+	title=prefix
+)
+
+py.plot(dict(data=graphData, layout=layout), filename=prefix + "-graph.html")

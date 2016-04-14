@@ -264,12 +264,12 @@ GlobalSettings::GlobalSettings()
   _editStepSize = 0.02;
   _maxMCMCIters = 25;
   _numDisplayClusters = 3;
-  _jndThreshold = 0.25;
+  _jndThreshold = 0.1;
   _randomMode = false;
   _currentSortMode = "Attribute Default";
   _clusterElemsPerRow = 6;
   _accceptBandwidth = 0.05;
-  _maxReturnedScenes = 100;
+  _maxReturnedScenes = 25;
   _jndInc = 0.01;
   _showThumbnailImg = false;
   _explorationTolerance = 8;
@@ -278,6 +278,7 @@ GlobalSettings::GlobalSettings()
   _traceRootDir = "C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/traces";
   _clusterCounter = 0;
   _meanShiftEps = 1e-4;
+  _meanShiftBandwidth = 0.005;
 }
 
 GlobalSettings::~GlobalSettings()
