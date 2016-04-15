@@ -10,7 +10,6 @@
 
 #include "AttributeSearch.h"
 #include "MeanShift.h"
-#include <random>
 #include <list>
 //#include <vld.h>
 
@@ -835,6 +834,7 @@ void AttributeSearchThread::generateEdits(bool explore)
 
   // Create all devices edit types
   generateDefaultEdits("*");
+  generateColorEdits("");
 
   // Create edits for each system
   for (const auto& s : systems) {
@@ -844,6 +844,7 @@ void AttributeSearchThread::generateEdits(bool explore)
   // Create edits for each area
   for (const auto& a : areas) {
     generateDefaultEdits("$area=" + a);
+    generateColorEdits(a);
   }
 
   // Create edits for each system within an area
@@ -923,6 +924,112 @@ void AttributeSearchThread::generateDefaultEdits(string select)
     vector<EditConstraint> soft;
     soft.push_back(EditConstraint(select, SOFT, D_ALL));
     _edits[select + "_soft"] = soft;
+  }
+}
+
+void AttributeSearchThread::generateColorEdits(string area)
+{
+  // instantly abort if color is locked
+  if (_lockedParams.count("color"))
+    return;
+
+  set<string> systems = getRig()->getMetadataValues("system");
+  vector<string> sys;
+  for (const auto& s : systems)
+    sys.push_back(s);
+
+  string areaq = (area == "") ? "" : "$area=" + area;  
+
+  // If 1 or 0 systems, return
+  if (sys.size() < 2)
+    return;
+
+  // pairs
+  for (int i = 0; i < sys.size(); i++) {
+    for (int j = i + 1; j < sys.size(); j++) {
+      vector<EditConstraint> comp;
+      comp.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", HUE, D_COMPLEMENTARY_COLOR));
+      comp.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", SAT, D_COMPLEMENTARY_COLOR));
+      comp.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", VALUE, D_COMPLEMENTARY_COLOR));
+      comp.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", HUE, D_COMPLEMENTARY_COLOR));
+      comp.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", SAT, D_COMPLEMENTARY_COLOR));
+      comp.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", VALUE, D_COMPLEMENTARY_COLOR));
+      _edits[area + " - " + sys[i] + "+" + sys[j] + " Complementary Color"] = comp;
+    }
+  }
+
+  if (sys.size() >= 3) {
+    // triads
+    for (int i = 0; i < sys.size(); i++) {
+      for (int j = i + 1; j < sys.size(); j++) {
+        for (int k = j + 1; k < sys.size(); k++) {
+          vector<EditConstraint> comp;
+          comp.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", HUE, D_TRIADIC_COLOR));
+          comp.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", SAT, D_TRIADIC_COLOR));
+          comp.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", VALUE, D_TRIADIC_COLOR));
+          comp.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", HUE, D_TRIADIC_COLOR));
+          comp.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", SAT, D_TRIADIC_COLOR));
+          comp.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", VALUE, D_TRIADIC_COLOR));
+          comp.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", HUE, D_TRIADIC_COLOR));
+          comp.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", SAT, D_TRIADIC_COLOR));
+          comp.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", VALUE, D_TRIADIC_COLOR));
+          _edits[area + " - " + sys[i] + "+" + sys[j] + "+" + sys[k] + " Triadic Color"] = comp;
+
+          vector<EditConstraint> comp2;
+          comp2.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", HUE, D_SPLIT_COMPLEMENTARY_COLOR));
+          comp2.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", SAT, D_SPLIT_COMPLEMENTARY_COLOR));
+          comp2.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", VALUE, D_SPLIT_COMPLEMENTARY_COLOR));
+          comp2.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", HUE, D_SPLIT_COMPLEMENTARY_COLOR));
+          comp2.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", SAT, D_SPLIT_COMPLEMENTARY_COLOR));
+          comp2.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", VALUE, D_SPLIT_COMPLEMENTARY_COLOR));
+          comp2.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", HUE, D_SPLIT_COMPLEMENTARY_COLOR));
+          comp2.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", SAT, D_SPLIT_COMPLEMENTARY_COLOR));
+          comp2.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", VALUE, D_SPLIT_COMPLEMENTARY_COLOR));
+          _edits[area + " - " + sys[i] + "+" + sys[j] + "+" + sys[k] + " Split Complementary Color"] = comp2;
+        }
+      }
+    }
+  }
+
+  if (sys.size() >= 4) {
+    // quartets
+    for (int i = 0; i < sys.size(); i++) {
+      for (int j = i + 1; j < sys.size(); j++) {
+        for (int k = j + 1; k < sys.size(); k++) {
+          for (int l = k + 1; l < sys.size(); l++) {
+            vector<EditConstraint> comp;
+            comp.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", HUE, D_TETRADIC_COLOR));
+            comp.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", SAT, D_TETRADIC_COLOR));
+            comp.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", VALUE, D_TETRADIC_COLOR));
+            comp.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", HUE, D_TETRADIC_COLOR));
+            comp.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", SAT, D_TETRADIC_COLOR));
+            comp.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", VALUE, D_TETRADIC_COLOR));
+            comp.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", HUE, D_TETRADIC_COLOR));
+            comp.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", SAT, D_TETRADIC_COLOR));
+            comp.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", VALUE, D_TETRADIC_COLOR));
+            comp.push_back(EditConstraint(areaq + "[$system=" + sys[l] + "]", HUE, D_TETRADIC_COLOR));
+            comp.push_back(EditConstraint(areaq + "[$system=" + sys[l] + "]", SAT, D_TETRADIC_COLOR));
+            comp.push_back(EditConstraint(areaq + "[$system=" + sys[l] + "]", VALUE, D_TETRADIC_COLOR));
+            _edits[area + " - " + sys[i] + "+" + sys[j] + "+" + sys[k] + + "+" + sys[l] + " Tetradic Color"] = comp;
+
+            vector<EditConstraint> comp2;
+            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", HUE, D_TETRADIC_COLOR));
+            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", SAT, D_TETRADIC_COLOR));
+            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", VALUE, D_TETRADIC_COLOR));
+            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", HUE, D_TETRADIC_COLOR));
+            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", SAT, D_TETRADIC_COLOR));
+            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", VALUE, D_TETRADIC_COLOR));
+            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", HUE, D_TETRADIC_COLOR));
+            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", SAT, D_TETRADIC_COLOR));
+            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", VALUE, D_TETRADIC_COLOR));
+            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[l] + "]", HUE, D_TETRADIC_COLOR));
+            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[l] + "]", SAT, D_TETRADIC_COLOR));
+            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[l] + "]", VALUE, D_TETRADIC_COLOR));;
+            _edits[area + " - " + sys[i] + "+" + sys[j] + "+" + sys[k] + + "+" + sys[l] + " Analogous Color"] = comp2;
+          }
+        }
+      }
+    }
   }
 }
 
@@ -1103,6 +1210,7 @@ pair<list<mcmcSample>, int> AttributeSearchThread::doMCMC(vector<EditConstraint>
   vector<bool> canEdit;
   unordered_map<string, bool> canEditDevice;  // For uniform and joint, says which devices can actually be edited.
   bool cantEditAll = true;
+  EditNumDevices lastNumDevices; // For color schemes. Color schemes are assumed to all have the same quantity.
 
   // This map is now necessary to track which devices correspond to which parameters in the
   // vector used in the search space, and tells the system how to modify the parameter during
@@ -1116,6 +1224,7 @@ pair<list<mcmcSample>, int> AttributeSearchThread::doMCMC(vector<EditConstraint>
   for (auto& c : edit) {
     // Add all device parameters individually to the list
     auto devices = getRig()->select(c._select).getDevices();
+
     if (c._qty == D_ALL) {
       for (auto d : devices) {
         x[i] = getDeviceValue(c, s, d->getId());
@@ -1147,7 +1256,11 @@ pair<list<mcmcSample>, int> AttributeSearchThread::doMCMC(vector<EditConstraint>
       cantEditAll = cantEditAll & !canEditOneJoint;
     }
     // Uniform sets every parameter to the same value
-    else if (c._qty = D_UNIFORM) {
+    // color schemes follow uniform feature vector rules
+    else if (c._qty == D_UNIFORM || c._qty == D_ANALOGOUS_COLOR ||
+             c._qty == D_COMPLEMENTARY_COLOR || c._qty == D_TRIADIC_COLOR ||
+             c._qty == D_TETRADIC_COLOR || c._qty == D_SPLIT_COMPLEMENTARY_COLOR)
+    {
       // start at average val
       double avg = 0;
       int count = 0;
@@ -1171,6 +1284,8 @@ pair<list<mcmcSample>, int> AttributeSearchThread::doMCMC(vector<EditConstraint>
       }
       canEdit.push_back(canEditOneJoint);
       cantEditAll = cantEditAll & !canEditOneJoint;
+
+      lastNumDevices = c._qty;
     }
   }
 
@@ -1192,10 +1307,29 @@ pair<list<mcmcSample>, int> AttributeSearchThread::doMCMC(vector<EditConstraint>
     // generate candidate x'
     Eigen::VectorXd xp = x;
 
+    // if we're doing a color scheme op, generate xp with a special function
+    // implicitly here we assume an edit using a color scheme op has only color scheme ops
+    // as part of it
+    if (lastNumDevices == D_ANALOGOUS_COLOR ||
+        lastNumDevices == D_COMPLEMENTARY_COLOR ||
+        lastNumDevices == D_TRIADIC_COLOR ||
+        lastNumDevices == D_TETRADIC_COLOR ||
+        lastNumDevices == D_SPLIT_COMPLEMENTARY_COLOR) {
+      getNewColorScheme(xp, lastNumDevices, gdist, gen);
+    }
+
     // displace by gaussian dist
     for (int j = 0; j < xp.size(); j++) {
       if (canEdit[j]) {
-        xp[j] += gdist(gen);
+        // make sure we're doing a non-color scheme edit before tweaking the feature vector
+        if (lastNumDevices != D_ANALOGOUS_COLOR ||
+            lastNumDevices != D_COMPLEMENTARY_COLOR ||
+            lastNumDevices != D_TRIADIC_COLOR ||
+            lastNumDevices != D_TETRADIC_COLOR ||
+            lastNumDevices != D_SPLIT_COMPLEMENTARY_COLOR) {
+          xp[j] += gdist(gen);
+        }
+
         if (deviceLookup[j]._c._qty == D_JOINT) {
           // Joint adds the delta (xp[j]) to the start value to get the new value
           // for all devices affected by the joint param
@@ -1207,8 +1341,14 @@ pair<list<mcmcSample>, int> AttributeSearchThread::doMCMC(vector<EditConstraint>
             }
           }
         }
-        else if (deviceLookup[j]._c._qty == D_UNIFORM) {
-          // Uniform takes the same value and applies it to every light;
+        else if (deviceLookup[j]._c._qty == D_UNIFORM ||
+          deviceLookup[j]._c._qty == D_COMPLEMENTARY_COLOR ||
+          deviceLookup[j]._c._qty == D_ANALOGOUS_COLOR ||
+          deviceLookup[j]._c._qty == D_TRIADIC_COLOR ||
+          deviceLookup[j]._c._qty == D_TETRADIC_COLOR ||
+          deviceLookup[j]._c._qty == D_SPLIT_COMPLEMENTARY_COLOR)
+        {
+          // Uniform and color schemes take the same value and apply it to every light;
           auto& devices = queryCache[j];
           for (auto& d : devices) {
             if (canEditDevice[d->getId()]) {
@@ -1720,5 +1860,27 @@ void AttributeSearchThread::clusterResults(list<SearchResult*>& results, vector<
         lowest = dist;
       }
     }
+  }
+}
+
+void AttributeSearchThread::getNewColorScheme(Eigen::VectorXd & base, EditNumDevices type, normal_distribution<double>& dist, default_random_engine& rng)
+{
+  uniform_real_distribution<double> udist(0.0, 1.0);
+
+  // colors are arranged as [hsv]
+  if (type == D_COMPLEMENTARY_COLOR) {
+    // pick random element to be key 
+    int key = (udist(rng) < 0.5) ? 0 : 1;
+    int notKey = (key == 0) ? 1 : 0;
+
+    // Modify a color, adjust other
+    base[key * 3] += dist(rng);
+    base[notKey * 3] += fmodf(base[key * 3] + (180 + dist(rng)), 360);
+
+    // adjust hsv params for some variety
+    base[key * 3 + 1] += dist(rng);
+    base[key * 3 + 2] += dist(rng);
+    base[notKey * 3 + 1] += dist(rng);
+    base[notKey * 3 + 2] += dist(rng);
   }
 }

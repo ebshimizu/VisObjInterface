@@ -89,9 +89,15 @@ enum EditParam {
 // Since we're dealing with a variable number of lights, the system needs
 // to know how many devices to change on one edit.
 enum EditNumDevices {
-  D_ALL,    // Search though all devices at once
+  D_ALL,     // Search though all devices at once
   D_UNIFORM, // Search through one device at a time (sub-edit)
-  D_JOINT   // All lights get the same change applied to them
+  D_JOINT,   // All lights get the same change applied to them
+  // the folowing are color schemes for 2, 4, 3, 4, 3 systems respectively
+  D_COMPLEMENTARY_COLOR,
+  D_ANALOGOUS_COLOR,
+  D_TRIADIC_COLOR,
+  D_TETRADIC_COLOR,
+  D_SPLIT_COMPLEMENTARY_COLOR
 };
 
 // these constraints define an edit (or rather, which parameters an edit can deal with)

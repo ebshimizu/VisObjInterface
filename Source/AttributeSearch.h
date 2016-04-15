@@ -13,6 +13,7 @@
 
 #include "globals.h"
 #include "AttributeControllerBase.h"
+#include <random>
 #include <dlib/clustering.h>
 
 struct DeviceInfo {
@@ -96,6 +97,10 @@ private:
   // Generates the default set of edits for the select string
   void generateDefaultEdits(string select);
 
+  // Generates the color scheme edits for the selected area and system. If area is blank,
+  // applies to all areas in the scene.
+  void generateColorEdits(string area);
+
   // Runs a single level iteration of the search algorithm, starting at the given scenes.
   list<SearchResult*> runSingleLevelSearch(list<SearchResult*> startScenes, int level, attrObjFunc f);
 
@@ -131,6 +136,11 @@ private:
 
   // Assign each result to the closest center (L2 norm)
   void clusterResults(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers);
+
+  // takes the base color scheme and returns a new one following color theory rules specified by type
+  // This function will assume a certain number of dimensions to be present when editing the color.
+  // it will also probably die if something it doesn't expect to happen happens
+  void getNewColorScheme(Eigen::VectorXd& base, EditNumDevices type, normal_distribution<double>& dist, default_random_engine& rng);
 };
 
 #endif  // ATTRIBUTESEARCH_H_INCLUDED
