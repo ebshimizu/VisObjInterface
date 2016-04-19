@@ -114,17 +114,17 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <VS2015 targetFolder="Builds/VisualStudio2015" externalLibraries="LumiverseCore.lib&#10;LumiverseShowControl.lib&#10;libjson.lib&#10;clp.lib&#10;ai.lib&#10;libpng16_static.lib&#10;ftd2xx.lib&#10;zlibstatic.lib">
+    <VS2015 targetFolder="Builds/VisualStudio2015" externalLibraries="LumiverseCore.lib&#10;LumiverseShowControl.lib&#10;libjson.lib&#10;clp.lib&#10;ai.lib&#10;libpng16_static.lib&#10;ftd2xx.lib&#10;zlibstatic.lib&#10;curlcpp.lib&#10;libcurl_imp.lib">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        isDebug="1" optimisation="1" targetName="AttributesInterfaceDebug"
-                       headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include&#10;C:\lib\dlib-18.18&#10;C:\lib\libsvm-3.21"
-                       libraryPath="C:\Program Files\Lumiverse\Debug\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib"
+                       headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include&#10;C:\lib\dlib-18.18&#10;C:\lib\libsvm-3.21&#10;C:\Program Files\CURL\include&#10;C:\Program Files\CURLCPP\include"
+                       libraryPath="C:\Program Files\Lumiverse\Debug\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib&#10;C:\Program Files\CURL\lib\Debug&#10;C:\Program Files\CURLCPP\lib\Debug"
                        useRuntimeLibDLL="1"/>
-        <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
+        <CONFIGURATION name="Release" winWarningLevel="3" generateManifest="1" winArchitecture="x64"
                        isDebug="0" optimisation="3" targetName="AttributesInterface"
-                       libraryPath="C:\Program Files\Lumiverse\Release\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib"
-                       headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include&#10;C:\lib\dlib-18.18&#10;C:\lib\libsvm-3.21"
+                       libraryPath="C:\Program Files\Lumiverse\Release\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib&#10;C:\Program Files\CURL\lib\Release&#10;C:\Program Files\CURLCPP\lib\Release"
+                       headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include&#10;C:\lib\dlib-18.18&#10;C:\lib\libsvm-3.21&#10;C:\Program Files\CURL\include&#10;C:\Program Files\CURLCPP\include"
                        useRuntimeLibDLL="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>

@@ -41,7 +41,7 @@ private:
   unordered_map<string, double> _weights;
 
   // area that gets painted the current color and that allows the color to be changed
-  Rectangle<int> _colorSelect;
+  juce::Rectangle<int> _colorSelect;
 };
 
 

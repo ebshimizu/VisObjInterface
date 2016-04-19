@@ -40,10 +40,10 @@
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AttributesInterfaceDebug</TargetName>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(LibraryPath);C:\Program Files\Lumiverse\Debug\lib;C:\Program Files\libpng\lib;C:\Program Files\zlib\lib</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(LibraryPath);C:\Program Files\Lumiverse\Debug\lib;C:\Program Files\libpng\lib;C:\Program Files\zlib\lib;C:\Program Files\CURL\lib\Debug;C:\Program Files\CURLCPP\lib\Debug</LibraryPath>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AttributesInterface</TargetName>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(LibraryPath);C:\Program Files\Lumiverse\Release\lib;C:\Program Files\libpng\lib;C:\Program Files\zlib\lib</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(LibraryPath);C:\Program Files\Lumiverse\Release\lib;C:\Program Files\libpng\lib;C:\Program Files\zlib\lib;C:\Program Files\CURL\lib\Release;C:\Program Files\CURLCPP\lib\Release</LibraryPath>
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -57,7 +57,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>..\..\JuceLibraryCode;..\..\JuceLibraryCode\modules;C:\Program Files\Lumiverse\include;C:\Program Files\libpng\include;C:\Program Files\Lumiverse\include\lib\arnold\include;C:\Program Files\zlib\include;C:\lib\dlib-18.18;C:\lib\libsvm-3.21;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\JuceLibraryCode;..\..\JuceLibraryCode\modules;C:\Program Files\Lumiverse\include;C:\Program Files\libpng\include;C:\Program Files\Lumiverse\include\lib\arnold\include;C:\Program Files\zlib\include;C:\lib\dlib-18.18;C:\lib\libsvm-3.21;C:\Program Files\CURL\include;C:\Program Files\CURLCPP\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;DEBUG;_DEBUG;JUCER_VS2015_78A5022=1;JUCE_APP_VERSION=0.01;JUCE_APP_VERSION_HEX=0x100;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -79,9 +79,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(IntDir)\AttributesInterfaceDebug.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>C:\Program Files\Lumiverse\Debug\lib;C:\Program Files\libpng\lib;C:\Program Files\zlib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Program Files\Lumiverse\Debug\lib;C:\Program Files\libpng\lib;C:\Program Files\zlib\lib;C:\Program Files\CURL\lib\Debug;C:\Program Files\CURLCPP\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LargeAddressAware>true</LargeAddressAware>
-      <AdditionalDependencies>LumiverseCore.lib;LumiverseShowControl.lib;libjson.lib;clp.lib;ai.lib;libpng16_static.lib;ftd2xx.lib;zlibstatic.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LumiverseCore.lib;LumiverseShowControl.lib;libjson.lib;clp.lib;ai.lib;libpng16_static.lib;ftd2xx.lib;zlibstatic.lib;curlcpp.lib;libcurl_imp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -98,7 +98,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>..\..\JuceLibraryCode;..\..\JuceLibraryCode\modules;C:\Program Files\Lumiverse\include;C:\Program Files\libpng\include;C:\Program Files\Lumiverse\include\lib\arnold\include;C:\Program Files\zlib\include;C:\lib\dlib-18.18;C:\lib\libsvm-3.21;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\JuceLibraryCode;..\..\JuceLibraryCode\modules;C:\Program Files\Lumiverse\include;C:\Program Files\libpng\include;C:\Program Files\Lumiverse\include\lib\arnold\include;C:\Program Files\zlib\include;C:\lib\dlib-18.18;C:\lib\libsvm-3.21;C:\Program Files\CURL\include;C:\Program Files\CURLCPP\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;NDEBUG;JUCER_VS2015_78A5022=1;JUCE_APP_VERSION=0.01;JUCE_APP_VERSION_HEX=0x100;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -106,7 +106,7 @@
       <AssemblerListingLocation>$(IntDir)\</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\</ObjectFileName>
       <ProgramDataBaseFileName>$(IntDir)\</ProgramDataBaseFileName>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -122,9 +122,9 @@
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <AdditionalLibraryDirectories>C:\Program Files\Lumiverse\Release\lib;C:\Program Files\libpng\lib;C:\Program Files\zlib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Program Files\Lumiverse\Release\lib;C:\Program Files\libpng\lib;C:\Program Files\zlib\lib;C:\Program Files\CURL\lib\Release;C:\Program Files\CURLCPP\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LargeAddressAware>true</LargeAddressAware>
-      <AdditionalDependencies>LumiverseCore.lib;LumiverseShowControl.lib;libjson.lib;clp.lib;ai.lib;libpng16_static.lib;ftd2xx.lib;zlibstatic.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LumiverseCore.lib;LumiverseShowControl.lib;libjson.lib;clp.lib;ai.lib;libpng16_static.lib;ftd2xx.lib;zlibstatic.lib;curlcpp.lib;libcurl_imp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>

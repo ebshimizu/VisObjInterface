@@ -82,6 +82,22 @@ void BrightAttribute::preProcess()
 
   // maybe here run a check to see if we've already calculated this for the scene, since
   // we can store anything we want in the device metadata
+  auto& rigDevices = getRig()->getDeviceRaw();
+
+  bool weightsExist = true;
+  for (const auto& d : rigDevices) {
+    if (!d->metadataExists("brightnessAttributeWeight")) {
+      weightsExist = false;
+      break;
+    }
+  }
+
+  if (weightsExist) {
+    for (const auto& d : rigDevices) {
+      _weights[d->getId()] = stof(d->getMetadata("brightnessAttributeWeight"));
+    }
+    return;
+  }
 
   map<string, double> brightness;
   double totalBrightness = 0;

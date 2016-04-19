@@ -11,6 +11,7 @@
 #include "AttributeSearch.h"
 #include "MeanShift.h"
 #include <list>
+#include <algorithm>
 //#include <vld.h>
 
 SearchResult::SearchResult() { }
@@ -986,6 +987,18 @@ void AttributeSearchThread::generateColorEdits(string area)
           comp2.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", SAT, D_SPLIT_COMPLEMENTARY_COLOR));
           comp2.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", VALUE, D_SPLIT_COMPLEMENTARY_COLOR));
           _edits[area + " - " + sys[i] + "+" + sys[j] + "+" + sys[k] + " Split Complementary Color"] = comp2;
+
+          vector<EditConstraint> comp3;
+          comp3.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", HUE, D_ANALOGOUS_COLOR));
+          comp3.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", SAT, D_ANALOGOUS_COLOR));
+          comp3.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", VALUE, D_ANALOGOUS_COLOR));
+          comp3.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", HUE, D_ANALOGOUS_COLOR));
+          comp3.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", SAT, D_ANALOGOUS_COLOR));
+          comp3.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", VALUE, D_ANALOGOUS_COLOR));
+          comp3.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", HUE, D_ANALOGOUS_COLOR));
+          comp3.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", SAT, D_ANALOGOUS_COLOR));
+          comp3.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", VALUE, D_ANALOGOUS_COLOR));
+          _edits[area + " - " + sys[i] + "+" + sys[j] + "+" + sys[k] + " Analogous Color"] = comp3;
         }
       }
     }
@@ -1011,21 +1024,6 @@ void AttributeSearchThread::generateColorEdits(string area)
             comp.push_back(EditConstraint(areaq + "[$system=" + sys[l] + "]", SAT, D_TETRADIC_COLOR));
             comp.push_back(EditConstraint(areaq + "[$system=" + sys[l] + "]", VALUE, D_TETRADIC_COLOR));
             _edits[area + " - " + sys[i] + "+" + sys[j] + "+" + sys[k] + + "+" + sys[l] + " Tetradic Color"] = comp;
-
-            vector<EditConstraint> comp2;
-            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", HUE, D_TETRADIC_COLOR));
-            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", SAT, D_TETRADIC_COLOR));
-            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[i] + "]", VALUE, D_TETRADIC_COLOR));
-            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", HUE, D_TETRADIC_COLOR));
-            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", SAT, D_TETRADIC_COLOR));
-            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[j] + "]", VALUE, D_TETRADIC_COLOR));
-            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", HUE, D_TETRADIC_COLOR));
-            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", SAT, D_TETRADIC_COLOR));
-            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[k] + "]", VALUE, D_TETRADIC_COLOR));
-            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[l] + "]", HUE, D_TETRADIC_COLOR));
-            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[l] + "]", SAT, D_TETRADIC_COLOR));
-            comp2.push_back(EditConstraint(areaq + "[$system=" + sys[l] + "]", VALUE, D_TETRADIC_COLOR));;
-            _edits[area + " - " + sys[i] + "+" + sys[j] + "+" + sys[k] + + "+" + sys[l] + " Analogous Color"] = comp2;
           }
         }
       }
@@ -1878,9 +1876,95 @@ void AttributeSearchThread::getNewColorScheme(Eigen::VectorXd & base, EditNumDev
     base[notKey * 3] += fmodf(base[key * 3] + (180 + dist(rng)), 360);
 
     // adjust hsv params for some variety
-    base[key * 3 + 1] += dist(rng);
-    base[key * 3 + 2] += dist(rng);
-    base[notKey * 3 + 1] += dist(rng);
-    base[notKey * 3 + 2] += dist(rng);
+    base[key * 3 + 1] += dist(rng) * 0.5;
+    base[key * 3 + 2] += dist(rng) * 0.5;
+    base[notKey * 3 + 1] += dist(rng) * 0.5;
+    base[notKey * 3 + 2] += dist(rng) * 0.5;
+  }
+  else if (type == D_TRIADIC_COLOR) {
+    vector<int> idx;
+    idx.push_back(0);
+    idx.push_back(1);
+    idx.push_back(2);
+
+    random_shuffle(idx.begin(), idx.end());
+
+    base[idx[0] * 3] += dist(rng);
+    base[idx[1] * 3] = fmodf(base[idx[0] * 3] + 120 + dist(rng), 360);
+    base[idx[2] * 3] = fmodf(base[idx[0] * 3] - 120 + dist(rng), 360);
+
+    // adjust hsv for some variety, if out of bounds gets clamped anyway
+    for (int i : idx) {
+      base[i * 3 + 1] += dist(rng) * 0.5;
+      base[i * 3 + 2] += dist(rng) * 0.5;
+    }
+  }
+  else if (type == D_SPLIT_COMPLEMENTARY_COLOR) {
+    vector<int> idx;
+    idx.push_back(0);
+    idx.push_back(1);
+    idx.push_back(2);
+
+    random_shuffle(idx.begin(), idx.end());
+
+    // pick complementary hue and adjust from there
+    double keyHue = fmodf(base[idx[0] * 3] + dist(rng), 360);
+    base[idx[0] * 3] = keyHue;
+
+    double compBaseHue = fmodf(keyHue + 180, 360);
+    base[idx[1] * 3] = fmodf(keyHue + 30, 360);
+    base[idx[2] * 3] = fmodf(keyHue - 30, 360);
+
+    // adjust hsv for some variety, if out of bounds gets clamped anyway
+    for (int i : idx) {
+      base[i * 3 + 1] += dist(rng) * 0.5;
+      base[i * 3 + 2] += dist(rng) * 0.5;
+    }
+  }
+  else if (type == D_ANALOGOUS_COLOR) {
+    vector<int> idx;
+    idx.push_back(0);
+    idx.push_back(1);
+    idx.push_back(2);
+
+    random_shuffle(idx.begin(), idx.end());
+
+    // pick base analogous hue and adjust from there
+    double keyHue = fmodf(base[idx[0] * 3] + dist(rng), 360);
+    base[idx[0] * 3] = keyHue;
+
+    float adist = dist(rng) * 20;
+    base[idx[1] * 3] = fmodf(keyHue + adist, 360);
+    base[idx[2] * 3] = fmodf(keyHue - adist, 360);
+
+    // adjust hsv for some variety, if out of bounds gets clamped anyway
+    for (int i : idx) {
+      base[i * 3 + 1] += dist(rng) * 0.5;
+      base[i * 3 + 2] += dist(rng) * 0.5;
+    }
+  }
+  else if (type == D_TETRADIC_COLOR) {
+    // square tetradic colors over here
+    vector<int> idx;
+    idx.push_back(0);
+    idx.push_back(1);
+    idx.push_back(2);
+    idx.push_back(3);
+
+    random_shuffle(idx.begin(), idx.end());
+
+    // pick base tetradic hue and adjust from there
+    double keyHue = fmodf(base[idx[0] * 3] + dist(rng), 360);
+    base[idx[0] * 3] = keyHue;
+
+    base[idx[1] * 3] = fmodf(keyHue + 90 + dist(rng) * 0.5, 360);
+    base[idx[2] * 3] = fmodf(keyHue + 180 + dist(rng) * 0.5, 360);
+    base[idx[3] * 3] = fmodf(keyHue + 270 + dist(rng) * 0.5, 360);
+
+    // adjust hsv for some variety, if out of bounds gets clamped anyway
+    for (int i : idx) {
+      base[i * 3 + 1] += dist(rng) * 0.5;
+      base[i * 3 + 2] += dist(rng) * 0.5;
+    }
   }
 }

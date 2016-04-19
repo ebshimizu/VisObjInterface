@@ -34,7 +34,7 @@ void AttributeSearchCluster::resized()
   int elemWidth = lbounds.getWidth() / getGlobalSettings()->_clusterElemsPerRow;
   int elemHeight = elemWidth * (9.0 / 16.0);
 
-  Rectangle<int> row;
+  juce::Rectangle<int> row;
   for (int i = 0; i < _elems.size(); i++) {
     if (i % getGlobalSettings()->_clusterElemsPerRow == 0)
       row = lbounds.removeFromTop(elemHeight);
