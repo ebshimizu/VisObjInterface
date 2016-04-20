@@ -90,12 +90,17 @@ void ContrastAttribute::preProcess()
 
   // now that the metadata exists, copy it
   for (const auto& d : a1d) {
-    _area1Weights[d->getId()] = stof(d->getMetadata("brightnessAttributeWeight"));
-    _area1Sum += _area1Weights[d->getId()];
+    // sometimes the preprocess fails though.
+    if (d->metadataExists("brightnessAttributeWeight")) {
+      _area1Weights[d->getId()] = stof(d->getMetadata("brightnessAttributeWeight"));
+      _area1Sum += _area1Weights[d->getId()];
+    }
   }
 
   for (const auto& d : a2d) {
-    _area2Weights[d->getId()] = stof(d->getMetadata("brightnessAttributeWeight"));
-    _area2Sum += _area2Weights[d->getId()];
+    if (d->metadataExists("brightnessAttributeWeight")) {
+      _area2Weights[d->getId()] = stof(d->getMetadata("brightnessAttributeWeight"));
+      _area2Sum += _area2Weights[d->getId()];
+    }
   }
 }

@@ -70,7 +70,9 @@ double BrightAttribute::evaluateScene(Snapshot* s)
   auto& devices = s->getRigData();
   double sum = 0;
   for (auto& d : devices) {
-    sum += d.second->getIntensity()->asPercent() * _weights[d.first];
+    if (d.second->paramExists("intensity")) {
+      sum += d.second->getIntensity()->asPercent() * _weights[d.first];
+    }
   }
 
   return sum * 100;
@@ -121,6 +123,12 @@ void BrightAttribute::preProcess()
     // reset all devices to 0
     for (auto d2 : devices) {
       d2.second->setIntensity(0);
+    }
+
+    if (!d.second->paramExists("intensity") || !d.second->paramExists("color")) {
+      // stop preprocess if parameters don't exist
+      delete s;
+      return;
     }
 
     // set current device to 100% white

@@ -20,7 +20,15 @@ FloatPropertySlider::FloatPropertySlider(string id, string param, LumiverseFloat
 {
   _id = id;
   _param = param;
-  slider.setValue(val->getVal());
+
+  if (_param == "intensity") {
+    slider.setValue(val->asPercent());
+    slider.setRange(0, 100, 0.01);
+    slider.setTextValueSuffix("%");
+  }
+  else {
+    slider.setValue(val->getVal());
+  }
 }
 
 FloatPropertySlider::~FloatPropertySlider()
@@ -59,14 +67,25 @@ void FloatPropertySlider::mouseDown(const MouseEvent & event)
 
 void FloatPropertySlider::setValue(double newValue)
 {
-  getRig()->getDevice(_id)->setParam(_param, (float)newValue);
+  if (_param == "intensity") {
+    getRig()->getDevice(_id)->getParam<LumiverseFloat>(_param)->setValAsPercent(newValue / 100.0);
+  }
+  else {
+    getRig()->getDevice(_id)->setParam(_param, (float)newValue);
+  }
   getApplicationCommandManager()->invokeDirectly(command::REFRESH_ATTR, true);
 }
 
 double FloatPropertySlider::getValue() const
 {
   LumiverseFloat* val = getRig()->getDevice(_id)->getParam<LumiverseFloat>(_param);
-  return val->getVal();
+
+  if (_param == "intensity") {
+    return val->asPercent() * 100;
+  }
+  else {
+    return val->getVal();
+  }
 }
 
 void FloatPropertySlider::sliderDragStarted(Slider * /* s */)

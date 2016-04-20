@@ -60,8 +60,13 @@ list<SearchResult*> attributeSearch(map<string, AttributeControllerBase*>& activ
 
 vector<Eigen::VectorXd> clusterResults(list<SearchResult*> results, int c)
 {
+  if (results.size() == 0) {
+    // return empty list if no results
+    return vector<Eigen::VectorXd>();
+  }
+
   // Special case for 1 requested cluster
-  if (c == 1) {
+  if (c <= 1) {
     // 1 cluster, center is average of all other elements
     Eigen::VectorXd avg;
     avg.resize((*results.begin())->_scene.size());

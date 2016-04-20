@@ -77,7 +77,9 @@ void NoireAttribute::preProcess()
 
   // now that the metadata exists, copy it
   for (const auto& d : devices) {
-    _weights[d->getId()] = stof(d->getMetadata("brightnessAttributeWeight"));
+    if (d->metadataExists("brightnessAttributeWeight")) {
+      _weights[d->getId()] = stof(d->getMetadata("brightnessAttributeWeight"));
+    }
   }
 }
 
