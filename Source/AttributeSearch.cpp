@@ -850,7 +850,8 @@ void AttributeSearchThread::generateEdits(bool explore)
   // Create edits for each area
   for (const auto& a : areas) {
     generateDefaultEdits("$area=" + a);
-    generateColorEdits(a);
+    // color edits are not final or even really implemented yet...
+    // generateColorEdits(a);
   }
 
   // Create edits for each system within an area
@@ -1801,7 +1802,9 @@ int AttributeSearchThread::getVecLength(vector<EditConstraint>& edit, Snapshot *
     if (c._qty == D_ALL) {
       size += getRig()->select(c._select).getDevices().size();
     }
-    else if (c._qty == D_JOINT || c._qty == D_UNIFORM) {
+    else if (c._qty == D_JOINT || c._qty == D_UNIFORM || c._qty == D_ANALOGOUS_COLOR ||
+      c._qty == D_COMPLEMENTARY_COLOR || c._qty == D_TRIADIC_COLOR ||
+      c._qty == D_TETRADIC_COLOR || c._qty == D_SPLIT_COMPLEMENTARY_COLOR) {
       size += 1;
     }
   }

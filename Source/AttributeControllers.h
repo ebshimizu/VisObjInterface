@@ -23,5 +23,6 @@
 #include "SaturationAttribute.h"
 #include "TintAttribute.h"
 #include "NoireAttribute.h"
+#include "HistogramBrightness.h"
 
 #endif  // ATTRIBUTECONTROLLERS_H_INCLUDED

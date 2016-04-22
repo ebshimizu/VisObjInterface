@@ -41,10 +41,22 @@
                 file="Source/BrightAttribute.cpp"/>
           <FILE id="mAgE17" name="BrightAttribute.h" compile="0" resource="0"
                 file="Source/BrightAttribute.h"/>
+          <FILE id="lte0l3" name="CompColorAttribute.cpp" compile="1" resource="0"
+                file="Source/CompColorAttribute.cpp"/>
+          <FILE id="PjKvau" name="CompColorAttribute.h" compile="0" resource="0"
+                file="Source/CompColorAttribute.h"/>
           <FILE id="qavHAv" name="ContrastAttribute.cpp" compile="1" resource="0"
                 file="Source/ContrastAttribute.cpp"/>
           <FILE id="Kzop1g" name="ContrastAttribute.h" compile="0" resource="0"
                 file="Source/ContrastAttribute.h"/>
+          <FILE id="Rn9Nec" name="HistogramAttribute.cpp" compile="1" resource="0"
+                file="Source/HistogramAttribute.cpp"/>
+          <FILE id="eQDJa6" name="HistogramAttribute.h" compile="0" resource="0"
+                file="Source/HistogramAttribute.h"/>
+          <FILE id="R20t4n" name="HistogramBrightness.cpp" compile="1" resource="0"
+                file="Source/HistogramBrightness.cpp"/>
+          <FILE id="Waah3w" name="HistogramBrightness.h" compile="0" resource="0"
+                file="Source/HistogramBrightness.h"/>
           <FILE id="xrUn5N" name="LowKeyAttribute.cpp" compile="1" resource="0"
                 file="Source/LowKeyAttribute.cpp"/>
           <FILE id="jHjxwt" name="LowKeyAttribute.h" compile="0" resource="0"

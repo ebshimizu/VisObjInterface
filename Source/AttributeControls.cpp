@@ -260,6 +260,9 @@ void AttributeControls::initAttributes()
   // noire
   _container->addAttributeController(new NoireAttribute());
 
+  // Histogram brightness
+  _container->addAttributeController(new HistogramBrightness("Brightness - Hist", 20, 30, 30));
+
   //_container->addAttributeController(new BacklitAttribute());
   //_container->addAttributeController(new SoftAttribute());
   //_container->addAttributeController(new HighAngleAttribute());
