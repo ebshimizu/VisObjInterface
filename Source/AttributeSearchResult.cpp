@@ -94,9 +94,9 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
       MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
       if (mc != nullptr) {
+        mc->arnoldRender();
         mc->refreshParams();
         mc->refreshAttr();
-        mc->arnoldRender();
         getRecorder()->log(ACTION, "User picked scene for stage: " + getTooltip().toStdString());
       }
     }

@@ -279,6 +279,7 @@ GlobalSettings::GlobalSettings()
   _clusterCounter = 0;
   _meanShiftEps = 1e-4;
   _meanShiftBandwidth = 0.005;
+  _renderInProgress = false;
 }
 
 GlobalSettings::~GlobalSettings()

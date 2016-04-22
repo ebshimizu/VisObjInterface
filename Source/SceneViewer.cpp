@@ -123,7 +123,9 @@ void SceneViewer::renderScene() {
   uint8* bufptr = Image::BitmapData(_currentRender, Image::BitmapData::readWrite).getPixelPointer(0,0);
 
   getRecorder()->log(RENDER, "Render started.");
+  getGlobalSettings()->_renderInProgress = true;
   (new RenderBackgroundThread(p, bufptr))->runThread();
+  getGlobalSettings()->_renderInProgress = false;
   getRecorder()->log(RENDER, "Render finished.");
 
   repaint();

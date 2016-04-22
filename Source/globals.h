@@ -167,6 +167,9 @@ public:
   void dumpDiagnosticData();
 
   unsigned int getSampleID();
+
+  // sometimes the image space attributes like to redraw themselves while the other thing is rendering
+  bool _renderInProgress;
 };
 
 // Results that eventually get returned to the UI layer
