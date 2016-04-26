@@ -12,22 +12,22 @@
 #define SATURATIONATTRIBUTE_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "AttributeControllerBase.h"
+#include "HistogramAttribute.h"
 
 // Saturation here is what we'll call a non-semantic attribute. What this means
 // is that we have a very well-defined way to increase/decrease the value of the
 // attribute in the entire scene, and thus the semantic search is mostly useless.
 // You can still use it in semantic searches though, in which case it still defines
 // an attribute function.
-class SaturationAttribute : public AttributeControllerBase
+class SaturationAttribute : public HistogramAttribute
 {
 public:
-  SaturationAttribute();
+  SaturationAttribute(int numBins, int w, int h);
   ~SaturationAttribute();
 
   virtual double evaluateScene(Snapshot* s) override;
 
-  virtual void preProcess() override;
+  // virtual void preProcess() override;
 
   virtual bool isNonSemantic() { return true; }
 
@@ -36,7 +36,7 @@ public:
   virtual list<Snapshot*> nonSemanticSearch() override;
 
 private:
-  unordered_map<string, double> _weights;
+  int _numBins;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SaturationAttribute);
 };

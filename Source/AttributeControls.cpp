@@ -252,7 +252,7 @@ void AttributeControls::initAttributes()
   //}
 
   // Add saturation
-  _container->addAttributeController(new SaturationAttribute());
+  _container->addAttributeController(new SaturationAttribute(50, 30, 30));
 
   // Tint
   //_container->addAttributeController(new TintAttribute());
