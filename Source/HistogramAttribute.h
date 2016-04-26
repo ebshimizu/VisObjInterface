@@ -13,6 +13,10 @@
 
 #include "AttributeControllerBase.h"
 
+// a note about all these histogram classes:
+// when it says numBins the actual number of bins in the histogram will
+// be numBins + 1. The max valued element (1) will be in a bin all by itself.
+
 class Histogram1D {
 public: 
   Histogram1D(int numBins);
@@ -39,6 +43,9 @@ public:
   // Returns a weighted average of values contained in the histogram bins
   double weightedAvg();
 
+  // max - min / avg
+  double contrast();
+
 private:
   // Maps bins to the number of pixels in each bin
   map<unsigned int, unsigned int> _histData;
@@ -47,6 +54,38 @@ private:
   unsigned int _count;
 
   // number of bins in the histogram
+  int _numBins;
+};
+
+typedef unsigned int* hist3DData;
+
+// A histogram for color attributes
+class Histogram3D {
+public:
+  Histogram3D(int numBins);
+  Histogram3D(const Histogram3D& other);
+  // copies the data contained.
+  Histogram3D(hist3DData data, unsigned int count, int numBins);
+  ~Histogram3D();
+
+  void addValToBin(double x, double y, double z);
+  void addValToBin(Eigen::Vector3d val);
+
+  void addToBin(int amt, int x, int y, int z);
+  void removeFromBin(int amt, int x, int y, int z);
+
+  unsigned int getBin(int x, int y, int z);
+
+  Histogram1D get1Dhist(int axis);
+
+  double weightedAvg();
+
+  Histogram3D consolidate(int targetNumBins);
+
+private:
+  hist3DData _histData;
+
+  unsigned int _count;
   int _numBins;
 };
 

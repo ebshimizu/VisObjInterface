@@ -226,42 +226,45 @@ map<string, AttributeControllerBase*> AttributeControls::getActiveAttributes()
 void AttributeControls::initAttributes()
 {
   //_container->addAttributeController(new TestAttribute());
-  _container->addAttributeController(new BrightAttribute());
+  //_container->addAttributeController(new BrightAttribute());
 
   // add the contrast attributes
-  auto& areas = getRig()->getMetadataValues("area");
+  //auto& areas = getRig()->getMetadataValues("area");
   // however, skip them if there's just 1 area. contrast within one area
   // is a different attribute
-  if (areas.size() > 1) {
+  //if (areas.size() > 1) {
     // for convenience we'll stick these keys in a vector
-    vector<string> areaStrings;
-    for (auto s : areas) {
-      areaStrings.push_back(s);
-    }
+  //  vector<string> areaStrings;
+  //  for (auto s : areas) {
+  //    areaStrings.push_back(s);
+  //  }
 
-    for (int i = 0; i < areaStrings.size(); i++) {
-      for (int j = i + 1; j < areaStrings.size(); j++) {
-        _container->addAttributeController(new ContrastAttribute(areaStrings[i], areaStrings[j]));
-      }
-    }
-  }
+  //  for (int i = 0; i < areaStrings.size(); i++) {
+  //    for (int j = i + 1; j < areaStrings.size(); j++) {
+  //      _container->addAttributeController(new ContrastAttribute(areaStrings[i], areaStrings[j]));
+  //    }
+  //  }
+  //}
   
   // Add Low-Key attributes
-  for (auto a : areas) {
-    _container->addAttributeController(new LowKeyAttribute(a));
-  }
+  //for (auto a : areas) {
+  //  _container->addAttributeController(new LowKeyAttribute(a));
+  //}
 
   // Add saturation
   _container->addAttributeController(new SaturationAttribute());
 
   // Tint
-  _container->addAttributeController(new TintAttribute());
+  //_container->addAttributeController(new TintAttribute());
 
   // noire
   _container->addAttributeController(new NoireAttribute());
 
   // Histogram brightness
-  _container->addAttributeController(new HistogramBrightness("Brightness - Hist", 20, 30, 30));
+  _container->addAttributeController(new HistogramBrightness("Brightness - Hist", 50, 30, 30));
+
+  // Histogram contrast
+  //_container->addAttributeController(new HistogramContrast("Contrast - Hist", 50, 30, 30));
 
   //_container->addAttributeController(new BacklitAttribute());
   //_container->addAttributeController(new SoftAttribute());

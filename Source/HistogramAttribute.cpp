@@ -64,47 +64,54 @@ void Histogram1D::addToBin(unsigned int amt, unsigned int id)
 
 void Histogram1D::removeFromBin(unsigned int amt, unsigned int id)
 {
+  // don't do a thing if the bin isn't actually here
+  if (_histData.count(id) == 0 || _histData[id] == 0)
+    return;
+
   _histData[id] -= amt;
   _count -= amt;
 }
 
 Histogram1D Histogram1D::consolidate(int targetNumBins)
 {
-  // start with requiring a 5% threshold.
-  float t = 0.05f;
+  // start with requiring a 1% threshold.
+  float t = 0.01f;
 
   map<unsigned int, unsigned int> newData = _histData;
 
-  while (_histData.size() > targetNumBins) {
+  while (newData.size() > targetNumBins) {
     for (auto& b : newData) {
       // if the bin is below the threshold
       if (b.second / (float)_count < t) {
-        // find closest bin above threshold
+        // find closest bin above threshold, if a tie pick max
         int start = b.first;
 
+        int max = -1;
         for (int i = 1; i <= _numBins; i++) {
           // do a search starting at the position of the current bin
-          if (start - i >= 0) {
-            if (newData.count(start - i) > 0) {
-              // check if bin is above threshold
-              if (newData[start - i] / (float)_count > t) {
-                // if so, move these samples over and break
-                b.second += newData[start - i];
-                newData[start - i] = 0;
-                break;
+          if (newData.count(start - i) > 0) {
+            // check if bin is above threshold
+            if (newData[start - i] / (float)_count >= t) {
+              // if so, move these samples over and break
+              if (max == -1 || newData[max] < newData[start - i]) {
+                max = start - i;
               }
             }
           }
 
           // same thing for forward
-          if (start + i <= _numBins) {
-            if (newData.count(start + i) > 0) {
-              if (newData[start + i] / (float)_count > t) {
-                b.second += newData[start + i];
-                newData[start + i] = 0;
-                break;
+          if (newData.count(start + i) > 0) {
+            if (newData[start + i] / (float)_count >= t) {
+              if (max == -1 || newData[max] < newData[start + i]) {
+                max = start + i;
               }
             }
+          }
+
+          if (max != -1) {
+            newData[max] += newData[start];
+            newData[start] = 0;
+            break;
           }
         }
       }
@@ -117,7 +124,7 @@ Histogram1D Histogram1D::consolidate(int targetNumBins)
     }
 
     // increment threshold
-    t += 0.05f;
+    t += 0.01f;
   }
 
   return Histogram1D(newData, _count, _numBins);
@@ -135,6 +142,48 @@ double Histogram1D::weightedAvg()
 
   return sum;
 }
+
+double Histogram1D::contrast()
+{
+  double interval = 1.0 / _numBins;
+
+  double start = _histData.begin()->first * interval;
+  double end = _histData.rbegin()->first * interval;
+
+  if (end + start == 0)
+    return 0;
+
+  return (end - start) / weightedAvg();
+}
+
+// ============================================================================
+
+Histogram3D::Histogram3D(int numBins) : _numBins(numBins + 1)
+{
+  _count = 0;
+  _histData = new unsigned int[_numBins * _numBins * _numBins]();
+}
+
+Histogram3D::Histogram3D(const Histogram3D & other) :
+  _numBins(other._numBins), _count(other._count)
+{
+  _histData = new unsigned int[_numBins * _numBins * _numBins]();
+  for (int i = 0; i < _numBins * _numBins * _numBins; i++) {
+    _histData[i] = other._histData[i];
+  }
+}
+
+Histogram3D::Histogram3D(hist3DData data, unsigned int count, int numBins)
+  : _count(count), _numBins(numBins + 1)
+{
+}
+
+Histogram3D::~Histogram3D()
+{
+  delete _histData;
+}
+
+// ============================================================================
 
 HistogramAttribute::HistogramAttribute(string name, int w, int h) :
   _canonicalWidth(w), _canonicalHeight(h), AttributeControllerBase(name)

@@ -24,5 +24,6 @@
 #include "TintAttribute.h"
 #include "NoireAttribute.h"
 #include "HistogramBrightness.h"
+#include "HistogramContrast.h"
 
 #endif  // ATTRIBUTECONTROLLERS_H_INCLUDED

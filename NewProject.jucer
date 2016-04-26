@@ -57,14 +57,26 @@
                 file="Source/HistogramBrightness.cpp"/>
           <FILE id="Waah3w" name="HistogramBrightness.h" compile="0" resource="0"
                 file="Source/HistogramBrightness.h"/>
+          <FILE id="J0GUVy" name="HistogramContrast.cpp" compile="1" resource="0"
+                file="Source/HistogramContrast.cpp"/>
+          <FILE id="LVHV0U" name="HistogramContrast.h" compile="0" resource="0"
+                file="Source/HistogramContrast.h"/>
           <FILE id="xrUn5N" name="LowKeyAttribute.cpp" compile="1" resource="0"
                 file="Source/LowKeyAttribute.cpp"/>
           <FILE id="jHjxwt" name="LowKeyAttribute.h" compile="0" resource="0"
                 file="Source/LowKeyAttribute.h"/>
+          <FILE id="j3WIzu" name="MoonlightAttribute.cpp" compile="1" resource="0"
+                file="Source/MoonlightAttribute.cpp"/>
+          <FILE id="ZWH6lw" name="MoonlightAttribute.h" compile="0" resource="0"
+                file="Source/MoonlightAttribute.h"/>
           <FILE id="QLk7Mw" name="NoireAttribute.cpp" compile="1" resource="0"
                 file="Source/NoireAttribute.cpp"/>
           <FILE id="XuJ2u9" name="NoireAttribute.h" compile="0" resource="0"
                 file="Source/NoireAttribute.h"/>
+          <FILE id="f94vKd" name="OrangeBlueAttribute.cpp" compile="1" resource="0"
+                file="Source/OrangeBlueAttribute.cpp"/>
+          <FILE id="DsIbPH" name="OrangeBlueAttribute.h" compile="0" resource="0"
+                file="Source/OrangeBlueAttribute.h"/>
           <FILE id="WxT0aM" name="SaturationAttribute.cpp" compile="1" resource="0"
                 file="Source/SaturationAttribute.cpp"/>
           <FILE id="MHAEh2" name="SaturationAttribute.h" compile="0" resource="0"

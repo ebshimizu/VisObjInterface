@@ -48,6 +48,7 @@ list<SearchResult*> attributeSearch(map<string, AttributeControllerBase*>& activ
     log = log + "}";
   }
   getRecorder()->log(ACTION, log);
+  setSessionName();
 
   AttributeSearchThread* t = new AttributeSearchThread(active, editDepth);
   t->runThread();

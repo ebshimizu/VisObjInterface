@@ -135,7 +135,7 @@ void HistoryPanel::clearRedo()
 
 void HistoryPanel::setWidth(int width)
 {
-  int elemHeight = width * (9.0 / 16.0);
+  int elemHeight = (int) (width * (9.0 / 16.0));
   int height = (_history.size() + _redo.size()) * elemHeight;
   setBounds(0, 0, width, height);
 }

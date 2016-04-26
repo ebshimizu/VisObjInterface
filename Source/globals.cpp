@@ -89,13 +89,7 @@ void exportSearchResults(list<SearchResult*>& results, int depth, string desc, b
   ofstream valfile;
   ofstream key;
 
-  time_t t = time(0);   // get time now
-  struct tm * now = localtime(&t);
-
-  char buffer[80];
-  strftime(buffer, 80, "%Y-%m-%d-%H%M", now);
-
-  string fnamePrefix = getGlobalSettings()->_traceRootDir + "/search-" + string(buffer) + "-depth-" + String(depth).toStdString() + "-" + desc;
+  string fnamePrefix = getGlobalSettings()->_traceRootDir + "/" + getGlobalSettings()->_sessionName + "-depth-" + String(depth).toStdString() + "-" + desc;
   string xfname = fnamePrefix + "-vectors.txt";
   string valfname = fnamePrefix + "-vals.txt";
   string keyname = fnamePrefix + "-ids.txt";
@@ -127,10 +121,21 @@ void exportSearchResults(list<SearchResult*>& results, int depth, string desc, b
 
   if (makeGraph) {
     // automatically run t-sne
-    string root = getGlobalSettings()->_traceRootDir + "/search-" + string(buffer) + "-depth-" + String(depth).toStdString();
+    string root = getGlobalSettings()->_traceRootDir + "/" + getGlobalSettings()->_sessionName + "-depth-" + String(depth).toStdString();
     string cmd = "python C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/dataviz/tsne2.py " + root + " 30";
     system(cmd.c_str());
   }
+}
+
+void setSessionName()
+{
+  time_t t = time(0);   // get time now
+  struct tm * now = localtime(&t);
+
+  char buffer[80];
+  strftime(buffer, 80, "%Y-%m-%d-%H%M", now);
+
+  getGlobalSettings()->_sessionName = "search-" + string(buffer);
 }
 
 void GlobalSettings::dumpDiagnosticData()
@@ -139,14 +144,8 @@ void GlobalSettings::dumpDiagnosticData()
     ofstream file;
     ofstream indexFile;
 
-    time_t t = time(0);   // get time now
-    struct tm * now = localtime(&t);
-
-    char buffer[80];
-    strftime(buffer, 80, "%Y-%m-%d-%H%M", now);
-
-    string filename = _traceRootDir + "/search-" + string(buffer) + ".csv";
-    string indexFilename = _traceRootDir + "/search-" + string(buffer) + "-selectedIds.csv";
+    string filename = _traceRootDir + "/" + _sessionName + ".csv";
+    string indexFilename = _traceRootDir + "/" + _sessionName + "-selectedIds.csv";
     
     file.open(filename, ios::trunc);
     indexFile.open(indexFilename, ios::trunc);
@@ -163,7 +162,7 @@ void GlobalSettings::dumpDiagnosticData()
     indexFile.close();
 
     // actually just go generate a report now
-    string cmd = "python C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/dataviz/plotSearchTrace.py " + _traceRootDir + "/search-" + string(buffer);
+    string cmd = "python C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/dataviz/plotSearchTrace.py " + _traceRootDir + "/" + _sessionName;
     system(cmd.c_str());
   }
 

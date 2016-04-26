@@ -29,7 +29,7 @@ void RenderBackgroundThread::run()
 {
   // little bit of thread inception here...
   thread r(&RenderBackgroundThread::renderLoop, this);
-  r.detach();
+  //r.detach();
 
   float prog = 0;
   setStatusMessage("Rendering...");
@@ -48,8 +48,7 @@ void RenderBackgroundThread::run()
 
   setProgress(-1.0);
   setStatusMessage("Finalizing frame...");
-
-  wait(1000);
+  r.join();
 }
 
 void RenderBackgroundThread::threadComplete(bool userPressedCancel)
@@ -118,6 +117,7 @@ void SceneViewer::renderScene() {
   int width = getGlobalSettings()->_renderWidth;
   int height = getGlobalSettings()->_renderHeight;
   p->setDims(width, height);
+  p->setSamples(getGlobalSettings()->_stageRenderSamples);
 
   _currentRender = Image(Image::ARGB, width, height, true);
   uint8* bufptr = Image::BitmapData(_currentRender, Image::BitmapData::readWrite).getPixelPointer(0,0);

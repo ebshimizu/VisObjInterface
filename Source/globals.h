@@ -161,6 +161,7 @@ public:
   vector<double> _as;
   vector<string> _editNames;
   vector<unsigned int> _selectedSamples;
+  string _sessionName;
 
   // dumps search diagnostics to a file
   // file is 1 csv: first row is accepted function values, second is the a that accepted the value
@@ -220,5 +221,8 @@ void lockDeviceParam(string id, string param);
 void unlockDeviceParam(string id, string param);
 
 void exportSearchResults(list<SearchResult*>& results, int depth, string desc = "", bool makeGraph = false);
+
+// For debugging, set the common filename for all files in the search session
+void setSessionName();
 
 #endif  // GLOBALS_H_INCLUDED
