@@ -171,6 +171,14 @@ public:
 
   // sometimes the image space attributes like to redraw themselves while the other thing is rendering
   bool _renderInProgress;
+
+  // Caches rendered images for attributes that need it.
+  // not intended for other uses besides attributes
+  Image getCachedImage(Snapshot* s, int w, int h, int samples);
+  void invalidateCache();
+
+  Image _renderCache;
+  bool _cacheUpdated;
 };
 
 // Results that eventually get returned to the UI layer

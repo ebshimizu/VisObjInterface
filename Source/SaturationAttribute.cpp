@@ -24,7 +24,7 @@ double SaturationAttribute::evaluateScene(Snapshot * s)
 {
   generateImage(s);
   Histogram1D sat = getSatHist(_numBins);
-  return sat.weightedAvg() * 100;
+  return sat.avg() * 100;
 }
 
 //void SaturationAttribute::preProcess()

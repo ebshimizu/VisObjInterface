@@ -11,7 +11,7 @@
 #include "NoireAttribute.h"
 #include "BrightAttribute.h"
 
-NoireAttribute::NoireAttribute() : AttributeControllerBase("Noire")
+NoireAttribute::NoireAttribute() : HistogramAttribute("Noire", 50, 50)
 {
   _autoLockParams.insert("polar");
   _autoLockParams.insert("azimuth");
@@ -25,21 +25,31 @@ NoireAttribute::~NoireAttribute()
 
 double NoireAttribute::evaluateScene(Snapshot * s)
 {
+  // goals: high contrast, low overall brightness, no front light,
+  // one directional source per area, low overall saturation
   double score = 0;
+  generateImage(s);
 
-  // measure strength of noire-ness in all areas, take weighted average
+  Histogram1D brightness = getGrayscaleHist(100);
+  double avgBrightness = (1-brightness.avg()) * 100;
+  double low = brightness.percentile(20);
+  double high = brightness.percentile(80);
+  double contrast = ((high - low) / avgBrightness) * 100;
+  
+  double penalties = 0;
+
+  // calculate penalties from having conflicting cross lights 
   for (auto& a : _areas) {
-    // calculate weight for area
-    auto devices = _cache[a].getDevices();
-    double totalWeight = 0;
-    for (auto& d : devices) {
-      totalWeight += _weights[d->getId()];
-    }
+    // look for front lights, penalize based on absolute intensity
+    // front intensity. Penalty may be positive.
+    double fintens = getAreaIntens(s, a, "front") / 1000.0;
+    double crossPenalty = getAreaCrossPenalty(s, a);
 
-    score += getScoreForArea(s, a) * totalWeight;
+    penalties += -fintens + crossPenalty * 100;
   }
 
-  return score * 100;
+  score = contrast - avgBrightness + penalties;
+  return score;
 }
 
 void NoireAttribute::preProcess()
@@ -54,78 +64,44 @@ void NoireAttribute::preProcess()
     _cache[a + "_front"] = getRig()->select("$area=" + a + "[$angle=front]");
     _cache[a] = getRig()->select("$area=" + a);
   }
-
-  auto& devices = getRig()->getDeviceRaw();
-
-  // this attribute attempts to find the pre-computed brightnessAttributeWeight if it exists
-  // if it doesn't we kinda just cheat a bit by creating a brightness attribute and preprocessing it
-  // and then copying the values resulting from that.
-  bool weightsExist = true;
-  for (const auto& d : devices) {
-    if (!d->metadataExists("brightnessAttributeWeight")) {
-      weightsExist = false;
-      break;
-    }
-  }
-
-  if (!weightsExist) {
-    // make those things exist
-    BrightAttribute* ba = new BrightAttribute("NOIRE HELPER");
-    ba->preProcess();
-    delete ba;
-  }
-
-  // now that the metadata exists, copy it
-  for (const auto& d : devices) {
-    if (d->metadataExists("brightnessAttributeWeight")) {
-      _weights[d->getId()] = stof(d->getMetadata("brightnessAttributeWeight"));
-    }
-  }
 }
 
-double NoireAttribute::getScoreForArea(Snapshot* s, string a)
+double NoireAttribute::getAreaIntens(Snapshot * s, string area, string angle)
 {
-  // returns a score for the given area
+  double intens = 0;
+  auto& devices = _cache[area + "_" + "angle"].getDevices();
+  auto& sd = s->getRigData();
 
-  // calculate average top, left, right, and front brightness (purely light based)
-  double topAvg = getAvgIntensity(s, a, "top");
-  double leftAvg = getAvgIntensity(s, a, "left");
-  double rightAvg = getAvgIntensity(s, a, "right");
-  double frontAvg = getAvgIntensity(s, a, "front");
-
-  // score compute time.
-  // side score is diff between brightest of left/right (abs diff)
-  double sideScore = abs(leftAvg - rightAvg);
-
-  // contrast score measures brightness difference between top and brightest side (linear abs diff)
-  double contrastScore = abs(topAvg - ((leftAvg > rightAvg) ? leftAvg : rightAvg));
-
-  // total score is side + contrast - front
-  return sideScore + contrastScore - frontAvg;
-}
-
-double NoireAttribute::getAvgIntensity(Snapshot * s, string area, string angle)
-{
-  string cacheId = area + "_" + angle;
-  auto& rigData = s->getRigData();
-  auto devices = _cache[cacheId].getDevices();
-
-  // abort if no devices
-  if (devices.size() == 0)
-    return 0;
-
-  // devices should be weighted according to their relative influence within their areas
-  // so we should recompute weights here
-  double areaWeightTotal = 0;
-  auto areaDevices = _cache[area].getDevices();
-  for (auto& d : areaDevices) {
-    areaWeightTotal += _weights[d->getId()];
-  }
-
-  double avg = 0;
   for (auto& d : devices) {
-    avg += rigData[d->getId()]->getIntensity()->asPercent() * (_weights[d->getId()] / areaWeightTotal);
+    intens += sd[d->getId()]->getIntensity()->getVal();
   }
 
-  return avg / devices.size();
+  return intens;
+}
+
+double NoireAttribute::getAreaCrossPenalty(Snapshot* s, string area) {
+  double lintens = 0;
+  double rintens = 0;
+
+  auto& sd = s->getRigData();
+
+  auto rdevices = _cache[area + "_right"].getDevices();
+  auto ldevices = _cache[area + "_left"].getDevices();
+
+  // calculate total intensities
+  for (auto& d : rdevices) {
+    rintens += d->getIntensity()->getVal();
+  }
+
+  for (auto& d : ldevices) {
+    lintens += d->getIntensity()->getVal();
+  }
+
+  // determine difference between intensities, larger is better
+  double diff = abs(rintens - lintens);
+
+  // determine penalty
+  // divide by 1000
+  diff /= 1000.0;
+  return (1 - exp(-diff)) / (1 + exp(-diff)) - 0.5;
 }

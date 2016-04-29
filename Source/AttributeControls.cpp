@@ -264,7 +264,7 @@ void AttributeControls::initAttributes()
   _container->addAttributeController(new HistogramBrightness("Brightness - Hist", 50, 30, 30));
 
   // Histogram contrast
-  //_container->addAttributeController(new HistogramContrast("Contrast - Hist", 50, 30, 30));
+  _container->addAttributeController(new HistogramContrast("Contrast - Hist", 255, 30, 30));
 
   //_container->addAttributeController(new BacklitAttribute());
   //_container->addAttributeController(new SoftAttribute());

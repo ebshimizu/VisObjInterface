@@ -180,6 +180,33 @@ unsigned int GlobalSettings::getSampleID()
   return ret;
 }
 
+Image GlobalSettings::getCachedImage(Snapshot* s, int w, int h, int samples)
+{
+  if (_cacheUpdated && _renderCache.getWidth() == w && _renderCache.getHeight() == h)
+    return _renderCache;
+
+  auto devices = s->getDevices();
+  auto p = getAnimationPatch();
+
+  if (p == nullptr)
+    return Image();
+
+  // render at 2x res, downsample to canonical resolution
+  uint8* bufptr = Image::BitmapData(_renderCache, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+  p->setDims(w, h);
+  p->setSamples(samples);
+
+  getAnimationPatch()->renderSingleFrameToBuffer(devices, bufptr);
+
+  _cacheUpdated = true;
+  return _renderCache;
+}
+
+void GlobalSettings::invalidateCache()
+{
+  _cacheUpdated = false;
+}
+
 Rig* getRig() {
   if (_rig == nullptr) {
     _rig = new Rig();

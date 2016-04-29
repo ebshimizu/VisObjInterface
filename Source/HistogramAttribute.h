@@ -40,11 +40,15 @@ public:
   // Returns a copy of the new histogram
   Histogram1D consolidate(int targetNumBins);
 
-  // Returns a weighted average of values contained in the histogram bins
-  double weightedAvg();
+  // Returns an average of values contained in the histogram bins
+  double avg();
 
-  // max - min / avg
-  double contrast();
+  // variance and st deviation
+  double variance();
+  double stdev();
+
+  // Returns the value of the n-th percentile
+  double percentile(float pct);
 
 private:
   // Maps bins to the number of pixels in each bin

@@ -11,9 +11,9 @@
 #ifndef NOIREATTRIBUTE_H_INCLUDED
 #define NOIREATTRIBUTE_H_INCLUDED
 
-#include "AttributeControllerBase.h"
+#include "HistogramAttribute.h"
 
-class NoireAttribute : public AttributeControllerBase
+class NoireAttribute : public HistogramAttribute
 {
 public:
   NoireAttribute();
@@ -24,11 +24,10 @@ public:
   virtual void preProcess() override;
 
 private:
-  double getScoreForArea(Snapshot* s, string a);
-  double getAvgIntensity(Snapshot* s, string area, string angle);
+  double getAreaIntens(Snapshot* s, string area, string angle);
+  double getAreaCrossPenalty(Snapshot* s, string area);
 
   unordered_map<string, DeviceSet> _cache;
-  unordered_map<string, double> _weights;
   set<string> _areas;
 };
 

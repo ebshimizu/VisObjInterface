@@ -31,5 +31,8 @@ double HistogramContrast::evaluateScene(Snapshot * s)
   generateImage(s);
   Histogram1D brightness = getGrayscaleHist(_numBins);
 
-  return brightness.contrast() * 10;
+  double low = brightness.percentile(20);
+  double high = brightness.percentile(80);
+
+  return ((high - low) / brightness.avg()) * 100;
 }

@@ -130,7 +130,7 @@ Histogram1D Histogram1D::consolidate(int targetNumBins)
   return Histogram1D(newData, _count, _numBins);
 }
 
-double Histogram1D::weightedAvg()
+double Histogram1D::avg()
 {
   double interval = 1.0 / _numBins;
   double sum = 0;
@@ -143,17 +143,49 @@ double Histogram1D::weightedAvg()
   return sum;
 }
 
-double Histogram1D::contrast()
+double Histogram1D::variance()
 {
+  double a = avg();
+  
+  double sum = 0;
   double interval = 1.0 / _numBins;
 
-  double start = _histData.begin()->first * interval;
-  double end = _histData.rbegin()->first * interval;
+  for (const auto& vals : _histData) {
+    // bin deviation
+    double dev = (vals.first * interval) - a;
+    dev *= dev;
 
-  if (end + start == 0)
-    return 0;
+    // count the number of elements in the bin, add to running total
+    sum += dev * vals.second;
+  }
 
-  return (end - start) / weightedAvg();
+  // return mean of sum
+  return sum / _count;
+}
+
+double Histogram1D::stdev()
+{
+  return sqrt(variance());
+}
+
+double Histogram1D::percentile(float pct)
+{
+  float target = pct / 100.0;
+
+  // defined as the first value such that n% of all values are <= than that value
+  unsigned int total = 0;
+  double interval = 1.0 / _numBins;
+  unsigned int highest = 0;
+
+  for (const auto& vals : _histData) {
+    total += vals.second;
+    if ((float)total / _count <= target)
+      highest = vals.first;
+    else
+      break;
+  }
+
+  return highest * interval;
 }
 
 // ============================================================================
