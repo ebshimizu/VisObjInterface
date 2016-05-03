@@ -15,9 +15,7 @@ Histogram1D::Histogram1D(int numBins) {
   // (at the moment) are uint8s
   _count = 0;
 
-  if (numBins > 255)
-    _numBins = 255;
-  else if (numBins < 1)
+  if (numBins < 1)
     _numBins = 1;
   else
     _numBins = numBins;
@@ -54,6 +52,21 @@ void Histogram1D::addValToBin(uint8 x)
 unsigned int Histogram1D::getBin(unsigned int id)
 {
   return _histData[id];
+}
+
+unsigned int Histogram1D::getNthBin(unsigned int n)
+{
+  unsigned int i = 0;
+  for (const auto& d : _histData) {
+    if (i == n) {
+      return d.first;
+    }
+
+    i++;
+  }
+
+  // returns 0 if nothing is found
+  return 0;
 }
 
 void Histogram1D::addToBin(unsigned int amt, unsigned int id)

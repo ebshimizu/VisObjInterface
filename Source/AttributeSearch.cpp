@@ -841,7 +841,7 @@ void AttributeSearchThread::generateEdits(bool explore)
 
   // Create all devices edit types
   generateDefaultEdits("*");
-  generateColorEdits("");
+  //generateColorEdits("*");
 
   // Create edits for each system
   for (const auto& s : systems) {

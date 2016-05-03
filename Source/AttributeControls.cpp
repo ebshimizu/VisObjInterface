@@ -266,6 +266,12 @@ void AttributeControls::initAttributes()
   // Histogram contrast
   _container->addAttributeController(new HistogramContrast("Contrast - Hist", 255, 30, 30));
 
+  // Orange Blue
+  _container->addAttributeController(new OrangeBlueAttribute(30, 30));
+
+  // moonlight
+  _container->addAttributeController(new MoonlightAttribute(50, 50));
+
   //_container->addAttributeController(new BacklitAttribute());
   //_container->addAttributeController(new SoftAttribute());
   //_container->addAttributeController(new HighAngleAttribute());

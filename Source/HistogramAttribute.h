@@ -29,6 +29,7 @@ public:
   void addValToBin(uint8 x);
 
   unsigned int getBin(unsigned int id);
+  unsigned int getNthBin(unsigned int n);
 
   void addToBin(unsigned int amt, unsigned int id);
   void removeFromBin(unsigned int amt, unsigned int id);

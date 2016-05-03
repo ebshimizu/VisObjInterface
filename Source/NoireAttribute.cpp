@@ -31,10 +31,11 @@ double NoireAttribute::evaluateScene(Snapshot * s)
   generateImage(s);
 
   Histogram1D brightness = getGrayscaleHist(100);
-  double avgBrightness = (1-brightness.avg()) * 100;
+  double avgb = brightness.avg();
+  double brightScore = (1-avgb) * 100;
   double low = brightness.percentile(20);
-  double high = brightness.percentile(80);
-  double contrast = ((high - low) / avgBrightness) * 100;
+  double high = brightness.percentile(95);
+  double contrast = ((high - low) / avgb) * 100;
   
   double penalties = 0;
 
@@ -42,13 +43,14 @@ double NoireAttribute::evaluateScene(Snapshot * s)
   for (auto& a : _areas) {
     // look for front lights, penalize based on absolute intensity
     // front intensity. Penalty may be positive.
-    double fintens = getAreaIntens(s, a, "front") / 1000.0;
-    double crossPenalty = getAreaCrossPenalty(s, a);
+    double fintens = getRelativeAreaIntens(a, "front") * 1000;
+    double rintens = getRelativeAreaIntens(a, "top") * 100;
+    double crossPenalty = getAreaCrossPenalty(s, a) * 100;
 
-    penalties += -fintens + crossPenalty * 100;
+    penalties += -fintens + crossPenalty + rintens;
   }
 
-  score = contrast - avgBrightness + penalties;
+  score = contrast + brightScore + penalties;
   return score;
 }
 
@@ -63,6 +65,33 @@ void NoireAttribute::preProcess()
     _cache[a + "_top"] = getRig()->select("$area=" + a + "[$angle=top]");
     _cache[a + "_front"] = getRig()->select("$area=" + a + "[$angle=front]");
     _cache[a] = getRig()->select("$area=" + a);
+  }
+
+  auto& devices = getRig()->getDeviceRaw();
+
+  // this attribute attempts to find the pre-computed brightnessAttributeWeight if it exists
+  // if it doesn't we kinda just cheat a bit by creating a brightness attribute and preprocessing it
+  // and then copying the values resulting from that.
+  bool weightsExist = true;
+  for (const auto& d : devices) {
+    if (!d->metadataExists("brightnessAttributeWeight")) {
+      weightsExist = false;
+      break;
+    }
+  }
+
+  if (!weightsExist) {
+    // make those things exist
+    BrightAttribute* ba = new BrightAttribute("NOIRE HELPER");
+    ba->preProcess();
+    delete ba;
+  }
+
+  // now that the metadata exists, copy it
+  for (const auto& d : devices) {
+    if (d->metadataExists("brightnessAttributeWeight")) {
+      _weights[d->getId()] = stof(d->getMetadata("brightnessAttributeWeight"));
+    }
   }
 }
 
@@ -79,29 +108,41 @@ double NoireAttribute::getAreaIntens(Snapshot * s, string area, string angle)
   return intens;
 }
 
+double NoireAttribute::getRelativeAreaIntens(string area, string angle)
+{
+  double relIntens = 0;
+  auto devices = _cache[area + "_" + angle].getDevices();
+
+  for (auto& d : devices) {
+    relIntens += _weights[d->getId()] * d->getIntensity()->asPercent();
+  }
+
+  return relIntens;
+}
+
+double NoireAttribute::getAreaWeightTotal(string area, string angle)
+{
+  double relIntens = 0;
+  auto devices = _cache[area + "_" + angle].getDevices();
+
+  for (auto& d : devices) {
+    relIntens += _weights[d->getId()];
+  }
+
+  return relIntens;
+}
+
 double NoireAttribute::getAreaCrossPenalty(Snapshot* s, string area) {
-  double lintens = 0;
-  double rintens = 0;
+  double lintens = getRelativeAreaIntens(area, "left");
+  double rintens = getRelativeAreaIntens(area, "right");
 
-  auto& sd = s->getRigData();
+  string minAngle = (lintens > rintens) ? "right" : "left";
 
-  auto rdevices = _cache[area + "_right"].getDevices();
-  auto ldevices = _cache[area + "_left"].getDevices();
+  if (getAreaWeightTotal(area, minAngle) == 0)
+    return 0;
 
-  // calculate total intensities
-  for (auto& d : rdevices) {
-    rintens += d->getIntensity()->getVal();
-  }
+  double propIntens = min(lintens, rintens) / getAreaWeightTotal(area, minAngle);
 
-  for (auto& d : ldevices) {
-    lintens += d->getIntensity()->getVal();
-  }
-
-  // determine difference between intensities, larger is better
-  double diff = abs(rintens - lintens);
-
-  // determine penalty
-  // divide by 1000
-  diff /= 1000.0;
-  return (1 - exp(-diff)) / (1 + exp(-diff)) - 0.5;
+  // penalize based on how much the min angle is messing up the max angle
+  return -propIntens;
 }
