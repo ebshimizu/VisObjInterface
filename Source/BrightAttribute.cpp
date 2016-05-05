@@ -149,7 +149,6 @@ void BrightAttribute::preProcess()
         totalY += (color.getRed() / 255.0) * 0.2126 + (color.getGreen() / 255.0) * 0.7152 + (color.getBlue() / 255.0) * 0.0722;
       }
     }
-    Lumiverse::Logger::log(LDEBUG, String(img.getReferenceCount()).toStdString());
 
     totalY /= (double)(width * height);
     brightness[d.first] = totalY;

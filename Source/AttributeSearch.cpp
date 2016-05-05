@@ -426,7 +426,12 @@ Eigen::VectorXd snapshotToVector(Snapshot * s)
     features[base + 3] = d.second->getParam<LumiverseColor>("color")->getColorChannel("Red");
     features[base + 4] = d.second->getParam<LumiverseColor>("color")->getColorChannel("Green");
     features[base + 5] = d.second->getParam<LumiverseColor>("color")->getColorChannel("Blue");
-    features[base + 6] = d.second->getParam<LumiverseFloat>("penumbraAngle")->asPercent();
+
+    if (d.second->paramExists("penumbraAngle"))
+      features[base + 6] = d.second->getParam<LumiverseFloat>("penumbraAngle")->asPercent();
+    else
+      features[base + 6] = 0;
+
     idx++;
   }
 
@@ -453,7 +458,10 @@ Snapshot * vectorToSnapshot(Eigen::VectorXd v)
     d.second->getParam<LumiverseColor>("color")->setColorChannel("Red", v[base + 3]);
     d.second->getParam<LumiverseColor>("color")->setColorChannel("Green", v[base + 4]);
     d.second->getParam<LumiverseColor>("color")->setColorChannel("Blue", v[base + 5]);
-    d.second->getParam<LumiverseFloat>("penumbraAngle")->setValAsPercent(v[base + 6]);
+
+    if (d.second->paramExists("penumbraAngle"))
+      d.second->getParam<LumiverseFloat>("penumbraAngle")->setValAsPercent(v[base + 6]);
+
     idx++;
   }
 
@@ -871,7 +879,7 @@ void AttributeSearchThread::generateDefaultEdits(string select)
 {
   vector<EditConstraint> allParams;
   // looks a bit arbitrary, but see definition of EditParam. Includes all params except RGB.
-  for (int i = 0; i <= 6; i++) {
+  for (int i = 0; i <= 5; i++) {
     allParams.push_back(EditConstraint(select, (EditParam)i, D_ALL));
   }
   _edits[select + "_all"] = allParams;
@@ -927,12 +935,12 @@ void AttributeSearchThread::generateDefaultEdits(string select)
     _edits[select + "_pos"] = position;
   }
 
-  if (_lockedParams.count("penumbraAngle") == 0) {
+  //if (_lockedParams.count("penumbraAngle") == 0) {
     // Softness
-    vector<EditConstraint> soft;
-    soft.push_back(EditConstraint(select, SOFT, D_ALL));
-    _edits[select + "_soft"] = soft;
-  }
+  //  vector<EditConstraint> soft;
+  //  soft.push_back(EditConstraint(select, SOFT, D_ALL));
+  //  _edits[select + "_soft"] = soft;
+  //}
 }
 
 void AttributeSearchThread::generateColorEdits(string area)
