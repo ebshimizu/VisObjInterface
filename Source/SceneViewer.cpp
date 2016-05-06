@@ -63,7 +63,7 @@ void RenderBackgroundThread::threadComplete(bool userPressedCancel)
 }
 
 void RenderBackgroundThread::renderLoop() {
-  _p->renderSingleFrameToBuffer(getRig()->getDeviceRaw(), _bufptr);
+  _p->renderSingleFrameToBuffer(getRig()->getDeviceRaw(), _bufptr, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
 }
 
 //==============================================================================

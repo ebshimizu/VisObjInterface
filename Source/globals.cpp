@@ -196,7 +196,7 @@ Image GlobalSettings::getCachedImage(Snapshot* s, int w, int h, int samples)
   p->setDims(w, h);
   p->setSamples(samples);
 
-  getAnimationPatch()->renderSingleFrameToBuffer(devices, bufptr);
+  getAnimationPatch()->renderSingleFrameToBuffer(devices, bufptr, w, h);
 
   _cacheUpdated = true;
   return _renderCache;

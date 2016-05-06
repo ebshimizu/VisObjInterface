@@ -45,7 +45,7 @@ void SearchResultsRenderer::run() {
     uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
 
     Snapshot* s = vectorToSnapshot(r->getSearchResult()->_scene);
-    p->renderSingleFrameToBuffer(s->getDevices(), bufptr);
+    p->renderSingleFrameToBuffer(s->getDevices(), bufptr, width, height);
     delete s;
 
     r->setImage(img);

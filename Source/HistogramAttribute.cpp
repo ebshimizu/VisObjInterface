@@ -254,7 +254,7 @@ void HistogramAttribute::generateImage(Snapshot* s)
   p->setDims(_canonicalWidth * 2, _canonicalHeight * 2);
   p->setSamples(getGlobalSettings()->_thumbnailRenderSamples);
 
-  getAnimationPatch()->renderSingleFrameToBuffer(devices, bufptr);
+  getAnimationPatch()->renderSingleFrameToBuffer(devices, bufptr, _canonicalWidth * 2, _canonicalHeight * 2);
   
   _canonical = _highRes.rescaled(_canonicalWidth, _canonicalHeight);
 }

@@ -139,7 +139,7 @@ void BrightAttribute::preProcess()
     Image img = Image(Image::ARGB, width, height, true);
     uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
 
-    p->renderSingleFrameToBuffer(s->getDevices(), bufptr);
+    p->renderSingleFrameToBuffer(s->getDevices(), bufptr, width, height);
 
     // calculate brightness, average brightness values across image
     double totalY = 0;
