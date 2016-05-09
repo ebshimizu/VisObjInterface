@@ -13,6 +13,63 @@
 #include "MainComponent.h"
 #include "AttributeSearchCluster.h"
 
+
+//==============================================================================
+SearchResultBlender::SearchResultBlender(SearchResult * s) : _target(s)
+{
+  Snapshot* b = new Snapshot(getRig(), nullptr);
+  _base = snapshotToVector(b);
+  delete b;
+
+  _blender.setRange(0, 1, 0.01);
+  _blender.setSliderStyle(Slider::LinearBar);
+  _blender.setValue(1, dontSendNotification);
+  _blender.addListener(this);
+  addAndMakeVisible(_blender);
+}
+
+SearchResultBlender::~SearchResultBlender()
+{
+}
+
+void SearchResultBlender::paint(Graphics & g)
+{
+  auto lbounds = getLocalBounds();
+  g.setColour(Colours::white);
+  g.setFont(12);
+  g.drawFittedText("Blend", lbounds.removeFromTop(20), Justification::centred, 1);
+}
+
+void SearchResultBlender::resized()
+{
+  auto lbounds = getLocalBounds();
+  lbounds.removeFromTop(20);
+  _blender.setBounds(lbounds);
+}
+
+void SearchResultBlender::sliderValueChanged(Slider * s)
+{
+  float a = s->getValue();
+
+  // lerp values
+  Eigen::VectorXd interp = (1 - a) * _base + a * _target->_scene;
+
+  // Update rig
+  Snapshot* newScene = vectorToSnapshot(interp);
+  newScene->loadRig(getRig());
+  delete newScene;
+
+  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+  if (mc != nullptr) {
+    mc->arnoldRenderNoPopup();
+    mc->refreshParams();
+    mc->refreshAttr();
+    getRecorder()->log(ACTION, "User interpolated scene (" + String(a).toStdString() + "%)");
+  }
+}
+
+
 //==============================================================================
 AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(result)
 {
@@ -112,6 +169,12 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
         mc->search();
       }
     }
+  }
+  else if (event.mods.isLeftButtonDown()) {
+    // popup window to allow blending of current scene with search scene
+    SearchResultBlender* popupComponent = new SearchResultBlender(_result);
+    popupComponent->setSize(300, 45);
+    CallOutBox& cb = CallOutBox::launchAsynchronously(popupComponent, getScreenBounds(), nullptr);
   }
 }
 

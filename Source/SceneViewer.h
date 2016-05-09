@@ -48,6 +48,9 @@ public:
   // Does a synchronous render of the current scene specified in the Rig
   void renderScene();
 
+  // Does a render of the current scene without showing the progress window
+  void renderSceneNoPopup();
+
   Image getRender() { return _currentRender; }
   void setRender(Image img);
   void setPreview(Image prev);

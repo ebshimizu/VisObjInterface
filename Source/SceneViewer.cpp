@@ -131,6 +131,35 @@ void SceneViewer::renderScene() {
   repaint();
 }
 
+void SceneViewer::renderSceneNoPopup()
+{
+  // Renders a scene using Arnold through Lumiverse.
+  // Find the patch, we search for the first ArnoldAnimationPatch we can find.
+  ArnoldAnimationPatch* p = getAnimationPatch();
+
+  if (p == nullptr) {
+    getRecorder()->log(RENDER, "Render failed. Could not find ArnoldAnimationPatch.");
+    return;
+  }
+
+  // Get the image dimensions
+  int width = getGlobalSettings()->_renderWidth;
+  int height = getGlobalSettings()->_renderHeight;
+  p->setDims(width, height);
+  p->setSamples(getGlobalSettings()->_stageRenderSamples);
+
+  _currentRender = Image(Image::ARGB, width, height, true);
+  uint8* bufptr = Image::BitmapData(_currentRender, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+
+  getRecorder()->log(RENDER, "Render started.");
+  getGlobalSettings()->_renderInProgress = true;
+  p->renderSingleFrameToBuffer(getRig()->getDeviceRaw(), bufptr, width, height);
+  getGlobalSettings()->_renderInProgress = false;
+  getRecorder()->log(RENDER, "Render finished.");
+
+  repaint();
+}
+
 void SceneViewer::setRender(Image img)
 {
   _currentRender = img;

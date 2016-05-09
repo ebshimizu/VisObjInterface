@@ -473,6 +473,14 @@ void MainContentComponent::arnoldRender()
   addHistory();
 }
 
+void MainContentComponent::arnoldRenderNoPopup()
+{
+  _viewer->renderSceneNoPopup();
+
+  // may want to clean this part up a bit, maybe trigger on mouse up
+  addHistory();
+}
+
 void MainContentComponent::openSettings()
 {
   if (_settingsWindow != nullptr)

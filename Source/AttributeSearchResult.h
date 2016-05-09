@@ -16,7 +16,26 @@
 #include "AttributeSearch.h"
 
 //==============================================================================
+class SearchResultBlender : public Component, public Slider::Listener
+{
+public:
+  SearchResultBlender(SearchResult* s);
+  ~SearchResultBlender();
+
+  void paint(Graphics& g);
+  void resized();
+
+  void sliderValueChanged(Slider* s) override;
+
+private:
+  Eigen::VectorXd _base;
+  SearchResult* _target;
+  Slider _blender;
+};
+
+//==============================================================================
 /*
+This class represents a scene returned from a search operation
 */
 class AttributeSearchResult : public Component, public SettableTooltipClient
 {

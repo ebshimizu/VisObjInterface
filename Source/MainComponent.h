@@ -43,6 +43,7 @@ public:
 
   void refreshAttr();
   void arnoldRender();
+  void arnoldRenderNoPopup();
 
   // The big search function. This function does the following:
   // - Performs a number of searches using particular sets of constraints (edits)
