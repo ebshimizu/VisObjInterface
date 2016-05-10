@@ -23,7 +23,7 @@ SearchResultBlender::SearchResultBlender(SearchResult * s) : _target(s)
 
   _blender.setRange(0, 1, 0.01);
   _blender.setSliderStyle(Slider::LinearBar);
-  _blender.setValue(1, dontSendNotification);
+  _blender.setValue(0, dontSendNotification);
   _blender.addListener(this);
   addAndMakeVisible(_blender);
 }
@@ -52,7 +52,7 @@ void SearchResultBlender::sliderValueChanged(Slider * s)
   float a = s->getValue();
 
   // lerp values
-  Eigen::VectorXd interp = (1 - a) * _base + a * _target->_scene;
+  Eigen::VectorXd interp = a * _base + (1 - a) * _target->_scene;
 
   // Update rig
   Snapshot* newScene = vectorToSnapshot(interp);
@@ -123,6 +123,9 @@ void AttributeSearchResult::resized()
 void AttributeSearchResult::setImage(Image img)
 {
   _render = img;
+
+  if (getGlobalSettings()->_grayscaleMode)
+    _render.desaturate();
 }
 
 void AttributeSearchResult::clearSearchResult()

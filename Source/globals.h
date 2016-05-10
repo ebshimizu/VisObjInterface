@@ -148,6 +148,7 @@ public:
   string _traceRootDir;         // Trace file location
   double _meanShiftEps;         // Mean shift epsilon
   double _meanShiftBandwidth;   // Mean shift bandwidth
+  bool _grayscaleMode;          // Render images in grayscale instead of color
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results
@@ -169,9 +170,6 @@ public:
   void dumpDiagnosticData();
 
   unsigned int getSampleID();
-
-  // sometimes the image space attributes like to redraw themselves while the other thing is rendering
-  bool _renderInProgress;
 
   // Caches rendered images for attributes that need it.
   // not intended for other uses besides attributes

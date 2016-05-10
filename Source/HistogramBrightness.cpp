@@ -25,9 +25,6 @@ HistogramBrightness::~HistogramBrightness()
 
 double HistogramBrightness::evaluateScene(Snapshot * s)
 {
-  if (getGlobalSettings()->_renderInProgress)
-    return 0;
-
   generateImage(s);
   Histogram1D brightness = getGrayscaleHist(_numBins);
   return brightness.avg() * 100;

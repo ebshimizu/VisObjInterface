@@ -204,8 +204,10 @@ void SettingsBoolButton::setState(bool newState)
 {
   if (_id == "Random Mode")
     getGlobalSettings()->_randomMode = newState;
-  if (_id == "Export Traces")
+  else if (_id == "Export Traces")
     getGlobalSettings()->_exportTraces = newState;
+  else if (_id == "Grayscale Mode")
+    getGlobalSettings()->_grayscaleMode = newState;
 
   refresh();
 }
@@ -214,8 +216,10 @@ bool SettingsBoolButton::getState() const
 {
   if (_id == "Random Mode")
     return getGlobalSettings()->_randomMode;
-  if (_id == "Export Traces")
+  else if (_id == "Export Traces")
     return getGlobalSettings()->_exportTraces;
+  else if (_id == "Grayscale Mode")
+    return getGlobalSettings()->_grayscaleMode;
 
   return false;
 }
@@ -269,6 +273,7 @@ SettingsEditor::SettingsEditor()
   renderComponents.add(new SettingsSlider("Reflection Samples", 1, 16, 1));
   renderComponents.add(new SettingsSlider("SSS Samples", 1, 16, 1));
   renderComponents.add(new SettingsSlider("Volume Samples", 1, 16, 1));
+  renderComponents.add(new SettingsBoolButton("Grayscale Mode"));
 
   _settings.addSection("Render", renderComponents);
 

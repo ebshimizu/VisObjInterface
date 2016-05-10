@@ -305,12 +305,12 @@ GlobalSettings::GlobalSettings()
   _showThumbnailImg = false;
   _explorationTolerance = 8;
   _T = 1;
-  _exportTraces = true;
+  _exportTraces = false;
   _traceRootDir = "C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/traces";
   _clusterCounter = 0;
   _meanShiftEps = 1e-4;
   _meanShiftBandwidth = 0.005;
-  _renderInProgress = false;
+  _grayscaleMode = false;
 }
 
 GlobalSettings::~GlobalSettings()

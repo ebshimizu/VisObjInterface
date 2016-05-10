@@ -128,10 +128,12 @@ void SceneViewer::renderScene() {
   uint8* bufptr = Image::BitmapData(_currentRender, Image::BitmapData::readWrite).getPixelPointer(0,0);
 
   getRecorder()->log(RENDER, "Render started.");
-  getGlobalSettings()->_renderInProgress = true;
   (new RenderBackgroundThread(p, bufptr))->runThread();
-  getGlobalSettings()->_renderInProgress = false;
   getRecorder()->log(RENDER, "Render finished.");
+
+  if (getGlobalSettings()->_grayscaleMode) {
+    _currentRender.desaturate();
+  }
 
   repaint();
 }
@@ -157,9 +159,7 @@ void SceneViewer::renderSceneNoPopup()
   uint8* bufptr = Image::BitmapData(_currentRender, Image::BitmapData::readWrite).getPixelPointer(0, 0);
 
   getRecorder()->log(RENDER, "Render started.");
-  getGlobalSettings()->_renderInProgress = true;
   p->renderSingleFrameToBuffer(getRig()->getDeviceRaw(), bufptr, width, height);
-  getGlobalSettings()->_renderInProgress = false;
   getRecorder()->log(RENDER, "Render finished.");
 
   repaint();
@@ -174,6 +174,10 @@ void SceneViewer::setRender(Image img)
 void SceneViewer::setPreview(Image prev)
 {
   _preview = prev;
+
+  if (getGlobalSettings()->_grayscaleMode) {
+    _preview.desaturate();
+  }
 }
 
 void SceneViewer::mouseDown(const MouseEvent & event)
