@@ -249,14 +249,29 @@ void HistogramAttribute::generateImage(Snapshot* s)
   if (p == nullptr)
     return;
 
-  // render at 2x res, downsample to canonical resolution
+  // with caching we can render at full and then scale down
   uint8* bufptr = Image::BitmapData(_highRes, Image::BitmapData::readWrite).getPixelPointer(0,0);
   p->setDims(_canonicalWidth * 2, _canonicalHeight * 2);
   p->setSamples(getGlobalSettings()->_thumbnailRenderSamples);
 
   getAnimationPatch()->renderSingleFrameToBuffer(devices, bufptr, _canonicalWidth * 2, _canonicalHeight * 2);
-  
-  _canonical = _highRes.rescaled(_canonicalWidth, _canonicalHeight);
+
+  // if the focus region has a non-zero width, pull out the proper section of the image
+  auto rect = getGlobalSettings()->_focusBounds;
+  if (rect.getWidth() > 0) {
+    // pull subsection
+    auto topLeft = rect.getTopLeft();
+    auto botRight = rect.getBottomRight();
+    Image clipped = _highRes.getClippedImage(Rectangle<int>::leftTopRightBottom(
+      (int)(topLeft.x * _canonicalWidth * 2), (int)(topLeft.y * _canonicalHeight * 2),
+      (int)(botRight.x * _canonicalWidth * 2), (int)(botRight.y * _canonicalHeight * 2)
+    ));
+
+    _canonical = clipped.rescaled(_canonicalWidth, _canonicalHeight);
+  }
+  else {
+    _canonical = _highRes.rescaled(_canonicalWidth, _canonicalHeight);
+  }
 }
 
 Histogram1D HistogramAttribute::getGrayscaleHist(int numBins)

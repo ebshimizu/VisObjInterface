@@ -252,7 +252,7 @@ void AttributeControls::initAttributes()
   //}
 
   // Add saturation
-  _container->addAttributeController(new SaturationAttribute(50, 30, 30));
+  _container->addAttributeController(new SaturationAttribute(50, 100, 100));
 
   // Tint
   //_container->addAttributeController(new TintAttribute());
@@ -261,16 +261,16 @@ void AttributeControls::initAttributes()
   _container->addAttributeController(new NoireAttribute());
 
   // Histogram brightness
-  _container->addAttributeController(new HistogramBrightness("Brightness - Hist", 50, 30, 30));
+  _container->addAttributeController(new HistogramBrightness("Brightness - Hist", 50, 100, 100));
 
   // Histogram contrast
-  _container->addAttributeController(new HistogramContrast("Contrast - Hist", 255, 30, 30));
+  _container->addAttributeController(new HistogramContrast("Contrast - Hist", 255, 100, 100));
 
   // Orange Blue
-  _container->addAttributeController(new OrangeBlueAttribute(30, 30));
+  _container->addAttributeController(new OrangeBlueAttribute(100, 100));
 
   // moonlight
-  _container->addAttributeController(new MoonlightAttribute(50, 50));
+  _container->addAttributeController(new MoonlightAttribute(100, 100));
 
   //_container->addAttributeController(new BacklitAttribute());
   //_container->addAttributeController(new SoftAttribute());

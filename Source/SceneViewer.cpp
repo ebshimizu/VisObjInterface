@@ -199,6 +199,7 @@ void SceneViewer::mouseUp(const MouseEvent & event)
 
   getGlobalSettings()->_focusBounds = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
   repaint();
+  getApplicationCommandManager()->invokeDirectly(command::REFRESH_ATTR, true);
 }
 
 void SceneViewer::mouseDrag(const MouseEvent & event)
