@@ -55,9 +55,22 @@ public:
   void setRender(Image img);
   void setPreview(Image prev);
 
+  // callbacks for drawing the box
+  // The box dimensions are set in the global settings class to make sure
+  // other parts of the application can read them easily
+  virtual void mouseDown(const MouseEvent& event);
+  virtual void mouseUp(const MouseEvent& event);
+  virtual void mouseDrag(const MouseEvent& event);
+
 private:
+  Point<float> getRelativeImageCoords(const Point<float>& pt);
+  Point<float> getWorldImageCoords(const Point<float>& pt);
+
   Image _currentRender;
   Image _preview;
+
+  Point<float> _startPoint;
+  Point<float> _currentPoint;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SceneViewer)
 };

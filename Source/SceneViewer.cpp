@@ -29,7 +29,6 @@ void RenderBackgroundThread::run()
 {
   // little bit of thread inception here...
   thread r(&RenderBackgroundThread::renderLoop, this);
-  //r.detach();
 
   float prog = 0;
   setStatusMessage("Rendering...");
@@ -94,6 +93,12 @@ void SceneViewer::paint (Graphics& g)
   else {
     g.drawImageWithin(_currentRender, 0, 0, getWidth(), getHeight(), RectanglePlacement::centred);
   }
+
+  g.setColour(Colours::red);
+  auto focus = getGlobalSettings()->_focusBounds;
+  Point<float> topLeft = getWorldImageCoords(focus.getTopLeft());
+  Point<float> bottomRight = getWorldImageCoords(focus.getBottomRight());
+  g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y), 2);
 }
 
 void SceneViewer::resized()
@@ -169,4 +174,97 @@ void SceneViewer::setRender(Image img)
 void SceneViewer::setPreview(Image prev)
 {
   _preview = prev;
+}
+
+void SceneViewer::mouseDown(const MouseEvent & event)
+{
+  if (_currentRender.getWidth() <= 0)
+    return;
+
+  _startPoint = getRelativeImageCoords(event.position);
+  getGlobalSettings()->_focusBounds.setWidth(0);
+  getGlobalSettings()->_focusBounds.setHeight(0);
+  repaint();
+}
+
+void SceneViewer::mouseUp(const MouseEvent & event)
+{
+  if (_currentRender.getWidth() <= 0)
+    return;
+
+  _currentPoint = getRelativeImageCoords(event.position);
+  Array<Point<float> > pts;
+  pts.add(_startPoint);
+  pts.add(_currentPoint);
+
+  getGlobalSettings()->_focusBounds = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+  repaint();
+}
+
+void SceneViewer::mouseDrag(const MouseEvent & event)
+{
+  if (_currentRender.getWidth() <= 0)
+    return;
+
+  _currentPoint = getRelativeImageCoords(event.position);
+  Array<Point<float> > pts;
+  pts.add(_startPoint);
+  pts.add(_currentPoint);
+
+  getGlobalSettings()->_focusBounds = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+  repaint();
+}
+
+Point<float> SceneViewer::getRelativeImageCoords(const Point<float>& pt)
+{
+  auto lbounds = getLocalBounds();
+  // determine the image location
+  float scaleX = (float)lbounds.getWidth() / _currentRender.getWidth();
+  float scaleY = (float)lbounds.getHeight() / _currentRender.getHeight();
+  float scale;
+
+  // test xscaling
+  if (_currentRender.getHeight() * scaleX <= lbounds.getHeight()) {
+    scale = scaleX;
+  }
+  else if (_currentRender.getWidth() * scaleY <= lbounds.getWidth()) {
+    scale = scaleY;
+  }
+
+  float imgWidth = _currentRender.getWidth()  * scale;
+  float imgHeight = _currentRender.getHeight() * scale;
+  float ptHeightAdjust = abs((imgHeight - lbounds.getHeight()) / 2.0);
+  float ptWidthAdjust = abs((imgWidth - lbounds.getWidth()) / 2.0);
+  
+  float x = clamp((pt.x - ptWidthAdjust) / imgWidth, 0, 1);
+  float y = clamp((pt.y - ptHeightAdjust) / imgHeight, 0, 1);
+  
+  return Point<float>(x, y);
+}
+
+Point<float> SceneViewer::getWorldImageCoords(const Point<float>& pt)
+{
+  auto lbounds = getLocalBounds();
+  // determine the image location
+  float scaleX = (float)lbounds.getWidth() / _currentRender.getWidth();
+  float scaleY = (float)lbounds.getHeight() / _currentRender.getHeight();
+  float scale;
+
+  // test xscaling
+  if (_currentRender.getHeight() * scaleX <= lbounds.getHeight()) {
+    scale = scaleX;
+  }
+  else if (_currentRender.getWidth() * scaleY <= lbounds.getWidth()) {
+    scale = scaleY;
+  }
+
+  float imgWidth = _currentRender.getWidth()  * scale;
+  float imgHeight = _currentRender.getHeight() * scale;
+  float ptHeightAdjust = abs((imgHeight - lbounds.getHeight()) / 2.0);
+  float ptWidthAdjust = abs((imgWidth - lbounds.getWidth()) / 2.0);
+
+  float x = pt.x * imgWidth + ptWidthAdjust;
+  float y = pt.y * imgHeight + ptHeightAdjust;
+
+  return Point<float>(x, y);
 }

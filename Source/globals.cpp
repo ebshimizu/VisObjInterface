@@ -138,6 +138,11 @@ void setSessionName()
   getGlobalSettings()->_sessionName = "search-" + string(buffer);
 }
 
+float clamp(float val, float min, float max)
+{
+  return (val > max) ? max : ((val < min) ? min : val);
+}
+
 void GlobalSettings::dumpDiagnosticData()
 {
   if (_exportTraces) {

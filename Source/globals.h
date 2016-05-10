@@ -16,6 +16,7 @@
 #include "LumiverseShowControl/LumiverseShowControl.h"
 #include "StatusBar.h"
 #include "Recorder.h"
+//#include <vld.h>
 
 using namespace Lumiverse;
 using namespace Lumiverse::ShowControl;
@@ -179,6 +180,9 @@ public:
 
   Image _renderCache;
   bool _cacheUpdated;
+
+  // Focus region dimensions
+  Rectangle<float> _focusBounds;
 };
 
 // Results that eventually get returned to the UI layer
@@ -232,5 +236,8 @@ void exportSearchResults(list<SearchResult*>& results, int depth, string desc = 
 
 // For debugging, set the common filename for all files in the search session
 void setSessionName();
+
+// clamps a value to be between the min and max values
+float clamp(float val, float min, float max);
 
 #endif  // GLOBALS_H_INCLUDED
