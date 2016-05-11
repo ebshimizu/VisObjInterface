@@ -37,9 +37,13 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
 
   float score = 0;
 
+  // make sure sat and value are highish
+  Histogram1D sat = getSatHist(20);
+  Histogram1D val = getGrayscaleHist(20);
+
   // calculate objective scores
   if (170 <= blue && blue <= 245)
-    score += 100;
+    score += 100 * sat.avg();
   else {
     int diff = abs(blue - 170) < abs(blue - 245) ? abs(blue - 170) : abs(blue - 245);
     score += (100 - diff * 2);
@@ -49,7 +53,7 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
     orange -= 360;
 
   if (-10 <= orange && orange <= 65)
-    score += 100;
+    score += 100 * sat.avg();
   else {
     int diff = abs(orange - 170) < abs(orange - 245) ? abs(orange - 170) : abs(orange - 245);
     score += (100 - diff * 2);
@@ -58,12 +62,8 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
   // color contrast score
   float cdiff = abs(blue - orange);
 
-  // make sure sat and value are highish
-  Histogram1D sat = getSatHist(20);
-  Histogram1D val = getGrayscaleHist(20);
-
-  score += sat.avg() * 50 + val.avg() * 50 + cdiff;
-  score /= 4;
+  score += cdiff;
+  score /= 2;
 
   return score;
 }

@@ -87,25 +87,25 @@ void Histogram1D::removeFromBin(unsigned int amt, unsigned int id)
 
 Histogram1D Histogram1D::consolidate(int targetNumBins)
 {
-  // start with requiring a 1% threshold.
-  float t = 0.01f;
+  // distance threshold
+  int maxDist = 1;
+  
 
   map<unsigned int, unsigned int> newData = _histData;
 
   while (newData.size() > targetNumBins) {
     for (auto& b : newData) {
       // if the bin is below the threshold
-      if (b.second / (float)_count < t) {
-        // find closest bin above threshold, if a tie pick max
+      //if (b.second / (float)_count < t) {
+        // find closest larger bin and merge
         int start = b.first;
 
         int max = -1;
-        for (int i = 1; i <= _numBins; i++) {
+        for (int i = 1; i <= maxDist; i++) {
           // do a search starting at the position of the current bin
           if (newData.count(start - i) > 0) {
-            // check if bin is above threshold
-            if (newData[start - i] / (float)_count >= t) {
-              // if so, move these samples over and break
+            // check if bin is larger than current bin
+            if (newData[start - i] >= newData[start]) {
               if (max == -1 || newData[max] < newData[start - i]) {
                 max = start - i;
               }
@@ -114,7 +114,7 @@ Histogram1D Histogram1D::consolidate(int targetNumBins)
 
           // same thing for forward
           if (newData.count(start + i) > 0) {
-            if (newData[start + i] / (float)_count >= t) {
+            if (newData[start + i] >= newData[start]) {
               if (max == -1 || newData[max] < newData[start + i]) {
                 max = start + i;
               }
@@ -127,7 +127,7 @@ Histogram1D Histogram1D::consolidate(int targetNumBins)
             break;
           }
         }
-      }
+      //}
     }
 
     // delete bins that are 0
@@ -137,7 +137,8 @@ Histogram1D Histogram1D::consolidate(int targetNumBins)
     }
 
     // increment threshold
-    t += 0.01f;
+    //t += 0.01f;
+    maxDist += 1;
   }
 
   return Histogram1D(newData, _count, _numBins);
