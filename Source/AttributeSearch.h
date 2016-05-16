@@ -16,6 +16,9 @@
 #include <random>
 #include <dlib/clustering.h>
 #include "Edit.h"
+#include "SearchResultsViewer.h"
+
+class SearchResultsViewer;
 
 struct DeviceInfo {
   DeviceInfo() { }
@@ -31,9 +34,6 @@ typedef function<double(Snapshot*)> attrObjFunc;
 // kmeans typedefs
 typedef dlib::matrix<double, 0, 1> sampleType;
 typedef dlib::linear_kernel<sampleType> kernelType;
-
-// Entry point to the search algorithm
-list<SearchResult*> attributeSearch(map<string, AttributeControllerBase*>& active, int editDepth = 1);
 
 // Clusters results using k-means. K is chosen iteratively by computing the
 // mean distance from every scene to the cluster center until it is below
@@ -65,19 +65,19 @@ Snapshot* vectorToSnapshot(Eigen::VectorXd v);
 String vectorToString(Eigen::VectorXd v);
 
 // Run with progress window to allow user to abort search early
-class AttributeSearchThread : public ThreadWithProgressWindow
+class AttributeSearchThread : public Thread
 {
 public:
-  AttributeSearchThread(map<string, AttributeControllerBase*> active, int editDepth = 1);
+  AttributeSearchThread(String name);
   ~AttributeSearchThread();
 
+  void setState(Snapshot* start, attrObjFunc& f);
+
   void run() override;
-  void threadComplete(bool userPressedCancel) override;
 
   list<SearchResult*> getResults() { return _results; }
 
 private:
-  map<string, AttributeControllerBase*> _active;
   int _editDepth;
   list<SearchResult*> _results;
   Snapshot* _original;
@@ -141,5 +141,35 @@ private:
   // it will also probably die if something it doesn't expect to happen happens
   void getNewColorScheme(Eigen::VectorXd& base, EditNumDevices type, normal_distribution<double>& dist, default_random_engine& rng);
 };
+
+class AttributeSearch : public Thread
+{
+public:
+  AttributeSearch(SearchResultsViewer* viewer);
+  ~AttributeSearch();
+
+  // updates the state of the search on running 
+  void setState(Snapshot* start, map<string, AttributeControllerBase*> active);
+
+  // Runs the search dispatch thread
+  // this thread really just manages the runtime of other threads that actually perform
+  // the search. this thread could also synchronize them and provide new starting scenes
+  // if desired.
+  // runs indefinitely until stopped
+  void run() override;
+
+  // stops the current search operation
+  void stop();
+
+private:
+  // component to dump results into
+  SearchResultsViewer* _viewer;
+
+  Array<AttributeSearchThread*> _threads;
+  map<string, AttributeControllerBase*> _active;
+  attrObjFunc _f;
+  Snapshot* _start;
+};
+
 
 #endif  // ATTRIBUTESEARCH_H_INCLUDED

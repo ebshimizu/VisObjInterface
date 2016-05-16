@@ -27,6 +27,8 @@ MainContentComponent::MainContentComponent()
   addAndMakeVisible(_vbar1 = new StretchableLayoutResizerBar(&_vertResizer, 1, true));
   addAndMakeVisible(_vbar2 = new StretchableLayoutResizerBar(&_vertResizer, 3, true));
 
+  _searchWorker = new AttributeSearch(_search);
+
   _horizResizer.setItemLayout(0, -0.2, -0.8, -0.5);
   _horizResizer.setItemLayout(1, 5, 5, 5);
   _horizResizer.setItemLayout(2, -0.2, -0.8, -0.5);

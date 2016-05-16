@@ -11,6 +11,7 @@
 #include "AttributeSorting.h"
 #include "LumiverseCore.h"
 #include "LumiverseShowControl/LumiverseShowControl.h"
+#include "AttributeSearch.h"
 
 using namespace Lumiverse;
 using namespace Lumiverse::ShowControl;

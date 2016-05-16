@@ -13,7 +13,6 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "globals.h"
-#include "AttributeSearch.h"
 
 //==============================================================================
 class SearchResultBlender : public Component, public Slider::Listener

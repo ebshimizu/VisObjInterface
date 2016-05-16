@@ -127,6 +127,9 @@ private:
   SafePointer<SettingsWindow> _settingsWindow;
   SafePointer<ClusterBusterWindow> _clusterWindow;
 
+  // Search object
+  ScopedPointer<AttributeSearch> _searchWorker;
+
   TooltipWindow _tips;
 
   //==============================================================================

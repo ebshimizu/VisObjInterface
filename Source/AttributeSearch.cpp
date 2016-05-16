@@ -486,8 +486,7 @@ String vectorToString(Eigen::VectorXd v)
 
 //=============================================================================
 
-AttributeSearchThread::AttributeSearchThread(map<string, AttributeControllerBase*> active, int editDepth) :
-  ThreadWithProgressWindow("Searching", true, true, 2000), _active(active), _editDepth(editDepth)
+AttributeSearchThread::AttributeSearchThread(String name) : Thread(name)
 {
   for (auto e : _edits)
     delete e;
@@ -503,26 +502,8 @@ AttributeSearchThread::AttributeSearchThread(map<string, AttributeControllerBase
     _singleSame = false;
   }
 
-  setProgress(-1);
-
-  setStatusMessage("Generating Edits");
   generateEdits(false);
   _T = getGlobalSettings()->_T;
-
-  // objective function for combined set of active attributes.
-  _f = [this](Snapshot* s) {
-    double sum = 0;
-    for (const auto& kvp : _active) {
-      if (kvp.second->getStatus() == A_LESS)
-        sum += kvp.second->evaluateScene(s);
-      else if (kvp.second->getStatus() == A_MORE)
-        sum -= kvp.second->evaluateScene(s);
-      else if (kvp.second->getStatus() == A_EQUAL)
-        sum += pow(kvp.second->evaluateScene(s) - kvp.second->evaluateScene(_original), 2);
-    }
-
-    return sum;
-  };
 }
 
 AttributeSearchThread::~AttributeSearchThread()
@@ -558,15 +539,6 @@ void AttributeSearchThread::run()
   }
 
   getGlobalSettings()->dumpDiagnosticData();
-}
-
-void AttributeSearchThread::threadComplete(bool userPressedCancel)
-{
-  if (userPressedCancel) {
-    AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon,
-      "Exploratory Search",
-      "Search canceled");
-  }
 }
 
 SearchResult* AttributeSearchThread::runSearch()
@@ -982,34 +954,6 @@ double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrOb
   return (f2 - f1) / h;
 }
 
-bool AttributeSearchThread::isParamLocked(EditConstraint c, string& id)
-{
-  switch (c._param) {
-  case INTENSITY:
-    return isDeviceParamLocked(id, "intensity") || _lockedParams.count("intensity") > 0;
-  case HUE:
-    return isDeviceParamLocked(id, "color") || _lockedParams.count("color") > 0;
-  case SAT:
-    return isDeviceParamLocked(id, "color") || _lockedParams.count("color") > 0;
-  case VALUE:
-    return isDeviceParamLocked(id, "color") || _lockedParams.count("color") > 0;
-  case RED:
-    return isDeviceParamLocked(id, "color") || _lockedParams.count("color") > 0;
-  case GREEN:
-    return isDeviceParamLocked(id, "color") || _lockedParams.count("color") > 0;
-  case BLUE:
-    return isDeviceParamLocked(id, "color") || _lockedParams.count("color") > 0;
-  case POLAR:
-    return isDeviceParamLocked(id, "polar") || _lockedParams.count("polar") > 0;
-  case AZIMUTH:
-    return isDeviceParamLocked(id, "azimuth") || _lockedParams.count("azimuth") > 0;
-  case SOFT:
-    return isDeviceParamLocked(id, "penumbraAngle") || _lockedParams.count("penumbraAngle") > 0;
-  default:
-    return false;
-  }
-}
-
 int AttributeSearchThread::getVecLength(vector<EditConstraint>& edit, Snapshot * s)
 {
   int size = 0;
@@ -1190,4 +1134,62 @@ void AttributeSearchThread::getNewColorScheme(Eigen::VectorXd & base, EditNumDev
       base[i * 3 + 2] += dist(rng) * 0.5;
     }
   }
+}
+
+AttributeSearch::AttributeSearch(SearchResultsViewer * viewer) : _viewer(viewer), Thread("Attribute Search Dispatcher")
+{
+  // create thread objects, can be started and stopped as needed
+  int maxThreads = thread::hardware_concurrency() - 1;
+  
+  if (maxThreads <= 0)
+    maxThreads = 1;
+  
+  for (int i = 0; i < maxThreads; i++) {
+    _threads.add(new AttributeSearchThread("Attribute Searcher Worker " + String(i)));
+  }
+}
+
+AttributeSearch::~AttributeSearch()
+{
+  for (int i = 0; i < _threads.size(); i++) {
+    _threads[i]->stopThread(50);
+    delete _threads[i];
+  }
+
+  _threads.clear();
+}
+
+void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerBase*> active)
+{
+  _active = active;
+  _start = start;
+
+  // objective function for combined set of active attributes.
+  _f = [this](Snapshot* s) {
+    double sum = 0;
+    for (const auto& kvp : _active) {
+      if (kvp.second->getStatus() == A_LESS)
+        sum += kvp.second->evaluateScene(s);
+      else if (kvp.second->getStatus() == A_MORE)
+        sum -= kvp.second->evaluateScene(s);
+      else if (kvp.second->getStatus() == A_EQUAL)
+        sum += pow(kvp.second->evaluateScene(s) - kvp.second->evaluateScene(_start), 2);
+    }
+
+    return sum;
+  };
+}
+
+void AttributeSearch::run()
+{
+  // init and run all threads
+  for (auto& t : _threads) {
+    t->setState(_start, _f);
+    t->run();
+  }
+
+  // idle until told to exit
+  // or add other logic to control search path/execution
+  while (!threadShouldExit())
+    this_thread:sleep(50);
 }
