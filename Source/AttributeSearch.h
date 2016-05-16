@@ -15,6 +15,7 @@
 #include "AttributeControllerBase.h"
 #include <random>
 #include <dlib/clustering.h>
+#include "Edit.h"
 
 struct DeviceInfo {
   DeviceInfo() { }
@@ -77,56 +78,54 @@ public:
 
 private:
   map<string, AttributeControllerBase*> _active;
-  map<string, vector<EditConstraint> > _edits;
   int _editDepth;
   list<SearchResult*> _results;
   Snapshot* _original;
   double _fc;
   bool _singleSame;
   set<string> _lockedParams;
+  vector<Edit*> _edits;
+  attrObjFunc _f;
+  double _T;
+
+  // Starts up one search path. Run multiple times to get multiple results. Each run returns one result.
+  SearchResult* runSearch();
 
   // Runs a search with the current scenes in results as the starting scenes.
-  void runStandardSearch();
+  //void runStandardSearch();
 
   // runs an exploratory search using results as the starting scenes
-  void runExploreSearch();
+  //void runExploreSearch();
 
   // Populates the _edits map. Basically tells the search how to search the things.
   void generateEdits(bool explore);
 
   // Generates the default set of edits for the select string
-  void generateDefaultEdits(string select);
+  // editType - 1 = default, 2 = area, 3 = system
+  // If using a non-arbitrary edit type, just pass the system or area name, not a query string
+  void generateDefaultEdits(string select, int editType);
 
   // Generates the color scheme edits for the selected area and system. If area is blank,
   // applies to all areas in the scene.
-  void generateColorEdits(string area);
+  //void generateColorEdits(string area);
 
   // Runs a single level iteration of the search algorithm, starting at the given scenes.
-  list<SearchResult*> runSingleLevelSearch(list<SearchResult*> startScenes, int level, attrObjFunc f);
+  //list<SearchResult*> runSingleLevelSearch(list<SearchResult*> startScenes, int level, attrObjFunc f);
 
   // Runs a single level iteration of the search algorithm, starting at the given scenes.
-  list<SearchResult*> runSingleLevelExploreSearch(list<SearchResult*> startScenes, int level);
+  //list<SearchResult*> runSingleLevelExploreSearch(list<SearchResult*> startScenes, int level);
 
   // Given a current configuration, use MCMC to perform an edit on the configuration
-  list<mcmcSample> performEdit(vector<EditConstraint> edit, Snapshot* orig, attrObjFunc f, string name, bool acceptStd = true);
+  //list<mcmcSample> performEdit(vector<EditConstraint> edit, Snapshot* orig, attrObjFunc f, string name, bool acceptStd = true);
 
   // Do MCMC with the given parameters. Returns the list of samples and number of accepted samples.
   // Samples list will be empty if saveSamples is false.
-  pair<list<mcmcSample>, int> doMCMC(vector<EditConstraint> edit, Snapshot* start,
-    attrObjFunc f, int iters, double sigma, bool saveSamples, string name, bool acceptStd);
+  //pair<list<mcmcSample>, int> doMCMC(vector<EditConstraint> edit, Snapshot* start,
+  //  attrObjFunc f, int iters, double sigma, bool saveSamples, string name, bool acceptStd);
 
   // computes the numeric derivative for the particular lighting parameter and
   // specified attribute
   double numericDeriv(EditConstraint c, Snapshot* s, attrObjFunc f, string& id);
-
-  // updates the value for a Lumiverse parameter and returns the actual value after the update
-  double setDeviceValue(DeviceInfo& info, double val, Snapshot* s);
-
-  // Retrieves the current value for a Lumiverse parameter
-  double getDeviceValue(EditConstraint c, Snapshot* s, string& id);
-
-  // Returns true if the specified device parameter is locked in the Rig
-  bool isParamLocked(EditConstraint c, string& id);
 
   // Returns the number of features in the vector used for search
   int getVecLength(vector<EditConstraint>& edit, Snapshot* s);

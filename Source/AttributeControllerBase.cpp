@@ -21,9 +21,9 @@ AttributeControllerBase::AttributeControllerBase(String name) : _name(name)
   _buttons.add(new TextButton("Less", "Reduce the amount of this attribute when searching."));
   _buttons.add(new TextButton("Same", "Keep the amount of this attribute roughtly the same when searching."));
   _buttons.add(new TextButton("More", "Increase the amount of this attribute when searching"));
-  _buttons.add(new TextButton("Explore", "Show a spread of options from this attribute."));
+  //_buttons.add(new TextButton("Explore", "Show a spread of options from this attribute."));
 
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < 4; i++) {
     _buttons[i]->setRadioGroupId(1);
     _buttons[i]->setClickingTogglesState(true);
     _buttons[i]->setColour(TextButton::buttonColourId, Colours::grey);
@@ -65,8 +65,8 @@ void AttributeControllerBase::resized()
   // top area for drawing
   lbounds.removeFromTop(24);
   
-  int buttonWidth = lbounds.getWidth() / 5;
-  for (int i = 0; i < 5; i++) {
+  int buttonWidth = lbounds.getWidth() / _buttons.size();
+  for (int i = 0; i < _buttons.size(); i++) {
     _buttons[i]->setBounds(lbounds.removeFromLeft(buttonWidth).reduced(2));
   }
 

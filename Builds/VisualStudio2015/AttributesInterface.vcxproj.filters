@@ -399,6 +399,9 @@
     <ClCompile Include="..\..\Source\AttributeControls.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Edit.cpp">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\AttributeSearch.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
@@ -1683,6 +1686,9 @@
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\AttributeControls.h">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Edit.h">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\AttributeSearch.h">

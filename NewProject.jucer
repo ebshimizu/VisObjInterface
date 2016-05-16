@@ -101,6 +101,8 @@
               file="Source/AttributeControls.cpp"/>
         <FILE id="aiCieQ" name="AttributeControls.h" compile="0" resource="0"
               file="Source/AttributeControls.h"/>
+        <FILE id="uBB0Kn" name="Edit.cpp" compile="1" resource="0" file="Source/Edit.cpp"/>
+        <FILE id="lL5aAV" name="Edit.h" compile="0" resource="0" file="Source/Edit.h"/>
         <FILE id="g4ydIA" name="AttributeSearch.cpp" compile="1" resource="0"
               file="Source/AttributeSearch.cpp"/>
         <FILE id="Q4jtJF" name="AttributeSearch.h" compile="0" resource="0"

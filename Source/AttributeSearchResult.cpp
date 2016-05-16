@@ -79,10 +79,10 @@ AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(res
   bool first = true;
   for (const auto& t : result->_editHistory) {
     if (!first) {
-      tt = tt + " -> " + t;
+      tt = tt + " -> " + t->_name;
     }
     else {
-      tt = tt + t;
+      tt = tt + t->_name;
       first = false;
     }
   }

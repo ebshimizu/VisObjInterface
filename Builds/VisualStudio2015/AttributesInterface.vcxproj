@@ -117,7 +117,7 @@
       <OutputFile>$(OutDir)\AttributesInterface.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-      <GenerateDebugInformation>No</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <ProgramDatabaseFile>$(IntDir)\AttributesInterface.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -160,6 +160,7 @@
     <ClCompile Include="..\..\Source\TintAttribute.cpp" />
     <ClCompile Include="..\..\Source\AttributeControllerBase.cpp" />
     <ClCompile Include="..\..\Source\AttributeControls.cpp" />
+    <ClCompile Include="..\..\Source\Edit.cpp" />
     <ClCompile Include="..\..\Source\AttributeSearch.cpp" />
     <ClCompile Include="..\..\Source\AttributeSearchCluster.cpp" />
     <ClCompile Include="..\..\Source\AttributeSearchResult.cpp" />
@@ -1348,6 +1349,7 @@
     <ClInclude Include="..\..\Source\AttributeControllerBase.h" />
     <ClInclude Include="..\..\Source\AttributeControllers.h" />
     <ClInclude Include="..\..\Source\AttributeControls.h" />
+    <ClInclude Include="..\..\Source\Edit.h" />
     <ClInclude Include="..\..\Source\AttributeSearch.h" />
     <ClInclude Include="..\..\Source\AttributeSearchCluster.h" />
     <ClInclude Include="..\..\Source\AttributeSearchResult.h" />

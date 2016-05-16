@@ -16,12 +16,14 @@
 #include "LumiverseShowControl/LumiverseShowControl.h"
 #include "StatusBar.h"
 #include "Recorder.h"
+#include "Edit.h"
 //#include <vld.h>
 
 using namespace Lumiverse;
 using namespace Lumiverse::ShowControl;
 
 class MainWindow;
+class Edit;
 
 typedef pair<Eigen::VectorXd, unsigned int> mcmcSample;
 
@@ -103,7 +105,7 @@ enum EditNumDevices {
 
 // these constraints define an edit (or rather, which parameters an edit can deal with)
 // Some more uncommon edits may have additional constraints (maintain position of
-// fill for example) and will be treated separately
+// fill for example) and will be treated y
 struct EditConstraint {
   EditConstraint() { }
   EditConstraint(string select, EditParam p, EditNumDevices q) : _select(select), _param(p), _qty(q) { }
@@ -181,6 +183,9 @@ public:
 
   // Focus region dimensions
   Rectangle<float> _focusBounds;
+
+  // Used by attribute searches and results to track where the scene came from
+  vector<Edit*> _edits;
 };
 
 // Results that eventually get returned to the UI layer
@@ -192,7 +197,7 @@ public:
   ~SearchResult();
 
   Eigen::VectorXd _scene;
-  Array<string> _editHistory;
+  vector<Edit*> _editHistory;
   double _objFuncVal;
   unsigned int _sampleNo;
 
