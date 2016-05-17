@@ -68,42 +68,33 @@ String vectorToString(Eigen::VectorXd v);
 class AttributeSearchThread : public Thread
 {
 public:
-  AttributeSearchThread(String name);
+  AttributeSearchThread(String name, SearchResultsViewer* viewer);
   ~AttributeSearchThread();
 
   void setState(Snapshot* start, attrObjFunc& f);
 
   void run() override;
 
-  list<SearchResult*> getResults() { return _results; }
-
 private:
+  // object to dump results into once search is complete.
+  SearchResultsViewer* _viewer;
   int _editDepth;
-  list<SearchResult*> _results;
   Snapshot* _original;
   double _fc;
   bool _singleSame;
-  set<string> _lockedParams;
   vector<Edit*> _edits;
   attrObjFunc _f;
   double _T;
 
-  // Starts up one search path. Run multiple times to get multiple results. Each run returns one result.
-  SearchResult* runSearch();
+  // Starts up one search path. Run multiple times to get multiple results. Each run returns one result and puts
+  // it in to the SearchResultsViewer object
+  void runSearch();
 
   // Runs a search with the current scenes in results as the starting scenes.
   //void runStandardSearch();
 
   // runs an exploratory search using results as the starting scenes
   //void runExploreSearch();
-
-  // Populates the _edits map. Basically tells the search how to search the things.
-  void generateEdits(bool explore);
-
-  // Generates the default set of edits for the select string
-  // editType - 1 = default, 2 = area, 3 = system
-  // If using a non-arbitrary edit type, just pass the system or area name, not a query string
-  void generateDefaultEdits(string select, int editType);
 
   // Generates the color scheme edits for the selected area and system. If area is blank,
   // applies to all areas in the scene.
@@ -161,6 +152,14 @@ public:
   // stops the current search operation
   void stop();
 
+  // Populates the _edits map. Basically tells the search how to search the things.
+  void generateEdits(bool explore);
+
+  // Generates the default set of edits for the select string
+  // editType - 1 = default, 2 = area, 3 = system
+  // If using a non-arbitrary edit type, just pass the system or area name, not a query string
+  void generateDefaultEdits(string select, int editType);
+
 private:
   // component to dump results into
   SearchResultsViewer* _viewer;
@@ -169,6 +168,7 @@ private:
   map<string, AttributeControllerBase*> _active;
   attrObjFunc _f;
   Snapshot* _start;
+  set<string> _lockedParams;
 };
 
 

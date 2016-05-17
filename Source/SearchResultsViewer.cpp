@@ -11,7 +11,6 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "SearchResultsViewer.h"
 #include "MainComponent.h"
-//#include <vld.h>
 
 SearchResultsRenderer::SearchResultsRenderer(Array<AttributeSearchResult*> results) :
   ThreadWithProgressWindow("Rendering Thumbnails...", true, true), _results(results)
@@ -176,6 +175,7 @@ void SearchResultsContainer::recluster()
   // Retrieve results from containers
   list<SearchResult*> results;
   vector<AttributeSearchResult*> resultContainers;
+  lock_guard<mutex> lock(_resultsLock);
 
   for (auto r : _results) {
     auto elems = r->getClusterElements();
@@ -217,6 +217,20 @@ void SearchResultsContainer::recluster()
     addAndMakeVisible(cluster);
     _results.add(cluster);
     renderBatch.add(cluster);
+
+    auto p = getAnimationPatch();
+    int width = getGlobalSettings()->_renderWidth;
+    int height = getGlobalSettings()->_renderHeight;
+    p->setDims(width, height);
+    p->setSamples(getGlobalSettings()->_stageRenderSamples);
+
+    Image img = Image(Image::ARGB, width, height, true);
+    uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+
+    Snapshot* center = vectorToSnapshot(c);
+    p->renderSingleFrameToBuffer(center->getDevices(), bufptr, width, height);
+    cluster->setImage(img);
+
     i++;
   }
 
@@ -229,9 +243,6 @@ void SearchResultsContainer::recluster()
   }
 
   getRecorder()->log(ACTION, "Results reclusterd in " + String(centers.size()).toStdString() + " clusters");
-
-  // Render cluster centers
-  (new SearchResultsRenderer(renderBatch))->runThread();
 }
 
 void SearchResultsContainer::setHeight(int height)
@@ -258,6 +269,62 @@ void SearchResultsContainer::markDisplayedCluster(AttributeSearchResult * c)
 Array<AttributeSearchResult*> SearchResultsContainer::getResults()
 {
   return _results;
+}
+
+bool SearchResultsContainer::addNewResult(SearchResult * r)
+{
+  {
+    lock_guard<mutex> lock(_resultsLock);
+    // Check to make sure result is sufficiently different
+    // also limit number of total results
+    if (_results.size() > getGlobalSettings()->_maxReturnedScenes) {
+      delete r;
+      return false;
+    }
+
+    // Create new result container
+    AttributeSearchResult* newResult = new AttributeSearchResult(r);
+
+    // render
+    auto p = getAnimationPatch();
+    int width = getGlobalSettings()->_renderWidth;
+    int height = getGlobalSettings()->_renderHeight;
+    p->setDims(width, height);
+    p->setSamples(getGlobalSettings()->_stageRenderSamples);
+
+    Image img = Image(Image::ARGB, width, height, true);
+    uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+
+    Snapshot* s = vectorToSnapshot(r->_scene);
+    p->renderSingleFrameToBuffer(s->getDevices(), bufptr, width, height);
+    newResult->setImage(img);
+
+    // add result to container
+    _newResults.add(newResult);
+  }
+  return true;
+}
+
+void SearchResultsContainer::showNewResults()
+{
+  {
+    lock_guard<mutex> lock(_resultsLock);
+
+    // integrate new results
+    SearchResult* s = new SearchResult();
+    AttributeSearchResult* c = new AttributeSearchResult(s);
+    for (auto r : _newResults) {
+      addAndMakeVisible(r);
+      c->addClusterElement(r);
+    }
+    _newResults.clear();
+
+    _results.add(c);
+  }
+
+  recluster();
+  resized();
+  repaint();
 }
 
 //==============================================================================
@@ -368,7 +435,17 @@ void SearchResultsViewer::setBotComponent(Component * c, Component* source)
   }
 }
 
+void SearchResultsViewer::timerCallback()
+{
+  _container->showNewResults();
+}
+
 Array<AttributeSearchResult*> SearchResultsViewer::getResults()
 {
   return _container->getResults();
+}
+
+bool SearchResultsViewer::addNewResult(SearchResult * r)
+{
+  return _container->addNewResult(r);
 }

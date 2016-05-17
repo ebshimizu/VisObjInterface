@@ -28,9 +28,9 @@ double NoireAttribute::evaluateScene(Snapshot * s)
   // goals: high contrast, low overall brightness, no front light,
   // one directional source per area, low overall saturation
   double score = 0;
-  generateImage(s);
+  Image i = generateImage(s);
 
-  Histogram1D brightness = getGrayscaleHist(100);
+  Histogram1D brightness = getGrayscaleHist(i, 100);
   double avgb = brightness.avg();
   double brightScore = (1-avgb) * 100;
   double low = brightness.percentile(20);

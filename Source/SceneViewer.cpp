@@ -96,9 +96,11 @@ void SceneViewer::paint (Graphics& g)
 
   g.setColour(Colours::red);
   auto focus = getGlobalSettings()->_focusBounds;
-  Point<float> topLeft = getWorldImageCoords(focus.getTopLeft());
-  Point<float> bottomRight = getWorldImageCoords(focus.getBottomRight());
-  g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y), 2);
+  if (focus.getWidth() != 0 || focus.getHeight() != 0) {
+    Point<float> topLeft = getWorldImageCoords(focus.getTopLeft());
+    Point<float> bottomRight = getWorldImageCoords(focus.getBottomRight());
+    g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y), 2);
+  }
 }
 
 void SceneViewer::resized()

@@ -24,41 +24,8 @@ SearchResult::SearchResult(const SearchResult & other) :
 SearchResult::~SearchResult() {
 }
 
-
 // Search functions
 // ==============================================================================
-
-list<SearchResult*> attributeSearch(map<string, AttributeControllerBase*>& active, int editDepth)
-{
-  // If there's no active attribute, just leave
-  if (active.size() == 0)
-    return list<SearchResult*>();
-
-  string log = "Search attribute params: ";
-  for (auto& kvp : active) {
-    log = log + " {" + kvp.first + " : ";
-    if (kvp.second->getStatus() == A_MORE)
-      log = log + "MORE";
-    if (kvp.second->getStatus() == A_LESS)
-      log = log + "LESS";
-    if (kvp.second->getStatus() == A_EQUAL)
-      log = log + "SAME";
-    if (kvp.second->getStatus() == A_EXPLORE)
-      log = log + "EXPLORE";
-    log = log + "}";
-  }
-  getRecorder()->log(ACTION, log);
-  setSessionName();
-
-  AttributeSearchThread* t = new AttributeSearchThread(active, editDepth);
-  t->runThread();
-
-  list<SearchResult*> scenes = t->getResults();
-  delete t;
-
-  return scenes;
-}
-
 vector<Eigen::VectorXd> clusterResults(list<SearchResult*> results, int c)
 {
   if (results.size() == 0) {
@@ -486,24 +453,10 @@ String vectorToString(Eigen::VectorXd v)
 
 //=============================================================================
 
-AttributeSearchThread::AttributeSearchThread(String name) : Thread(name)
+AttributeSearchThread::AttributeSearchThread(String name, SearchResultsViewer* viewer) : Thread(name), _viewer(viewer),
+  _edits(vector<Edit*>())
 {
-  for (auto e : _edits)
-    delete e;
-
-  Rig* rig = getRig();
-  _original = new Snapshot(rig, nullptr);
-
-  // flag for special casing searching for the same of a single attribute
-  if (_active.size() == 1 && _active.begin()->second->getStatus() == A_EQUAL) {
-    _singleSame = true;
-  }
-  else {
-    _singleSame = false;
-  }
-
-  generateEdits(false);
-  _T = getGlobalSettings()->_T;
+  _original = nullptr;
 }
 
 AttributeSearchThread::~AttributeSearchThread()
@@ -516,35 +469,33 @@ AttributeSearchThread::~AttributeSearchThread()
   //  delete e;
 }
 
-void AttributeSearchThread::run()
+void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f)
 {
-  // Clear the results set for a clean first run
-  //_results.clear();
-  //SearchResult* start = new SearchResult();
-  //start->_scene = snapshotToVector(_original);
-  //_results.push_back(start);
+  if (_original != nullptr)
+    delete _original;
 
-  // will want to run this multiple times automatically. for now user specifies
-  // while (1) {
-  for (int i = 0; i < getGlobalSettings()->_numEditScenes; i++) {
-    setProgress(((double)i) / getGlobalSettings()->_numEditScenes);
-    _results.push_back(runSearch());
-  }
-  // }
+  _original = new Snapshot(*start);
+  _edits.clear();
+  _edits = getGlobalSettings()->_edits;
+  _T = getGlobalSettings()->_T;
 
-  for (auto& r : _results) {
-    getGlobalSettings()->_fxs.push_back(r->_objFuncVal);
-    getGlobalSettings()->_as.push_back(0);
-    getGlobalSettings()->_editNames.push_back("FINAL");
-  }
-
-  getGlobalSettings()->dumpDiagnosticData();
+  _f = f;
 }
 
-SearchResult* AttributeSearchThread::runSearch()
+void AttributeSearchThread::run()
 {
-  setStatusMessage("Running Search");
+  // here we basically want to run the search indefinitely until cancelled by user
+  // so we just call the actual search function over and over
+  while (1) {
+    runSearch();
 
+    if (threadShouldExit())
+      return;
+  }
+}
+
+void AttributeSearchThread::runSearch()
+{
   // assign start scene, initialize result
   Snapshot* start = new Snapshot(*_original);
   SearchResult* r = new SearchResult();
@@ -559,8 +510,13 @@ SearchResult* AttributeSearchThread::runSearch()
   int depth = 0;
   Edit* e = nullptr;
 
+  // TODO: depth range should increase after a while, maybe parent thread can manage.
   while (depth < getGlobalSettings()->_editDepth) {
-    setStatusMessage("Depth " + String(depth));
+    if (threadShouldExit()) {
+      delete r;
+      delete start;
+      return;
+    }
 
     //  pick a next plausible edit
     if (r->_editHistory.size() == 0)
@@ -594,217 +550,18 @@ SearchResult* AttributeSearchThread::runSearch()
         r->_objFuncVal = fx;
 
         // diagnostics
-        getGlobalSettings()->_fxs.push_back(fxp);
-        getGlobalSettings()->_as.push_back(a);
-        getGlobalSettings()->_editNames.push_back(e->_name);
+        //getGlobalSettings()->_fxs.push_back(fxp);
+        //getGlobalSettings()->_as.push_back(a);
+        //getGlobalSettings()->_editNames.push_back(e->_name);
       }
     }
     depth++;
   }
 
   r->_scene = snapshotToVector(start);
-  return r;
-}
-
-void AttributeSearchThread::generateEdits(bool explore)
-{
-  // here we dynamically create all of the edits used by the search algorithm for all
-  // levels of the search. This is the function to change if we want to change
-  // how the search goes through the lighting space.
-  _edits.clear();
-  _lockedParams.clear();
-
-  // in order for a parameter to be autolocked, it must be present in the autolock list
-  // for all active attributes
-  map<string, int> lockedParams;
-  for (auto& a : _active) {
-    for (auto& p : a.second->_autoLockParams) {
-      if (lockedParams.count(p) == 0) {
-        lockedParams[p] = 1;
-      }
-      else {
-        lockedParams[p] += 1;
-      }
-    }
-  }
-
-  for (auto& p : lockedParams) {
-    if (p.second == _active.size()) {
-      _lockedParams.insert(p.first);
-    }
-  }
-
-  // for exploratory search, we ask the attributes what to do and then return
-  //if (explore) {
-  //  for (auto& a : _active) {
-  //    if (a.second->getStatus() == A_EXPLORE) {
-  //      auto edits = a.second->getExploreEdits();
-  //      for (auto& e : edits) {
-  //        _edits[e.first] = e.second;
-  //      }
-  //    }
-  //  }
-  //
-  //  return;
-  //}
-
-  // The search assumes two things: the existence of a metadata field called 'system'
-  // and the existence of a metadata field called 'area' on every device. It does not
-  // care what you call the things in these fields, but it does care that they exist.
-  // These two fields are the primitives for how the system sets up its lights.
-  // A system is a group of lights that achieve the same logical effect (i.e. all fill lights).
-  // An area is a common focal point for a set of lights. Lights from multiple systems can be
-  // in the same area.
-  // It is up to the user to decide how to split lights into groups and systems.
-  set<string> systems = getRig()->getMetadataValues("system");
-  set<string> areas = getRig()->getMetadataValues("area");
-
-  // Create all devices edit types
-  generateDefaultEdits("*", 1);
-  //generateColorEdits("*");
-
-  // Create edits for each system
-  for (const auto& s : systems) {
-    generateDefaultEdits(s, 3);
-  }
-
-  // Create edits for each area
-  for (const auto& a : areas) {
-    generateDefaultEdits(a, 2);
-    // color edits are not final or even really implemented yet...
-    // generateColorEdits(a);
-  }
-
-  // Create edits for each system within an area
-  //for (const auto& s : systems) {
-  //  for (const auto& a : areas) {
-  //    generateDefaultEdits("$area=" + a + "[$system=" + s + "]");
-  //  }
-  //}
-
-  // Special edit types
-  // left blank for now.
-  // may be used for user specified edits? May do cross-system/area edits?
-}
-
-void AttributeSearchThread::generateDefaultEdits(string select, int editType)
-{
-  // set init function
-  auto initfunc = [=](Edit* e, bool joint, bool uniform) {
-    if (editType == 1)
-      e->initArbitrary(select, joint, uniform);
-    else if (editType == 2)
-      e->initWithArea(select, joint, uniform);
-    else if (editType == 3)
-      e->initWithSystem(select, joint, uniform);
-  };
-
-  set<EditParam> allParams;
-  // looks a bit arbitrary, but see definition of EditParam. Includes all params except RGB.
-  for (int i = 0; i <= 5; i++) {
-    allParams.insert((EditParam)i);
-  }
-  Edit* e = new Edit(_lockedParams);
-  initfunc(e, false, false);
-  e->setParams(allParams);
-  e->_name = select + "_all";
-  if (e->canDoEdit())
-    _edits.push_back(e);
-  else
-    delete e;
-
-  if (_lockedParams.count("intensity") == 0) {
-    // Intensity
-    e = new Edit(_lockedParams);
-    initfunc(e, false, false);
-    e->setParams({ INTENSITY });
-    e->_name = select + "_intensity";
-    if (e->canDoEdit())
-      _edits.push_back(e);
-    else
-      delete e;
-
-    // Uniform intensity
-    e = new Edit(_lockedParams);
-    initfunc(e, false, true);
-    e->setParams({ INTENSITY });
-    e->_name = select + "_uniform_intensity";
-    if (e->canDoEdit())
-      _edits.push_back(e);
-    else
-      delete e;
-
-    // Joint intensity
-    e = new Edit(_lockedParams);
-    initfunc(e, true, false);
-    e->setParams({ INTENSITY });
-    e->_name = select + "_joint_intensity";
-    if (e->canDoEdit())
-      _edits.push_back(e);
-    else
-      delete e;
-  }
-
-  if (_lockedParams.count("color") == 0) {
-    // Hue
-    e = new Edit(_lockedParams);
-    initfunc(e, false, false);
-    e->setParams({ HUE });
-    e->_name = select + "_hue";
-    if (e->canDoEdit())
-      _edits.push_back(e);
-    else
-      delete e;
-
-    // Color
-    e = new Edit(_lockedParams);
-    initfunc(e, false, false);
-    e->setParams({ HUE, SAT, VALUE });
-    e->_name = select + "_color";
-    if (e->canDoEdit())
-      _edits.push_back(e);
-    else
-      delete e;
-
-    // Joint Hue
-    e = new Edit(_lockedParams);
-    initfunc(e, true, false);
-    e->setParams({ HUE });
-    e->_name = select + "_joint_hue";
-    if (e->canDoEdit())
-      _edits.push_back(e);
-    else
-      delete e;
-
-    // Uniform color
-    e = new Edit(_lockedParams);
-    initfunc(e, false, true);
-    e->setParams({ HUE, SAT, VALUE });
-    e->_name = select + "_uniform_color";
-    if (e->canDoEdit())
-      _edits.push_back(e);
-    else
-      delete e;
-  }
-
-  if (_lockedParams.count("polar") == 0 && _lockedParams.count("azimuth") == 0) {
-    // Position
-    e = new Edit(_lockedParams);
-    initfunc(e, false, false);
-    e->setParams({ POLAR, AZIMUTH });
-    e->_name = select + "_hue";
-    if (e->canDoEdit())
-      _edits.push_back(e);
-    else
-      delete e;
-  }
-
-  //if (_lockedParams.count("penumbraAngle") == 0) {
-    // Softness
-  //  vector<EditConstraint> soft;
-  //  soft.push_back(EditConstraint(select, SOFT, D_ALL));
-  //  _edits[select + "_soft"] = soft;
-  //}
+  
+  // send scene to the results area. may chose to not use the scene
+  _viewer->addNewResult(r);
 }
 
 double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrObjFunc f, string& id)
@@ -1145,8 +902,10 @@ AttributeSearch::AttributeSearch(SearchResultsViewer * viewer) : _viewer(viewer)
     maxThreads = 1;
   
   for (int i = 0; i < maxThreads; i++) {
-    _threads.add(new AttributeSearchThread("Attribute Searcher Worker " + String(i)));
+    _threads.add(new AttributeSearchThread("Attribute Searcher Worker " + String(i), _viewer));
   }
+
+  _start = nullptr;
 }
 
 AttributeSearch::~AttributeSearch()
@@ -1161,6 +920,9 @@ AttributeSearch::~AttributeSearch()
 
 void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerBase*> active)
 {
+  if (_start != nullptr)
+    delete _start;
+
   _active = active;
   _start = start;
 
@@ -1178,6 +940,8 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
 
     return sum;
   };
+
+  generateEdits(false);
 }
 
 void AttributeSearch::run()
@@ -1185,11 +949,225 @@ void AttributeSearch::run()
   // init and run all threads
   for (auto& t : _threads) {
     t->setState(_start, _f);
-    t->run();
+    t->startThread();
   }
 
   // idle until told to exit
   // or add other logic to control search path/execution
   while (!threadShouldExit())
     this_thread:sleep(50);
+}
+
+void AttributeSearch::stop()
+{
+  for (auto& t : _threads) {
+    if (t->isThreadRunning())
+      t->stopThread(50);
+  }
+
+  stopThread(50);
+}
+
+void AttributeSearch::generateEdits(bool explore)
+{
+  // here we dynamically create all of the edits used by the search algorithm for all
+  // levels of the search. This is the function to change if we want to change
+  // how the search goes through the lighting space.
+  auto& edits = getGlobalSettings()->_edits;
+  edits.clear();
+  _lockedParams.clear();
+
+  // in order for a parameter to be autolocked, it must be present in the autolock list
+  // for all active attributes
+  map<string, int> lockedParams;
+  for (auto& a : _active) {
+    for (auto& p : a.second->_autoLockParams) {
+      if (lockedParams.count(p) == 0) {
+        lockedParams[p] = 1;
+      }
+      else {
+        lockedParams[p] += 1;
+      }
+    }
+  }
+
+  for (auto& p : lockedParams) {
+    if (p.second == _active.size()) {
+      _lockedParams.insert(p.first);
+    }
+  }
+
+  // for exploratory search, we ask the attributes what to do and then return
+  //if (explore) {
+  //  for (auto& a : _active) {
+  //    if (a.second->getStatus() == A_EXPLORE) {
+  //      auto edits = a.second->getExploreEdits();
+  //      for (auto& e : edits) {
+  //        _edits[e.first] = e.second;
+  //      }
+  //    }
+  //  }
+  //
+  //  return;
+  //}
+
+  // The search assumes two things: the existence of a metadata field called 'system'
+  // and the existence of a metadata field called 'area' on every device. It does not
+  // care what you call the things in these fields, but it does care that they exist.
+  // These two fields are the primitives for how the system sets up its lights.
+  // A system is a group of lights that achieve the same logical effect (i.e. all fill lights).
+  // An area is a common focal point for a set of lights. Lights from multiple systems can be
+  // in the same area.
+  // It is up to the user to decide how to split lights into groups and systems.
+  set<string> systems = getRig()->getMetadataValues("system");
+  set<string> areas = getRig()->getMetadataValues("area");
+
+  // Create all devices edit types
+  generateDefaultEdits("*", 1);
+  //generateColorEdits("*");
+
+  // Create edits for each system
+  for (const auto& s : systems) {
+    generateDefaultEdits(s, 3);
+  }
+
+  // Create edits for each area
+  for (const auto& a : areas) {
+    generateDefaultEdits(a, 2);
+    // color edits are not final or even really implemented yet...
+    // generateColorEdits(a);
+  }
+
+  // Create edits for each system within an area
+  //for (const auto& s : systems) {
+  //  for (const auto& a : areas) {
+  //    generateDefaultEdits("$area=" + a + "[$system=" + s + "]");
+  //  }
+  //}
+
+  // Special edit types
+  // left blank for now.
+  // may be used for user specified edits? May do cross-system/area edits?
+}
+
+void AttributeSearch::generateDefaultEdits(string select, int editType)
+{
+  auto& edits = getGlobalSettings()->_edits;
+
+  // set init function
+  auto initfunc = [=](Edit* e, bool joint, bool uniform) {
+    if (editType == 1)
+      e->initArbitrary(select, joint, uniform);
+    else if (editType == 2)
+      e->initWithArea(select, joint, uniform);
+    else if (editType == 3)
+      e->initWithSystem(select, joint, uniform);
+  };
+
+  set<EditParam> allParams;
+  // looks a bit arbitrary, but see definition of EditParam. Includes all params except RGB.
+  for (int i = 0; i <= 5; i++) {
+    allParams.insert((EditParam)i);
+  }
+  Edit* e = new Edit(_lockedParams);
+  initfunc(e, false, false);
+  e->setParams(allParams);
+  e->_name = select + "_all";
+  if (e->canDoEdit())
+    edits.push_back(e);
+  else
+    delete e;
+
+  if (_lockedParams.count("intensity") == 0) {
+    // Intensity
+    e = new Edit(_lockedParams);
+    initfunc(e, false, false);
+    e->setParams({ INTENSITY });
+    e->_name = select + "_intensity";
+    if (e->canDoEdit())
+      edits.push_back(e);
+    else
+      delete e;
+
+    // Uniform intensity
+    e = new Edit(_lockedParams);
+    initfunc(e, false, true);
+    e->setParams({ INTENSITY });
+    e->_name = select + "_uniform_intensity";
+    if (e->canDoEdit())
+      edits.push_back(e);
+    else
+      delete e;
+
+    // Joint intensity
+    e = new Edit(_lockedParams);
+    initfunc(e, true, false);
+    e->setParams({ INTENSITY });
+    e->_name = select + "_joint_intensity";
+    if (e->canDoEdit())
+      edits.push_back(e);
+    else
+      delete e;
+  }
+
+  if (_lockedParams.count("color") == 0) {
+    // Hue
+    e = new Edit(_lockedParams);
+    initfunc(e, false, false);
+    e->setParams({ HUE });
+    e->_name = select + "_hue";
+    if (e->canDoEdit())
+      edits.push_back(e);
+    else
+      delete e;
+
+    // Color
+    e = new Edit(_lockedParams);
+    initfunc(e, false, false);
+    e->setParams({ HUE, SAT, VALUE });
+    e->_name = select + "_color";
+    if (e->canDoEdit())
+      edits.push_back(e);
+    else
+      delete e;
+
+    // Joint Hue
+    e = new Edit(_lockedParams);
+    initfunc(e, true, false);
+    e->setParams({ HUE });
+    e->_name = select + "_joint_hue";
+    if (e->canDoEdit())
+      edits.push_back(e);
+    else
+      delete e;
+
+    // Uniform color
+    e = new Edit(_lockedParams);
+    initfunc(e, false, true);
+    e->setParams({ HUE, SAT, VALUE });
+    e->_name = select + "_uniform_color";
+    if (e->canDoEdit())
+      edits.push_back(e);
+    else
+      delete e;
+  }
+
+  if (_lockedParams.count("polar") == 0 && _lockedParams.count("azimuth") == 0) {
+    // Position
+    e = new Edit(_lockedParams);
+    initfunc(e, false, false);
+    e->setParams({ POLAR, AZIMUTH });
+    e->_name = select + "_hue";
+    if (e->canDoEdit())
+      edits.push_back(e);
+    else
+      delete e;
+  }
+
+  //if (_lockedParams.count("penumbraAngle") == 0) {
+  // Softness
+  //  vector<EditConstraint> soft;
+  //  soft.push_back(EditConstraint(select, SOFT, D_ALL));
+  //  _edits[select + "_soft"] = soft;
+  //}
 }

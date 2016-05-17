@@ -22,8 +22,8 @@ SaturationAttribute::~SaturationAttribute()
 
 double SaturationAttribute::evaluateScene(Snapshot * s)
 {
-  generateImage(s);
-  Histogram1D sat = getSatHist(_numBins);
+  Image i = generateImage(s);
+  Histogram1D sat = getSatHist(i, _numBins);
   return sat.avg() * 100;
 }
 

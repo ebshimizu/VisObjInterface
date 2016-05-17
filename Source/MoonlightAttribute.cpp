@@ -24,7 +24,7 @@ double MoonlightAttribute::evaluateScene(Snapshot * s)
   // -strong single system light source that is a pale white-blue
   // -overall low brightness
   // -overall cool color tone
-  generateImage(s);
+  Image i = generateImage(s);
 
   // determine brightest system (according to proportional _light_ intensities)
   // brightest system is defined by the brightest light in the system. there will be a penalty
@@ -68,7 +68,7 @@ double MoonlightAttribute::evaluateScene(Snapshot * s)
     otherBrScore = -(other - 0.1) * 100;
 
   // penalty for scene being too bright
-  Histogram1D bright = getGrayscaleHist(20);
+  Histogram1D bright = getGrayscaleHist(i, 20);
   float overallBrScore = bright.avg() * 100;
 
   return avgBrScore * 0.25 + hueScore * 0.15 + satScore * 0.25 + otherBrScore * 0.25 + overallBrScore * 0.1;

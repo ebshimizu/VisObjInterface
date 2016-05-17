@@ -104,28 +104,24 @@ public:
   ~HistogramAttribute();
 
   // popualtes the image field of the histogram attribute
-  void generateImage(Snapshot* s);
+  Image generateImage(Snapshot* s);
 
   // Generates a histogram based on the brightness of the image
-  Histogram1D getGrayscaleHist(int numBins);
-  Histogram1D getPerceptualGrayscaleHist(int numBins);
+  Histogram1D getGrayscaleHist(Image& canonical, int numBins);
+  Histogram1D getPerceptualGrayscaleHist(Image& canonical, int numBins);
 
   // Generates a histogram based on one color channel of the image
-  Histogram1D getChannelHist(int numBins, int channel);
+  Histogram1D getChannelHist(Image& canonical, int numBins, int channel);
 
   // Generate histogram based on HSV (but not all 3)
-  Histogram1D getHueHist(int numBins);
-  Histogram1D getSatHist(int numBins);
+  Histogram1D getHueHist(Image& canonical, int numBins);
+  Histogram1D getSatHist(Image& canonical, int numBins);
   // val is basically brightness here
 
   // Histogram3D getRGBHist();
   // Histogram3D getHSVHist();
 
 protected:
-  // image for the particular attribute
-  Image _canonical;
-  Image _highRes;
-
   // size of the canonical image for the given attributre
   int _canonicalHeight;
   int _canonicalWidth;

@@ -17,6 +17,7 @@
 #include "AttributeSearchResult.h"
 #include "HistoryPanel.h"
 #include "AttributeSearchCluster.h"
+#include <mutex>
 
 class SearchResultsRenderer : public ThreadWithProgressWindow
 {
@@ -56,11 +57,22 @@ public:
   // Return the results for some other use
   Array<AttributeSearchResult*> getResults();
 
+  // Add a new search result to the display area. Is thread safe.
+  bool addNewResult(SearchResult* r);
+
+  // integrate new results and display
+  void showNewResults();
+
 private:
   int _width;
   int _height;
 
   bool _isRoot;
+
+  mutex _resultsLock;
+
+  // queue of results to add to the search.
+  Array<AttributeSearchResult*> _newResults;
 
   // results components
   Array<AttributeSearchResult*> _results;
@@ -70,7 +82,7 @@ private:
 //==============================================================================
 /*
 */
-class SearchResultsViewer : public Component
+class SearchResultsViewer : public Component, public Timer
 {
 public:
   SearchResultsViewer();
@@ -85,9 +97,14 @@ public:
 
   void setBotComponent(Component* c, Component* source);
 
+  virtual void timerCallback() override;
+
   Array<AttributeSearchResult*> getResults();
 
   HistoryPanel* getHistory() { return _history; }
+
+  // adds a new search result to the display area. Thread safe.
+  bool addNewResult(SearchResult* r);
 
 private:
   Viewport* _viewer;

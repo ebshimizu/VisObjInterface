@@ -20,12 +20,12 @@ OrangeBlueAttribute::~OrangeBlueAttribute()
 
 double OrangeBlueAttribute::evaluateScene(Snapshot * s)
 {
-  generateImage(s);
+  Image i = generateImage(s);
 
   // works on acceptable hue ranges:
   // blue: 170-245
   // orange: (350) -10-65
-  Histogram1D hue = getHueHist(360);
+  Histogram1D hue = getHueHist(i, 360);
   Histogram1D hue2 = hue.consolidate(2);
 
   int c1 = hue2.getNthBin(0);
@@ -38,24 +38,24 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
   float score = 0;
 
   // make sure sat and value are highish
-  Histogram1D sat = getSatHist(20);
-  Histogram1D val = getGrayscaleHist(20);
+  Histogram1D sat = getSatHist(i, 20);
+  Histogram1D val = getGrayscaleHist(i, 20);
 
   // calculate objective scores
-  if (170 <= blue && blue <= 245)
+  if (190 <= blue && blue <= 230)
     score += 100 * sat.avg();
   else {
-    int diff = abs(blue - 170) < abs(blue - 245) ? abs(blue - 170) : abs(blue - 245);
+    int diff = abs(blue - 190) < abs(blue - 230) ? abs(blue - 190) : abs(blue - 230);
     score += (100 - diff * 2);
   }
 
   if (orange >= 350)
     orange -= 360;
 
-  if (-10 <= orange && orange <= 65)
+  if (10 <= orange && orange <= 50)
     score += 100 * sat.avg();
   else {
-    int diff = abs(orange - 170) < abs(orange - 245) ? abs(orange - 170) : abs(orange - 245);
+    int diff = abs(orange - 10) < abs(orange - 50) ? abs(orange - 10) : abs(orange - 50);
     score += (100 - diff * 2);
   }
   

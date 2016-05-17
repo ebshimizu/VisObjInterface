@@ -234,24 +234,25 @@ Histogram3D::~Histogram3D()
 HistogramAttribute::HistogramAttribute(string name, int w, int h) :
   _canonicalWidth(w), _canonicalHeight(h), AttributeControllerBase(name)
 {
-  _canonical = Image(Image::ARGB, _canonicalWidth, _canonicalHeight, true);
-  _highRes = Image(Image::ARGB, _canonicalWidth * 2, _canonicalHeight * 2, true);
 }
 
 HistogramAttribute::~HistogramAttribute()
 {
 }
 
-void HistogramAttribute::generateImage(Snapshot* s)
+Image HistogramAttribute::generateImage(Snapshot* s)
 {
   auto devices = s->getDevices();
   auto p = getAnimationPatch();
 
-  if (p == nullptr)
-    return;
+  if (p == nullptr) {
+    return Image(Image::ARGB, _canonicalWidth, _canonicalHeight, true);
+  }
 
   // with caching we can render at full and then scale down
-  uint8* bufptr = Image::BitmapData(_highRes, Image::BitmapData::readWrite).getPixelPointer(0,0);
+  Image highRes = Image(Image::ARGB, _canonicalWidth * 2, _canonicalHeight * 2, true);
+  Image canonical;
+  uint8* bufptr = Image::BitmapData(highRes, Image::BitmapData::readWrite).getPixelPointer(0,0);
   p->setDims(_canonicalWidth * 2, _canonicalHeight * 2);
   p->setSamples(getGlobalSettings()->_thumbnailRenderSamples);
 
@@ -263,25 +264,27 @@ void HistogramAttribute::generateImage(Snapshot* s)
     // pull subsection
     auto topLeft = rect.getTopLeft();
     auto botRight = rect.getBottomRight();
-    Image clipped = _highRes.getClippedImage(Rectangle<int>::leftTopRightBottom(
+    Image clipped = highRes.getClippedImage(Rectangle<int>::leftTopRightBottom(
       (int)(topLeft.x * _canonicalWidth * 2), (int)(topLeft.y * _canonicalHeight * 2),
       (int)(botRight.x * _canonicalWidth * 2), (int)(botRight.y * _canonicalHeight * 2)
     ));
 
-    _canonical = clipped.rescaled(_canonicalWidth, _canonicalHeight);
+    canonical = clipped.rescaled(_canonicalWidth, _canonicalHeight);
   }
   else {
-    _canonical = _highRes.rescaled(_canonicalWidth, _canonicalHeight);
+    canonical = highRes.rescaled(_canonicalWidth, _canonicalHeight);
   }
+
+  return canonical;
 }
 
-Histogram1D HistogramAttribute::getGrayscaleHist(int numBins)
+Histogram1D HistogramAttribute::getGrayscaleHist(Image& canonical, int numBins)
 {
   Histogram1D gs(numBins);
 
   for (int x = 0; x < _canonicalWidth; x++) {
     for (int y = 0; y < _canonicalHeight; y++) {
-      auto color = _canonical.getPixelAt(x, y);
+      auto color = canonical.getPixelAt(x, y);
       gs.addValToBin(color.getBrightness());
     }
   }
@@ -289,13 +292,13 @@ Histogram1D HistogramAttribute::getGrayscaleHist(int numBins)
   return gs;
 }
 
-Histogram1D HistogramAttribute::getPerceptualGrayscaleHist(int numBins)
+Histogram1D HistogramAttribute::getPerceptualGrayscaleHist(Image& canonical, int numBins)
 {
   Histogram1D gs(numBins);
 
   for (int x = 0; x < _canonicalWidth; x++) {
     for (int y = 0; y < _canonicalHeight; y++) {
-      auto color = _canonical.getPixelAt(x, y);
+      auto color = canonical.getPixelAt(x, y);
       gs.addValToBin(color.getPerceivedBrightness());
     }
   }
@@ -303,13 +306,13 @@ Histogram1D HistogramAttribute::getPerceptualGrayscaleHist(int numBins)
   return gs;
 }
 
-Histogram1D HistogramAttribute::getChannelHist(int numBins, int channel)
+Histogram1D HistogramAttribute::getChannelHist(Image& canonical, int numBins, int channel)
 {
   Histogram1D gs(numBins);
 
   for (int x = 0; x < _canonicalWidth; x++) {
     for (int y = 0; y < _canonicalHeight; y++) {
-      auto color = _canonical.getPixelAt(x, y);
+      auto color = canonical.getPixelAt(x, y);
 
       if (channel == 0) {
         gs.addValToBin(color.getRed());
@@ -326,13 +329,13 @@ Histogram1D HistogramAttribute::getChannelHist(int numBins, int channel)
   return gs;
 }
 
-Histogram1D HistogramAttribute::getHueHist(int numBins)
+Histogram1D HistogramAttribute::getHueHist(Image& canonical, int numBins)
 {
   Histogram1D gs(numBins);
 
   for (int x = 0; x < _canonicalWidth; x++) {
     for (int y = 0; y < _canonicalHeight; y++) {
-      auto color = _canonical.getPixelAt(x, y);
+      auto color = canonical.getPixelAt(x, y);
       gs.addValToBin(color.getHue());
     }
   }
@@ -340,13 +343,13 @@ Histogram1D HistogramAttribute::getHueHist(int numBins)
   return gs;
 }
 
-Histogram1D HistogramAttribute::getSatHist(int numBins)
+Histogram1D HistogramAttribute::getSatHist(Image& canonical, int numBins)
 {
   Histogram1D gs(numBins);
 
   for (int x = 0; x < _canonicalWidth; x++) {
     for (int y = 0; y < _canonicalHeight; y++) {
-      auto color = _canonical.getPixelAt(x, y);
+      auto color = canonical.getPixelAt(x, y);
       gs.addValToBin(color.getSaturation());
     }
   }
