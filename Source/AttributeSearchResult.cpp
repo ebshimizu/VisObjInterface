@@ -183,29 +183,7 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
 
 void AttributeSearchResult::mouseEnter(const MouseEvent & event)
 {
-  // when the mouse enters one of these components, we want to display the cluster contents
-  // (which can be displayed in an AttributeSearchCluster object) in the bottom half
-  // of the search results window
-  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-  if (_clusterElems.size() > 0) {
-    getRecorder()->log(ACTION, "Cluster " + String(_result->_cluster).toStdString() + " hovered");
-
-    AttributeSearchCluster* cluster = new AttributeSearchCluster(_clusterElems);
-
-    // We have to reach all the way up to the main component to do this
-    cluster->sort(&DefaultSorter());
-    cluster->sort();
-
-    if (mc != nullptr) {
-      mc->setBottomSearchComponent(cluster, this);
-    }
-  }
-
-  if (mc != nullptr) {
-    getGlobalSettings()->_showThumbnailImg = true;
-    mc->setThumbImage(_render);
-    mc->repaint();
-  }
+  displayCluster();
 }
 
 void AttributeSearchResult::mouseExit(const MouseEvent & event)
@@ -241,4 +219,31 @@ int AttributeSearchResult::compareElements(AttributeSearchResult * first, Attrib
     return 1;
   else
     return 0;
+}
+
+void AttributeSearchResult::displayCluster()
+{
+  // when the mouse enters one of these components, we want to display the cluster contents
+  // (which can be displayed in an AttributeSearchCluster object) in the bottom half
+  // of the search results window
+  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+  if (_clusterElems.size() > 0) {
+    getRecorder()->log(ACTION, "Cluster " + String(_result->_cluster).toStdString() + " hovered");
+
+    AttributeSearchCluster* cluster = new AttributeSearchCluster(_clusterElems);
+
+    // We have to reach all the way up to the main component to do this
+    cluster->sort(&DefaultSorter());
+    cluster->sort();
+
+    if (mc != nullptr) {
+      mc->setBottomSearchComponent(cluster, this);
+    }
+  }
+
+  if (mc != nullptr) {
+    getGlobalSettings()->_showThumbnailImg = true;
+    mc->setThumbImage(_render);
+    mc->repaint();
+  }
 }

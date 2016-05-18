@@ -50,6 +50,7 @@ public:
   Image getImage() { return _render; }
 
   SearchResult* getSearchResult() { return _result; }
+  void setSearchResult(SearchResult* r) { _result = r; }
   Array<AttributeSearchResult*> getClusterElements() { return _clusterElems; }
  
   // Removes references to SearchResult objects in this GUI element. 
@@ -68,6 +69,9 @@ public:
   bool _isShowingCluster;
 
   int compareElements(AttributeSearchResult* first, AttributeSearchResult* second);
+
+  // Sets this component to be the cluster shown in the bottom part of the viewer.
+  void displayCluster();
 
 private:
   // Search result object from the attribute search

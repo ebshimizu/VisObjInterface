@@ -70,6 +70,7 @@ private:
   bool _isRoot;
 
   mutex _resultsLock;
+  int _numResults;
 
   // queue of results to add to the search.
   Array<AttributeSearchResult*> _newResults;

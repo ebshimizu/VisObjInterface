@@ -53,6 +53,8 @@ MainContentComponent::~MainContentComponent()
   if (_clusterWindow != nullptr)
     delete _clusterWindow;
 
+  _searchWorker->stop();
+
   getRecorder()->log(SYSTEM, "Interface shutting down.");
 }
 

@@ -164,6 +164,8 @@ void SearchResultsContainer::display(list<SearchResult*>& results)
     renderBatch.add(res);
   }
 
+  _numResults = results.size();
+
   getRecorder()->log(ACTION, "Results displayed in " + String(centers.size()).toStdString() + " clusters");
 
   // render cluster centers
@@ -183,13 +185,18 @@ void SearchResultsContainer::recluster()
       results.push_back(e->getSearchResult());
       resultContainers.push_back(e);
     }
+
     delete r->getSearchResult();
     r->clearSearchResult();
-    delete r; // Delete the old cluster centers
+    
+    // delete containers if the number of clusters has changed, otherwise keep them
+    if (getGlobalSettings()->_numDisplayClusters != _results.size())
+      delete r; // Delete the old cluster centers
   }
 
-  // Remove things from results list
-  _results.clear();
+  // Remove things from results list if cluster number changed
+  if (getGlobalSettings()->_numDisplayClusters != _results.size())
+    _results.clear();
 
   if (getGlobalSettings()->_numDisplayClusters > results.size()) {
     getGlobalSettings()->_numDisplayClusters = results.size();
@@ -212,10 +219,18 @@ void SearchResultsContainer::recluster()
     //s->_editHistory.add("Cluster Center");
     s->_cluster = i;
 
-    AttributeSearchResult* cluster = new AttributeSearchResult(s);
+    AttributeSearchResult* cluster;
+    if (getGlobalSettings()->_numDisplayClusters != _results.size()) {
+      cluster = new AttributeSearchResult(s);
 
-    addAndMakeVisible(cluster);
-    _results.add(cluster);
+      addAndMakeVisible(cluster);
+      _results.add(cluster);
+    }
+    else {
+      _results[i]->setSearchResult(s);
+      cluster = _results[i];
+    }
+
     renderBatch.add(cluster);
 
     auto p = getAnimationPatch();
@@ -241,6 +256,14 @@ void SearchResultsContainer::recluster()
     _results[r->_cluster]->addClusterElement(resultContainers[i]);
     i++;
   }
+
+  // redisplay current hovered cluster if there is one
+  for (auto r : _results) {
+    if (r->_isShowingCluster)
+      r->displayCluster();
+  }
+
+  _numResults = results.size();
 
   getRecorder()->log(ACTION, "Results reclusterd in " + String(centers.size()).toStdString() + " clusters");
 }
@@ -277,7 +300,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
     lock_guard<mutex> lock(_resultsLock);
     // Check to make sure result is sufficiently different
     // also limit number of total results
-    if (_results.size() > getGlobalSettings()->_maxReturnedScenes) {
+    if (_numResults > getGlobalSettings()->_maxReturnedScenes) {
       delete r;
       return false;
     }
@@ -310,6 +333,9 @@ void SearchResultsContainer::showNewResults()
   {
     lock_guard<mutex> lock(_resultsLock);
 
+    if (_newResults.size() == 0)
+      return;
+
     // integrate new results
     SearchResult* s = new SearchResult();
     AttributeSearchResult* c = new AttributeSearchResult(s);
@@ -319,10 +345,12 @@ void SearchResultsContainer::showNewResults()
     }
     _newResults.clear();
 
+    addAndMakeVisible(c);
     _results.add(c);
   }
 
   recluster();
+  setHeight(_height);
   resized();
   repaint();
 }

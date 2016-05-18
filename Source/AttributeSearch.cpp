@@ -555,6 +555,7 @@ void AttributeSearchThread::runSearch()
         //getGlobalSettings()->_editNames.push_back(e->_name);
       }
     }
+    wait(10);
     depth++;
   }
 
@@ -896,7 +897,7 @@ void AttributeSearchThread::getNewColorScheme(Eigen::VectorXd & base, EditNumDev
 AttributeSearch::AttributeSearch(SearchResultsViewer * viewer) : _viewer(viewer), Thread("Attribute Search Dispatcher")
 {
   // create thread objects, can be started and stopped as needed
-  int maxThreads = thread::hardware_concurrency() - 1;
+  int maxThreads = 1; // thread::hardware_concurrency() / 2 - 1;
   
   if (maxThreads <= 0)
     maxThreads = 1;
@@ -955,17 +956,17 @@ void AttributeSearch::run()
   // idle until told to exit
   // or add other logic to control search path/execution
   while (!threadShouldExit())
-    this_thread:sleep(50);
+    wait(50);
 }
 
 void AttributeSearch::stop()
 {
   for (auto& t : _threads) {
     if (t->isThreadRunning())
-      t->stopThread(50);
+      t->stopThread(100);
   }
 
-  stopThread(50);
+  stopThread(100);
 }
 
 void AttributeSearch::generateEdits(bool explore)
