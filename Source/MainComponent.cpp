@@ -94,7 +94,8 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::VIEW_CLUSTERS, command::UNDO, command::REDO, command::LOCK_ALL_COLOR,
     command::LOCK_ALL_INTENSITY, command::LOCK_ALL_POSITION, command::UNLOCK_ALL,
     command::LOCK_ALL_AREAS_EXCEPT, command::LOCK_AREA, command::LOCK_SYSTEM, command::LOCK_ALL_SYSTEMS_EXCEPT,
-    command::SAVE_RENDER, command::GET_FROM_ARNOLD, command::STOP_SEARCH, command::GET_NEW_RESULTS
+    command::SAVE_RENDER, command::GET_FROM_ARNOLD, command::STOP_SEARCH, command::GET_NEW_RESULTS,
+    command::UPDATE_NUM_THREADS
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -186,10 +187,13 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Get Defaults From Arnold", "Get device default values from the Arnold .ass file", "Edit", 0);
     break;
   case command::STOP_SEARCH:
-    result.setInfo("Stops current search operation", "Stops the current search operation", "Explore", 0);
+    result.setInfo("Stop Search", "Stops the current search operation", "Explore", 0);
     break;
   case command::GET_NEW_RESULTS:
     result.setInfo("Gets new results to display", "Internal update operation", "Internal", 0);
+    break;
+  case command::UPDATE_NUM_THREADS:
+    result.setInfo("Update Search Threads", "Updates the search worker to use the specified number of threads", "Internal", 0);
     break;
   default:
     return;
@@ -270,6 +274,10 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::GET_NEW_RESULTS:
     _search->showNewResults();
+    break;
+  case command::UPDATE_NUM_THREADS:
+    _searchWorker->stop();
+    _searchWorker->reinit();
     break;
   default:
     return false;

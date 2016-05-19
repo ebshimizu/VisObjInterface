@@ -36,10 +36,6 @@ void SettingsSlider::setValue(double newValue)
   }
   else if (_id == "Thumbnail Render Samples")
     getGlobalSettings()->_thumbnailRenderSamples = (int)newValue;
-  else if (_id == "Minimum Edit Distance")
-    getGlobalSettings()->_minEditDist = newValue;
-  else if (_id == "Number of Scenes Between Layers")
-    getGlobalSettings()->_numEditScenes = (int)newValue;
   else if (_id == "Finite Difference Window")
     getGlobalSettings()->_searchDerivDelta = newValue;
   else if (_id == "Frame Width") {
@@ -94,10 +90,6 @@ void SettingsSlider::setValue(double newValue)
     getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_sss_samples", (int)newValue);
   else if (_id == "Volume Samples")
     getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_volume_samples", (int)newValue);
-  else if (_id == "Accept Bandwidth")
-    getGlobalSettings()->_accceptBandwidth = newValue;
-  else if (_id == "JND Increment")
-    getGlobalSettings()->_jndInc = newValue;
   else if (_id == "Max Results")
     getGlobalSettings()->_maxReturnedScenes = (int)newValue;
   else if (_id == "Temperature")
@@ -106,6 +98,8 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_meanShiftBandwidth = newValue;
   else if (_id == "Mean Shift Epsilon")
     getGlobalSettings()->_meanShiftEps = newValue;
+  else if (_id == "Search Threads")
+    getGlobalSettings()->_searchThreads = (int)newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -120,10 +114,6 @@ double SettingsSlider::getValue() const
   }
   else if (_id == "Thumbnail Render Samples")
     return getGlobalSettings()->_thumbnailRenderSamples;
-  else if (_id == "Minimum Edit Distance")
-    return getGlobalSettings()->_minEditDist;
-  else if (_id == "Number of Scenes Between Layers")
-    return getGlobalSettings()->_numEditScenes;
   else if (_id == "Finite Difference Window")
     return getGlobalSettings()->_searchDerivDelta;
   else if (_id == "Frame Width")
@@ -170,10 +160,6 @@ double SettingsSlider::getValue() const
     return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_sss_samples");
   else if (_id == "Volume Samples")
     return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_volume_samples");
-  else if (_id == "Accept Bandwidth")
-    return getGlobalSettings()->_accceptBandwidth;
-  else if (_id == "JND Increment")
-    return getGlobalSettings()->_jndInc;
   else if (_id == "Max Results")
     return getGlobalSettings()->_maxReturnedScenes;
   else if (_id == "Temperature")
@@ -182,6 +168,8 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_meanShiftBandwidth;
   else if (_id == "Mean Shift Epsilon")
     return getGlobalSettings()->_meanShiftEps;
+  else if (_id == "Search Threads")
+    return getGlobalSettings()->_searchThreads;
 }
 
 void SettingsSlider::sliderValueChanged(Slider * s)
@@ -229,35 +217,29 @@ SettingsEditor::SettingsEditor()
 {
   Array<PropertyComponent*> searchComponents;
   searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 25, 1));
-  searchComponents.add(new SettingsSlider("Minimum Edit Distance", 0, 100, 0.01));
-  searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 5, 0.01));
-  searchComponents.add(new SettingsSlider("JND Increment", 0.01, 0.5, 0.01));
-  searchComponents.add(new SettingsSlider("Accept Bandwidth", 0.01, 10, 0.01));
-  searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1e-3, 1e-7));
-  //searchComponents.add(new SettingsSlider("Cluster Distance Threshold", 1e-3, 5, 1e-3));
-  searchComponents.add(new SettingsSlider("Max Results", 1, 500, 1));
-  searchComponents.add(new SettingsSlider("Temperature", 0, 25, 0.01));
-  searchComponents.add(new SettingsSlider("Mean Shift Bandwidth", 0, 10, 0.001));
+  searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 10, 0.01));
+  searchComponents.add(new SettingsSlider("Max Results", 1, 200, 1));
+  searchComponents.add(new SettingsSlider("MCMC Step Size", 0, 0.25, 0.001));
+  searchComponents.add(new SettingsSlider("MCMC Max Iterations", 1, 100, 1));
+  //searchComponents.add(new SettingsSlider("Mean Shift Bandwidth", 0, 10, 0.001));
   //searchComponents.add(new SettingsSlider("Mean Shift Epsilon", 0, 0.01, 1e-6));
+  searchComponents.add(new SettingsSlider("Temperature", 0, 25, 0.01));
+  //searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1e-3, 1e-7));
   searchComponents.add(new SettingsBoolButton("Random Mode"));
   searchComponents.add(new SettingsBoolButton("Export Traces"));
-  _settings.addSection("Search Shared", searchComponents);
-
-  Array<PropertyComponent*> mcmcComponents;
-  mcmcComponents.add(new SettingsSlider("MCMC Step Size", 0, 0.1, 0.001));
-  mcmcComponents.add(new SettingsSlider("MCMC Max Iterations", 1, 10000, 1));
-  _settings.addSection("MCMC Search", mcmcComponents);
+  searchComponents.add(new SettingsSlider("Search Threads", 1, thread::hardware_concurrency(), 1));
+  _settings.addSection("Search", searchComponents);
 
   Array<PropertyComponent*> renderComponents;
-  _width = new SettingsSlider("Frame Width", 1, 3840, 1);
-  _height = new SettingsSlider("Frame Height", 1, 2160, 1);
-  _width->_other = _height;
-  _height->_other = _width;
+  //_width = new SettingsSlider("Frame Width", 1, 3840, 1);
+  //_height = new SettingsSlider("Frame Height", 1, 2160, 1);
+  //_width->_other = _height;
+  //_height->_other = _width;
 
   renderComponents.add(new SettingsSlider("Render Samples", -3, 8, 1));
   renderComponents.add(new SettingsSlider("Thumbnail Render Samples", -3, 8, 1));
-  renderComponents.add(_width);
-  renderComponents.add(_height);
+  //renderComponents.add(_width);
+  //renderComponents.add(_height);
   renderComponents.add(new SettingsSlider("Thumbnail Scale", 0, 1, 0.01));
   renderComponents.add(new SettingsSlider("Thumbnails Per Row", 1, 20, 1));
   renderComponents.add(new SettingsSlider("Total Depth", 1, 32, 1));

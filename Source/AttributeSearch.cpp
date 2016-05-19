@@ -479,6 +479,7 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f)
   _edits = getGlobalSettings()->_edits;
   _T = getGlobalSettings()->_T;
   _maxDepth = getGlobalSettings()->_editDepth;
+  _failures = 0;
 
   _f = f;
 }
@@ -912,16 +913,7 @@ void AttributeSearchThread::getNewColorScheme(Eigen::VectorXd & base, EditNumDev
 
 AttributeSearch::AttributeSearch(SearchResultsViewer * viewer) : _viewer(viewer), Thread("Attribute Search Dispatcher")
 {
-  // create thread objects, can be started and stopped as needed
-  int maxThreads = thread::hardware_concurrency() / 2;
-  
-  if (maxThreads <= 0)
-    maxThreads = 1;
-  
-  for (int i = 0; i < maxThreads; i++) {
-    _threads.add(new AttributeSearchThread("Attribute Searcher Worker " + String(i), _viewer));
-  }
-
+  reinit();
   _start = nullptr;
 }
 
@@ -937,10 +929,28 @@ AttributeSearch::~AttributeSearch()
   delete _start;
 }
 
+void AttributeSearch::reinit()
+{
+  // assumes attribute search is stopped
+  assert(isThreadRunning() == false);
+
+  for (auto& t : _threads)
+    delete t;
+
+  _threads.clear();
+
+  for (int i = 0; i < getGlobalSettings()->_searchThreads; i++) {
+    _threads.add(new AttributeSearchThread("Attribute Searcher Worker " + String(i), _viewer));
+  }
+}
+
 void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerBase*> active)
 {
   if (_start != nullptr)
     delete _start;
+
+  if (_threads.size() != getGlobalSettings()->_searchThreads)
+    reinit();
 
   _active = active;
   _start = start;
@@ -983,7 +993,9 @@ void AttributeSearch::run()
     }
     else {
       MessageManagerLock mmlock;
-      getApplicationCommandManager()->invokeDirectly(command::GET_NEW_RESULTS, false);
+      if (mmlock.lockWasGained()) {
+        getApplicationCommandManager()->invokeDirectly(command::GET_NEW_RESULTS, false);
+      }
     }
   }
 }

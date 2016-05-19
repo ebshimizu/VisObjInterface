@@ -285,25 +285,20 @@ GlobalSettings::GlobalSettings()
   _thumbnailRenderSamples = -1;
   _stageRenderSamples = 1;
   _searchDerivDelta = 1e-4;
-  _minEditDist = 0.5;
-  _numEditScenes = 15;
   _renderWidth = 0;
   _renderHeight = 0;
-  _thumbnailRenderScale = 0.25;
+  _thumbnailRenderScale = 0.50;
   _editDepth = 3;
   _clusterDistThreshold = 0.30;
-  _editStepSize = 0.02;
-  _maxMCMCIters = 25;
-  _numDisplayClusters = 3;
-  _jndThreshold = 0.2;
+  _editStepSize = 0.1;
+  _maxMCMCIters = 10;
+  _numDisplayClusters = 1;
+  _jndThreshold = 0.5;
   _randomMode = false;
   _currentSortMode = "Attribute Default";
   _clusterElemsPerRow = 6;
-  _accceptBandwidth = 0.05;
-  _maxReturnedScenes = 10;
-  _jndInc = 0.01;
+  _maxReturnedScenes = 50;
   _showThumbnailImg = false;
-  _explorationTolerance = 8;
   _T = 1;
   _exportTraces = false;
   _traceRootDir = "C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/traces";
@@ -312,6 +307,10 @@ GlobalSettings::GlobalSettings()
   _meanShiftBandwidth = 0.005;
   _grayscaleMode = false;
   _searchFailureLimit = 3;
+  _searchThreads = thread::hardware_concurrency() / 2;
+
+  if (_searchThreads <= 0)
+    _searchThreads = 1;
 }
 
 GlobalSettings::~GlobalSettings()

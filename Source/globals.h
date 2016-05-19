@@ -60,7 +60,8 @@ enum command {
   LOCK_AREA = 0x5009,
   LOCK_SYSTEM = 0x500A,
   STOP_SEARCH = 0x500B,
-  GET_NEW_RESULTS = 0x500C
+  GET_NEW_RESULTS = 0x500C,
+  UPDATE_NUM_THREADS = 0x500D
 
   // Window
 };
@@ -130,23 +131,18 @@ public:
   int _thumbnailRenderSamples;
   int _stageRenderSamples;
   double _searchDerivDelta;     // h, size of window for finite difference derivative
-  double _minEditDist;          // Minimum attribute difference needed to be returned from an edit
-  int _numEditScenes;           // Number of scenes per iteration that get passed on to the next stage. i.e. frontier size
   int _renderWidth;             // Render width
   int _renderHeight;            // Render height
   double _thumbnailRenderScale; // Thumbnail size 
-  int _editDepth;               // Maximum edit depth
+  int _editDepth;               // Initial edit depth
   double _clusterDistThreshold; // Required average distance from every element to the cluster center
   double _editStepSize;         // MCMC: Std dev of gaussian sample 
   int _maxMCMCIters;            // MCMC: Max number of iterations
   double _jndThreshold;         // For two feature vectors, how far apart they can be to be considered equivalent
   bool _randomMode;             // Primarily for debugging, turning this on ignores parameter values when searching
   int _clusterElemsPerRow;      // Number of elements to show in a cluster detail view
-  double _accceptBandwidth;     // For MCMC samples that are bad, how tolerant we should be of them
-  int _maxReturnedScenes;       // Limiter for how many scenes get returned from a search, primarily limited by thumbnail render speed
-  double _jndInc;               // Increment to use for adaptive filtering
+  int _maxReturnedScenes;       // Limiter for how many scenes get returned from a search, primarily limited by memory 
   bool _showThumbnailImg;       // Flag to show thumbnail image in the render area.
-  double _explorationTolerance; // In the exploration phase, how far we can be off the other attribute values to still be ok
   double _T;                    // Temperature controlling MCMC tolerance to worse suggestions
   bool _exportTraces;           // Export trace data for each search operation
   string _traceRootDir;         // Trace file location
@@ -154,6 +150,7 @@ public:
   double _meanShiftBandwidth;   // Mean shift bandwidth
   bool _grayscaleMode;          // Render images in grayscale instead of color
   int _searchFailureLimit;      // How many times a search thread can fail before increasing the max depth.
+  int _searchThreads;           // Background threads for search
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

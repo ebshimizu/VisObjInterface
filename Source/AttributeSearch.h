@@ -143,6 +143,9 @@ public:
   AttributeSearch(SearchResultsViewer* viewer);
   ~AttributeSearch();
 
+  // When changing the number of threads, reallocate resources appropriately
+  void reinit();
+
   // updates the state of the search on running. Will assume ownership of snapshot.
   void setState(Snapshot* start, map<string, AttributeControllerBase*> active);
 
