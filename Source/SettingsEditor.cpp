@@ -170,6 +170,8 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_meanShiftEps;
   else if (_id == "Search Threads")
     return getGlobalSettings()->_searchThreads;
+
+  return 0;
 }
 
 void SettingsSlider::sliderValueChanged(Slider * s)

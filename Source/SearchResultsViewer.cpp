@@ -325,6 +325,7 @@ void SearchResultsContainer::clear()
     delete r;
   }
   _results.clear();
+  _numResults = _results.size();
   setHeight(_height);
   resized();
   repaint();

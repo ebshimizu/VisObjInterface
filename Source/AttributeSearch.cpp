@@ -983,8 +983,11 @@ void AttributeSearch::run()
 
   // idle until told to exit
   // or add other logic to control search path/execution
-  while (!threadShouldExit()) {
+  while (1) {
     wait(2000);
+
+    if (threadShouldExit())
+      return;
 
     if (_viewer->isFull()) {
       for (auto& t : _threads)
