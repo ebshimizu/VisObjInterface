@@ -178,6 +178,7 @@ void SearchResultsContainer::recluster()
 
     Snapshot* center = vectorToSnapshot(c);
     p->renderSingleFrameToBuffer(center->getDevices(), bufptr, width, height);
+    delete center;
     cluster->setImage(img);
 
     i++;
@@ -247,10 +248,8 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
     }
 
     // also limit number of total results
-    if (_numResults > getGlobalSettings()->_maxReturnedScenes) {
+    if (isFull()) {
       delete r;
-      // signal search should stop, too many results returned
-      //getApplicationCommandManager()->invokeDirectly(command::STOP_SEARCH, true);
       return false;
     }
 
@@ -269,6 +268,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
 
     Snapshot* s = vectorToSnapshot(r->_scene);
     p->renderSingleFrameToBuffer(s->getDevices(), bufptr, width, height);
+    delete s;
     newResult->setImage(img);
 
     // add result to container
@@ -315,6 +315,24 @@ void SearchResultsContainer::showNewResults()
   setHeight(_height);
   resized();
   repaint();
+}
+
+void SearchResultsContainer::clear()
+{
+  lock_guard<mutex> lock(_resultsLock);
+
+  for (auto r : _results) {
+    delete r;
+  }
+  _results.clear();
+  setHeight(_height);
+  resized();
+  repaint();
+}
+
+bool SearchResultsContainer::isFull()
+{
+  return _numResults > getGlobalSettings()->_maxReturnedScenes;
 }
 
 //==============================================================================
@@ -421,6 +439,16 @@ void SearchResultsViewer::setBotComponent(Component * c, Component* source)
 void SearchResultsViewer::showNewResults()
 {
   _container->showNewResults();
+}
+
+void SearchResultsViewer::clearContainer()
+{
+  _container->clear();
+}
+
+bool SearchResultsViewer::isFull()
+{
+  return _container->isFull();
 }
 
 Array<AttributeSearchResult*> SearchResultsViewer::getResults()

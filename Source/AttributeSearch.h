@@ -143,7 +143,7 @@ public:
   AttributeSearch(SearchResultsViewer* viewer);
   ~AttributeSearch();
 
-  // updates the state of the search on running 
+  // updates the state of the search on running. Will assume ownership of snapshot.
   void setState(Snapshot* start, map<string, AttributeControllerBase*> active);
 
   // Runs the search dispatch thread

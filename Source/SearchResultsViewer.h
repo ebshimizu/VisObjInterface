@@ -60,6 +60,12 @@ public:
   // integrate new results and display
   void showNewResults();
 
+  // Deletes all scenes currently contained in the viewer.
+  void clear();
+
+  // Returns true when the container can't support any more elements
+  bool isFull();
+
 private:
   int _width;
   int _height;
@@ -103,6 +109,12 @@ public:
 
   // tells the search result container to update itself
   void showNewResults();
+
+  // Deletes all scenes currently displayed and contained by the viewer.
+  void clearContainer();
+
+  // Returns true when the viewer can't display any more scenes
+  bool isFull();
 
 private:
   Viewport* _viewer;

@@ -622,6 +622,7 @@ void MainContentComponent::selectBox(string metadataKey, bool inv, string title)
 void MainContentComponent::search()
 {
   stopSearch();
+  _search->clearContainer();
 
   _searchWorker->setState(new Snapshot(getRig(), nullptr), _attrs->getActiveAttributes());
   _searchWorker->startThread(9);

@@ -56,7 +56,7 @@ void SettingsSlider::setValue(double newValue)
   }
   else if (_id == "Thumbnail Scale")
     getGlobalSettings()->_thumbnailRenderScale = newValue;
-  else if (_id == "Edit Depth")
+  else if (_id == "Initial Edit Depth")
     getGlobalSettings()->_editDepth = (int)newValue;
   else if (_id == "Cluster Distance Threshold")
     getGlobalSettings()->_clusterDistThreshold = newValue;
@@ -132,7 +132,7 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_renderHeight;
   else if (_id == "Thumbnail Scale")
     return getGlobalSettings()->_thumbnailRenderScale;
-  else if (_id == "Edit Depth")
+  else if (_id == "Initial Edit Depth")
     return getGlobalSettings()->_editDepth;
   else if (_id == "Cluster Distance Threshold")
     return getGlobalSettings()->_clusterDistThreshold;
@@ -228,8 +228,7 @@ bool SettingsBoolButton::getState() const
 SettingsEditor::SettingsEditor()
 {
   Array<PropertyComponent*> searchComponents;
-  searchComponents.add(new SettingsSlider("Number of Scenes Between Layers", 1, 100, 1));
-  searchComponents.add(new SettingsSlider("Edit Depth", 1, 25, 1));
+  searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 25, 1));
   searchComponents.add(new SettingsSlider("Minimum Edit Distance", 0, 100, 0.01));
   searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 5, 0.01));
   searchComponents.add(new SettingsSlider("JND Increment", 0.01, 0.5, 0.01));

@@ -539,7 +539,7 @@ void AttributeSearchThread::runSearch()
       double a = min(exp((1 / _T) * (fx - fxp)), 1.0);
 
       // accept if a >= 1 or with probability a
-      if (a >= 1 || udist(gen) <= a) {
+      if (a >= 1 || udist(gen) < a) {
         unsigned int sampleId = getGlobalSettings()->getSampleID();
 
         // update x
@@ -554,6 +554,12 @@ void AttributeSearchThread::runSearch()
         //getGlobalSettings()->_fxs.push_back(fxp);
         //getGlobalSettings()->_as.push_back(a);
         //getGlobalSettings()->_editNames.push_back(e->_name);
+      
+        // break after acceptance
+        break;
+      }
+      else {
+        delete sp;
       }
       sleep(10);
     }
@@ -561,6 +567,7 @@ void AttributeSearchThread::runSearch()
   }
 
   r->_scene = snapshotToVector(start);
+  delete start;
   
   // send scene to the results area. may chose to not use the scene
   if (!_viewer->addNewResult(r)) {
@@ -926,6 +933,8 @@ AttributeSearch::~AttributeSearch()
   }
 
   _threads.clear();
+
+  delete _start;
 }
 
 void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerBase*> active)
@@ -967,7 +976,12 @@ void AttributeSearch::run()
   while (!threadShouldExit()) {
     wait(2000);
 
-    {
+    if (_viewer->isFull()) {
+      for (auto& t : _threads)
+        t->stopThread(1000);
+      signalThreadShouldExit();
+    }
+    else {
       MessageManagerLock mmlock;
       getApplicationCommandManager()->invokeDirectly(command::GET_NEW_RESULTS, false);
     }

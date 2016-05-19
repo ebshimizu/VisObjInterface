@@ -300,7 +300,7 @@ GlobalSettings::GlobalSettings()
   _currentSortMode = "Attribute Default";
   _clusterElemsPerRow = 6;
   _accceptBandwidth = 0.05;
-  _maxReturnedScenes = 50;
+  _maxReturnedScenes = 10;
   _jndInc = 0.01;
   _showThumbnailImg = false;
   _explorationTolerance = 8;
@@ -316,4 +316,7 @@ GlobalSettings::GlobalSettings()
 
 GlobalSettings::~GlobalSettings()
 {
+  for (auto& e : _edits) {
+    delete e;
+  }
 }
