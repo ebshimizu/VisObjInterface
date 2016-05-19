@@ -43,9 +43,6 @@ public:
   void paint(Graphics& g);
   void resized();
 
-  // Display a new set of results in the container
-  void display(list<SearchResult*>& results);
-
   // Recluster results
   void recluster();
 
@@ -83,7 +80,7 @@ private:
 //==============================================================================
 /*
 */
-class SearchResultsViewer : public Component, public Timer
+class SearchResultsViewer : public Component
 {
 public:
   SearchResultsViewer();
@@ -92,13 +89,10 @@ public:
   void paint (Graphics&);
   void resized();
 
-  void display(list<SearchResult*>& results);
   void redisplay();
   void sortDisplayedCluster();
 
   void setBotComponent(Component* c, Component* source);
-
-  virtual void timerCallback() override;
 
   Array<AttributeSearchResult*> getResults();
 
@@ -106,6 +100,9 @@ public:
 
   // adds a new search result to the display area. Thread safe.
   bool addNewResult(SearchResult* r);
+
+  // tells the search result container to update itself
+  void showNewResults();
 
 private:
   Viewport* _viewer;

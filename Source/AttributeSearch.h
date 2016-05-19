@@ -78,13 +78,17 @@ public:
 private:
   // object to dump results into once search is complete.
   SearchResultsViewer* _viewer;
-  int _editDepth;
+  int _maxDepth;
   Snapshot* _original;
   double _fc;
   bool _singleSame;
   vector<Edit*> _edits;
   attrObjFunc _f;
   double _T;
+
+  // counter for how many times the search result got rejected from the collection.
+  // fail too many times, search depth increases
+  int _failures;
 
   // Starts up one search path. Run multiple times to get multiple results. Each run returns one result and puts
   // it in to the SearchResultsViewer object

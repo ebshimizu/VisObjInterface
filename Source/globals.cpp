@@ -295,12 +295,12 @@ GlobalSettings::GlobalSettings()
   _editStepSize = 0.02;
   _maxMCMCIters = 25;
   _numDisplayClusters = 3;
-  _jndThreshold = 0.1;
+  _jndThreshold = 0.2;
   _randomMode = false;
   _currentSortMode = "Attribute Default";
   _clusterElemsPerRow = 6;
   _accceptBandwidth = 0.05;
-  _maxReturnedScenes = 25;
+  _maxReturnedScenes = 50;
   _jndInc = 0.01;
   _showThumbnailImg = false;
   _explorationTolerance = 8;
@@ -311,6 +311,7 @@ GlobalSettings::GlobalSettings()
   _meanShiftEps = 1e-4;
   _meanShiftBandwidth = 0.005;
   _grayscaleMode = false;
+  _searchFailureLimit = 3;
 }
 
 GlobalSettings::~GlobalSettings()

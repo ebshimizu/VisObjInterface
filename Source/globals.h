@@ -58,7 +58,9 @@ enum command {
   LOCK_ALL_AREAS_EXCEPT = 0x5007,
   LOCK_ALL_SYSTEMS_EXCEPT = 0x5008,
   LOCK_AREA = 0x5009,
-  LOCK_SYSTEM = 0x500A
+  LOCK_SYSTEM = 0x500A,
+  STOP_SEARCH = 0x500B,
+  GET_NEW_RESULTS = 0x500C
 
   // Window
 };
@@ -151,6 +153,7 @@ public:
   double _meanShiftEps;         // Mean shift epsilon
   double _meanShiftBandwidth;   // Mean shift bandwidth
   bool _grayscaleMode;          // Render images in grayscale instead of color
+  int _searchFailureLimit;      // How many times a search thread can fail before increasing the max depth.
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

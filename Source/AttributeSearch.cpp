@@ -478,6 +478,7 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f)
   _edits.clear();
   _edits = getGlobalSettings()->_edits;
   _T = getGlobalSettings()->_T;
+  _maxDepth = getGlobalSettings()->_editDepth;
 
   _f = f;
 }
@@ -510,8 +511,8 @@ void AttributeSearchThread::runSearch()
   int depth = 0;
   Edit* e = nullptr;
 
-  // TODO: depth range should increase after a while, maybe parent thread can manage.
-  while (depth < getGlobalSettings()->_editDepth) {
+  // depth increases when scenes are rejected from the viewer
+  while (depth < _maxDepth) {
     if (threadShouldExit()) {
       delete r;
       delete start;
@@ -554,15 +555,23 @@ void AttributeSearchThread::runSearch()
         //getGlobalSettings()->_as.push_back(a);
         //getGlobalSettings()->_editNames.push_back(e->_name);
       }
+      sleep(10);
     }
-    wait(10);
     depth++;
   }
 
   r->_scene = snapshotToVector(start);
   
   // send scene to the results area. may chose to not use the scene
-  _viewer->addNewResult(r);
+  if (!_viewer->addNewResult(r)) {
+    // r has been deleted by _viewer here
+    _failures++;
+
+    if (_failures > getGlobalSettings()->_searchFailureLimit) {
+      _failures = 0;
+      _maxDepth++;
+    }
+  }
 }
 
 double AttributeSearchThread::numericDeriv(EditConstraint c, Snapshot* s, attrObjFunc f, string& id)
@@ -897,7 +906,7 @@ void AttributeSearchThread::getNewColorScheme(Eigen::VectorXd & base, EditNumDev
 AttributeSearch::AttributeSearch(SearchResultsViewer * viewer) : _viewer(viewer), Thread("Attribute Search Dispatcher")
 {
   // create thread objects, can be started and stopped as needed
-  int maxThreads = 1; // thread::hardware_concurrency() / 2 - 1;
+  int maxThreads = thread::hardware_concurrency() / 2;
   
   if (maxThreads <= 0)
     maxThreads = 1;
@@ -950,23 +959,29 @@ void AttributeSearch::run()
   // init and run all threads
   for (auto& t : _threads) {
     t->setState(_start, _f);
-    t->startThread();
+    t->startThread(1);
   }
 
   // idle until told to exit
   // or add other logic to control search path/execution
-  while (!threadShouldExit())
-    wait(50);
+  while (!threadShouldExit()) {
+    wait(2000);
+
+    {
+      MessageManagerLock mmlock;
+      getApplicationCommandManager()->invokeDirectly(command::GET_NEW_RESULTS, false);
+    }
+  }
 }
 
 void AttributeSearch::stop()
 {
   for (auto& t : _threads) {
     if (t->isThreadRunning())
-      t->stopThread(100);
+      t->stopThread(1000);
   }
 
-  stopThread(100);
+  stopThread(1000);
 }
 
 void AttributeSearch::generateEdits(bool explore)

@@ -105,79 +105,13 @@ void SearchResultsContainer::resized()
   }
 }
 
-void SearchResultsContainer::display(list<SearchResult*>& results)
-{
-  for (const auto& c : _results) {
-    delete c;
-  } 
-  _results.clear();
-
-  // Find clusters
-  if (getGlobalSettings()->_numDisplayClusters > results.size()) {
-    getGlobalSettings()->_numDisplayClusters = results.size();
-
-    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-
-    if (mc != nullptr) {
-      mc->refreshClusterDisplay();
-    }
-  }
-
-  vector<Eigen::VectorXd> centers = clusterResults(results, getGlobalSettings()->_numDisplayClusters);
-  Array<AttributeSearchResult*> renderBatch;
-
-  // special case for 1 result (the k-means library hates it)
-  if (results.size() == 1) {
-    SearchResult* s = new SearchResult(**(results.begin()));
-    s->_cluster = 0;
-    (*(results.begin()))->_cluster = 0;
-
-    AttributeSearchResult* cluster = new AttributeSearchResult(s);
-    addAndMakeVisible(cluster);
-    _results.add(cluster);
-    renderBatch.add(cluster);
-  }
-  else {
-    // create searchresult elements for cluster centers
-    int i = 0;
-    for (auto& c : centers) {
-      SearchResult* s = new SearchResult();
-      s->_scene = c;
-      //s->_editHistory.add("Cluster Center");
-      s->_cluster = i;
-
-      AttributeSearchResult* cluster = new AttributeSearchResult(s);
-
-      addAndMakeVisible(cluster);
-      _results.add(cluster);
-      renderBatch.add(cluster);
-      i++;
-    }
-  }
-
-  // iterate: for each cluster, put the proper attributeSearchResult into the
-  // proper cluster, and also add it to the render list.
-  for (const auto& result : results) {
-    AttributeSearchResult* res = new AttributeSearchResult(result);
-
-    _results[result->_cluster]->addClusterElement(res);
-    renderBatch.add(res);
-  }
-
-  _numResults = results.size();
-
-  getRecorder()->log(ACTION, "Results displayed in " + String(centers.size()).toStdString() + " clusters");
-
-  // render cluster centers
-  (new SearchResultsRenderer(renderBatch))->runThread();
-}
-
 void SearchResultsContainer::recluster()
 {
   // Retrieve results from containers
   list<SearchResult*> results;
   vector<AttributeSearchResult*> resultContainers;
   lock_guard<mutex> lock(_resultsLock);
+  bool regenClusterElems = getGlobalSettings()->_numDisplayClusters != _results.size();
 
   for (auto r : _results) {
     auto elems = r->getClusterElements();
@@ -190,12 +124,12 @@ void SearchResultsContainer::recluster()
     r->clearSearchResult();
     
     // delete containers if the number of clusters has changed, otherwise keep them
-    if (getGlobalSettings()->_numDisplayClusters != _results.size())
+    if (regenClusterElems)
       delete r; // Delete the old cluster centers
   }
 
   // Remove things from results list if cluster number changed
-  if (getGlobalSettings()->_numDisplayClusters != _results.size())
+  if (regenClusterElems)
     _results.clear();
 
   if (getGlobalSettings()->_numDisplayClusters > results.size()) {
@@ -220,7 +154,7 @@ void SearchResultsContainer::recluster()
     s->_cluster = i;
 
     AttributeSearchResult* cluster;
-    if (getGlobalSettings()->_numDisplayClusters != _results.size()) {
+    if (regenClusterElems) {
       cluster = new AttributeSearchResult(s);
 
       addAndMakeVisible(cluster);
@@ -297,11 +231,26 @@ Array<AttributeSearchResult*> SearchResultsContainer::getResults()
 bool SearchResultsContainer::addNewResult(SearchResult * r)
 {
   {
-    lock_guard<mutex> lock(_resultsLock);
     // Check to make sure result is sufficiently different
+    Eigen::VectorXd features = r->_scene;
+    
+    {
+      lock_guard<mutex> lock(_resultsLock);
+      for (auto& centers : _results) {
+        for (auto& elem : centers->getClusterElements()) {
+          Eigen::VectorXd other = elem->getSearchResult()->_scene;
+
+          if ((features - other).norm() < getGlobalSettings()->_jndThreshold)
+            return false;
+        }
+      }
+    }
+
     // also limit number of total results
     if (_numResults > getGlobalSettings()->_maxReturnedScenes) {
       delete r;
+      // signal search should stop, too many results returned
+      //getApplicationCommandManager()->invokeDirectly(command::STOP_SEARCH, true);
       return false;
     }
 
@@ -323,7 +272,11 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
     newResult->setImage(img);
 
     // add result to container
-    _newResults.add(newResult);
+    {
+      lock_guard<mutex> lock(_resultsLock);
+      _newResults.add(newResult);
+      Lumiverse::Logger::log(INFO, "Adding new result. In queue: " + String(_newResults.size()).toStdString());
+    }
   }
   return true;
 }
@@ -333,20 +286,29 @@ void SearchResultsContainer::showNewResults()
   {
     lock_guard<mutex> lock(_resultsLock);
 
+    getStatusBar()->setStatusMessage("Adding " + String(_newResults.size()) + " results...");
+
     if (_newResults.size() == 0)
       return;
 
     // integrate new results
-    SearchResult* s = new SearchResult();
-    AttributeSearchResult* c = new AttributeSearchResult(s);
+    // We'd like to add the new results to an existing cluster and then recluster everything
+    // while maintaining current clustering settings.
+    
+    if (_results.size() == 0) {
+      SearchResult* s = new SearchResult();
+      AttributeSearchResult* newCluster = new AttributeSearchResult(s);
+      addAndMakeVisible(newCluster);
+      _results.add(newCluster);
+    }
+
+    AttributeSearchResult* c = _results[0];
+
     for (auto r : _newResults) {
       addAndMakeVisible(r);
       c->addClusterElement(r);
     }
     _newResults.clear();
-
-    addAndMakeVisible(c);
-    _results.add(c);
   }
 
   recluster();
@@ -418,13 +380,6 @@ void SearchResultsViewer::resized()
     _displayedCluster->setWidth(lbounds.getWidth() - 20); // magic numbers are bad but eh
 }
 
-void SearchResultsViewer::display(list<SearchResult*>& results)
-{
-  _container->display(results);
-  _container->resized();
-  resized();
-}
-
 void SearchResultsViewer::redisplay()
 {
   _container->recluster();
@@ -463,7 +418,7 @@ void SearchResultsViewer::setBotComponent(Component * c, Component* source)
   }
 }
 
-void SearchResultsViewer::timerCallback()
+void SearchResultsViewer::showNewResults()
 {
   _container->showNewResults();
 }

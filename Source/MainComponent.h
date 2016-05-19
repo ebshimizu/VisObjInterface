@@ -50,6 +50,9 @@ public:
   // - Groups results (if any) and presents them to the user
   void search();
 
+  // Stops an active search
+  void stopSearch();
+
   // Typically called from an AttributeSearchResult to place results in the bottom part
   // of the search results viewer
   void setBottomSearchComponent(Component* c, Component* source);
@@ -71,6 +74,7 @@ public:
 
   void setThumbImage(Image img);
   void repaintRenderArea();
+
 private:
   // Open a Lumiverse file
   void openRig();
