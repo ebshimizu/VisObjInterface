@@ -324,6 +324,11 @@ void SearchResultsContainer::clear()
   for (auto r : _results) {
     delete r;
   }
+  for (auto r : _newResults) {
+    delete r;
+  }
+
+  _newResults.clear();
   _results.clear();
   _numResults = _results.size();
   setHeight(_height);
