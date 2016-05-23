@@ -445,6 +445,25 @@ private:
 };
 
 //==============================================================================
+Image createSnapshotOfNativeWindow (void* nativeWindowHandle)
+{
+    HWND hwnd = (HWND) nativeWindowHandle;
+
+    RECT r = getWindowRect (hwnd);
+    const int w = r.right - r.left;
+    const int h = r.bottom - r.top;
+
+    WindowsBitmapImage* nativeBitmap = new WindowsBitmapImage (Image::RGB, w, h, true);
+    Image bitmap (nativeBitmap);
+
+    HDC dc = GetDC (hwnd);
+    BitBlt (nativeBitmap->hdc, 0, 0, w, h, dc, 0, 0, SRCCOPY);
+    ReleaseDC (hwnd, dc);
+
+    return SoftwareImageType().convert (bitmap);
+}
+
+//==============================================================================
 namespace IconConverters
 {
     Image createImageFromHBITMAP (HBITMAP bitmap)
@@ -512,7 +531,7 @@ namespace IconConverters
             }
         }
 
-        return Image::null;
+        return Image();
     }
 
     HICON createHICONFromImage (const Image& image, const BOOL isIcon, int hotspotX, int hotspotY)
@@ -839,7 +858,7 @@ public:
 
         if (! makeActive)
         {
-            // in this case a broughttofront call won't have occured, so do it now..
+            // in this case a broughttofront call won't have occurred, so do it now..
             handleBroughtToFront();
         }
     }
@@ -1021,8 +1040,9 @@ public:
 
             Point<float> getMousePos (const POINTL& mousePos) const
             {
-                return owner.globalToLocal (Point<float> (static_cast<float> (mousePos.x),
-                                                          static_cast<float> (mousePos.y)));
+                return owner.globalToLocal (ScalingHelpers::unscaledScreenPosToScaled (owner.getComponent().getDesktopScaleFactor(),
+                                                                                       Point<float> (static_cast<float> (mousePos.x),
+                                                                                                     static_cast<float> (mousePos.y))));
             }
 
             template <typename CharType>
@@ -1167,7 +1187,7 @@ private:
         void timerCallback() override
         {
             stopTimer();
-            image = Image::null;
+            image = Image();
         }
 
     private:
@@ -1539,7 +1559,7 @@ private:
         DeleteObject (rgn);
         EndPaint (hwnd, &paintStruct);
 
-       #ifndef JUCE_GCC
+       #if JUCE_MSVC
         _fpreset(); // because some graphics cards can unmask FP exceptions
        #endif
 
@@ -1707,7 +1727,7 @@ private:
         if (registerTouchWindow == nullptr)
             return false;
 
-        // Relevent info about touch/pen detection flags:
+        // Relevant info about touch/pen detection flags:
         // https://msdn.microsoft.com/en-us/library/windows/desktop/ms703320(v=vs.85).aspx
         // http://www.petertissen.de/?p=4
 

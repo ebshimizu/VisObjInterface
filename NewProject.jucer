@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="eoLPJP" name="AttributesInterface" projectType="guiapp" version="0.01"
-              bundleIdentifier="edu.CMU.AttributesInterface" includeBinaryInAppConfig="1"
-              jucerVersion="4.1.0" companyName="Carnegie Mellon University"
-              companyWebsite="graphics.cs.cmu.edu" companyEmail="eshimizu@cs.cmu.edu">
+<JUCERPROJECT id="eoLPJP" name="AttributesInterface" projectType="guiapp" version="0.02"
+              bundleIdentifier="com.research.adobe.AttributeInterface" includeBinaryInAppConfig="1"
+              jucerVersion="4.2.1" companyName="Adobe" companyWebsite="research.adobe.com"
+              companyEmail="eshimizu@adobe.com">
   <MAINGROUP id="upFVKV" name="AttributesInterface">
     <GROUP id="{E33A23C0-94A8-8A6D-0624-83F1C8438329}" name="Source">
+      <FILE id="VBJxKj" name="source.cpp" compile="1" resource="0" file="../lib/dlib-18.18/dlib/all/source.cpp"/>
       <GROUP id="{87E6B34E-AD15-F89C-D590-669F122FB46E}" name="third_party">
-        <FILE id="sxSeLk" name="svm.cpp" compile="1" resource="0" file="../../../../../../../../lib/libsvm-3.21/svm.cpp"/>
+        <FILE id="nZLXpW" name="svm.cpp" compile="1" resource="0" file="../lib/libsvm-3.21/svm.cpp"/>
       </GROUP>
-      <FILE id="jQPzfO" name="source.cpp" compile="1" resource="0" file="C:/lib/dlib-18.18/dlib/all/source.cpp"/>
       <GROUP id="{4DA39040-8D72-1165-28A1-9B56CCADE37F}" name="GUI">
         <FILE id="q5vj4R" name="ClusterBuster.cpp" compile="1" resource="0"
               file="Source/ClusterBuster.cpp"/>
@@ -140,33 +140,33 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <VS2015 targetFolder="Builds/VisualStudio2015" externalLibraries="LumiverseCore.lib&#10;LumiverseShowControl.lib&#10;libjson.lib&#10;clp.lib&#10;ai.lib&#10;libpng16_static.lib&#10;ftd2xx.lib&#10;zlibstatic.lib&#10;curlcpp.lib&#10;libcurl_imp.lib&#10;IlmImf-2_2.lib&#10;Iex-2_2.lib&#10;IlmThread-2_2.lib&#10;Imath-2_2.lib&#10;IexMath-2_2.lib&#10;Half.lib">
+    <VS2015 targetFolder="Builds/VisualStudio2015" externalLibraries="LumiverseCore.lib&#10;LumiverseShowControl.lib&#10;libjson.lib&#10;clp.lib&#10;ai.lib&#10;libpng16_static.lib&#10;ftd2xx.lib&#10;zlibstatic.lib&#10;IlmImf-2_2.lib&#10;Iex-2_2.lib&#10;IlmThread-2_2.lib&#10;Imath-2_2.lib&#10;IexMath-2_2.lib&#10;Half.lib">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        isDebug="1" optimisation="1" targetName="AttributesInterfaceDebug"
-                       headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include&#10;C:\lib\dlib-18.18&#10;C:\lib\libsvm-3.21&#10;C:\Program Files\CURL\include&#10;C:\Program Files\CURLCPP\include&#10;C:\Program Files\openexr\include"
+                       headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include&#10;C:\Users\eshimizu\Documents\lib\dlib-18.18&#10;C:\Users\eshimizu\Documents\lib\libsvm-3.21&#10;C:\Program Files\CURL\include&#10;C:\Program Files\CURLCPP\include&#10;C:\Program Files\openexr\Debug\include"
                        libraryPath="C:\Program Files\Lumiverse\Debug\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib&#10;C:\Program Files\CURL\lib\Debug&#10;C:\Program Files\CURLCPP\lib\Debug&#10;C:\Program Files\ilmbase\Debug\lib&#10;C:\Program Files\openexr\Debug\lib"
                        useRuntimeLibDLL="1"/>
         <CONFIGURATION name="Release" winWarningLevel="3" generateManifest="1" winArchitecture="x64"
                        isDebug="0" optimisation="3" targetName="AttributesInterface"
-                       libraryPath="C:\Program Files\Lumiverse\Release\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib&#10;C:\Program Files\CURL\lib\Release&#10;C:\Program Files\CURLCPP\lib\Release&#10;C:\Program Files\ilmbase\lib&#10;C:\Program Files\openexr\lib"
-                       headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include&#10;C:\lib\dlib-18.18&#10;C:\lib\libsvm-3.21&#10;C:\Program Files\CURL\include&#10;C:\Program Files\CURLCPP\include&#10;C:\Program Files\openexr\include"
+                       libraryPath="C:\Program Files\Lumiverse\Release\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib&#10;C:\Program Files\CURL\lib\Release&#10;C:\Program Files\CURLCPP\lib\Release&#10;C:\Program Files\ilmbase\Release\lib&#10;C:\Program Files\openexr\Release\lib"
+                       headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include&#10;C:\Users\eshimizu\Documents\lib\dlib-18.18&#10;C:\Users\eshimizu\Documents\lib\libsvm-3.21&#10;C:\Program Files\CURL\include&#10;C:\Program Files\CURLCPP\include&#10;C:\Program Files\openexr\Release\include"
                        useRuntimeLibDLL="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_video" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
-        <MODULEPATH id="juce_opengl" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
-        <MODULEPATH id="juce_gui_extra" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
-        <MODULEPATH id="juce_gui_basics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
-        <MODULEPATH id="juce_graphics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
-        <MODULEPATH id="juce_events" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
-        <MODULEPATH id="juce_data_structures" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
-        <MODULEPATH id="juce_cryptography" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
-        <MODULEPATH id="juce_core" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_processors" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_formats" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_devices" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
-        <MODULEPATH id="juce_audio_basics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules"/>
+        <MODULEPATH id="juce_video" path="..\JUCE\modules\juce_video"/>
+        <MODULEPATH id="juce_opengl" path="..\JUCE\modules\juce_opengl"/>
+        <MODULEPATH id="juce_gui_extra" path="..\JUCE\modules\juce_gui_extra"/>
+        <MODULEPATH id="juce_gui_basics" path="..\JUCE\modules\juce_gui_basics"/>
+        <MODULEPATH id="juce_graphics" path="..\JUCE\modules\juce_graphics"/>
+        <MODULEPATH id="juce_events" path="..\JUCE\modules\juce_events"/>
+        <MODULEPATH id="juce_data_structures" path="..\JUCE\modules\juce_data_structures"/>
+        <MODULEPATH id="juce_cryptography" path="..\JUCE\modules\juce_cryptography"/>
+        <MODULEPATH id="juce_core" path="..\JUCE\modules\juce_core"/>
+        <MODULEPATH id="juce_audio_processors" path="..\JUCE\modules\juce_audio_processors"/>
+        <MODULEPATH id="juce_audio_formats" path="..\JUCE\modules\juce_audio_formats"/>
+        <MODULEPATH id="juce_audio_devices" path="..\JUCE\modules\juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_basics" path="..\JUCE\modules\juce_audio_basics"/>
       </MODULEPATHS>
     </VS2015>
   </EXPORTFORMATS>
@@ -186,4 +186,7 @@
     <MODULE id="juce_video" showAllCode="1" useLocalCopy="1"/>
   </MODULES>
   <JUCEOPTIONS/>
+  <LIVE_SETTINGS>
+    <WINDOWS/>
+  </LIVE_SETTINGS>
 </JUCERPROJECT>

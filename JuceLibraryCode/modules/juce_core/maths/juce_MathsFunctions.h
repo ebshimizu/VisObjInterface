@@ -93,7 +93,7 @@ typedef unsigned int                uint32;
 #endif
 
 //==============================================================================
-// Some indispensible min/max functions
+// Some indispensable min/max functions
 
 /** Returns the larger of two values. */
 template <typename Type>
@@ -324,9 +324,9 @@ template <>
 inline float juce_hypot (float a, float b) noexcept
 {
    #if JUCE_MSVC
-    return (_hypotf (a, b));
+    return _hypotf (a, b);
    #else
-    return (hypotf (a, b));
+    return hypotf (a, b);
    #endif
 }
 #endif

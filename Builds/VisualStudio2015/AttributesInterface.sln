@@ -1,18 +1,8 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AttributesInterface", "AttributesInterface.vcxproj", "{8233B602-7558-1C7F-12A7-443A3F202EFF}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6608F35B-9EF3-4943-8902-2B39343010D7}"
-	ProjectSection(SolutionItems) = preProject
-		Performance1.psess = Performance1.psess
-	EndProjectSection
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2015
+Project("{0E55C6DA-DA67-ABBE-373B-B23C432E896A}") = "AttributesInterface", "AttributesInterface.vcxproj", "{8233B602-7558-1C7F-12A7-443A3F202EFF}"
 EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Release|x64 = Release|x64
