@@ -123,12 +123,13 @@ AttributeControls::AttributeControls()
   _search->addListener(this);
   addAndMakeVisible(_search);
 
-  _clusters = new Slider(Slider::IncDecButtons, Slider::TextEntryBoxPosition::TextBoxLeft);
-  _clusters->addListener(this);
-  _clusters->setRange(1, 100, 1);
-  _clusters->setValue(getGlobalSettings()->_numDisplayClusters, dontSendNotification);
-  _clusters->setName("clusters");
-  addAndMakeVisible(_clusters);
+  _sortButton = new TextButton("Sort", "Sort the search results according to the selected sort method");
+  _sortButton->addListener(this);
+  addAndMakeVisible(_sortButton);
+
+  _cleanUpButton = new TextButton("Clean Up", "Remove duplicate results and resume search");
+  _cleanUpButton->addListener(this);
+  addAndMakeVisible(_cleanUpButton);
 
   // Add the sort methods to the combo box
   _sort = new ComboBox("sort mode");
@@ -136,10 +137,10 @@ AttributeControls::AttributeControls()
   _sort->setEditableText(false);
   _sort->addItem("Attribute Default", 1);
   _sort->addItem("Average Hue", 2);
-  _sort->addItem("Key Hue", 3);
-  _sort->addItem("Average Intensity", 4);
-  _sort->addItem("Key Intensity", 5);
-  _sort->addItem("Key Azimuth Angle", 6);
+  //_sort->addItem("Key Hue", 3);
+  _sort->addItem("Average Intensity", 3);
+  //_sort->addItem("Key Intensity", 5);
+  //_sort->addItem("Key Azimuth Angle", 6);
   _sort->setSelectedId(1);
   addAndMakeVisible(_sort);
 }
@@ -150,8 +151,9 @@ AttributeControls::~AttributeControls()
   _componentView->setViewedComponent(nullptr);
   delete _componentView;
   delete _search;
-  delete _clusters;
   delete _sort;
+  delete _sortButton;
+  delete _cleanUpButton;
 }
 
 void AttributeControls::paint (Graphics& g)
@@ -165,7 +167,8 @@ void AttributeControls::resized()
 
   auto botBounds = lbounds.removeFromBottom(30);
   _search->setBounds(botBounds.removeFromRight(80).reduced(5));
-  _clusters->setBounds(botBounds.removeFromRight(140).reduced(5));
+  _sortButton->setBounds(botBounds.removeFromRight(80).reduced(5));
+  _cleanUpButton->setBounds(botBounds.removeFromRight(80).reduced(5));
   _sort->setBounds(botBounds.reduced(5));
 
   _componentView->setBounds(lbounds);
@@ -174,7 +177,6 @@ void AttributeControls::resized()
 
 void AttributeControls::refresh()
 {
-  _clusters->setValue(getGlobalSettings()->_numDisplayClusters, dontSendNotification);
 }
 
 void AttributeControls::reload()
@@ -192,30 +194,22 @@ void AttributeControls::buttonClicked(Button * b)
     // perform a search action
     getApplicationCommandManager()->invokeDirectly(SEARCH, true);
   }
-}
+  else if (b->getName() == "Sort") {
+    String id = _sort->getItemText(_sort->getSelectedId() - 1);
+    getGlobalSettings()->_currentSortMode = id.toStdString();
 
-void AttributeControls::sliderValueChanged(Slider * slider)
-{
-  if (slider->getName() == "clusters") {
-    int newVal = (int)slider->getValue();
-    if (newVal != getGlobalSettings()->_numDisplayClusters) {
-      getGlobalSettings()->_numDisplayClusters = newVal;
-      getApplicationCommandManager()->invokeDirectly(command::RECLUSTER, true);
+    // do the re-sort
+    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+    if (mc != nullptr) {
+      mc->sortCluster();
     }
   }
 }
 
 void AttributeControls::comboBoxChanged(ComboBox * b)
 {
-  String id = b->getItemText(b->getSelectedId() - 1);
-  getGlobalSettings()->_currentSortMode = id.toStdString();
-
-  // do the re-sort
-  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-
-  if (mc != nullptr) {
-    mc->sortCluster();
-  }
+  // actions only taken when button is pressed
 }
 
 map<string, AttributeControllerBase*> AttributeControls::getActiveAttributes()
@@ -225,32 +219,6 @@ map<string, AttributeControllerBase*> AttributeControls::getActiveAttributes()
 
 void AttributeControls::initAttributes()
 {
-  //_container->addAttributeController(new TestAttribute());
-  //_container->addAttributeController(new BrightAttribute());
-
-  // add the contrast attributes
-  //auto& areas = getRig()->getMetadataValues("area");
-  // however, skip them if there's just 1 area. contrast within one area
-  // is a different attribute
-  //if (areas.size() > 1) {
-    // for convenience we'll stick these keys in a vector
-  //  vector<string> areaStrings;
-  //  for (auto s : areas) {
-  //    areaStrings.push_back(s);
-  //  }
-
-  //  for (int i = 0; i < areaStrings.size(); i++) {
-  //    for (int j = i + 1; j < areaStrings.size(); j++) {
-  //      _container->addAttributeController(new ContrastAttribute(areaStrings[i], areaStrings[j]));
-  //    }
-  //  }
-  //}
-  
-  // Add Low-Key attributes
-  //for (auto a : areas) {
-  //  _container->addAttributeController(new LowKeyAttribute(a));
-  //}
-
   // Add saturation
   _container->addAttributeController(new SaturationAttribute(50, 100, 100));
 
@@ -276,5 +244,4 @@ void AttributeControls::initAttributes()
   //_container->addAttributeController(new SoftAttribute());
   //_container->addAttributeController(new HighAngleAttribute());
   //_container->addAttributeController(new SVRAttribute("C:/Users/falindrith/Documents/GitHub/pairwise-collector/server/romantic_p2g.svm", "Romantic"));
-
 }
