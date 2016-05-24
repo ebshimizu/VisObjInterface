@@ -51,7 +51,6 @@ public:
 
   SearchResult* getSearchResult() { return _result; }
   void setSearchResult(SearchResult* r) { _result = r; }
-  Array<AttributeSearchResult*> getClusterElements() { return _clusterElems; }
  
   // Removes references to SearchResult objects in this GUI element. 
   // Note that this can cause memory leaks if used improperly
@@ -62,16 +61,10 @@ public:
   virtual void mouseEnter(const MouseEvent& event);
   virtual void mouseExit(const MouseEvent& event);
 
-  void setClusterElements(Array<AttributeSearchResult*> elems);
-  void addClusterElement(AttributeSearchResult* elem);
-
   // Indicates if the result is displaying its current cluster contents
   bool _isShowingCluster;
 
   int compareElements(AttributeSearchResult* first, AttributeSearchResult* second);
-
-  // Sets this component to be the cluster shown in the bottom part of the viewer.
-  void displayCluster();
 
 private:
   // Search result object from the attribute search
@@ -79,9 +72,6 @@ private:
 
   // rendered image 
   Image _render;
-
-  // If this is empty, this object does not spawn a popup window element when clicked.
-  Array<AttributeSearchResult*> _clusterElems;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AttributeSearchResult)
 };

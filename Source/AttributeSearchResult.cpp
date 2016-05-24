@@ -11,8 +11,6 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "AttributeSearchResult.h"
 #include "MainComponent.h"
-#include "AttributeSearchCluster.h"
-
 
 //==============================================================================
 SearchResultBlender::SearchResultBlender(SearchResult * s) : _target(s)
@@ -96,10 +94,6 @@ AttributeSearchResult::~AttributeSearchResult()
 {
   if (_result != nullptr)
     delete _result;
-
-  for (auto s : _clusterElems) {
-    delete s;
-  }
 }
 
 void AttributeSearchResult::paint (Graphics& g)
@@ -130,15 +124,14 @@ void AttributeSearchResult::setImage(Image img)
 
 void AttributeSearchResult::clearSearchResult()
 {
+  if (_result != nullptr)
+    delete _result;
+
   _result = nullptr;
-  _clusterElems.clear();
 }
 
 void AttributeSearchResult::mouseDown(const MouseEvent & event)
 {
-  if (_clusterElems.size() > 0)
-    return;
-
   if (event.mods.isRightButtonDown()) {
     PopupMenu m;
     m.addItem(1, "Move to Stage");
@@ -183,7 +176,10 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
 
 void AttributeSearchResult::mouseEnter(const MouseEvent & event)
 {
-  displayCluster();
+  getGlobalSettings()->_showThumbnailImg = true;
+  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+  mc->setThumbImage(_render);
+  mc->repaint();
 }
 
 void AttributeSearchResult::mouseExit(const MouseEvent & event)
@@ -191,21 +187,6 @@ void AttributeSearchResult::mouseExit(const MouseEvent & event)
   getGlobalSettings()->_showThumbnailImg = false;
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
   mc->repaint();
-}
-
-void AttributeSearchResult::setClusterElements(Array<AttributeSearchResult*> elems)
-{
-  for (auto s : _clusterElems) {
-    delete s;
-  }
-  _clusterElems.clear();
-
-  _clusterElems = elems;
-}
-
-void AttributeSearchResult::addClusterElement(AttributeSearchResult * elem)
-{
-  _clusterElems.add(elem);
 }
 
 int AttributeSearchResult::compareElements(AttributeSearchResult * first, AttributeSearchResult * second)
@@ -219,31 +200,4 @@ int AttributeSearchResult::compareElements(AttributeSearchResult * first, Attrib
     return 1;
   else
     return 0;
-}
-
-void AttributeSearchResult::displayCluster()
-{
-  // when the mouse enters one of these components, we want to display the cluster contents
-  // (which can be displayed in an AttributeSearchCluster object) in the bottom half
-  // of the search results window
-  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-  if (_clusterElems.size() > 0) {
-    getRecorder()->log(ACTION, "Cluster " + String(_result->_cluster).toStdString() + " hovered");
-
-    AttributeSearchCluster* cluster = new AttributeSearchCluster(_clusterElems);
-
-    // We have to reach all the way up to the main component to do this
-    cluster->sort(&DefaultSorter());
-    cluster->sort();
-
-    if (mc != nullptr) {
-      mc->setBottomSearchComponent(cluster, this);
-    }
-  }
-
-  if (mc != nullptr) {
-    getGlobalSettings()->_showThumbnailImg = true;
-    mc->setThumbImage(_render);
-    mc->repaint();
-  }
 }

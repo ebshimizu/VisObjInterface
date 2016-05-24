@@ -16,11 +16,11 @@
 #include "AttributeSorting.h"
 
 //==============================================================================
-class AttributeSearchCluster : public Component
+class SearchResultsContainer : public Component
 {
 public:
-  AttributeSearchCluster(Array<AttributeSearchResult*> elems);
-  ~AttributeSearchCluster();
+  SearchResultsContainer();
+  ~SearchResultsContainer();
 
   void paint(Graphics& g);
   void resized();
@@ -29,8 +29,31 @@ public:
   void sort();  // Uses the value in the globals to sort
   void sort(AttributeSorter* s);
 
+  // Return the results for some other use
+  Array<AttributeSearchResult*> getResults();
+
+  // Add a new search result to the display area. Is thread safe.
+  bool addNewResult(SearchResult* r);
+
+  // integrate new results and display
+  void showNewResults();
+
+  // Deletes all scenes currently contained in the viewer.
+  void clear();
+
+  // Returns true when the container can't support any more elements
+  bool isFull();
+
 private:
-  Array<AttributeSearchResult*> _elems;
+  Array<AttributeSearchResult*> _results;
+  Array<AttributeSearchResult*> _newResults;
+
+  bool _isRoot;
+
+  mutex _resultsLock;
+  int _numResults;
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SearchResultsContainer)
 };
 
 #endif  // ATTRIBUTESEARCHCLUSTER_H_INCLUDED

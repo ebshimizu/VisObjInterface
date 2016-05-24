@@ -376,9 +376,6 @@
     <ClCompile Include="..\..\..\lib\libsvm-3.21\svm.cpp">
       <Filter>AttributesInterface\Source\third_party</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\ClusterBuster.cpp">
-      <Filter>AttributesInterface\Source\GUI</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\HistoryEntry.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
@@ -454,7 +451,7 @@
     <ClCompile Include="..\..\Source\AttributeSearch.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\AttributeSearchCluster.cpp">
+    <ClCompile Include="..\..\Source\SearchResultsContainer.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\AttributeSearchResult.cpp">
@@ -2157,9 +2154,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\ClusterBuster.h">
-      <Filter>AttributesInterface\Source\GUI</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\HistoryEntry.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClInclude>
@@ -2241,7 +2235,7 @@
     <ClInclude Include="..\..\Source\AttributeSearch.h">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\AttributeSearchCluster.h">
+    <ClInclude Include="..\..\Source\SearchResultsContainer.h">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\AttributeSearchResult.h">

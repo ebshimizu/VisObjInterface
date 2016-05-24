@@ -11,9 +11,6 @@
         <FILE id="nZLXpW" name="svm.cpp" compile="1" resource="0" file="../lib/libsvm-3.21/svm.cpp"/>
       </GROUP>
       <GROUP id="{4DA39040-8D72-1165-28A1-9B56CCADE37F}" name="GUI">
-        <FILE id="q5vj4R" name="ClusterBuster.cpp" compile="1" resource="0"
-              file="Source/ClusterBuster.cpp"/>
-        <FILE id="cOOJrX" name="ClusterBuster.h" compile="0" resource="0" file="Source/ClusterBuster.h"/>
         <FILE id="cmHY0e" name="HistoryEntry.cpp" compile="1" resource="0"
               file="Source/HistoryEntry.cpp"/>
         <FILE id="EcgfET" name="HistoryEntry.h" compile="0" resource="0" file="Source/HistoryEntry.h"/>
@@ -107,10 +104,10 @@
               file="Source/AttributeSearch.cpp"/>
         <FILE id="Q4jtJF" name="AttributeSearch.h" compile="0" resource="0"
               file="Source/AttributeSearch.h"/>
-        <FILE id="T9QLvo" name="AttributeSearchCluster.cpp" compile="1" resource="0"
-              file="Source/AttributeSearchCluster.cpp"/>
-        <FILE id="CfziIR" name="AttributeSearchCluster.h" compile="0" resource="0"
-              file="Source/AttributeSearchCluster.h"/>
+        <FILE id="T9QLvo" name="SearchResultsContainer.cpp" compile="1" resource="0"
+              file="Source/SearchResultsContainer.cpp"/>
+        <FILE id="CfziIR" name="SearchResultsContainer.h" compile="0" resource="0"
+              file="Source/SearchResultsContainer.h"/>
         <FILE id="PM4gCW" name="AttributeSearchResult.cpp" compile="1" resource="0"
               file="Source/AttributeSearchResult.cpp"/>
         <FILE id="zhEjoJ" name="AttributeSearchResult.h" compile="0" resource="0"

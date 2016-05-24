@@ -51,8 +51,6 @@ MainContentComponent::~MainContentComponent()
 {
   if (_settingsWindow != nullptr)
     delete _settingsWindow;
-  if (_clusterWindow != nullptr)
-    delete _clusterWindow;
 
   _searchWorker->stop();
 
@@ -91,7 +89,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
   const CommandID ids[] = {
     command::OPEN, command::REFRESH_PARAMS, command::ARNOLD_RENDER, command::SETTINGS,
     command::SEARCH, command::REFRESH_ATTR, command::SAVE, command::SAVE_AS, command::RECLUSTER,
-    command::VIEW_CLUSTERS, command::UNDO, command::REDO, command::LOCK_ALL_COLOR,
+    command::UNDO, command::REDO, command::LOCK_ALL_COLOR,
     command::LOCK_ALL_INTENSITY, command::LOCK_ALL_POSITION, command::UNLOCK_ALL,
     command::LOCK_ALL_AREAS_EXCEPT, command::LOCK_AREA, command::LOCK_SYSTEM, command::LOCK_ALL_SYSTEMS_EXCEPT,
     command::SAVE_RENDER, command::GET_FROM_ARNOLD, command::STOP_SEARCH, command::GET_NEW_RESULTS,
@@ -136,9 +134,6 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     break;
   case command::RECLUSTER:
     result.setInfo("Recluster", "Recluster results based on user settings", "Explore", 0);
-    break;
-  case command::VIEW_CLUSTERS:
-    result.setInfo("Show Clusters", "Open window showing all clusters at once", "Explore", 0);
     break;
   case command::UNDO:
     result.setInfo("Undo", "Undo", "Edit", 0);
@@ -230,9 +225,6 @@ bool MainContentComponent::perform(const InvocationInfo & info)
   case command::RECLUSTER:
     _search->redisplay();
     break;
-  case command::VIEW_CLUSTERS:
-    openClusters();
-    break;
   case command::UNDO:
     undo();
     break;
@@ -286,11 +278,6 @@ bool MainContentComponent::perform(const InvocationInfo & info)
   return true;
 }
 
-void MainContentComponent::setBottomSearchComponent(Component* c, Component* source)
-{
-  _search->setBotComponent(c, source);
-}
-
 void MainContentComponent::addHistory()
 {
   HistoryPanel* h = _search->getHistory();
@@ -333,7 +320,7 @@ void MainContentComponent::redo()
 
 void MainContentComponent::sortCluster()
 {
-  _search->sortDisplayedCluster();
+  _search->sort();
 }
 
 void MainContentComponent::refreshClusterDisplay()
@@ -519,21 +506,6 @@ void MainContentComponent::openSettings()
   _settingsWindow->setResizable(true, false);
   _settingsWindow->setUsingNativeTitleBar(true);
   _settingsWindow->setVisible(true);
-}
-
-void MainContentComponent::openClusters()
-{
-  if (_clusterWindow != nullptr)
-    return;
-
-  _clusterWindow = new ClusterBusterWindow(_search->getResults());
-  juce::Rectangle<int> area(50, 50, 1280, 720);
-  _clusterWindow->setBounds(area);
-  _clusterWindow->setResizable(true, false);
-  _clusterWindow->setUsingNativeTitleBar(true);
-  _clusterWindow->setVisible(true);
-
-  getRecorder()->log(ACTION, "All Clusters window opened");
 }
 
 void MainContentComponent::lockAllColor()

@@ -15,8 +15,6 @@
 #include "AttributeControls.h"
 #include "SceneViewer.h"
 #include "SettingsEditor.h"
-#include "ClusterBuster.h"
-
 
 //==============================================================================
 /*
@@ -53,10 +51,6 @@ public:
   // Stops an active search
   void stopSearch();
 
-  // Typically called from an AttributeSearchResult to place results in the bottom part
-  // of the search results viewer
-  void setBottomSearchComponent(Component* c, Component* source);
-
   // Adds the current state of the rig and rendered image to the history panel.
   void addHistory();
 
@@ -89,9 +83,6 @@ private:
 
   // Opens the settings window
   void openSettings();
-
-  // Opens the clusters window
-  void openClusters();
 
   // parameter locking
   void lockAllColor();
@@ -129,7 +120,6 @@ private:
   ScopedPointer<SceneViewer> _viewer;
 
   SafePointer<SettingsWindow> _settingsWindow;
-  SafePointer<ClusterBusterWindow> _clusterWindow;
 
   // Search object
   ScopedPointer<AttributeSearch> _searchWorker;

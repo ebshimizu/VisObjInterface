@@ -65,8 +65,6 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& menuNam
     menu.addCommandItem(cm, command::LOCK_ALL_COLOR);
     menu.addCommandItem(cm, command::LOCK_ALL_INTENSITY);
     menu.addCommandItem(cm, command::LOCK_ALL_POSITION);
-    menu.addSeparator();
-    menu.addCommandItem(cm, command::VIEW_CLUSTERS);
   }
 
   return menu;
