@@ -87,7 +87,7 @@ AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(res
 
   tt = tt + " (" + String(-result->_objFuncVal) + ")";
   setTooltip(tt);
-  _isShowingCluster = false;
+  _isHovered = false;
 }
 
 AttributeSearchResult::~AttributeSearchResult()
@@ -98,7 +98,7 @@ AttributeSearchResult::~AttributeSearchResult()
 
 void AttributeSearchResult::paint (Graphics& g)
 {
-  if (_isShowingCluster) {
+  if (_isHovered) {
     g.fillAll(Colours::yellow);
   }
   else {
@@ -108,6 +108,16 @@ void AttributeSearchResult::paint (Graphics& g)
   auto lbounds = getLocalBounds();
   lbounds.reduce(2, 2);
   g.drawImageWithin(_render, lbounds.getX(), lbounds.getY(), lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
+
+  auto textArea = lbounds.removeFromTop(25);
+  textArea.removeFromLeft(10);
+  g.setColour(Colours::black);
+  g.setFont(14);
+  g.drawText(String(_result->_sampleNo), textArea, Justification::centredLeft, false);
+
+  g.setColour(Colours::white);
+  g.setFont(12);
+  g.drawText(String(_result->_sampleNo), textArea, Justification::centredLeft, false);
 }
 
 void AttributeSearchResult::resized()
@@ -176,6 +186,7 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
 
 void AttributeSearchResult::mouseEnter(const MouseEvent & event)
 {
+  _isHovered = true;
   getGlobalSettings()->_showThumbnailImg = true;
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
   mc->setThumbImage(_render);
@@ -184,6 +195,7 @@ void AttributeSearchResult::mouseEnter(const MouseEvent & event)
 
 void AttributeSearchResult::mouseExit(const MouseEvent & event)
 {
+  _isHovered = false;
   getGlobalSettings()->_showThumbnailImg = false;
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
   mc->repaint();

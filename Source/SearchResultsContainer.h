@@ -53,6 +53,9 @@ private:
   mutex _resultsLock;
   int _numResults;
 
+  // internal sample id added to the result when its added to the container
+  unsigned int _sampleId;
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SearchResultsContainer)
 };
 

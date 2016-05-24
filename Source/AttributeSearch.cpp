@@ -990,6 +990,14 @@ void AttributeSearch::run()
       return;
 
     if (_viewer->isFull()) {
+      // clear new results queue
+      {
+        MessageManagerLock mmlock;
+        if (mmlock.lockWasGained()) {
+          getApplicationCommandManager()->invokeDirectly(command::GET_NEW_RESULTS, false);
+        }
+      }
+
       for (auto& t : _threads)
         t->stopThread(1000);
       signalThreadShouldExit();

@@ -62,7 +62,7 @@ public:
   virtual void mouseExit(const MouseEvent& event);
 
   // Indicates if the result is displaying its current cluster contents
-  bool _isShowingCluster;
+  bool _isHovered;
 
   int compareElements(AttributeSearchResult* first, AttributeSearchResult* second);
 

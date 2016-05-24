@@ -14,6 +14,7 @@
 
 SearchResultsContainer::SearchResultsContainer()
 {
+  _sampleId = 0;
 }
 
 SearchResultsContainer::~SearchResultsContainer()
@@ -125,6 +126,8 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
     p->renderSingleFrameToBuffer(s->getDevices(), bufptr, width, height);
     delete s;
     newResult->setImage(img);
+    r->_sampleNo = _sampleId;
+    _sampleId++;
 
     // add result to container
     {
@@ -179,9 +182,10 @@ void SearchResultsContainer::clear()
   setWidth(getLocalBounds().getWidth());
   resized();
   repaint();
+  _sampleId = 0;
 }
 
 bool SearchResultsContainer::isFull()
 {
-  return _results.size() > getGlobalSettings()->_maxReturnedScenes;
+  return (_newResults.size() + _results.size()) > getGlobalSettings()->_maxReturnedScenes;
 }
