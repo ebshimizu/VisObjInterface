@@ -50,7 +50,7 @@ void SearchResultBlender::sliderValueChanged(Slider * s)
   float a = s->getValue();
 
   // lerp values
-  Eigen::VectorXd interp = a * _base + (1 - a) * _target->_scene;
+  Eigen::VectorXd interp = (1 - a) * _base + a * _target->_scene;
 
   // Update rig
   Snapshot* newScene = vectorToSnapshot(interp);

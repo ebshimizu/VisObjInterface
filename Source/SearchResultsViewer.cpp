@@ -117,7 +117,11 @@ void SearchResultsViewer::resized()
   _history->setWidth(_historyViewer->getMaximumVisibleWidth());
 
   lbounds.removeFromRight(2);
+
+  // preserve viewer position
+  Point<int> pos = _viewer->getViewPosition();
   _results->setWidth(lbounds.getWidth() - _viewer->getScrollBarThickness());
+  _viewer->setViewPosition(pos);
 
   _viewer->setBounds(lbounds);
 }
@@ -135,7 +139,10 @@ void SearchResultsViewer::sort()
 
 void SearchResultsViewer::showNewResults()
 {
+  // preserve view position
+  Point<int> pos = _viewer->getViewPosition();
   _results->showNewResults();
+  _viewer->setViewPosition(pos);
 }
 
 void SearchResultsViewer::clearContainer()
