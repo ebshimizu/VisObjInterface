@@ -131,6 +131,12 @@ AttributeControls::AttributeControls()
   _cleanUpButton->addListener(this);
   addAndMakeVisible(_cleanUpButton);
 
+  _cleanUpScenes = new Slider(Slider::SliderStyle::IncDecButtons, Slider::TextEntryBoxPosition::TextBoxLeft);
+  _cleanUpScenes->setName("Clean Up Scenes");
+  _cleanUpScenes->setRange(1, 500, 1);
+  _cleanUpScenes->setValue(10, dontSendNotification);
+  addAndMakeVisible(_cleanUpScenes);
+
   // Add the sort methods to the combo box
   _sort = new ComboBox("sort mode");
   _sort->addListener(this);
@@ -154,11 +160,19 @@ AttributeControls::~AttributeControls()
   delete _sort;
   delete _sortButton;
   delete _cleanUpButton;
+  delete _cleanUpScenes;
 }
 
 void AttributeControls::paint (Graphics& g)
 {
   g.fillAll(Colour(0xff333333));
+  auto lbounds = getLocalBounds();
+  lbounds.removeFromBottom(30);
+  auto botRow2 = lbounds.removeFromBottom(30);
+  botRow2.removeFromRight(150);
+
+  g.setColour(Colours::white);
+  g.drawFittedText("Scenes After Clean Up", botRow2.reduced(5), Justification::centredRight, 1);
 }
 
 void AttributeControls::resized()
@@ -170,6 +184,9 @@ void AttributeControls::resized()
   _sortButton->setBounds(botBounds.removeFromRight(80).reduced(5));
   _cleanUpButton->setBounds(botBounds.removeFromRight(80).reduced(5));
   _sort->setBounds(botBounds.reduced(5));
+
+  auto botRow2 = lbounds.removeFromBottom(30);
+  _cleanUpScenes->setBounds(botRow2.removeFromRight(150).reduced(5));
 
   _componentView->setBounds(lbounds);
   _container->setWidth(_componentView->getMaximumVisibleWidth());
@@ -203,6 +220,16 @@ void AttributeControls::buttonClicked(Button * b)
 
     if (mc != nullptr) {
       mc->sortCluster();
+    }
+  }
+  else if (b->getName() == "Clean Up") {
+    int numResults = (int)_cleanUpScenes->getValue();
+
+    // do the clean up
+    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+    if (mc != nullptr) {
+      mc->cleanUpResults(numResults);
     }
   }
 }

@@ -12,17 +12,6 @@
 #include "MeanShift.h"
 #include <list>
 #include <algorithm>
-//#include <vld.h>
-
-SearchResult::SearchResult() { }
-
-SearchResult::SearchResult(const SearchResult & other) :
-  _scene(other._scene), _editHistory(other._editHistory), _objFuncVal(other._objFuncVal)
-{
-}
-
-SearchResult::~SearchResult() {
-}
 
 // Search functions
 // ==============================================================================
@@ -344,7 +333,7 @@ list<SearchResult*> getClosestScenesToCenters(list<SearchResult*>& results, vect
     res[r->_cluster].insert(pair<double, SearchResult*>(dist, r));
   }
 
-  // put first element in to results vector, delete the rest
+  // put first element in to results vector, ignore the rest
   list<SearchResult*> filteredResults;
   for (auto c : res) {
     bool first = true;
@@ -354,7 +343,7 @@ list<SearchResult*> getClosestScenesToCenters(list<SearchResult*>& results, vect
         first = false;
       }
       else {
-        delete kvp.second;
+        // skip
       }
     }
   }
@@ -971,13 +960,18 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
   };
 
   generateEdits(false);
+
+  // init all threads
+  for (auto& t : _threads) {
+    t->setState(_start, _f);
+  }
 }
 
 void AttributeSearch::run()
 {
-  // init and run all threads
+  // run all threads
+  // make sure to set the state properly before running/resuming
   for (auto& t : _threads) {
-    t->setState(_start, _f);
     t->startThread(1);
   }
 

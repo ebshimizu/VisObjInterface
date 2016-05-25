@@ -44,6 +44,9 @@ public:
   // Returns true when the container can't support any more elements
   bool isFull();
 
+  // Removes results from the results section
+  void cleanUp(int resultsToKeep);
+
 private:
   Array<AttributeSearchResult*> _results;
   Array<AttributeSearchResult*> _newResults;

@@ -155,6 +155,11 @@ bool SearchResultsViewer::isFull()
   return _results->isFull();
 }
 
+void SearchResultsViewer::cleanUp(int resultsToKeep)
+{
+  _results->cleanUp(resultsToKeep);
+}
+
 Array<AttributeSearchResult*> SearchResultsViewer::getResults()
 {
   return _results->getResults();

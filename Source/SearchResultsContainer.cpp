@@ -189,3 +189,54 @@ bool SearchResultsContainer::isFull()
 {
   return (_newResults.size() + _results.size()) > getGlobalSettings()->_maxReturnedScenes;
 }
+
+void SearchResultsContainer::cleanUp(int resultsToKeep)
+{
+  // just in case we get lingering threads, shouldn't cause they should be stopped
+  lock_guard<mutex> lock(_resultsLock);
+
+  // for now we do k-means clustering and keep the result closest to the center
+  // get list of cluster results
+  list<SearchResult*> results;
+  for (auto& r : _results) {
+    results.push_back(r->getSearchResult());
+  }
+
+  // get the centers and the results closest to the centers
+  auto centers = clusterResults(results, resultsToKeep);
+  auto keep = getClosestScenesToCenters(results, centers);
+
+  // Copy results into new results list
+  // Reason: deleting search result containers deletes the search result too
+  Array<AttributeSearchResult*> newResults;
+  for (auto& r : keep) {
+    auto newResult = new AttributeSearchResult(new SearchResult(*r));
+
+    // render
+    auto p = getAnimationPatch();
+    int width = getGlobalSettings()->_renderWidth;
+    int height = getGlobalSettings()->_renderHeight;
+    p->setDims(width, height);
+    p->setSamples(getGlobalSettings()->_stageRenderSamples);
+
+    Image img = Image(Image::ARGB, width, height, true);
+    uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+
+    Snapshot* s = vectorToSnapshot(r->_scene);
+    p->renderSingleFrameToBuffer(s->getDevices(), bufptr, width, height);
+    delete s;
+    newResult->setImage(img);
+
+    addAndMakeVisible(newResult);
+    newResults.add(newResult);
+  }
+
+  // delete old results
+  for (auto& r : _results) {
+    delete r;
+  }
+
+  _results = newResults;
+  setWidth(getLocalBounds().getWidth());
+  repaint();
+}

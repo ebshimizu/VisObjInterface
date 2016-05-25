@@ -63,6 +63,9 @@ public:
   // Returns true when the viewer can't display any more scenes
   bool isFull();
 
+  // Removes results from the results section
+  void cleanUp(int resultsToKeep);
+
 private:
   Viewport* _viewer;
   Viewport* _historyViewer;

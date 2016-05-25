@@ -339,6 +339,13 @@ void MainContentComponent::repaintRenderArea()
   _viewer->repaint();
 }
 
+void MainContentComponent::cleanUpResults(int resultsToKeep)
+{
+  _searchWorker->stop();
+  _search->cleanUp(resultsToKeep);
+  _searchWorker->startThread();
+}
+
 void MainContentComponent::openRig() {
   FileChooser fc("Load Show (pick a .rig.json or .playback.json file)", File::getCurrentWorkingDirectory(),
     "*.rig.json;*.playback.json", true);

@@ -69,6 +69,9 @@ public:
   void setThumbImage(Image img);
   void repaintRenderArea();
 
+  // Removes duplicate results from the results display section
+  void cleanUpResults(int resultsToKeep);
+
 private:
   // Open a Lumiverse file
   void openRig();

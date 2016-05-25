@@ -19,6 +19,17 @@ static Recorder* _recorder;
 static GlobalSettings* _globalSettings;
 static map<int, DeviceSet> _bins;
 
+SearchResult::SearchResult() { }
+
+SearchResult::SearchResult(const SearchResult & other) :
+  _scene(other._scene), _editHistory(other._editHistory), _objFuncVal(other._objFuncVal),
+  _sampleNo(other._sampleNo), _cluster(other._cluster)
+{
+}
+
+SearchResult::~SearchResult() {
+}
+
 ApplicationCommandManager* getApplicationCommandManager() {
   if (_manager == nullptr) {
     _manager = new ApplicationCommandManager();
