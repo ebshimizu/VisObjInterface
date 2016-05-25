@@ -491,6 +491,7 @@ void AttributeSearchThread::runSearch()
   Snapshot* start = new Snapshot(*_original);
   SearchResult* r = new SearchResult();
   double fx = _f(start);
+  double orig = fx;
 
   // RNG
   unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
@@ -525,7 +526,6 @@ void AttributeSearchThread::runSearch()
 
       // check for acceptance
       double fxp = _f(sp);
-      double diff = abs(fxp - fx);
       double a = min(exp((1 / _T) * (fx - fxp)), 1.0);
 
       // accept if a >= 1 or with probability a
@@ -559,15 +559,21 @@ void AttributeSearchThread::runSearch()
   r->_scene = snapshotToVector(start);
   delete start;
   
-  // send scene to the results area. may chose to not use the scene
-  if (!_viewer->addNewResult(r)) {
-    // r has been deleted by _viewer here
-    _failures++;
+  // add if we did better
+  if (r->_objFuncVal < orig) {
+    // send scene to the results area. may chose to not use the scene
+    if (!_viewer->addNewResult(r)) {
+      // r has been deleted by _viewer here
+      _failures++;
 
-    if (_failures > getGlobalSettings()->_searchFailureLimit) {
-      _failures = 0;
-      _maxDepth++;
+      if (_failures > getGlobalSettings()->_searchFailureLimit) {
+        _failures = 0;
+        _maxDepth++;
+      }
     }
+  }
+  else {
+    delete r;
   }
 }
 
