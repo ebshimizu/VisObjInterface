@@ -614,7 +614,6 @@ void MainContentComponent::search()
 
   _searchWorker->setState(new Snapshot(getRig(), nullptr), _attrs->getActiveAttributes());
   _searchWorker->startThread(9);
-  //_search->startTimer(5000);
 
   getStatusBar()->setStatusMessage("Attribute Search Started");
   getRecorder()->log(ACTION, "Exploratory search started.");
@@ -624,6 +623,5 @@ void MainContentComponent::stopSearch()
 {
   getStatusBar()->setStatusMessage("Stopping current search operation...");
   _searchWorker->stop();
-  //_search->stopTimer();
   getStatusBar()->setStatusMessage("Search stopped.");
 }

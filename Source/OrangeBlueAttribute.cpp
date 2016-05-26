@@ -12,6 +12,8 @@
 
 OrangeBlueAttribute::OrangeBlueAttribute(int w, int h) : HistogramAttribute("Orange Blue", w, h)
 {
+  _targetBlue = 177;
+  _targetOrange = 32;
 }
 
 OrangeBlueAttribute::~OrangeBlueAttribute()
@@ -22,9 +24,9 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
 {
   Image i = generateImage(s);
 
-  // works on acceptable hue ranges:
-  // blue: 170-245
-  // orange: (350) -10-65
+  // Target hue values
+  // blue: 177
+  // orange: 32
   Histogram1D hue = getHueHist(i, 360);
   Histogram1D hue2 = hue.consolidate(2);
 
@@ -32,7 +34,7 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
   int c2 = hue2.getNthBin(1);
 
   // determine which one is closer to blue/orange
-  int blue = closestToRange(c1, c2, 170, 245);
+  int blue = closestToRange(c1, c2, _targetBlue, _targetBlue);
   int orange = (blue == c1) ? c2 : c1;
 
   float score = 0;
@@ -42,30 +44,23 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
   Histogram1D val = getGrayscaleHist(i, 20);
 
   // calculate objective scores
-  if (190 <= blue && blue <= 230)
-    score += 100 * sat.avg();
-  else {
-    int diff = abs(blue - 190) < abs(blue - 230) ? abs(blue - 190) : abs(blue - 230);
-    score += (100 - diff * 2);
-  }
+  int blueDiff = abs(blue - _targetBlue);   // max should be 180
+  double blueScore = (180 - blueDiff) / 180.0;   // max should now be 1
+  blueScore *= blueScore;
 
-  if (orange >= 350)
-    orange -= 360;
+  int orangeDiff = abs(orange - _targetOrange);
+  double orangeScore = (180 - orangeDiff) / 180.0;
+  orangeScore *= orangeScore;
 
-  if (10 <= orange && orange <= 50)
-    score += 100 * sat.avg();
-  else {
-    int diff = abs(orange - 10) < abs(orange - 50) ? abs(orange - 10) : abs(orange - 50);
-    score += (100 - diff * 2);
-  }
-  
   // color contrast score
-  float cdiff = abs(blue - orange);
+  float cdiff = abs(blue - orange) / 180.0;
 
-  score += cdiff;
-  score /= 2;
+  // color score, modulated by sat
+  double colorScore = ((blueScore + orangeScore) * sat.avg()) / 2.0;
 
-  return score;
+  // final score is weighted combo of how close colors are to orange/blue and
+  // color difference between them, then modulated by overall brightness.
+  return ((colorScore * 0.75 + cdiff * 0.25) * val.avg()) * 100;
 }
 
 unsigned int OrangeBlueAttribute::closestToRange(int x, int y, int min, int max)
