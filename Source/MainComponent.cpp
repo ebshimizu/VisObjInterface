@@ -610,6 +610,7 @@ void MainContentComponent::search()
 {
   stopSearch();
   _search->clearContainer();
+  getGlobalSettings()->clearEdits();
 
   _searchWorker->setState(new Snapshot(getRig(), nullptr), _attrs->getActiveAttributes());
   _searchWorker->startThread(9);

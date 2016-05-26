@@ -223,6 +223,14 @@ void GlobalSettings::invalidateCache()
   _cacheUpdated = false;
 }
 
+void GlobalSettings::clearEdits()
+{
+  for (auto& e : _edits) {
+    delete e;
+  }
+  _edits.clear();
+}
+
 Rig* getRig() {
   if (_rig == nullptr) {
     _rig = new Rig();

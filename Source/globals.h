@@ -185,6 +185,9 @@ public:
 
   // Used by attribute searches and results to track where the scene came from
   vector<Edit*> _edits;
+
+  // deletes edits currently stored in the global cache
+  void clearEdits();
 };
 
 // Results that eventually get returned to the UI layer

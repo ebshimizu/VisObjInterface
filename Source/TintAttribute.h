@@ -12,20 +12,18 @@
 #define TINTATTRIBUTE_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "AttributeControllerBase.h"
+#include "HistogramAttribute.h"
 
-class TintAttribute : public AttributeControllerBase, public ChangeListener
+class TintAttribute : public HistogramAttribute, public ChangeListener
 {
 public:
-  TintAttribute();
+  TintAttribute(int w, int h);
   ~TintAttribute();
 
   virtual void paint(Graphics& g) override;
   virtual void resized() override;
 
   virtual double evaluateScene(Snapshot* s) override;
-
-  virtual void preProcess() override;
 
   virtual void mouseDown(const MouseEvent& e) override;
 
@@ -36,9 +34,6 @@ public:
 private:
   // Target color for a single run of the attribute
   Colour _targetColor;
-
-  // Calculates tint for whole scene (difference of average color from target color)
-  unordered_map<string, double> _weights;
 
   // area that gets painted the current color and that allows the color to be changed
   juce::Rectangle<int> _colorSelect;
