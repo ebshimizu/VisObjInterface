@@ -168,13 +168,13 @@ def main(args):
     data = []
     for sample_line_num, sample_line in enumerate((l.rstrip('\n')
             for l in argp.input), start=1):
-        sample_data = sample_line.split('\t')
+        sample_data = sample_line.split(',')
         try:
             assert len(sample_data) == dims, ('Input line #{} of '
                     'dimensionality {} although we have previously observed '
                     'lines with dimensionality {}, possible data error or is '
-                    'the data sparsely encoded?'
-                    ).format(sample_line_num, len(sample_data), dims)
+                    'the data sparsely encoded? {}'
+                    ).format(sample_line_num, len(sample_data), dims, sample_line)
         except NameError:
             # First line, record the dimensionality
             dims = len(sample_data)

@@ -18,7 +18,6 @@ def generateColors(n):
 prefix = sys.argv[1]
 
 filename = prefix + ".csv"
-idfilename = prefix + "-selectedIds.csv"
 
 data = OrderedDict()
 ysamples = []
