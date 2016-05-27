@@ -633,5 +633,10 @@ void MainContentComponent::stopSearch()
   getStatusBar()->setStatusMessage("Stopping current search operation...");
   _searchWorker->stop();
   getStatusBar()->setStatusMessage("Search stopped.");
+
+  if (getGlobalSettings()->_exportTraces) {
+    getGlobalSettings()->dumpDiagnosticData();
+  }
+
   _searchWasStopped = true;
 }

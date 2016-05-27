@@ -118,6 +118,16 @@ struct EditConstraint {
   EditNumDevices _qty;
 };
 
+struct DebugData {
+  double _f;
+  double _a;
+  string _editName;
+  bool _accepted;
+  unsigned int _sampleId;
+  int _threadId;
+  Eigen::VectorXd _scene;
+};
+
 // A container for various things that the entire application may want to access
 // TODO: at some point, have this load from a file
 class GlobalSettings
@@ -160,10 +170,7 @@ public:
   map<string, string> _commandLineArgs;
 
   // Diagnostic storage for search
-  vector<double> _fxs;
-  vector<double> _as;
-  vector<string> _editNames;
-  vector<unsigned int> _selectedSamples;
+  map<int, vector<DebugData> > _samples;
   string _sessionName;
 
   // dumps search diagnostics to a file

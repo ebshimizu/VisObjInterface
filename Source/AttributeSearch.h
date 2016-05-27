@@ -75,6 +75,8 @@ public:
 
   void run() override;
 
+  void setInternalID(int id) { _id = id; }
+
 private:
   // object to dump results into once search is complete.
   SearchResultsViewer* _viewer;
@@ -89,6 +91,10 @@ private:
   // counter for how many times the search result got rejected from the collection.
   // fail too many times, search depth increases
   int _failures;
+
+  // Internal thread ID. Note that this is not the same as the thread ID according to the OS,
+  // however it uniquely identifies this particular object.
+  int _id;
 
   // Starts up one search path. Run multiple times to get multiple results. Each run returns one result and puts
   // it in to the SearchResultsViewer object

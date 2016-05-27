@@ -541,9 +541,15 @@ void AttributeSearchThread::runSearch()
         r->_objFuncVal = fx;
 
         // diagnostics
-        //getGlobalSettings()->_fxs.push_back(fxp);
-        //getGlobalSettings()->_as.push_back(a);
-        //getGlobalSettings()->_editNames.push_back(e->_name);
+        DebugData data;
+        auto& samples = getGlobalSettings()->_samples;
+        data._f = r->_objFuncVal;
+        data._a = a;
+        data._sampleId = samples[_id].size() + 1;
+        data._editName = e->_name;
+        data._accepted = true;
+        data._scene = snapshotToVector(sp);
+        samples[_id].push_back(data);
       
         // break after acceptance
         break;
@@ -570,6 +576,18 @@ void AttributeSearchThread::runSearch()
         _failures = 0;
         _maxDepth++;
       }
+    }
+    else {
+      // diagnostics
+      DebugData data;
+      auto& samples = getGlobalSettings()->_samples;
+      data._f = r->_objFuncVal;
+      data._a = 1;
+      data._sampleId = samples[_id].size() + 1;
+      data._editName = "TERMINAL";
+      data._accepted = true;
+      data._scene = r->_scene;
+      samples[_id].push_back(data);
     }
   }
   else {
@@ -967,10 +985,21 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
 
   generateEdits(false);
 
+  auto& samples = getGlobalSettings()->_samples;
+  samples.clear();
+
   // init all threads
+  int i = 0;
   for (auto& t : _threads) {
     t->setState(_start, _f);
+
+    // set up diagnostics container
+    samples[i] = vector<DebugData>();
+    t->setInternalID(i);
+    i++;
   }
+
+  setSessionName();
 }
 
 void AttributeSearch::run()

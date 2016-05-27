@@ -158,34 +158,36 @@ void GlobalSettings::dumpDiagnosticData()
 {
   if (_exportTraces) {
     ofstream file;
-    ofstream indexFile;
 
     string filename = _traceRootDir + "/" + _sessionName + ".csv";
-    string indexFilename = _traceRootDir + "/" + _sessionName + "-selectedIds.csv";
     
     file.open(filename, ios::trunc);
-    indexFile.open(indexFilename, ios::trunc);
 
-    for (int i = 0; i < _fxs.size(); i++) {
-      file << _fxs[i] << "," << _as[i] << "," << _editNames[i] << "\n";
-    }
-
-    for (const auto& s : _selectedSamples) {
-      indexFile << s << "\n";
+    // export format:
+    // Thread id, sample id, function val, acceptance chance, generating edit name, feature vector
+    for (auto& kvp : _samples) {
+      for (auto& d : kvp.second) {
+        file << kvp.first << "," << d._sampleId << "," << d._f << "," << d._a << "," << d._editName << ",";
+        for (int i = 0; i < d._scene.size(); i++) {
+          file << d._scene[i];
+          if (i <= (d._scene.size() - 2)) {
+            file << ",";
+          }
+          else {
+            file << "\n";
+          }
+        }
+      }
     }
 
     file.close();
-    indexFile.close();
 
     // actually just go generate a report now
-    string cmd = "python C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/dataviz/plotSearchTrace.py " + _traceRootDir + "/" + _sessionName;
-    system(cmd.c_str());
+    //string cmd = "python C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/dataviz/plotSearchTrace.py " + _traceRootDir + "/" + _sessionName;
+    //system(cmd.c_str());
   }
 
-  _as.clear();
-  _fxs.clear();
-  _editNames.clear();
-  _selectedSamples.clear();
+  _samples.clear();
   _clusterCounter = 0;
 }
 
@@ -320,7 +322,7 @@ GlobalSettings::GlobalSettings()
   _showThumbnailImg = false;
   _T = 1;
   _exportTraces = false;
-  _traceRootDir = "C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/traces";
+  _traceRootDir = "C:/Users/eshimizu/Documents/AttributesInterface/traces";
   _clusterCounter = 0;
   _meanShiftEps = 1e-4;
   _meanShiftBandwidth = 0.005;
