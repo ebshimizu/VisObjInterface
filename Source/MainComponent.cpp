@@ -343,7 +343,9 @@ void MainContentComponent::cleanUpResults(int resultsToKeep)
 {
   _searchWorker->stop();
   _search->cleanUp(resultsToKeep);
-  _searchWorker->startThread();
+
+  if (!_searchWasStopped)
+    _searchWorker->startThread();
 }
 
 void MainContentComponent::openRig() {
@@ -612,8 +614,15 @@ void MainContentComponent::search()
   _search->clearContainer();
   getGlobalSettings()->clearEdits();
 
+  // Do not start search if no attributes are selected
+  if (_attrs->getActiveAttributes().size() == 0) {
+    getStatusBar()->setStatusMessage("ERROR: Search cannot start if all attributes are set to Ignore.", true);
+    return;
+  }
+
   _searchWorker->setState(new Snapshot(getRig(), nullptr), _attrs->getActiveAttributes());
   _searchWorker->startThread(9);
+  _searchWasStopped = false;
 
   getStatusBar()->setStatusMessage("Attribute Search Started");
   getRecorder()->log(ACTION, "Exploratory search started.");
@@ -624,4 +633,5 @@ void MainContentComponent::stopSearch()
   getStatusBar()->setStatusMessage("Stopping current search operation...");
   _searchWorker->stop();
   getStatusBar()->setStatusMessage("Search stopped.");
+  _searchWasStopped = true;
 }

@@ -196,6 +196,10 @@ void SearchResultsContainer::cleanUp(int resultsToKeep)
   lock_guard<mutex> lock(_resultsLock);
 
   // for now we do k-means clustering and keep the result closest to the center
+  // first check to see if we even need to filter
+  if (resultsToKeep >= _results.size())
+    return;
+
   // get list of cluster results
   list<SearchResult*> results;
   for (auto& r : _results) {

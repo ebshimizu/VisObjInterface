@@ -169,7 +169,7 @@ void AttributeControls::paint (Graphics& g)
   auto lbounds = getLocalBounds();
   lbounds.removeFromBottom(30);
   auto botRow2 = lbounds.removeFromBottom(30);
-  botRow2.removeFromRight(150);
+  botRow2.removeFromRight(160);
 
   g.setColour(Colours::white);
   g.drawFittedText("Scenes After Clean Up", botRow2.reduced(5), Justification::centredRight, 1);
@@ -182,11 +182,11 @@ void AttributeControls::resized()
   auto botBounds = lbounds.removeFromBottom(30);
   _search->setBounds(botBounds.removeFromRight(80).reduced(5));
   _sortButton->setBounds(botBounds.removeFromRight(80).reduced(5));
-  _cleanUpButton->setBounds(botBounds.removeFromRight(80).reduced(5));
   _sort->setBounds(botBounds.reduced(5));
 
   auto botRow2 = lbounds.removeFromBottom(30);
-  _cleanUpScenes->setBounds(botRow2.removeFromRight(150).reduced(5));
+  _cleanUpButton->setBounds(botRow2.removeFromRight(80).reduced(5));
+  _cleanUpScenes->setBounds(botRow2.removeFromRight(80).reduced(5));
 
   _componentView->setBounds(lbounds);
   _container->setWidth(_componentView->getMaximumVisibleWidth());

@@ -129,6 +129,9 @@ private:
 
   TooltipWindow _tips;
 
+  // Indicates if the user manually stopped the search.
+  bool _searchWasStopped;
+
   //==============================================================================
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
 };
