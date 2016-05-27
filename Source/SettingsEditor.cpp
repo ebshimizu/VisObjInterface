@@ -66,6 +66,7 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_jndThreshold = newValue;
   else if (_id == "Thumbnails Per Row")
     getGlobalSettings()->_clusterElemsPerRow = (int)newValue;
+#ifdef USE_ARNOLD
   else if (_id == "Diffuse Depth")
     getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_diffuse_depth", (int)newValue);
   else if (_id == "Glossy Depth")
@@ -90,6 +91,7 @@ void SettingsSlider::setValue(double newValue)
     getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_sss_samples", (int)newValue);
   else if (_id == "Volume Samples")
     getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_volume_samples", (int)newValue);
+#endif
   else if (_id == "Max Results")
     getGlobalSettings()->_maxReturnedScenes = (int)newValue;
   else if (_id == "Temperature")
@@ -136,6 +138,7 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_jndThreshold;
   else if (_id == "Thumbnails Per Row")
     return getGlobalSettings()->_clusterElemsPerRow;
+#ifdef USE_ARNOLD
   else if (_id == "Diffuse Depth")
     return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_diffuse_depth");
   else if (_id == "Glossy Depth")
@@ -160,6 +163,7 @@ double SettingsSlider::getValue() const
     return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_sss_samples");
   else if (_id == "Volume Samples")
     return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_volume_samples");
+#endif
   else if (_id == "Max Results")
     return getGlobalSettings()->_maxReturnedScenes;
   else if (_id == "Temperature")

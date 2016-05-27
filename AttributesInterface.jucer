@@ -166,6 +166,34 @@
         <MODULEPATH id="juce_audio_basics" path="..\JUCE\modules\juce_audio_basics"/>
       </MODULEPATHS>
     </VS2015>
+    <VS2015 targetFolder="Builds/VisualStudio2015NoArnold" externalLibraries="LumiverseCore.lib&#10;LumiverseShowControl.lib&#10;libjson.lib&#10;clp.lib&#10;libpng16_static.lib&#10;ftd2xx.lib&#10;zlibstatic.lib&#10;IlmImf-2_2.lib&#10;Iex-2_2.lib&#10;IlmThread-2_2.lib&#10;Imath-2_2.lib&#10;IexMath-2_2.lib&#10;Half.lib">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
+                       isDebug="1" optimisation="1" targetName="AttributesInterface"
+                       headerPath="C:\Program Files\Lumiverse\no_arnold\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\zlib\include&#10;C:\Users\eshimizu\Documents\lib\dlib-18.18&#10;C:\Users\eshimizu\Documents\lib\libsvm-3.21&#10;C:\Program Files\CURL\include&#10;C:\Program Files\CURLCPP\include&#10;C:\Program Files\openexr\Debug\include"
+                       libraryPath="C:\Program Files\Lumiverse\no_arnold\Debug\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib&#10;C:\Program Files\CURL\lib\Debug&#10;C:\Program Files\CURLCPP\lib\Debug&#10;C:\Program Files\ilmbase\Debug\lib&#10;C:\Program Files\openexr\Debug\lib"
+                       useRuntimeLibDLL="1"/>
+        <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
+                       isDebug="0" optimisation="3" targetName="AttributesInterface"
+                       useRuntimeLibDLL="1" headerPath="C:\Program Files\Lumiverse\no_arnold\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\zlib\include&#10;C:\Users\eshimizu\Documents\lib\dlib-18.18&#10;C:\Users\eshimizu\Documents\lib\libsvm-3.21&#10;C:\Program Files\CURL\include&#10;C:\Program Files\CURLCPP\include&#10;C:\Program Files\openexr\Debug\include"
+                       libraryPath="C:\Program Files\Lumiverse\no_arnold\Release\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib&#10;C:\Program Files\CURL\lib\Release&#10;C:\Program Files\CURLCPP\lib\Release&#10;C:\Program Files\ilmbase\Release\lib&#10;C:\Program Files\openexr\Release\lib"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_video" path="..\JUCE\modules\juce_video"/>
+        <MODULEPATH id="juce_opengl" path="..\JUCE\modules\juce_opengl"/>
+        <MODULEPATH id="juce_gui_extra" path="..\JUCE\modules\juce_gui_extra"/>
+        <MODULEPATH id="juce_gui_basics" path="..\JUCE\modules\juce_gui_basics"/>
+        <MODULEPATH id="juce_graphics" path="..\JUCE\modules\juce_graphics"/>
+        <MODULEPATH id="juce_events" path="..\JUCE\modules\juce_events"/>
+        <MODULEPATH id="juce_data_structures" path="..\JUCE\modules\juce_data_structures"/>
+        <MODULEPATH id="juce_cryptography" path="..\JUCE\modules\juce_cryptography"/>
+        <MODULEPATH id="juce_core" path="..\JUCE\modules\juce_core"/>
+        <MODULEPATH id="juce_audio_processors" path="..\JUCE\modules\juce_audio_processors"/>
+        <MODULEPATH id="juce_audio_formats" path="..\JUCE\modules\juce_audio_formats"/>
+        <MODULEPATH id="juce_audio_devices" path="..\JUCE\modules\juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_basics" path="..\JUCE\modules\juce_audio_basics"/>
+      </MODULEPATHS>
+    </VS2015>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="1"/>
