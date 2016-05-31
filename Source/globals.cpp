@@ -183,8 +183,8 @@ void GlobalSettings::dumpDiagnosticData()
     file.close();
 
     // actually just go generate a report now
-    //string cmd = "python C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/dataviz/plotSearchTrace.py " + _traceRootDir + "/" + _sessionName;
-    //system(cmd.c_str());
+    string cmd = "python C:/Users/eshimizu/Documents/AttributesInterface/dataviz/tsne2.py " + _traceRootDir + "/" + _sessionName + " 30";
+    system(cmd.c_str());
   }
 
   _samples.clear();
