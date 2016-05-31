@@ -37,14 +37,15 @@ with open(filename, 'rb') as csvfile:
 		if (row[4] == "START"):
 			startId = i
 		elif (row[4] == "TERMINAL"):
-			selected.append(i)
+			if (row[5] == "1"):
+				selected.append(i)
 			traces.append(currentTrace)
 			currentTrace = []
 		else:
 			currentTrace.append(i)
 
-		# elements 5+ are feature vector entries
-		f.write(",".join(row[5:]) + "\n")
+		# elements 6+ are feature vector entries
+		f.write(",".join(row[6:]) + "\n")
 
 		i = i + 1
 

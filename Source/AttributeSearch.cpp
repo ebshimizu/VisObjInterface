@@ -574,20 +574,22 @@ void AttributeSearchThread::runSearch()
     data._a = 1;
     data._sampleId = samples[_id].size() + 1;
     data._editName = "TERMINAL";
-    data._accepted = false;
+    data._accepted = true;
     data._scene = r->_scene;
-    samples[_id].push_back(data);
 
     // send scene to the results area. may chose to not use the scene
     if (!_viewer->addNewResult(r)) {
       // r has been deleted by _viewer here
       _failures++;
+      data._accepted = false;
 
       if (_failures > getGlobalSettings()->_searchFailureLimit) {
         _failures = 0;
         _maxDepth++;
       }
     }
+
+    samples[_id].push_back(data);
   }
   else {
     delete r;

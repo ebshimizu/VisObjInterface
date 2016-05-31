@@ -167,7 +167,7 @@ void GlobalSettings::dumpDiagnosticData()
     // Thread id, sample id, function val, acceptance chance, generating edit name, feature vector
     for (auto& kvp : _samples) {
       for (auto& d : kvp.second) {
-        file << kvp.first << "," << d._sampleId << "," << d._f << "," << d._a << "," << d._editName << ",";
+        file << kvp.first << "," << d._sampleId << "," << d._f << "," << d._a << "," << d._editName << "," << d._accepted << ",";
         for (int i = 0; i < d._scene.size(); i++) {
           file << d._scene[i];
           if (i <= (d._scene.size() - 2)) {
