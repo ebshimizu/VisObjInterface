@@ -27,5 +27,7 @@ double HistogramBrightness::evaluateScene(Snapshot * s)
 {
   Image i = generateImage(s);
   Histogram1D brightness = getGrayscaleHist(i, _numBins);
-  return brightness.avg() * 100;
+
+  // return average brightness penalized slightly by how many max brightness pixels we have
+  return (brightness.avg() - brightness.percentGreaterThan(99)) * 100;
 }

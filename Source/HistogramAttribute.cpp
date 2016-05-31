@@ -11,8 +11,6 @@
 #include "HistogramAttribute.h"
 
 Histogram1D::Histogram1D(int numBins) {
-  // we assume you'll only ever have 255 bins since images here
-  // (at the moment) are uint8s
   _count = 0;
 
   if (numBins < 1)
@@ -151,10 +149,10 @@ double Histogram1D::avg()
 
   for (const auto& vals : _histData) {
     double binVal = interval * vals.first;
-    sum += binVal * ((double)vals.second / _count);
+    sum += binVal * vals.second;
   }
 
-  return sum;
+  return sum / (double)_count;
 }
 
 double Histogram1D::variance()
@@ -200,6 +198,19 @@ double Histogram1D::percentile(float pct)
   }
 
   return highest * interval;
+}
+
+double Histogram1D::percentGreaterThan(float pct)
+{
+  pct /= 100.0;
+  unsigned int firstBin = pct * _numBins;
+  unsigned int total = 0;
+
+  for (unsigned int i = firstBin; i < _numBins; i++) {
+    total += _histData[i];
+  }
+
+  return total / (double)_count;
 }
 
 // ============================================================================
@@ -355,4 +366,20 @@ Histogram1D HistogramAttribute::getSatHist(Image& canonical, int numBins)
   }
 
   return gs;
+}
+
+Eigen::Vector3d HistogramAttribute::getAverageColor(Image i)
+{
+  Eigen::Vector3d color(0,0,0);
+
+  for (int y = 0; y < i.getHeight(); y++) {
+    for (int x = 0; x < i.getWidth(); x++) {
+      auto c = i.getPixelAt(x, y);
+      color[0] += c.getRed() / 255.0;
+      color[1] += c.getGreen() / 255.0;
+      color[2] += c.getBlue() / 255.0;
+    }
+  }
+
+  return color / (i.getWidth() * i.getHeight());
 }

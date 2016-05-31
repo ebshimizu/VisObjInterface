@@ -31,5 +31,6 @@ double HistogramContrast::evaluateScene(Snapshot * s)
   double low = brightness.percentile(20);
   double high = brightness.percentile(80);
 
-  return ((high - low) / brightness.avg()) * 100;
+  return (high - low) * 100;
+  //return ((high - low) / brightness.avg()) * 100;
 }

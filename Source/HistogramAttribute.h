@@ -16,7 +16,7 @@
 // a note about all these histogram classes:
 // when it says numBins the actual number of bins in the histogram will
 // be numBins + 1. The max valued element (1) will be in a bin all by itself.
-
+// The histogram also assumes everything is normalized between 0 and 1
 class Histogram1D {
 public: 
   Histogram1D(int numBins);
@@ -50,6 +50,9 @@ public:
 
   // Returns the value of the n-th percentile
   double percentile(float pct);
+
+  // Returns the percent of samples greater than n% of the max
+  double percentGreaterThan(float pct);
 
 private:
   // Maps bins to the number of pixels in each bin
@@ -117,6 +120,9 @@ public:
   Histogram1D getHueHist(Image& canonical, int numBins);
   Histogram1D getSatHist(Image& canonical, int numBins);
   // val is basically brightness here
+
+  // Returns the average color of the specified image (in RGB)
+  Eigen::Vector3d getAverageColor(Image i);
 
   // Histogram3D getRGBHist();
   // Histogram3D getHSVHist();

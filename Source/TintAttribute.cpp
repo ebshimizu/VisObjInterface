@@ -45,14 +45,14 @@ void TintAttribute::resized()
 
 double TintAttribute::evaluateScene(Snapshot * s)
 {
-  float targetHue = _targetColor.getHue();
-
   Image i = generateImage(s);
-  auto hue = getHueHist(i, 360);
-  double avgHue = hue.avg();
 
-  double hueDist = min(abs(targetHue - avgHue), abs((targetHue + 1) - avgHue));
-  return (1 - hueDist) * 100;
+  Eigen::Vector3d color = getAverageColor(i);
+
+  // color diff
+  Eigen::Vector3d targetColor(_targetColor.getRed() / 255.0, _targetColor.getGreen() / 255.0, _targetColor.getBlue() / 255.0);
+
+  return (1 - (color - targetColor).norm()) * 100;
 }
 
 void TintAttribute::mouseDown(const MouseEvent & e)
