@@ -37,7 +37,7 @@ double NoireAttribute::evaluateScene(Snapshot * s)
   double darkScore = min(1.0, 1 - ((.75 - pctBelow15) / .75));
   double brightScore = min(1.0, 1 - ((.1 - pctAbove80) / .1));
 
-  return ((darkScore + brightScore) / 2.0) * 100;
+  return ((darkScore * 0.4 + brightScore * 0.6) / 2.0) * 100;
 }
 
 void NoireAttribute::preProcess()

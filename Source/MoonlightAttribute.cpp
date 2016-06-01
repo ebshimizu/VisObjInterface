@@ -12,66 +12,69 @@
 
 MoonlightAttribute::MoonlightAttribute(int w, int h) : HistogramAttribute("Moonlight", w, h)
 {
+  _setForegroundButton = new TextButton("Set Foreground", "Set foreground region to the currently selected region");
+  _setForegroundButton->addListener(this);
+  addAndMakeVisible(_setForegroundButton);
 }
 
 MoonlightAttribute::~MoonlightAttribute()
 {
+  delete _setForegroundButton;
 }
 
 double MoonlightAttribute::evaluateScene(Snapshot * s)
 {
-  // moonlight is defined by the following things (accodring to this attribute):
-  // -strong single system light source that is a pale white-blue
-  // -overall low brightness
-  // -overall cool color tone
+  // moonlight here is more of a theatrical moonlight
+  // -the forground region should be illuminated by pale blue-white
+  // -the background should be dark, but not black, and should have a blue-purple tint
+
+  // make sure the foreground is actually defined.
+  if (_foreground.getWidth() == 0 || _foreground.getHeight() == 0)
+    return 0;
+
   Image i = generateImage(s);
 
-  // determine brightest system (according to proportional _light_ intensities)
-  // brightest system is defined by the brightest light in the system. there will be a penalty
-  // for systems with uneven lighting for this case
-  string brightest;
-  float max = 0;
+  double fgScore = 0;
+  double bgScore = 0;
+  int fgCount = 0;
+  int bgCount = 0;
 
-  for (const auto& sys : _systemCache) {
-    float brightness = getMaxSystemBrightness(sys.first, s);
-    if (brightness > max) {
-      brightest = sys.first;
-      max = brightness;
+  Rectangle<int> fgPixelBounds;
+  fgPixelBounds.setWidth(_foreground.getWidth() * _canonicalWidth);
+  fgPixelBounds.setHeight(_foreground.getHeight() * _canonicalHeight);
+  fgPixelBounds.setX(_foreground.getX() * _canonicalWidth);
+  fgPixelBounds.setY(_foreground.getY() * _canonicalHeight);
+
+  for (int y = 0; y < _canonicalHeight; y++) {
+    for (int x = 0; x < _canonicalWidth; x++) {
+      Colour px = i.getPixelAt(x, y);
+      float hue = px.getHue();
+
+      if (fgPixelBounds.contains(x, y)) {
+        // fg score
+        // target hue: 196, low sat, high bright
+        float hueDist = min(abs(hue - .54), abs((hue - 1) - .54));
+        float sat = max(0.25f, 1 - px.getSaturation());
+
+        fgScore += pow(0.5 - hueDist, 2) * 2 * px.getBrightness() * sat;
+        fgCount++;
+      }
+      else {
+        // bg score
+        // target hue: 238, highish sat, low bright
+        float hueDist = min(abs(hue - .66), abs((hue + 1) - .66));
+        float bri = max(0.25f, 1 - px.getBrightness());
+
+        bgScore += pow(0.5 - hueDist, 2) * 2 * bri * px.getSaturation();
+        bgCount++;
+      }
     }
   }
 
-  // calculate score based on deviation from average system brightness
-  // (moonlight is usually not uneven)
-  float avgBrScore = getAvgSystemBrightness(brightest, s) * 100;
+  bgScore /= (double)bgCount;
+  fgScore /= (double)fgCount;
 
-  // also add score based on color
-  // there's a target HSV and a radius. If within radius, no penalty, otherwise penalty based on squared
-  // distance
-  auto bHSV = getAvgColor(brightest, s);
-
-  float hueScore = abs(bHSV[0] - 180) <= 20 ? 100 : 100 - min(abs(bHSV[0] - 200), abs(bHSV[0] - 160));
-  float satScore = bHSV[1] > 0.2 ? 100 - (bHSV[1] - 0.2 * 100) : 100;
-
-  // low contrast (other lights) penalty
-  float other = 0;
-  for (const auto& sys : _systemCache) {
-    if (sys.first == brightest)
-      continue;
-
-    float brightness = getAvgSystemBrightness(sys.first, s);
-    other += brightness;
-  }
-
-  float otherBrScore = 0;
-
-  if (other > 0.1)
-    otherBrScore = -(other - 0.1) * 100;
-
-  // penalty for scene being too bright
-  Histogram1D bright = getGrayscaleHist(i, 20);
-  float overallBrScore = bright.avg() * 100;
-
-  return avgBrScore * 0.25 + hueScore * 0.15 + satScore * 0.25 + otherBrScore * 0.25 + overallBrScore * 0.1;
+  return (bgScore * 0.5 + fgScore * 0.5) * 100;
 }
 
 void MoonlightAttribute::preProcess()
@@ -81,6 +84,32 @@ void MoonlightAttribute::preProcess()
   for (auto& s : systems) {
     _systemCache[s] = getRig()->select("$system=" + s);
   }
+}
+
+void MoonlightAttribute::buttonClicked(Button * b)
+{
+  HistogramAttribute::buttonClicked(b);
+
+  if (b->getName() == "Set Foreground") {
+    setForegroundArea();
+    repaint();
+  }
+}
+
+void MoonlightAttribute::resized()
+{
+  HistogramAttribute::resized();
+
+  auto lbounds = getLocalBounds();
+  auto top = lbounds.removeFromTop(24);
+
+  top.removeFromRight(80);
+  _setForegroundButton->setBounds(top.removeFromRight(80).reduced(2));
+}
+
+void MoonlightAttribute::setForegroundArea()
+{
+  _foreground = getGlobalSettings()->_focusBounds;
 }
 
 float MoonlightAttribute::getMaxSystemBrightness(string sys, Snapshot * s)
