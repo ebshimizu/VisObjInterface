@@ -12,8 +12,8 @@
 
 OrangeBlueAttribute::OrangeBlueAttribute(int w, int h) : HistogramAttribute("Orange Blue", w, h)
 {
-  _targetBlue = 177;
-  _targetOrange = 32;
+  _targetBlue = 177 / 360.0;
+  _targetOrange = 32 / 360.0;
 }
 
 OrangeBlueAttribute::~OrangeBlueAttribute()
@@ -40,15 +40,25 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
       Colour c = i.getPixelAt(x, y);
       float hue = c.getHue();
 
-      float blueDist = min(abs(hue - 177), abs((hue - 360) - 177));
-      float orangeDist = min(abs(hue - 32), abs((hue - 360) - 32));
+      float blueDist = min(abs(hue - _targetBlue), abs((hue - 1) - _targetBlue));
+      float orangeDist = min(abs(hue - _targetOrange), abs((hue - 1) - _targetOrange));
 
-      float hueDist = min(blueDist, orangeDist);
-      score -= hueDist;
+      float hueDist = 0;
+      if (blueDist < orangeDist) {
+        blue++;
+        hueDist = blueDist;
+      }
+      else {
+        orange++;
+        hueDist = orangeDist;
+      }
+
+      // max hueDist val should be 1 (max diff is 0.5)
+      score += pow((1 - hueDist * 2), 2) * c.getSaturation();
     }
   }
 
-  return score;
+  return (score / (i.getWidth() * i.getHeight())) * 100;
 }
 
 unsigned int OrangeBlueAttribute::closestToRange(int x, int y, int min, int max)

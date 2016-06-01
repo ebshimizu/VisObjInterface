@@ -27,8 +27,8 @@ private:
   // in the event that both are within the range, returns the one closest to the range center
   unsigned int closestToRange(int x, int y, int min, int max);
 
-  int _targetBlue;
-  int _targetOrange;
+  float _targetBlue;
+  float _targetOrange;
 };
 
 
