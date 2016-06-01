@@ -34,6 +34,9 @@ public:
   void addToBin(unsigned int amt, unsigned int id);
   void removeFromBin(unsigned int amt, unsigned int id);
 
+  // Returns the distance between this histogram and another histogram
+  double diff(Histogram1D& other);
+
   // Finds the n most dominant bins in the histogram
   // Idea is that it takes bins under a threshold and merges them into the closest
   // bin above the threshold. Process repeats until target number of bins is
@@ -53,6 +56,9 @@ public:
 
   // Returns the percent of samples greater than n% of the max
   double percentGreaterThan(float pct);
+
+  // Returns the percent of samples less than n% of the max
+  double percentLessThan(float pct);
 
 private:
   // Maps bins to the number of pixels in each bin

@@ -11,7 +11,7 @@
 #include "NoireAttribute.h"
 #include "BrightAttribute.h"
 
-NoireAttribute::NoireAttribute() : HistogramAttribute("Noire", 50, 50)
+NoireAttribute::NoireAttribute() : HistogramAttribute("Noir", 50, 50)
 {
   _autoLockParams.insert("polar");
   _autoLockParams.insert("azimuth");
@@ -25,33 +25,19 @@ NoireAttribute::~NoireAttribute()
 
 double NoireAttribute::evaluateScene(Snapshot * s)
 {
-  // goals: high contrast, low overall brightness, no front light,
-  // one directional source per area, low overall saturation
-  double score = 0;
   Image i = generateImage(s);
 
   Histogram1D brightness = getGrayscaleHist(i, 100);
-  double avgb = brightness.avg();
-  double brightScore = (1-avgb) * 100;
-  double low = brightness.percentile(20);
-  double high = brightness.percentile(95);
-  double contrast = ((high - low) / avgb) * 100;
-  
-  double penalties = 0;
 
-  // calculate penalties from having conflicting cross lights 
-  for (auto& a : _areas) {
-    // look for front lights, penalize based on absolute intensity
-    // front intensity. Penalty may be positive.
-    double fintens = getRelativeAreaIntens(a, "front") * 1000;
-    double rintens = getRelativeAreaIntens(a, "top") * 100;
-    double crossPenalty = getAreaCrossPenalty(s, a) * 100;
+  // Targeting 75% dark (below 15%) and 10% bright (above 80%)
+  // remaining 10% can be anywhere
+  double pctBelow15 = brightness.percentLessThan(15);
+  double pctAbove80 = brightness.percentGreaterThan(80);
 
-    penalties += -fintens + crossPenalty + rintens;
-  }
+  double darkScore = min(1.0, 1 - ((.75 - pctBelow15) / .75));
+  double brightScore = min(1.0, 1 - ((.1 - pctAbove80) / .1));
 
-  score = contrast + brightScore + penalties;
-  return score;
+  return ((darkScore + brightScore) / 2.0) * 100;
 }
 
 void NoireAttribute::preProcess()

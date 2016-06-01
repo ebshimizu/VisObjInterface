@@ -83,6 +83,20 @@ void Histogram1D::removeFromBin(unsigned int amt, unsigned int id)
   _count -= amt;
 }
 
+double Histogram1D::diff(Histogram1D & other)
+{
+  // histograms must have the same number of bins to be compared
+  if (_histData.size() != other._histData.size())
+    return -1;
+
+  double sum = 0;
+  for (auto& bin : _histData) {
+    sum += sqrt(pow((double)bin.second - (double)(other._histData[bin.first]), 2));
+  }
+
+  return sum;
+}
+
 Histogram1D Histogram1D::consolidate(int targetNumBins)
 {
   // distance threshold
@@ -211,6 +225,11 @@ double Histogram1D::percentGreaterThan(float pct)
   }
 
   return total / (double)_count;
+}
+
+double Histogram1D::percentLessThan(float pct)
+{
+  return 1 - percentGreaterThan(pct);
 }
 
 // ============================================================================
