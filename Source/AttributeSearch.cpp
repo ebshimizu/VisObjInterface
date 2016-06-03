@@ -518,6 +518,12 @@ void AttributeSearchThread::runSearch()
 
     r->_editHistory.push_back(e);
     
+    // iterate a bit, do a little bit of searching
+    // at this point it's probably better to just do gradient descent, but for testing
+    // we'll simulate this by doing some mcmc iterations
+    Eigen::VectorXd minScene;
+    double minfx = fx;
+
     // do the adjustment until acceptance
     for (int i = 0; i < getGlobalSettings()->_maxMCMCIters; i++) {
       //  adjust the starting scene
@@ -552,7 +558,7 @@ void AttributeSearchThread::runSearch()
         samples[_id].push_back(data);
       
         // break after acceptance
-        break;
+        //break;
       }
       else {
         delete sp;
@@ -1216,7 +1222,7 @@ void AttributeSearch::generateDefaultEdits(string select, int editType)
     // Color
     e = new Edit(_lockedParams);
     initfunc(e, false, false);
-    e->setParams({ HUE, SAT, VALUE });
+    e->setParams({ RED, GREEN, BLUE });
     e->_name = select + "_color";
     if (e->canDoEdit())
       edits.push_back(e);
@@ -1236,7 +1242,7 @@ void AttributeSearch::generateDefaultEdits(string select, int editType)
     // Uniform color
     e = new Edit(_lockedParams);
     initfunc(e, false, true);
-    e->setParams({ HUE, SAT, VALUE });
+    e->setParams({ RED, GREEN, BLUE });
     e->_name = select + "_uniform_color";
     if (e->canDoEdit())
       edits.push_back(e);

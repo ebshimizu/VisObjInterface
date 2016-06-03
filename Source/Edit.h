@@ -19,6 +19,9 @@ using namespace Lumiverse::ShowControl;
 
 enum EditParam;
 
+// Objective function type to be passed to performEdit.
+typedef function<double(Snapshot*)> attrObjFunc;
+
 /*
 An edit contains logic for manipulating one scene according to particular rules.
 The base edit class does basic operations requiring no knowledge of how other
@@ -45,11 +48,17 @@ public:
   // returns true if the edit can actually take effect
   virtual bool canDoEdit();
 
+  // Returns the numeric derivative for the current edit
+  // under default edit conditions, the elements in the returned vector correspond
+  // to the elements in _affectedDevices
+  virtual Eigen::VectorXd numericDeriv(Snapshot* s, attrObjFunc f);
+
   string _name;
 
 private:
-  void applyParamEdit(Device* d, EditParam p, double delta = -1);
+  void applyParamEdit(Device* d, EditParam p, double delta = NAN);
   void setParam(Device* d, EditParam p, double val);
+  double getParam(Device* d, EditParam p);
   bool isParamLocked(Device* d, EditParam c);
 
   set<string> _affectedAreas;

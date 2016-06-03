@@ -42,6 +42,9 @@ private:
 
   // Button for setting the foreground area
   Button* _setForegroundButton;
+
+  // image for color normalization
+  Image _fullWhite;
 };
 
 

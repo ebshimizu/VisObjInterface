@@ -65,8 +65,20 @@ void Edit::performEdit(Snapshot * s, double stepSize)
   _gdist = normal_distribution<double>(0, stepSize);  // start with sdev 2
 
   if (_uniform) {
-    double val = _udist(_gen);
-    
+    // rather than randomly selecting a starting point, uniform will first
+    // set all parameters to the minimum value that it finds
+    double min = DBL_MAX;
+    for (const auto& d : devices) {
+      for (const auto& p : _affectedParams) {
+        double val = getParam(sd[d->getId()], p);
+
+        if (val < min)
+          min = val;
+      }
+    }
+
+    double val = min + _gdist(_gen);
+
     for (const auto& d : devices) {
       for (const auto& p : _affectedParams) {
         setParam(sd[d->getId()], p, val);
@@ -114,13 +126,98 @@ bool Edit::canDoEdit()
   return !allLocked;
 }
 
+Eigen::VectorXd Edit::numericDeriv(Snapshot * s, attrObjFunc f)
+{
+  Snapshot dx(*s);
+  double h = getGlobalSettings()->_searchDerivDelta;
+  double fx = f(s);
+
+  // For normal edits: vector size should be number of affected devices * affected parameters
+  // For uniform and joint edits, the vector will be size 1
+  // for devices with locked parameters, the derivative will be 0
+  Eigen::VectorXd deriv;
+
+  auto& devices = _affectedDevices.getDevices();
+  auto& tempRigDevices = dx.getRigData();
+
+  if (_uniform) {
+    deriv.resize(1);
+    // do the uniform normalization step (clamp to min)
+    double min = DBL_MAX;
+    for (const auto& d : devices) {
+      for (const auto& p : _affectedParams) {
+        double val = getParam(tempRigDevices[d->getId()], p);
+
+        if (val < min)
+          min = val;
+      }
+    }
+
+    // record the new function value
+    fx = f(&dx);
+
+    // set the values
+    for (const auto& d : devices) {
+      for (const auto& p : _affectedParams) {
+        applyParamEdit(tempRigDevices[d->getId()], p, h);
+      }
+    }
+
+    // get new function val
+    double fxp = f(&dx);
+
+    // calculate deriv
+    deriv[0] = (fxp - fx) / h;
+  }
+  else if (_joint) {
+    deriv.resize(1);
+
+    // adjust all devices at once
+    for (auto d : devices) {
+      for (auto& p : _affectedParams) {
+        // perturb by small amount
+        applyParamEdit(tempRigDevices[d->getId()], p, h);
+      }
+    }
+
+    // get new function val
+    double fxp = f(&dx);
+
+    // calculate deriv
+    deriv[0] = (fxp - fx) / h;
+  }
+  else {
+    deriv.resize(_affectedDevices.size() * _affectedParams.size());
+    int i = 0;
+
+    for (auto d : devices) {
+      for (auto& p : _affectedParams) {
+        // perturb by small amount
+        applyParamEdit(tempRigDevices[d->getId()], p, h);
+
+        // get new function val
+        double fxp = f(&dx);
+
+        // calculate deriv
+        deriv[i] = (fxp - fx) / h;
+
+        // reset
+        applyParamEdit(tempRigDevices[d->getId()], p, -h);
+        i++;
+      }
+    }
+  }
+
+  return deriv;
+}
+
 void Edit::applyParamEdit(Device * d, EditParam p, double delta)
 {
   if (isParamLocked(d, p))
     return;
 
   // if unassigned, generate a delta
-  if (delta < 0)
+  if (isnan(delta))
     delta = _gdist(_gen);
 
   switch (p) {
@@ -268,8 +365,69 @@ void Edit::setParam(Device * d, EditParam p, double val)
     }
     default:
       return;
+  }
+}
 
-    return;
+double Edit::getParam(Device * d, EditParam p)
+{
+  switch (p) {
+  case INTENSITY:
+  {
+    return d->getIntensity()->asPercent();
+  }
+  case HUE:
+  {
+    Eigen::Vector3d hsv = d->getColor()->getHSV();
+    return hsv[0];
+  }
+  case SAT:
+  {
+    Eigen::Vector3d hsv = d->getColor()->getHSV();
+    return hsv[1];
+  }
+  case VALUE:
+  {
+    Eigen::Vector3d hsv = d->getColor()->getHSV();
+    return hsv[2];
+  }
+  case RED:
+  {
+    return d->getColor()->getColorChannel("Red");
+  }
+  case BLUE:
+  {
+    return d->getColor()->getColorChannel("Blue");
+  }
+  case GREEN:
+  {
+    return d->getColor()->getColorChannel("Green");
+  }
+  case POLAR:
+  {
+    if (d->paramExists("polar")) {
+      LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("polar");
+      return o->asPercent();
+    }
+    return 0;
+  }
+  case AZIMUTH:
+  {
+    if (d->paramExists("azimuth")) {
+      LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("azimuth");
+      return o->asPercent();
+    }
+    return 0;
+  }
+  case SOFT:
+  {
+    if (d->paramExists("penumbraAngle")) {
+      LumiverseFloat* s = d->getParam<LumiverseFloat>("penumbraAngle");
+      return s->asPercent();
+    }
+    return 0;
+  }
+  default:
+    return 0;
   }
 }
 

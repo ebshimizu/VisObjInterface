@@ -28,37 +28,61 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
   int blue = 0;
   int orange = 0;
 
+  // accuracy
+  int blueacc = 0;
+  int orangeacc = 0;
+
   // score
-  double score = 0;
+  double blueScore = 0;
+  double orangeScore = 0;
 
   // Target hue values
   // blue: 177
   // orange: 32
+
+  // target colors
+  Eigen::Vector3d targetBlue(131 / 255.0, 181 / 255.0, 225 / 255.0);
+  Eigen::Vector3d targetOrange(233 / 255.0, 143 / 255.0, 38 / 255.0);
+
   for (int y = 0; y < i.getHeight(); y++) {
     for (int x = 0; x < i.getWidth(); x++) {
       // get pixel color and see if its closer to blue or orange
       Colour c = i.getPixelAt(x, y);
       float hue = c.getHue();
+      Eigen::Vector3d rgbpx(c.getRed() / 255.0, c.getGreen() / 255.0, c.getBlue() / 255.0);
 
-      float blueDist = min(abs(hue - _targetBlue), abs((hue - 1) - _targetBlue));
-      float orangeDist = min(abs(hue - _targetOrange), abs((hue - 1) - _targetOrange));
+      float blueDist = (targetBlue - rgbpx).norm();
+      float orangeDist = (targetOrange - rgbpx).norm();
 
       float hueDist = 0;
       if (blueDist < orangeDist) {
         blue++;
-        hueDist = blueDist;
+        double s = (sqrt(3) - blueDist) / sqrt(3);
+        s *= s;
+        if (s > 0.65)
+          blueacc++;
+
+        blueScore += s;
       }
       else {
         orange++;
-        hueDist = orangeDist;
-      }
+        double s = (sqrt(3) - orangeDist) / sqrt(3);
+        s *= s;
+        if (s > 0.65)
+          orangeacc++;
 
-      // max hueDist val should be 1 (max diff is 0.5)
-      score += pow((1 - hueDist * 2), 2) * c.getSaturation();
+        orangeScore += s;
+      }
     }
   }
 
-  return (score / (i.getWidth() * i.getHeight())) * 100;
+  //blueScore = (blueScore / blue) * ((double)blueacc / blue);
+  //orangeScore = (orangeScore / orange) * ((double)orangeacc / orange);
+  double score = ((blueScore + orangeScore) / (blue + orange)) * (((double)blueacc + orangeacc) / (blue + orange));
+
+  // combine scores, hope for a good balance
+  double balance = (blue > orange) ? (double)orange / blue : (double)blue / orange;
+  return score * balance * 1000;
 }
 
 unsigned int OrangeBlueAttribute::closestToRange(int x, int y, int min, int max)

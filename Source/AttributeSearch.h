@@ -28,9 +28,6 @@ struct DeviceInfo {
   string _id;
 };
 
-// Objective function type to be passed to performEdit.
-typedef function<double(Snapshot*)> attrObjFunc;
-
 // kmeans typedefs
 typedef dlib::matrix<double, 0, 1> sampleType;
 typedef dlib::linear_kernel<sampleType> kernelType;
