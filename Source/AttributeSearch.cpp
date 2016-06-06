@@ -512,9 +512,9 @@ void AttributeSearchThread::runSearch()
 
     //  pick a next plausible edit
     if (r->_editHistory.size() == 0)
-      e = _edits[0]->getNextEdit(r->_editHistory, _edits);
+      e = _edits[0]->getNextEdit(start, _f, r->_editHistory, _edits);
     else
-      e = e->getNextEdit(r->_editHistory, _edits);
+      e = e->getNextEdit(start, _f, r->_editHistory, _edits);
 
     r->_editHistory.push_back(e);
     
@@ -526,6 +526,12 @@ void AttributeSearchThread::runSearch()
 
     // do the adjustment until acceptance
     for (int i = 0; i < getGlobalSettings()->_maxMCMCIters; i++) {
+      if (threadShouldExit()) {
+        delete r;
+        delete start;
+        return;
+      }
+
       //  adjust the starting scene
       Snapshot* sp = new Snapshot(*start);
       e->performEdit(sp, getGlobalSettings()->_editStepSize);
@@ -563,7 +569,7 @@ void AttributeSearchThread::runSearch()
       else {
         delete sp;
       }
-      sleep(10);
+      //sleep(10);
     }
     depth++;
   }
@@ -1044,7 +1050,7 @@ void AttributeSearch::run()
       }
 
       for (auto& t : _threads)
-        t->stopThread(1000);
+        t->stopThread(5000);
       signalThreadShouldExit();
     }
     else {
@@ -1060,10 +1066,10 @@ void AttributeSearch::stop()
 {
   for (auto& t : _threads) {
     if (t->isThreadRunning())
-      t->stopThread(1000);
+      t->stopThread(5000);
   }
 
-  stopThread(1000);
+  stopThread(5000);
 }
 
 void AttributeSearch::generateEdits(bool explore)

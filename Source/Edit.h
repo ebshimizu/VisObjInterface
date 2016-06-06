@@ -43,7 +43,7 @@ public:
   virtual void performEdit(Snapshot* s, double stepSize);
 
   // Gets the next edit given all the prior edits that have happened.
-  virtual Edit* getNextEdit(vector<Edit*>& editHistory, vector<Edit*>& availableEdits);
+  virtual Edit* getNextEdit(Snapshot* current, attrObjFunc f, vector<Edit*>& editHistory, vector<Edit*>& availableEdits);
 
   // returns true if the edit can actually take effect
   virtual bool canDoEdit();

@@ -103,12 +103,33 @@ void Edit::performEdit(Snapshot * s, double stepSize)
   }
 }
 
-Edit * Edit::getNextEdit(vector<Edit*>& editHistory, vector<Edit*>& availableEdits)
+Edit * Edit::getNextEdit(Snapshot* current, attrObjFunc f, vector<Edit*>& editHistory, vector<Edit*>& availableEdits)
 {
   // TODO: DO BETTER THAN RANDOM
   // for now just pick a random edit until the entire search flow is working right
   int idx = (int) (_udist(_gen) * availableEdits.size());
   return availableEdits[idx];
+
+  // weighted draw from the available edits towards edits with a stronger gradient magnitude
+  vector<float> weights;
+  float total = 0;
+
+  for (auto& e : availableEdits) {
+    auto grad = e->numericDeriv(current, f);
+    weights.push_back(grad.norm());
+    total += grad.norm();
+  }
+
+  // normalize and sort
+  map<float, Edit*> normWeights;
+  float sum = 0;
+  for (int i = 0; i < availableEdits.size(); i++) {
+    sum += weights[i] / total;
+    normWeights[sum] = availableEdits[i];
+  }
+
+  // pick an edit
+  return normWeights.lower_bound(_udist(_gen))->second;
 }
 
 bool Edit::canDoEdit()

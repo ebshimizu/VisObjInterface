@@ -27,62 +27,53 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
   // Track number of blue/orange pixels
   int blue = 0;
   int orange = 0;
-
-  // accuracy
-  int blueacc = 0;
-  int orangeacc = 0;
-
-  // score
-  double blueScore = 0;
-  double orangeScore = 0;
-
-  // Target hue values
-  // blue: 177
-  // orange: 32
+  int reallyBlue = 0;
+  int reallyOrange = 0;
 
   // target colors
-  Eigen::Vector3d targetBlue(131 / 255.0, 181 / 255.0, 225 / 255.0);
-  Eigen::Vector3d targetOrange(233 / 255.0, 143 / 255.0, 38 / 255.0);
+  Eigen::Vector3d targetBlue(53 / 255.0, 200 / 255.0, 255 / 255.0);
+  Eigen::Vector3d targetOrange(248 / 255.0, 164 / 255.0, 18 / 255.0);
 
   for (int y = 0; y < i.getHeight(); y++) {
     for (int x = 0; x < i.getWidth(); x++) {
       // get pixel color and see if its closer to blue or orange
       Colour c = i.getPixelAt(x, y);
-      float hue = c.getHue();
       Eigen::Vector3d rgbpx(c.getRed() / 255.0, c.getGreen() / 255.0, c.getBlue() / 255.0);
 
       float blueDist = (targetBlue - rgbpx).norm();
       float orangeDist = (targetOrange - rgbpx).norm();
 
-      float hueDist = 0;
       if (blueDist < orangeDist) {
-        blue++;
         double s = (sqrt(3) - blueDist) / sqrt(3);
-        s *= s;
-        if (s > 0.65)
-          blueacc++;
 
-        blueScore += s;
+        if (s > 0.9)
+          reallyBlue++;
+        if (s > 0.75)
+          blue++;
       }
       else {
-        orange++;
         double s = (sqrt(3) - orangeDist) / sqrt(3);
-        s *= s;
-        if (s > 0.65)
-          orangeacc++;
 
-        orangeScore += s;
+        if (s > 0.9)
+          reallyOrange++;
+        if (s > 0.75)
+          orange++;
       }
     }
   }
 
-  //blueScore = (blueScore / blue) * ((double)blueacc / blue);
-  //orangeScore = (orangeScore / orange) * ((double)orangeacc / orange);
-  double score = ((blueScore + orangeScore) / (blue + orange)) * (((double)blueacc + orangeacc) / (blue + orange));
+  double bluePct = (double)blue / (i.getWidth() * i.getHeight());
+  double orangePct = (double)orange / (i.getWidth() * i.getHeight());
+  double reallyBluePct = (double)reallyBlue / (i.getWidth() * i.getHeight());
+  double reallyOrangePct = (double)reallyOrange / (i.getWidth() * i.getHeight());
 
-  // combine scores, hope for a good balance
-  double balance = (blue > orange) ? (double)orange / blue : (double)blue / orange;
-  return score * balance * 1000;
+  // Aiming for 35% orange, 35% blue, and 10% superblue/orange (which are counted in blue/orange)
+  double blueScore = min(1.0, 1 - ((.3 - bluePct) / .3));
+  double orangeScore = min(1.0, 1 - ((.3 - orangePct) / .3));
+  double rblueScore = min(1.0, 1 - ((.1 - reallyBluePct) / .1));
+  double rorangeScore = min(1.0, 1 - ((.1 - reallyOrangePct) / .1));
+
+  return (orangeScore * 0.3 + blueScore * 0.3 + rblueScore * 0.2 + rorangeScore * 0.2) * 100;
 }
 
 unsigned int OrangeBlueAttribute::closestToRange(int x, int y, int min, int max)
