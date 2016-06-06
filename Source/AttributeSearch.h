@@ -121,10 +121,6 @@ private:
   //pair<list<mcmcSample>, int> doMCMC(vector<EditConstraint> edit, Snapshot* start,
   //  attrObjFunc f, int iters, double sigma, bool saveSamples, string name, bool acceptStd);
 
-  // computes the numeric derivative for the particular lighting parameter and
-  // specified attribute
-  double numericDeriv(EditConstraint c, Snapshot* s, attrObjFunc f, string& id);
-
   // Returns the number of features in the vector used for search
   int getVecLength(vector<EditConstraint>& edit, Snapshot* s);
 

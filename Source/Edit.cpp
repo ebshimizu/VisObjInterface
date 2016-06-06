@@ -113,11 +113,18 @@ Edit * Edit::getNextEdit(Snapshot* current, attrObjFunc f, vector<Edit*>& editHi
   // weighted draw from the available edits towards edits with a stronger gradient magnitude
   vector<float> weights;
   float total = 0;
+  double fx = f(current);
 
   for (auto& e : availableEdits) {
-    auto grad = e->numericDeriv(current, f);
-    weights.push_back(grad.norm());
-    total += grad.norm();
+    auto grad = e->numericDeriv(current, f, fx);
+
+    // minimum magnitude, so at least something gets selected if they're all 0.
+    double mag = grad.norm();
+    if (mag < 0.01)
+      mag = 0.01;
+
+    weights.push_back(mag);
+    total += mag;
   }
 
   // normalize and sort
@@ -147,11 +154,10 @@ bool Edit::canDoEdit()
   return !allLocked;
 }
 
-Eigen::VectorXd Edit::numericDeriv(Snapshot * s, attrObjFunc f)
+Eigen::VectorXd Edit::numericDeriv(Snapshot * s, attrObjFunc f, double fx)
 {
   Snapshot dx(*s);
   double h = getGlobalSettings()->_searchDerivDelta;
-  double fx = f(s);
 
   // For normal edits: vector size should be number of affected devices * affected parameters
   // For uniform and joint edits, the vector will be size 1

@@ -48,7 +48,7 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
 
         if (s > 0.9)
           reallyBlue++;
-        if (s > 0.75)
+        if (s > 0.7)
           blue++;
       }
       else {
@@ -56,7 +56,7 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
 
         if (s > 0.9)
           reallyOrange++;
-        if (s > 0.75)
+        if (s > 0.7)
           orange++;
       }
     }

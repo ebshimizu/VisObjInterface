@@ -51,7 +51,8 @@ public:
   // Returns the numeric derivative for the current edit
   // under default edit conditions, the elements in the returned vector correspond
   // to the elements in _affectedDevices
-  virtual Eigen::VectorXd numericDeriv(Snapshot* s, attrObjFunc f);
+  // Pass in current function value to reduce calculation time if doing multiple derivative evals
+  virtual Eigen::VectorXd numericDeriv(Snapshot* s, attrObjFunc f, double fx);
 
   string _name;
 
