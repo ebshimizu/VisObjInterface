@@ -160,6 +160,16 @@ void SearchResultsViewer::cleanUp(int resultsToKeep)
   _results->cleanUp(resultsToKeep);
 }
 
+void SearchResultsViewer::saveResults(string filename)
+{
+  _results->saveResults(filename);
+}
+
+void SearchResultsViewer::loadResults(string filename)
+{
+  _results->loadResults(filename);
+}
+
 Array<AttributeSearchResult*> SearchResultsViewer::getResults()
 {
   return _results->getResults();

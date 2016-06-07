@@ -244,3 +244,100 @@ void SearchResultsContainer::cleanUp(int resultsToKeep)
   setWidth(getLocalBounds().getWidth());
   repaint();
 }
+
+void SearchResultsContainer::saveResults(string filename)
+{
+  ofstream file;
+  file.open(filename, ios::trunc);
+
+  // all results get saved to a human-readable (but maybe not interpretable) csv file
+  // format is: id, obj func val, edit history, scene
+  for (auto& r : _results) {
+    auto result = r->getSearchResult();
+    file << result->_sampleNo << "," << result->_objFuncVal << "," << r->getTooltip() << ",";
+
+    Eigen::VectorXd scene = result->_scene;
+    for (int i = 0; i < scene.size(); i++) {
+      file << scene[i];
+
+      if (i < scene.size() - 2)
+        file << ",";
+    }
+    file << "\n";
+  }
+
+  file.close();
+}
+
+void SearchResultsContainer::loadResults(string filename)
+{
+  // clear results
+  clear();
+
+  ifstream file(filename);
+  string line;
+
+  getStatusBar()->setStatusMessage("Loading results...");
+
+  if (file.is_open()) {
+    while (getline(file, line)) {
+      stringstream lineStream(line);
+      string cell;
+
+      SearchResult* r = new SearchResult();
+      vector<double> sceneVals;
+      string tooltip;
+
+      int i = 0;
+      while (getline(lineStream, cell, ',')) {
+        if (i == 0) {
+          r->_sampleNo = stoi(cell);
+        }
+        else if (i == 1) {
+          r->_objFuncVal = stod(cell);
+        }
+        else if (i == 2) {
+          tooltip = cell;
+        }
+        else if (i > 2) {
+          sceneVals.push_back(stod(cell));
+        }
+
+        i++;
+      }
+      
+      // put vector into the scene, generate image and container
+      r->_scene.resize(sceneVals.size());
+      for (int i = 0; i < sceneVals.size(); i++) {
+        r->_scene[i] = sceneVals[i];
+      }
+
+      auto newResult = new AttributeSearchResult(r);
+      newResult->setTooltip(tooltip);
+
+      // render
+      auto p = getAnimationPatch();
+      int width = getGlobalSettings()->_renderWidth;
+      int height = getGlobalSettings()->_renderHeight;
+      p->setDims(width, height);
+      p->setSamples(getGlobalSettings()->_stageRenderSamples);
+
+      Image img = Image(Image::ARGB, width, height, true);
+      uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+
+      Snapshot* s = vectorToSnapshot(r->_scene);
+      p->renderSingleFrameToBuffer(s->getDevices(), bufptr, width, height);
+      delete s;
+      newResult->setImage(img);
+
+      addAndMakeVisible(newResult);
+      _results.add(newResult);
+    }
+  }
+
+  _numResults = _results.size();
+  setWidth(getLocalBounds().getWidth());
+  resized();
+  repaint();
+  getStatusBar()->setStatusMessage("Load complete.");
+}

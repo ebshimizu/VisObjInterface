@@ -66,6 +66,12 @@ public:
   // Removes results from the results section
   void cleanUp(int resultsToKeep);
 
+  // Save results to a file
+  void saveResults(string filename);
+
+  // Load results from a file
+  void loadResults(string filename);
+
 private:
   Viewport* _viewer;
   Viewport* _historyViewer;

@@ -93,7 +93,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::LOCK_ALL_INTENSITY, command::LOCK_ALL_POSITION, command::UNLOCK_ALL,
     command::LOCK_ALL_AREAS_EXCEPT, command::LOCK_AREA, command::LOCK_SYSTEM, command::LOCK_ALL_SYSTEMS_EXCEPT,
     command::SAVE_RENDER, command::GET_FROM_ARNOLD, command::STOP_SEARCH, command::GET_NEW_RESULTS,
-    command::UPDATE_NUM_THREADS
+    command::UPDATE_NUM_THREADS, command::SAVE_RESULTS, command::LOAD_RESULTS
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -190,6 +190,12 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::UPDATE_NUM_THREADS:
     result.setInfo("Update Search Threads", "Updates the search worker to use the specified number of threads", "Internal", 0);
     break;
+  case command::SAVE_RESULTS:
+    result.setInfo("Save Results...", "Saves the current set of results to a file", "Explore", 0);
+    break;
+  case command::LOAD_RESULTS:
+    result.setInfo("Load Results...", "Loads a previously saved set of results back in to the interface", "Explore", 0);
+    break;
   default:
     return;
   }
@@ -270,6 +276,12 @@ bool MainContentComponent::perform(const InvocationInfo & info)
   case command::UPDATE_NUM_THREADS:
     _searchWorker->stop();
     _searchWorker->reinit();
+    break;
+  case command::SAVE_RESULTS:
+    saveResults();
+    break;
+  case command::LOAD_RESULTS:
+    loadResults();
     break;
   default:
     return false;
@@ -464,6 +476,37 @@ void MainContentComponent::saveRender() {
 
     Snapshot s(getRig(), nullptr);
     dos.writeString(vectorToString(snapshotToVector(&s)));
+  }
+}
+
+void MainContentComponent::saveResults()
+{
+  stopSearch();
+
+  FileChooser fc("Save Results",
+    File::getCurrentWorkingDirectory(),
+    "*.csv",
+    true);
+
+  if (fc.browseForFileToSave(true))
+  {
+    File selected = fc.getResult();
+    String fileName = selected.getFullPathName();
+
+    // export results to a csv flie
+    _search->saveResults(fileName.toStdString());
+  }
+}
+
+void MainContentComponent::loadResults()
+{
+  FileChooser fc("Load Results", File::getCurrentWorkingDirectory(),
+    "*.csv", true);
+
+  if (fc.browseForFileToOpen()) {
+    File selected = fc.getResult();
+    String fileName = selected.getFullPathName();
+    _search->loadResults(fileName.toStdString());
   }
 }
 

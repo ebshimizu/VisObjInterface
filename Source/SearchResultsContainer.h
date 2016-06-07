@@ -47,6 +47,11 @@ public:
   // Removes results from the results section
   void cleanUp(int resultsToKeep);
 
+  // Save results in the container to a file
+  void saveResults(string filename);
+
+  void loadResults(string filename);
+
 private:
   Array<AttributeSearchResult*> _results;
   Array<AttributeSearchResult*> _newResults;
