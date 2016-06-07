@@ -66,12 +66,17 @@ public:
 
   int compareElements(AttributeSearchResult* first, AttributeSearchResult* second);
 
+  Eigen::VectorXd getFeatures();
+
 private:
   // Search result object from the attribute search
   SearchResult* _result;
 
   // rendered image 
   Image _render;
+
+  // vector representation of a scaled down (100 x 100) thumbnail image
+  Eigen::VectorXd _features;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AttributeSearchResult)
 };

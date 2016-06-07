@@ -130,6 +130,19 @@ void AttributeSearchResult::setImage(Image img)
 
   if (getGlobalSettings()->_grayscaleMode)
     _render.desaturate();
+
+  // create feature vector
+  Image scaled = _render.rescaled(100, 100);
+  _features.resize(100 * 100 * 3);
+  for (int y = 0; y < scaled.getHeight(); y++) {
+    for (int x = 0; x < scaled.getWidth(); x++) {
+      int idx = y * scaled.getWidth() + x;
+      auto px = scaled.getPixelAt(x, y);
+      _features[idx] = px.getRed() / 255.0;
+      _features[idx + 1] = px.getGreen() / 255.0;
+      _features[idx + 2] = px.getBlue() / 255.0;
+    }
+  }
 }
 
 void AttributeSearchResult::clearSearchResult()
@@ -212,4 +225,9 @@ int AttributeSearchResult::compareElements(AttributeSearchResult * first, Attrib
     return 1;
   else
     return 0;
+}
+
+Eigen::VectorXd AttributeSearchResult::getFeatures()
+{
+  return _features;
 }

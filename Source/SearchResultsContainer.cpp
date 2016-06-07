@@ -90,25 +90,14 @@ Array<AttributeSearchResult*> SearchResultsContainer::getResults()
 bool SearchResultsContainer::addNewResult(SearchResult * r)
 {
   {
-    // Check to make sure result is sufficiently different
-    Eigen::VectorXd features = r->_scene;
-
-    {
-      lock_guard<mutex> lock(_resultsLock);
-      for (auto& r : _results) {
-        Eigen::VectorXd other = r->getSearchResult()->_scene;
-
-        if ((features - other).norm() < getGlobalSettings()->_jndThreshold)
-          return false;
-      }
-    }
-
-    // also limit number of total results
+    // limit number of total results
     if (isFull()) {
       delete r;
       return false;
     }
 
+    // Check to make sure result is sufficiently different
+    
     // Create new result container
     AttributeSearchResult* newResult = new AttributeSearchResult(r);
 
@@ -126,6 +115,20 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
     p->renderSingleFrameToBuffer(s->getDevices(), bufptr, width, height);
     delete s;
     newResult->setImage(img);
+    Eigen::VectorXd features = newResult->getFeatures();
+
+    {
+      lock_guard<mutex> lock(_resultsLock);
+      for (auto& res : _results) {
+        Eigen::VectorXd other = res->getFeatures();
+
+        if ((features - other).norm() < getGlobalSettings()->_jndThreshold) {
+          delete newResult;
+          return false;
+        }
+      }
+    }
+
     r->_sampleNo = _sampleId;
     _sampleId++;
 
