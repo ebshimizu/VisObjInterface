@@ -62,7 +62,9 @@ enum command {
   GET_NEW_RESULTS = 0x500C,
   UPDATE_NUM_THREADS = 0x500D,
   SAVE_RESULTS = 0x500E,
-  LOAD_RESULTS = 0x500F
+  LOAD_RESULTS = 0x500F,
+  LOAD_TRACES = 0x5010,
+  PICK_TRACE = 0x5011
 
   // Window
 };
@@ -150,12 +152,14 @@ public:
   double _editStepSize;         // MCMC: Std dev of gaussian sample 
   int _maxMCMCIters;            // MCMC: Max number of iterations
   double _jndThreshold;         // For two feature vectors, how far apart they can be to be considered equivalent
-  bool _randomMode;             // Primarily for debugging, turning this on ignores parameter values when searching
+  bool _standardMCMC;           // A mode where the search ignores all edits and runs a standard MCMC search
+  int _standardMCMCIters;       // Iterations for a normal MCMC search
   int _clusterElemsPerRow;      // Number of elements to show in a cluster detail view
   int _maxReturnedScenes;       // Limiter for how many scenes get returned from a search, primarily limited by memory 
   bool _showThumbnailImg;       // Flag to show thumbnail image in the render area.
   double _T;                    // Temperature controlling MCMC tolerance to worse suggestions
   bool _exportTraces;           // Export trace data for each search operation
+  bool _autoRunTraceGraph;      // Automatically call the python script for making graphs. Can be slow, so you can turn it off if you want.
   string _traceRootDir;         // Trace file location
   double _meanShiftEps;         // Mean shift epsilon
   double _meanShiftBandwidth;   // Mean shift bandwidth
@@ -173,11 +177,15 @@ public:
 
   // Diagnostic storage for search
   map<int, vector<DebugData> > _samples;
+
+  // Diagnostic storage for loaded traces
+  map<int, vector<DebugData> > _loadedTraces;
+
   string _sessionName;
 
   // dumps search diagnostics to a file
-  // file is 1 csv: first row is accepted function values, second is the a that accepted the value
   void dumpDiagnosticData();
+  void loadDiagnosticData(string filename);
 
   unsigned int getSampleID();
 
@@ -245,8 +253,6 @@ bool isDeviceParamLocked(string id, string param);
 
 void lockDeviceParam(string id, string param);
 void unlockDeviceParam(string id, string param);
-
-void exportSearchResults(list<SearchResult*>& results, int depth, string desc = "", bool makeGraph = false);
 
 // For debugging, set the common filename for all files in the search session
 void setSessionName();

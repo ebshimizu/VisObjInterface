@@ -467,7 +467,7 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f)
   _edits.clear();
   _edits = getGlobalSettings()->_edits;
   _T = getGlobalSettings()->_T;
-  _maxDepth = getGlobalSettings()->_editDepth;
+  _maxDepth = (getGlobalSettings()->_standardMCMC) ? 1 : getGlobalSettings()->_editDepth;
   _failures = 0;
 
   _f = f;
@@ -502,6 +502,9 @@ void AttributeSearchThread::runSearch()
   int depth = 0;
   Edit* e = nullptr;
 
+  // magic number alert
+  int iters = getGlobalSettings()->_standardMCMC ? getGlobalSettings()->_standardMCMCIters : getGlobalSettings()->_maxMCMCIters;
+
   // depth increases when scenes are rejected from the viewer
   while (depth < _maxDepth) {
     if (threadShouldExit()) {
@@ -525,7 +528,7 @@ void AttributeSearchThread::runSearch()
     double minfx = fx;
 
     // do the adjustment until acceptance
-    for (int i = 0; i < getGlobalSettings()->_maxMCMCIters; i++) {
+    for (int i = 0; i < iters; i++) {
       if (threadShouldExit()) {
         delete r;
         delete start;
@@ -553,15 +556,17 @@ void AttributeSearchThread::runSearch()
         r->_objFuncVal = fx;
 
         // diagnostics
-        DebugData data;
-        auto& samples = getGlobalSettings()->_samples;
-        data._f = r->_objFuncVal;
-        data._a = a;
-        data._sampleId = samples[_id].size() + 1;
-        data._editName = e->_name;
-        data._accepted = true;
-        data._scene = snapshotToVector(sp);
-        samples[_id].push_back(data);
+        if (!getGlobalSettings()->_standardMCMC) {
+          DebugData data;
+          auto& samples = getGlobalSettings()->_samples;
+          data._f = r->_objFuncVal;
+          data._a = a;
+          data._sampleId = samples[_id].size() + 1;
+          data._editName = e->_name;
+          data._accepted = true;
+          data._scene = snapshotToVector(sp);
+          samples[_id].push_back(data);
+        }
       
         // break after acceptance
         //break;
@@ -979,21 +984,36 @@ void AttributeSearch::generateEdits(bool explore)
   set<string> systems = getRig()->getMetadataValues("system");
   set<string> areas = getRig()->getMetadataValues("area");
 
-  // Create all devices edit types
-  generateDefaultEdits("*", 1);
-  //generateColorEdits("*");
+  if (!getGlobalSettings()->_standardMCMC) {
+    // Create all devices edit types
+    generateDefaultEdits("*", 1);
+    //generateColorEdits("*");
 
-  // Create edits for each system
-  for (const auto& s : systems) {
-    generateDefaultEdits(s, 3);
+    // Create edits for each system
+    for (const auto& s : systems) {
+      generateDefaultEdits(s, 3);
+    }
+
+    // Create edits for each area
+    for (const auto& a : areas) {
+      generateDefaultEdits(a, 2);
+      // color edits are not final or even really implemented yet...
+      // generateColorEdits(a);
+    }
+  }
+  else {
+    Edit* e = new Edit(set<string>());
+    e->initArbitrary("*", false, false);
+    set<EditParam> params;
+    params.insert(EditParam::INTENSITY);
+    params.insert(EditParam::RED);
+    params.insert(EditParam::GREEN);
+    params.insert(EditParam::BLUE);
+    e->setParams(params);
+    e->_name = "*";
+    getGlobalSettings()->_edits.push_back(e);
   }
 
-  // Create edits for each area
-  for (const auto& a : areas) {
-    generateDefaultEdits(a, 2);
-    // color edits are not final or even really implemented yet...
-    // generateColorEdits(a);
-  }
 
   // Create edits for each system within an area
   //for (const auto& s : systems) {

@@ -93,7 +93,8 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::LOCK_ALL_INTENSITY, command::LOCK_ALL_POSITION, command::UNLOCK_ALL,
     command::LOCK_ALL_AREAS_EXCEPT, command::LOCK_AREA, command::LOCK_SYSTEM, command::LOCK_ALL_SYSTEMS_EXCEPT,
     command::SAVE_RENDER, command::GET_FROM_ARNOLD, command::STOP_SEARCH, command::GET_NEW_RESULTS,
-    command::UPDATE_NUM_THREADS, command::SAVE_RESULTS, command::LOAD_RESULTS
+    command::UPDATE_NUM_THREADS, command::SAVE_RESULTS, command::LOAD_RESULTS, command::LOAD_TRACES,
+    command::PICK_TRACE
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -196,6 +197,12 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::LOAD_RESULTS:
     result.setInfo("Load Results...", "Loads a previously saved set of results back in to the interface", "Explore", 0);
     break;
+  case command::LOAD_TRACES:
+    result.setInfo("Load Trace...", "Loads a previously saved exported set of samples for viewing", "Explore", 0);
+    break;
+  case command::PICK_TRACE:
+    result.setInfo("Display Trace", "Displays a loaded trace in the results window", "Explore", 0);
+    break;
   default:
     return;
   }
@@ -282,6 +289,12 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::LOAD_RESULTS:
     loadResults();
+    break;
+  case command::LOAD_TRACES:
+    loadTraces();
+    break;
+  case command::PICK_TRACE:
+    pickTrace();
     break;
   default:
     return false;
@@ -507,6 +520,56 @@ void MainContentComponent::loadResults()
     File selected = fc.getResult();
     String fileName = selected.getFullPathName();
     _search->loadResults(fileName.toStdString());
+  }
+}
+
+void MainContentComponent::loadTraces()
+{
+  FileChooser fc("Load Traces", File::getCurrentWorkingDirectory(),
+    "*.csv", true);
+
+  if (fc.browseForFileToOpen()) {
+    File selected = fc.getResult();
+    String fileName = selected.getFullPathName();
+    getGlobalSettings()->loadDiagnosticData(fileName.toStdString());
+  }
+}
+
+void MainContentComponent::pickTrace()
+{
+  stopSearch();
+
+  if (getGlobalSettings()->_loadedTraces.size() == 0) {
+    AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, "No Traces Loaded", "Load traces first with the Load Traces menu option");
+    return;
+  }
+
+  AlertWindow w("Select trace",
+    "Select a search trace to display in the results section.",
+    AlertWindow::QuestionIcon);
+
+  // get list of available traces
+  StringArray comboVals;
+  for (auto t : getGlobalSettings()->_loadedTraces) {
+    if (t.first == -1)
+      continue;
+    
+    comboVals.add(String(t.first));
+  }
+
+  w.addComboBox("Trace ID", comboVals);
+
+  w.addButton("Show", 1, KeyPress(KeyPress::returnKey, 0, 0));
+  w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+  if (w.runModalLoop() != 0) // is they picked 'show'
+  {
+    // this is the item they selected
+    auto box = w.getComboBoxComponent("Trace ID");
+    int selected = comboVals[box->getSelectedItemIndex()].getIntValue();
+
+    // pass off selected trace to the results viewer
+    _search->loadTrace(selected);
   }
 }
 

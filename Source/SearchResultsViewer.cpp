@@ -170,6 +170,11 @@ void SearchResultsViewer::loadResults(string filename)
   _results->loadResults(filename);
 }
 
+void SearchResultsViewer::loadTrace(int selected)
+{
+  _results->loadTrace(selected);
+}
+
 Array<AttributeSearchResult*> SearchResultsViewer::getResults()
 {
   return _results->getResults();

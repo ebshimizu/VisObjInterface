@@ -25,7 +25,7 @@ MainMenu::~MainMenu()
 }
 
 StringArray MainMenu::getMenuBarNames() {
-  const char* names[] = { "File", "Edit", "Render", "Explore", nullptr };
+  const char* names[] = { "File", "Edit", "Explore", "Analyze", nullptr };
   return StringArray(names);
 }
 
@@ -42,6 +42,7 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& menuNam
     menu.addCommandItem(cm, command::SAVE_RENDER);
   }
   else if (topLevelMenuIndex == 1) {
+    menu.addCommandItem(cm, command::ARNOLD_RENDER);
     menu.addCommandItem(cm, command::UNDO);
     menu.addCommandItem(cm, command::REDO);
     menu.addSeparator();
@@ -50,14 +51,8 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& menuNam
     menu.addCommandItem(cm, command::SETTINGS);
   }
   else if (topLevelMenuIndex == 2) {
-    menu.addCommandItem(cm, command::ARNOLD_RENDER);
-  }
-  else if (topLevelMenuIndex == 3) {
     menu.addCommandItem(cm, command::SEARCH);
     menu.addCommandItem(cm, command::STOP_SEARCH);
-    menu.addSeparator();
-    menu.addCommandItem(cm, command::SAVE_RESULTS);
-    menu.addCommandItem(cm, command::LOAD_RESULTS);
     menu.addSeparator();
     menu.addCommandItem(cm, command::UNLOCK_ALL);
     menu.addCommandItem(cm, command::LOCK_ALL_AREAS_EXCEPT);
@@ -67,6 +62,13 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& menuNam
     menu.addCommandItem(cm, command::LOCK_ALL_COLOR);
     menu.addCommandItem(cm, command::LOCK_ALL_INTENSITY);
     menu.addCommandItem(cm, command::LOCK_ALL_POSITION);
+  }
+  else if (topLevelMenuIndex == 3) {
+    menu.addCommandItem(cm, command::SAVE_RESULTS);
+    menu.addCommandItem(cm, command::LOAD_RESULTS);
+    menu.addSeparator();
+    menu.addCommandItem(cm, command::LOAD_TRACES);
+    menu.addCommandItem(cm, command::PICK_TRACE);
   }
 
   return menu;

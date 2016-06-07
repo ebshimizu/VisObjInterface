@@ -89,55 +89,6 @@ void unlockDeviceParam(string id, string param)
   d->setMetadata(param + "_lock", "n");
 }
 
-void exportSearchResults(list<SearchResult*>& results, int depth, string desc, bool makeGraph)
-{
-  // three files exported here:
-  // vector values
-  // objective function values
-  // Sample IDs for each row of the vectors
-
-  ofstream xfile;
-  ofstream valfile;
-  ofstream key;
-
-  string fnamePrefix = getGlobalSettings()->_traceRootDir + "/" + getGlobalSettings()->_sessionName + "-depth-" + String(depth).toStdString() + "-" + desc;
-  string xfname = fnamePrefix + "-vectors.txt";
-  string valfname = fnamePrefix + "-vals.txt";
-  string keyname = fnamePrefix + "-ids.txt";
-
-  // export vectors and values
-  xfile.open(xfname, ios::trunc);
-  valfile.open(valfname, ios::trunc);
-  key.open(keyname, ios::trunc);
-
-  for (const auto& r : results) {
-    bool vecFirst = true;
-    for (int i = 0; i < r->_scene.size(); i++) {
-      if (!vecFirst)
-        xfile << "\t";
-      else {
-        vecFirst = false;
-      }
-      xfile << r->_scene[i];
-    }
-    xfile << "\n";
-    valfile << r->_objFuncVal << "\n";
-    key << r->_sampleNo << "\n";
-  }
-
-
-  xfile.close();
-  valfile.close();
-  key.close();
-
-  if (makeGraph) {
-    // automatically run t-sne
-    string root = getGlobalSettings()->_traceRootDir + "/" + getGlobalSettings()->_sessionName + "-depth-" + String(depth).toStdString();
-    string cmd = "python C:/Users/falindrith/OneDrive/Documents/research/attributes_project/app/AttributesInterface/dataviz/tsne2.py " + root + " 30";
-    system(cmd.c_str());
-  }
-}
-
 void setSessionName()
 {
   time_t t = time(0);   // get time now
@@ -182,13 +133,87 @@ void GlobalSettings::dumpDiagnosticData()
 
     file.close();
 
-    // actually just go generate a report now
-    string cmd = "python C:/Users/eshimizu/Documents/AttributesInterface/dataviz/tsne2.py " + _traceRootDir + "/" + _sessionName + " 30";
-    system(cmd.c_str());
+    if (_autoRunTraceGraph) {
+      // actually just go generate a report now
+      string cmd = "python C:/Users/eshimizu/Documents/AttributesInterface/dataviz/tsne2.py " + _traceRootDir + "/" + _sessionName + " 30";
+      system(cmd.c_str());
+    }
   }
 
   _samples.clear();
   _clusterCounter = 0;
+}
+
+void GlobalSettings::loadDiagnosticData(string filename)
+{
+  ifstream file(filename);
+  string line;
+
+  _loadedTraces.clear();
+
+  getStatusBar()->setStatusMessage("Loading traces...");
+  int traceID = 1;
+
+  if (file.is_open()) {
+    while (getline(file, line)) {
+      stringstream lineStream(line);
+      string cell;
+
+      SearchResult* r = new SearchResult();
+      vector<double> sceneVals;
+      string tooltip;
+      DebugData sample;
+
+      int i = 0;
+      while (getline(lineStream, cell, ',')) {
+        if (i == 0) {
+          sample._threadId = stoi(cell);
+        }
+        else if (i == 1) {
+          sample._sampleId = stoi(cell);
+        }
+        else if (i == 2) {
+          sample._f = stod(cell);
+        }
+        else if (i == 3) {
+          sample._a = stod(cell);
+        }
+        else if (i == 4) {
+          sample._editName = cell;
+        }
+        else if (i == 5) {
+          sample._accepted = (stoi(cell) == 1) ? true : false;
+        }
+        else {
+          sceneVals.push_back(stod(cell));
+        }
+        
+        i++;
+      }
+
+      // create scene vector
+      sample._scene.resize(sceneVals.size());
+      for (int i = 0; i < sceneVals.size(); i++) {
+        sample._scene[i] = sceneVals[i];
+      }
+
+      // sort debug data
+      if (sample._threadId == -1) {
+        _loadedTraces[-1] = { sample };
+      }
+      else {
+        if (sample._editName == "TERMINAL") {
+          // new trace id needed, skip adding the terminal element, it's a duplicate
+          traceID++;
+        }
+        else {
+          _loadedTraces[traceID].push_back(sample);
+        }
+      }
+    }
+  }
+
+  getStatusBar()->setStatusMessage("Loaded " + String(_loadedTraces.size()) + " traces.");
 }
 
 unsigned int GlobalSettings::getSampleID()
@@ -315,7 +340,7 @@ GlobalSettings::GlobalSettings()
   _maxMCMCIters = 10;
   _numDisplayClusters = 1;
   _jndThreshold = 0.5;
-  _randomMode = false;
+  _standardMCMC = false;
   _currentSortMode = "Attribute Default";
   _clusterElemsPerRow = 6;
   _maxReturnedScenes = 50;
@@ -329,6 +354,8 @@ GlobalSettings::GlobalSettings()
   _grayscaleMode = false;
   _searchFailureLimit = 3;
   _searchThreads = thread::hardware_concurrency() / 2;
+  _autoRunTraceGraph = false;
+  _standardMCMCIters = 1e4;
 
   if (_searchThreads <= 0)
     _searchThreads = 1;

@@ -52,6 +52,9 @@ public:
 
   void loadResults(string filename);
 
+  // Load a selected trace into the results section
+  void loadTrace(int selected);
+
 private:
   Array<AttributeSearchResult*> _results;
   Array<AttributeSearchResult*> _newResults;

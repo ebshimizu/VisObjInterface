@@ -84,6 +84,9 @@ private:
   void saveResults();
   void loadResults();
 
+  void loadTraces();
+  void pickTrace();
+
   // Initializes the components in the interface after loading a rig
   void loadComponents();
 

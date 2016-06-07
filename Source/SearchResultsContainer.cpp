@@ -341,3 +341,52 @@ void SearchResultsContainer::loadResults(string filename)
   repaint();
   getStatusBar()->setStatusMessage("Load complete.");
 }
+
+void SearchResultsContainer::loadTrace(int selected)
+{
+  clear();
+
+  // retrieve trace vector, prepend starting element
+  vector<DebugData> start = getGlobalSettings()->_loadedTraces[-1];
+  auto trace = getGlobalSettings()->_loadedTraces[selected];
+
+  for (auto sample : trace) {
+    start.push_back(sample);
+  }
+
+  getStatusBar()->setStatusMessage("Loading " + String(trace.size()) + " samples");
+
+  // create containers for each element
+  for (auto sample : start) {
+    SearchResult* r = new SearchResult();
+    r->_scene = sample._scene;
+    r->_sampleNo = sample._sampleId;
+    r->_objFuncVal = sample._f;
+
+    AttributeSearchResult* newResult = new AttributeSearchResult(r);
+    newResult->setTooltip("Edit: " + sample._editName + "\nAttribute Value: " + String(sample._f) + "\nAcceptance Chance: " + String(sample._a));
+    
+    // render
+    auto p = getAnimationPatch();
+    int width = getGlobalSettings()->_renderWidth;
+    int height = getGlobalSettings()->_renderHeight;
+    p->setDims(width, height);
+
+    Image img = Image(Image::ARGB, width, height, true);
+    uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+
+    Snapshot* s = vectorToSnapshot(r->_scene);
+    p->renderSingleFrameToBuffer(s->getDevices(), bufptr, width, height);
+    delete s;
+    newResult->setImage(img);
+
+    addAndMakeVisible(newResult);
+    _results.add(newResult);
+  }
+
+  _numResults = _results.size();
+  setWidth(getLocalBounds().getWidth());
+  resized();
+  repaint();
+  getStatusBar()->setStatusMessage("Load complete.");
+}

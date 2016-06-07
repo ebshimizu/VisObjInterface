@@ -72,6 +72,9 @@ public:
   // Load results from a file
   void loadResults(string filename);
 
+  // display the selected trace in the results window
+  void loadTrace(int selected);
+
 private:
   Viewport* _viewer;
   Viewport* _historyViewer;

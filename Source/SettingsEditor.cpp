@@ -196,24 +196,28 @@ SettingsBoolButton::~SettingsBoolButton()
 
 void SettingsBoolButton::setState(bool newState)
 {
-  if (_id == "Random Mode")
-    getGlobalSettings()->_randomMode = newState;
+  if (_id == "Exhaustive Search")
+    getGlobalSettings()->_standardMCMC = newState;
   else if (_id == "Export Traces")
     getGlobalSettings()->_exportTraces = newState;
   else if (_id == "Grayscale Mode")
     getGlobalSettings()->_grayscaleMode = newState;
+  else if (_id == "Generate Graph")
+    getGlobalSettings()->_autoRunTraceGraph = newState;
 
   refresh();
 }
 
 bool SettingsBoolButton::getState() const
 {
-  if (_id == "Random Mode")
-    return getGlobalSettings()->_randomMode;
+  if (_id == "Exhaustive Search")
+    return getGlobalSettings()->_standardMCMC;
   else if (_id == "Export Traces")
     return getGlobalSettings()->_exportTraces;
   else if (_id == "Grayscale Mode")
     return getGlobalSettings()->_grayscaleMode;
+  else if (_id == "Generate Graph")
+    return getGlobalSettings()->_autoRunTraceGraph;
 
   return false;
 }
@@ -231,8 +235,9 @@ SettingsEditor::SettingsEditor()
   //searchComponents.add(new SettingsSlider("Mean Shift Epsilon", 0, 0.01, 1e-6));
   searchComponents.add(new SettingsSlider("Temperature", 0, 25, 0.01));
   //searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1e-3, 1e-7));
-  searchComponents.add(new SettingsBoolButton("Random Mode"));
+  searchComponents.add(new SettingsBoolButton("Exhaustive Search"));
   searchComponents.add(new SettingsBoolButton("Export Traces"));
+  searchComponents.add(new SettingsBoolButton("Generate Graph"));
   searchComponents.add(new SettingsSlider("Search Threads", 1, thread::hardware_concurrency(), 1));
   _settings.addSection("Search", searchComponents);
 
