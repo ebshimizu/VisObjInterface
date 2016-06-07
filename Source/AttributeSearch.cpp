@@ -1002,7 +1002,7 @@ void AttributeSearch::generateEdits(bool explore)
     }
   }
   else {
-    Edit* e = new Edit(set<string>());
+    Edit* e = new Edit(_lockedParams);
     e->initArbitrary("*", false, false);
     set<EditParam> params;
     params.insert(EditParam::INTENSITY);
