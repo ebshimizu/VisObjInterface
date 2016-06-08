@@ -29,15 +29,15 @@ double NoireAttribute::evaluateScene(Snapshot * s)
 
   Histogram1D brightness = getGrayscaleHist(i, 100);
 
-  // Targeting 75% dark (below 15%) and 10% bright (above 80%)
+  // Targeting 80% dark (below 20%) and 10% bright (above 75%)
   // remaining 10% can be anywhere
-  double pctBelow15 = brightness.percentLessThan(15);
-  double pctAbove80 = brightness.percentGreaterThan(80);
+  double pctBelow15 = brightness.percentLessThan(20);
+  double pctAbove = brightness.percentGreaterThan(75);
 
-  double darkScore = min(1.0, 1 - ((.75 - pctBelow15) / .75));
-  double brightScore = min(1.0, 1 - ((.1 - pctAbove80) / .1));
+  double darkScore = min(1.0, 1 - ((.8 - pctBelow15) / .8));
+  double brightScore = min(1.0, 1 - ((.1 - pctAbove) / .1));
 
-  return (darkScore * 0.4 + brightScore * 0.6) * 100;
+  return (darkScore * 0.5 + brightScore * 0.5) * 100;
 }
 
 void NoireAttribute::preProcess()

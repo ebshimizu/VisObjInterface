@@ -137,6 +137,17 @@ void GlobalSettings::dumpDiagnosticData()
     filename += ".meta";
     file.open(filename, ios::trunc);
     file << _sessionSearchSettings;
+
+    // write out search specific settings
+    file << "Starting Edit Depth: " << _editDepth << "\n";
+    file << "Edit Step Size: " << _editStepSize << "\n";
+    file << "Max MCMC Iterations: " << _maxMCMCIters << "\n";
+    file << "Max Displayed Results: " << _maxReturnedScenes << "\n";
+    file << "Required Distance from Other Results: " << _jndThreshold << "\n";
+    file << "Search Failure Limit: " << _searchFailureLimit << "\n";
+    file << "Search Threads: " << _searchThreads << "\n";
+    file << "Temperature: " << _T << "\n";
+
     file.close();
 
     if (_autoRunTraceGraph) {

@@ -32,7 +32,9 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
 
   // target colors
   Eigen::Vector3d targetBlue(53 / 255.0, 200 / 255.0, 255 / 255.0);
+  targetBlue *= 0.8;
   Eigen::Vector3d targetOrange(248 / 255.0, 164 / 255.0, 18 / 255.0);
+  targetOrange *= 0.8;
 
   for (int y = 0; y < i.getHeight(); y++) {
     for (int x = 0; x < i.getWidth(); x++) {
@@ -48,7 +50,7 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
 
         if (s > 0.9)
           reallyBlue++;
-        if (s > 0.7)
+        if (s > 0.6)
           blue++;
       }
       else {
@@ -56,7 +58,7 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
 
         if (s > 0.9)
           reallyOrange++;
-        if (s > 0.7)
+        if (s > 0.6)
           orange++;
       }
     }
@@ -73,7 +75,7 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
   double rblueScore = min(1.0, 1 - ((.1 - reallyBluePct) / .1));
   double rorangeScore = min(1.0, 1 - ((.1 - reallyOrangePct) / .1));
 
-  return (orangeScore * 0.3 + blueScore * 0.3 + rblueScore * 0.2 + rorangeScore * 0.2) * 100;
+  return (orangeScore * 0.4 + blueScore * 0.4 + rblueScore * 0.1 + rorangeScore * 0.1) * 100;
 }
 
 unsigned int OrangeBlueAttribute::closestToRange(int x, int y, int min, int max)
