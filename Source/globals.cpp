@@ -133,6 +133,12 @@ void GlobalSettings::dumpDiagnosticData()
 
     file.close();
 
+    // write metadata file
+    filename += ".meta";
+    file.open(filename, ios::trunc);
+    file << _sessionSearchSettings;
+    file.close();
+
     if (_autoRunTraceGraph) {
       // actually just go generate a report now
       string cmd = "python C:/Users/eshimizu/Documents/AttributesInterface/dataviz/tsne2.py " + _traceRootDir + "/" + _sessionName + " 30";
@@ -355,7 +361,7 @@ GlobalSettings::GlobalSettings()
   _searchFailureLimit = 3;
   _searchThreads = thread::hardware_concurrency() / 2;
   _autoRunTraceGraph = false;
-  _standardMCMCIters = 1e4;
+  _standardMCMCIters = 1e5;
 
   if (_searchThreads <= 0)
     _searchThreads = 1;

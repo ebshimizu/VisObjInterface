@@ -15,7 +15,7 @@
 //==============================================================================
 SearchResultBlender::SearchResultBlender(SearchResult * s) : _target(s)
 {
-  Snapshot* b = new Snapshot(getRig(), nullptr);
+  Snapshot* b = new Snapshot(getRig());
   _base = snapshotToVector(b);
   delete b;
 

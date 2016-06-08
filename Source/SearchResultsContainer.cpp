@@ -97,7 +97,6 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
     }
 
     // Check to make sure result is sufficiently different
-    
     // Create new result container
     AttributeSearchResult* newResult = new AttributeSearchResult(r);
 
@@ -120,6 +119,16 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
     {
       lock_guard<mutex> lock(_resultsLock);
       for (auto& res : _results) {
+        Eigen::VectorXd other = res->getFeatures();
+
+        if ((features - other).norm() < getGlobalSettings()->_jndThreshold) {
+          delete newResult;
+          return false;
+        }
+      }
+
+      // also check things in the waiting queue
+      for (auto& res : _newResults) {
         Eigen::VectorXd other = res->getFeatures();
 
         if ((features - other).norm() < getGlobalSettings()->_jndThreshold) {

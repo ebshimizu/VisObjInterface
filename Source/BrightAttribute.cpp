@@ -116,7 +116,7 @@ void BrightAttribute::preProcess()
 
   // for the brightness attribute, we want to see how much brightness each light contributes
   // and weight accordingly. We do this by rendering an image and calculating the brightness of the image
-  Snapshot* s = new Snapshot(getRig(), nullptr);
+  Snapshot* s = new Snapshot(getRig());
   auto devices = s->getRigData();
 
   for (auto d : devices) {

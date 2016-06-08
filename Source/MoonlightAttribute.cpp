@@ -122,7 +122,7 @@ void MoonlightAttribute::preProcess()
   }
 
   // generate all lights at full image to attempt to normalize colors
-  Snapshot* temp = new Snapshot(getRig(), nullptr);
+  Snapshot* temp = new Snapshot(getRig());
   auto& devices = temp->getRigData();
 
   for (auto& d : devices) {

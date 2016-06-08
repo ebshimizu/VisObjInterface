@@ -278,7 +278,7 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     stopSearch();
     break;
   case command::GET_NEW_RESULTS:
-    _search->showNewResults();
+    showNewResults();
     break;
   case command::UPDATE_NUM_THREADS:
     _searchWorker->stop();
@@ -307,7 +307,7 @@ void MainContentComponent::addHistory()
 {
   HistoryPanel* h = _search->getHistory();
   h->clearRedo();
-  h->addHistoryItem(new HistoryEntry(new Snapshot(getRig(), nullptr), "History", _viewer->getRender()));
+  h->addHistoryItem(new HistoryEntry(new Snapshot(getRig()), "History", _viewer->getRender()));
   _search->resized();
   _search->repaint();
 }
@@ -371,6 +371,11 @@ void MainContentComponent::cleanUpResults(int resultsToKeep)
 
   if (!_searchWasStopped)
     _searchWorker->startThread();
+}
+
+void MainContentComponent::showNewResults()
+{
+  _search->showNewResults();
 }
 
 void MainContentComponent::openRig() {
@@ -487,7 +492,7 @@ void MainContentComponent::saveRender() {
     File description = _parentDir.getChildFile(fileName + ".csv");
     FileOutputStream dos(description);
 
-    Snapshot s(getRig(), nullptr);
+    Snapshot s(getRig());
     dos.writeString(vectorToString(snapshotToVector(&s)));
   }
 }
@@ -726,7 +731,7 @@ void MainContentComponent::search()
     return;
   }
 
-  _searchWorker->setState(new Snapshot(getRig(), nullptr), _attrs->getActiveAttributes());
+  _searchWorker->setState(new Snapshot(getRig()), _attrs->getActiveAttributes());
   _searchWorker->startThread(9);
   _searchWasStopped = false;
 

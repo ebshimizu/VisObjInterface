@@ -183,6 +183,9 @@ public:
 
   string _sessionName;
 
+  // string containing the status of the attributes at search time
+  string _sessionSearchSettings;
+
   // dumps search diagnostics to a file
   void dumpDiagnosticData();
   void loadDiagnosticData(string filename);

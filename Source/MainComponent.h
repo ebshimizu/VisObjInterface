@@ -72,6 +72,8 @@ public:
   // Removes duplicate results from the results display section
   void cleanUpResults(int resultsToKeep);
 
+  void showNewResults();
+
 private:
   // Open a Lumiverse file
   void openRig();

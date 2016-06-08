@@ -10,6 +10,7 @@
 
 #include "AttributeSearch.h"
 #include "MeanShift.h"
+#include "MainComponent.h"
 #include <list>
 #include <algorithm>
 
@@ -396,7 +397,7 @@ Eigen::VectorXd snapshotToVector(Snapshot * s)
 
 Snapshot * vectorToSnapshot(Eigen::VectorXd v)
 {
-  Snapshot* s = new Snapshot(getRig(), nullptr);
+  Snapshot* s = new Snapshot(getRig());
   auto devices = s->getRigData();
   int numFeats = 7;
 
@@ -880,6 +881,21 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
   samples[-1].push_back(data);
 
   setSessionName();
+  getGlobalSettings()->_sessionSearchSettings = "";
+
+  // record what the search params were
+  for (const auto& attr : _active) {
+    string attrStr = attr.first + " -> ";
+    if (attr.second->getStatus() == A_LESS)
+      attrStr = attrStr + "LESS";
+    if (attr.second->getStatus() == A_MORE)
+      attrStr = attrStr + "MORE";
+    if (attr.second->getStatus() == A_EQUAL)
+      attrStr = attrStr + "SAME";
+    attrStr += "\n";
+
+    getGlobalSettings()->_sessionSearchSettings += attrStr;
+  }
 }
 
 void AttributeSearch::run()
@@ -899,11 +915,16 @@ void AttributeSearch::run()
       return;
 
     if (_viewer->isFull()) {
-      // clear new results queue
+      // clear new results queue, forcefully
       {
         MessageManagerLock mmlock;
         if (mmlock.lockWasGained()) {
-          getApplicationCommandManager()->invokeDirectly(command::GET_NEW_RESULTS, false);
+          // reach into the main component and call the function
+          MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+          if (mc != nullptr) {
+            mc->showNewResults();
+          }
         }
       }
 

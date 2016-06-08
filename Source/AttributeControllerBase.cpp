@@ -52,7 +52,7 @@ void AttributeControllerBase::paint (Graphics& g)
   g.setColour(Colours::white);
   g.drawFittedText(_name, top, Justification::left, 1);
 
-  Snapshot* s = new Snapshot(getRig(), nullptr);
+  Snapshot* s = new Snapshot(getRig());
   double attrVal = evaluateScene(s);
   delete s;
   g.drawFittedText(String(attrVal), top, Justification::right, 1);

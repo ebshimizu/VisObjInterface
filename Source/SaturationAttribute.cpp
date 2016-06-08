@@ -63,7 +63,7 @@ list<Snapshot*> SaturationAttribute::nonSemanticSearch()
     return list<Snapshot*>();
 
   // increase the saturation of each light by 0.05, do 10 times for good spread.
-  Snapshot* start = new Snapshot(getRig(), nullptr);
+  Snapshot* start = new Snapshot(getRig());
   list<Snapshot*> results;
   
   for (int i = 0; i < 10; i++) {
