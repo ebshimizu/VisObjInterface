@@ -228,7 +228,7 @@ SettingsEditor::SettingsEditor()
   Array<PropertyComponent*> searchComponents;
   searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 25, 1));
   searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 10, 0.01));
-  searchComponents.add(new SettingsSlider("Max Results", 1, 200, 1));
+  searchComponents.add(new SettingsSlider("Max Results", 1, 500, 1));
   searchComponents.add(new SettingsSlider("MCMC Step Size", 0, 0.25, 0.001));
   searchComponents.add(new SettingsSlider("MCMC Max Iterations", 1, 100, 1));
   //searchComponents.add(new SettingsSlider("Mean Shift Bandwidth", 0, 10, 0.001));

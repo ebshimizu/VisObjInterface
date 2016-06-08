@@ -31,10 +31,8 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
   int reallyOrange = 0;
 
   // target colors
-  Eigen::Vector3d targetBlue(53 / 255.0, 200 / 255.0, 255 / 255.0);
-  targetBlue *= 0.8;
-  Eigen::Vector3d targetOrange(248 / 255.0, 164 / 255.0, 18 / 255.0);
-  targetOrange *= 0.8;
+  Eigen::Vector3d targetBlue(40 / 255.0, 102 / 255.0, 215 / 255.0);
+  Eigen::Vector3d targetOrange(227 / 255.0, 138 / 255.0, 23 / 255.0);
 
   for (int y = 0; y < i.getHeight(); y++) {
     for (int x = 0; x < i.getWidth(); x++) {
@@ -50,7 +48,7 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
 
         if (s > 0.9)
           reallyBlue++;
-        if (s > 0.6)
+        if (s > 0.61)
           blue++;
       }
       else {
@@ -58,7 +56,7 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
 
         if (s > 0.9)
           reallyOrange++;
-        if (s > 0.6)
+        if (s > 0.65)
           orange++;
       }
     }

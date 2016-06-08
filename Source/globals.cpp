@@ -372,7 +372,7 @@ GlobalSettings::GlobalSettings()
   _searchFailureLimit = 3;
   _searchThreads = thread::hardware_concurrency() / 2;
   _autoRunTraceGraph = false;
-  _standardMCMCIters = 1e5;
+  _standardMCMCIters = 5e3;
 
   if (_searchThreads <= 0)
     _searchThreads = 1;
