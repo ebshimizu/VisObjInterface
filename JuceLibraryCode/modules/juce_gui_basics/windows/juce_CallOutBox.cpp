@@ -1,3 +1,4 @@
+#include "juce_CallOutBox.h"
 /*
   ==============================================================================
 
@@ -22,8 +23,8 @@
   ==============================================================================
 */
 
-CallOutBox::CallOutBox (Component& c, const Rectangle<int>& area, Component* const parent)
-    : arrowSize (16.0f), content (c), dismissalMouseClicksAreAlwaysConsumed (false)
+CallOutBox::CallOutBox (Component* c, const Rectangle<int>& area, Component* parent, bool dcoe)
+    : arrowSize (16.0f), content (c), dismissalMouseClicksAreAlwaysConsumed (false), deleteContentOnExit(dcoe)
 {
     addAndMakeVisible (content);
 
@@ -46,6 +47,8 @@ CallOutBox::CallOutBox (Component& c, const Rectangle<int>& area, Component* con
 
 CallOutBox::~CallOutBox()
 {
+  if (deleteContentOnExit)
+    delete content;
 }
 
 //==============================================================================
@@ -53,8 +56,8 @@ class CallOutBoxCallback  : public ModalComponentManager::Callback,
                             private Timer
 {
 public:
-    CallOutBoxCallback (Component* c, const Rectangle<int>& area, Component* parent)
-        : content (c), callout (*c, area, parent)
+    CallOutBoxCallback (Component* c, const Rectangle<int>& area, Component* parent, bool dcoe)
+        : content (c), callout (c, area, parent, dcoe)
     {
         callout.setVisible (true);
         callout.enterModalState (true, this);
@@ -69,17 +72,17 @@ public:
             callout.dismiss();
     }
 
-    ScopedPointer<Component> content;
+    Component* content;
     CallOutBox callout;
 
     JUCE_DECLARE_NON_COPYABLE (CallOutBoxCallback)
 };
 
-CallOutBox& CallOutBox::launchAsynchronously (Component* content, const Rectangle<int>& area, Component* parent)
+CallOutBox& CallOutBox::launchAsynchronously (Component* content, const Rectangle<int>& area, Component* parent, bool dcoe)
 {
     jassert (content != nullptr); // must be a valid content component!
 
-    return (new CallOutBoxCallback (content, area, parent))->callout;
+    return (new CallOutBoxCallback (content, area, parent, dcoe))->callout;
 }
 
 //==============================================================================
@@ -102,7 +105,7 @@ void CallOutBox::paint (Graphics& g)
 void CallOutBox::resized()
 {
     const int borderSpace = getBorderSize();
-    content.setTopLeftPosition (borderSpace, borderSpace);
+    content->setTopLeftPosition (borderSpace, borderSpace);
     refreshPath();
 }
 
@@ -179,8 +182,8 @@ void CallOutBox::updatePosition (const Rectangle<int>& newAreaToPointTo, const R
 
     const int borderSpace = getBorderSize();
 
-    Rectangle<int> newBounds (content.getWidth()  + borderSpace * 2,
-                              content.getHeight() + borderSpace * 2);
+    Rectangle<int> newBounds (content->getWidth()  + borderSpace * 2,
+                              content->getHeight() + borderSpace * 2);
 
     const int hw = newBounds.getWidth() / 2;
     const int hh = newBounds.getHeight() / 2;
@@ -235,7 +238,7 @@ void CallOutBox::refreshPath()
 
     const float gap = 4.5f;
 
-    outline.addBubble (content.getBounds().toFloat().expanded (gap, gap),
+    outline.addBubble (content->getBounds().toFloat().expanded (gap, gap),
                        getLocalBounds().toFloat(),
                        targetPoint - getPosition().toFloat(),
                        9.0f, arrowSize * 0.7f);
