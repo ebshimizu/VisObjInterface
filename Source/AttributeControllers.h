@@ -13,10 +13,8 @@
 
 // Attribute includes
 #include "TestAttribute.h"
-#include "BrightAttribute.h"
 //#include "BacklitAttribute.h"
 //#include "SoftAttribute.h"
-#include "ContrastAttribute.h"
 #include "LowKeyAttribute.h"
 //#include "HighAngleAttribute.h"
 //#include "SVRAttribute.h"

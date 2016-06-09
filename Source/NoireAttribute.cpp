@@ -9,7 +9,6 @@
 */
 
 #include "NoireAttribute.h"
-#include "BrightAttribute.h"
 
 NoireAttribute::NoireAttribute() : HistogramAttribute("Noir", 50, 50)
 {
@@ -51,33 +50,6 @@ void NoireAttribute::preProcess()
     _cache[a + "_top"] = getRig()->select("$area=" + a + "[$angle=top]");
     _cache[a + "_front"] = getRig()->select("$area=" + a + "[$angle=front]");
     _cache[a] = getRig()->select("$area=" + a);
-  }
-
-  auto& devices = getRig()->getDeviceRaw();
-
-  // this attribute attempts to find the pre-computed brightnessAttributeWeight if it exists
-  // if it doesn't we kinda just cheat a bit by creating a brightness attribute and preprocessing it
-  // and then copying the values resulting from that.
-  bool weightsExist = true;
-  for (const auto& d : devices) {
-    if (!d->metadataExists("brightnessAttributeWeight")) {
-      weightsExist = false;
-      break;
-    }
-  }
-
-  if (!weightsExist) {
-    // make those things exist
-    BrightAttribute* ba = new BrightAttribute("NOIRE HELPER");
-    ba->preProcess();
-    delete ba;
-  }
-
-  // now that the metadata exists, copy it
-  for (const auto& d : devices) {
-    if (d->metadataExists("brightnessAttributeWeight")) {
-      _weights[d->getId()] = stof(d->getMetadata("brightnessAttributeWeight"));
-    }
   }
 }
 

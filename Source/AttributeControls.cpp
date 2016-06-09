@@ -256,10 +256,10 @@ void AttributeControls::initAttributes()
   _container->addAttributeController(new NoireAttribute());
 
   // Histogram brightness
-  _container->addAttributeController(new HistogramBrightness("Brightness - Hist", 50, 100, 100));
+  _container->addAttributeController(new HistogramBrightness("Brightness", 50, 100, 100));
 
   // Histogram contrast
-  _container->addAttributeController(new HistogramContrast("Contrast - Hist", 255, 100, 100));
+  _container->addAttributeController(new HistogramContrast("Contrast", 255, 100, 100));
 
   // Orange Blue
   _container->addAttributeController(new OrangeBlueAttribute(100, 100));

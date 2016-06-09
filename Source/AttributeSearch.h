@@ -74,6 +74,8 @@ public:
 
   void setInternalID(int id) { _id = id; }
 
+  int _phase;
+
 private:
   // object to dump results into once search is complete.
   SearchResultsViewer* _viewer;
@@ -97,29 +99,8 @@ private:
   // it in to the SearchResultsViewer object
   void runSearch();
 
-  // Runs a search with the current scenes in results as the starting scenes.
-  //void runStandardSearch();
-
-  // runs an exploratory search using results as the starting scenes
-  //void runExploreSearch();
-
-  // Generates the color scheme edits for the selected area and system. If area is blank,
-  // applies to all areas in the scene.
-  //void generateColorEdits(string area);
-
-  // Runs a single level iteration of the search algorithm, starting at the given scenes.
-  //list<SearchResult*> runSingleLevelSearch(list<SearchResult*> startScenes, int level, attrObjFunc f);
-
-  // Runs a single level iteration of the search algorithm, starting at the given scenes.
-  //list<SearchResult*> runSingleLevelExploreSearch(list<SearchResult*> startScenes, int level);
-
-  // Given a current configuration, use MCMC to perform an edit on the configuration
-  //list<mcmcSample> performEdit(vector<EditConstraint> edit, Snapshot* orig, attrObjFunc f, string name, bool acceptStd = true);
-
-  // Do MCMC with the given parameters. Returns the list of samples and number of accepted samples.
-  // Samples list will be empty if saveSamples is false.
-  //pair<list<mcmcSample>, int> doMCMC(vector<EditConstraint> edit, Snapshot* start,
-  //  attrObjFunc f, int iters, double sigma, bool saveSamples, string name, bool acceptStd);
+  // Runs a search for each edit in order (non-parallel at the moment)
+  void checkEdits();
 
   // Returns the number of features in the vector used for search
   int getVecLength(vector<EditConstraint>& edit, Snapshot* s);

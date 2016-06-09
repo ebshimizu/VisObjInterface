@@ -143,9 +143,7 @@
     <ClCompile Include="..\..\Source\SceneViewer.cpp"/>
     <ClCompile Include="..\..\Source\SettingsEditor.cpp"/>
     <ClCompile Include="..\..\Source\StatusBar.cpp"/>
-    <ClCompile Include="..\..\Source\BrightAttribute.cpp"/>
     <ClCompile Include="..\..\Source\CompColorAttribute.cpp"/>
-    <ClCompile Include="..\..\Source\ContrastAttribute.cpp"/>
     <ClCompile Include="..\..\Source\HistogramAttribute.cpp"/>
     <ClCompile Include="..\..\Source\HistogramBrightness.cpp"/>
     <ClCompile Include="..\..\Source\HistogramContrast.cpp"/>
@@ -1716,9 +1714,7 @@
     <ClInclude Include="..\..\Source\SettingsEditor.h"/>
     <ClInclude Include="..\..\Source\StatusBar.h"/>
     <ClInclude Include="..\..\Source\TopComponentContainer.h"/>
-    <ClInclude Include="..\..\Source\BrightAttribute.h"/>
     <ClInclude Include="..\..\Source\CompColorAttribute.h"/>
-    <ClInclude Include="..\..\Source\ContrastAttribute.h"/>
     <ClInclude Include="..\..\Source\HistogramAttribute.h"/>
     <ClInclude Include="..\..\Source\HistogramBrightness.h"/>
     <ClInclude Include="..\..\Source\HistogramContrast.h"/>

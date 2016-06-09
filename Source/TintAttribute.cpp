@@ -9,7 +9,6 @@
 */
 
 #include "TintAttribute.h"
-#include "BrightAttribute.h"
 
 TintAttribute::TintAttribute(int w, int h) : HistogramAttribute("Tint", w, h)
 {

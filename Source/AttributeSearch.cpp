@@ -476,9 +476,12 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f)
 
 void AttributeSearchThread::run()
 {
+  //checkEdits();
+  //return;
+
   // here we basically want to run the search indefinitely until cancelled by user
   // so we just call the actual search function over and over
-  while (1) {
+  while (1) {    
     runSearch();
 
     if (threadShouldExit())
@@ -583,18 +586,18 @@ void AttributeSearchThread::runSearch()
   r->_scene = snapshotToVector(start);
   delete start;
   
+  // diagnostics
+  DebugData data;
+  auto& samples = getGlobalSettings()->_samples;
+  data._f = r->_objFuncVal;
+  data._a = 1;
+  data._sampleId = samples[_id].size() + 1;
+  data._editName = "TERMINAL";
+  data._accepted = true;
+  data._scene = r->_scene;
+
   // add if we did better
   if (r->_objFuncVal < orig) {
-    // diagnostics
-    DebugData data;
-    auto& samples = getGlobalSettings()->_samples;
-    data._f = r->_objFuncVal;
-    data._a = 1;
-    data._sampleId = samples[_id].size() + 1;
-    data._editName = "TERMINAL";
-    data._accepted = true;
-    data._scene = r->_scene;
-
     // send scene to the results area. may chose to not use the scene
     if (!_viewer->addNewResult(r)) {
       // r has been deleted by _viewer here
@@ -606,11 +609,126 @@ void AttributeSearchThread::runSearch()
         _maxDepth++;
       }
     }
-
-    samples[_id].push_back(data);
   }
   else {
+    data._accepted = false;
     delete r;
+  }
+
+  samples[_id].push_back(data);
+}
+
+void AttributeSearchThread::checkEdits()
+{
+  // RNG
+  unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
+  default_random_engine gen(seed1);
+  uniform_real_distribution<double> udist(0.0, 1.0);
+
+  for (auto e : _edits) {
+    // assign start scene, initialize result
+    Snapshot* start = new Snapshot(*_original);
+    SearchResult* r = new SearchResult();
+    double fx = _f(start);
+    double orig = fx;
+
+    // magic number alert
+    int iters = getGlobalSettings()->_standardMCMC ? getGlobalSettings()->_standardMCMCIters : getGlobalSettings()->_maxMCMCIters;
+
+    // No depth counter here, just one edit
+    if (threadShouldExit()) {
+      delete r;
+      delete start;
+      return;
+    }
+
+    r->_editHistory.push_back(e);
+
+    // iterate a bit, do a little bit of searching
+    // at this point it's probably better to just do gradient descent, but for testing
+    // we'll simulate this by doing some mcmc iterations
+    Eigen::VectorXd minScene;
+    double minfx = fx;
+
+    // do the adjustment until acceptance
+    for (int i = 0; i < iters; i++) {
+      if (threadShouldExit()) {
+        delete r;
+        delete start;
+        return;
+      }
+
+      //  adjust the starting scene
+      Snapshot* sp = new Snapshot(*start);
+      e->performEdit(sp, getGlobalSettings()->_editStepSize);
+
+      // check for acceptance
+      double fxp = _f(sp);
+      double a = min(exp((1 / _T) * (fx - fxp)), 1.0);
+
+      // accept if a >= 1 or with probability a
+      if (a >= 1 || udist(gen) < a) {
+        unsigned int sampleId = getGlobalSettings()->getSampleID();
+
+        // update x
+        delete start;
+        start = sp;
+        fx = fxp;
+
+        // update result
+        r->_objFuncVal = fx;
+
+        // diagnostics
+        if (!getGlobalSettings()->_standardMCMC) {
+          DebugData data;
+          auto& samples = getGlobalSettings()->_samples;
+          data._f = r->_objFuncVal;
+          data._a = a;
+          data._sampleId = samples[_id].size() + 1;
+          data._editName = e->_name;
+          data._accepted = true;
+          data._scene = snapshotToVector(sp);
+          samples[_id].push_back(data);
+        }
+      }
+      else {
+        delete sp;
+      }
+    }
+
+    r->_scene = snapshotToVector(start);
+    delete start;
+
+    // diagnostics
+    DebugData data;
+    auto& samples = getGlobalSettings()->_samples;
+    data._f = r->_objFuncVal;
+    data._a = 1;
+    data._sampleId = samples[_id].size() + 1;
+    data._editName = "TERMINAL";
+    data._accepted = true;
+    data._scene = r->_scene;
+
+    // add if we did better
+    if (r->_objFuncVal < orig) {
+      // send scene to the results area. may chose to not use the scene
+      if (!_viewer->addNewResult(r)) {
+        // r has been deleted by _viewer here
+        _failures++;
+        data._accepted = false;
+
+        if (_failures > getGlobalSettings()->_searchFailureLimit) {
+          _failures = 0;
+          _maxDepth++;
+        }
+      }
+    }
+    else {
+      data._accepted = false;
+      delete r;
+    }
+
+    samples[_id].push_back(data);
   }
 }
 
@@ -980,20 +1098,6 @@ void AttributeSearch::generateEdits(bool explore)
     }
   }
 
-  // for exploratory search, we ask the attributes what to do and then return
-  //if (explore) {
-  //  for (auto& a : _active) {
-  //    if (a.second->getStatus() == A_EXPLORE) {
-  //      auto edits = a.second->getExploreEdits();
-  //      for (auto& e : edits) {
-  //        _edits[e.first] = e.second;
-  //      }
-  //    }
-  //  }
-  //
-  //  return;
-  //}
-
   // The search assumes two things: the existence of a metadata field called 'system'
   // and the existence of a metadata field called 'area' on every device. It does not
   // care what you call the things in these fields, but it does care that they exist.
@@ -1035,14 +1139,6 @@ void AttributeSearch::generateEdits(bool explore)
     getGlobalSettings()->_edits.push_back(e);
   }
 
-
-  // Create edits for each system within an area
-  //for (const auto& s : systems) {
-  //  for (const auto& a : areas) {
-  //    generateDefaultEdits("$area=" + a + "[$system=" + s + "]");
-  //  }
-  //}
-
   // Special edit types
   // left blank for now.
   // may be used for user specified edits? May do cross-system/area edits?
@@ -1050,6 +1146,19 @@ void AttributeSearch::generateEdits(bool explore)
 
 void AttributeSearch::generateDefaultEdits(string select, int editType)
 {
+  // count the number of devices, some edits may not be useful for selections
+  // of just single devices
+  string query;
+  if (editType == 1)
+    query = select;
+  else if (editType == 2)
+    query = "$area=" + select;
+  else if (editType == 3)
+    query = "$system=" + select;
+
+  auto devices = getRig()->select(query).getDevices();
+  int numDevices = devices.size();
+
   auto& edits = getGlobalSettings()->_edits;
 
   // set init function
@@ -1062,14 +1171,9 @@ void AttributeSearch::generateDefaultEdits(string select, int editType)
       e->initWithSystem(select, joint, uniform);
   };
 
-  set<EditParam> allParams;
-  // looks a bit arbitrary, but see definition of EditParam. Includes all params except RGB.
-  for (int i = 0; i <= 5; i++) {
-    allParams.insert((EditParam)i);
-  }
   Edit* e = new Edit(_lockedParams);
   initfunc(e, false, false);
-  e->setParams(allParams);
+  e->setParams({ INTENSITY, RED, BLUE, GREEN });
   e->_name = select + "_all";
   if (e->canDoEdit())
     edits.push_back(e);
@@ -1087,25 +1191,27 @@ void AttributeSearch::generateDefaultEdits(string select, int editType)
     else
       delete e;
 
-    // Uniform intensity
-    e = new Edit(_lockedParams);
-    initfunc(e, false, true);
-    e->setParams({ INTENSITY });
-    e->_name = select + "_uniform_intensity";
-    if (e->canDoEdit())
-      edits.push_back(e);
-    else
-      delete e;
+    if (numDevices > 1) {
+      // Uniform intensity
+      e = new Edit(_lockedParams);
+      initfunc(e, false, true);
+      e->setParams({ INTENSITY });
+      e->_name = select + "_uniform_intensity";
+      if (e->canDoEdit())
+        edits.push_back(e);
+      else
+        delete e;
 
-    // Joint intensity
-    e = new Edit(_lockedParams);
-    initfunc(e, true, false);
-    e->setParams({ INTENSITY });
-    e->_name = select + "_joint_intensity";
-    if (e->canDoEdit())
-      edits.push_back(e);
-    else
-      delete e;
+      // Joint intensity
+      e = new Edit(_lockedParams);
+      initfunc(e, true, false);
+      e->setParams({ INTENSITY });
+      e->_name = select + "_joint_intensity";
+      if (e->canDoEdit())
+        edits.push_back(e);
+      else
+        delete e;
+    }
   }
 
   if (_lockedParams.count("color") == 0) {
@@ -1129,25 +1235,27 @@ void AttributeSearch::generateDefaultEdits(string select, int editType)
     else
       delete e;
 
-    // Joint Hue
-    e = new Edit(_lockedParams);
-    initfunc(e, true, false);
-    e->setParams({ HUE });
-    e->_name = select + "_joint_hue";
-    if (e->canDoEdit())
-      edits.push_back(e);
-    else
-      delete e;
+    if (numDevices > 1) {
+      // Joint Hue
+      e = new Edit(_lockedParams);
+      initfunc(e, true, false);
+      e->setParams({ HUE });
+      e->_name = select + "_joint_hue";
+      if (e->canDoEdit())
+        edits.push_back(e);
+      else
+        delete e;
 
-    // Uniform color
-    e = new Edit(_lockedParams);
-    initfunc(e, false, true);
-    e->setParams({ RED, GREEN, BLUE });
-    e->_name = select + "_uniform_color";
-    if (e->canDoEdit())
-      edits.push_back(e);
-    else
-      delete e;
+      // Joint color
+      e = new Edit(_lockedParams);
+      initfunc(e, true, false);
+      e->setParams({ RED, GREEN, BLUE });
+      e->_name = select + "_joint_color";
+      if (e->canDoEdit())
+        edits.push_back(e);
+      else
+        delete e;
+    }
   }
 
   if (_lockedParams.count("polar") == 0 && _lockedParams.count("azimuth") == 0) {

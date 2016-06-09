@@ -9,7 +9,6 @@
 */
 
 #include "SaturationAttribute.h"
-#include "BrightAttribute.h"
 
 SaturationAttribute::SaturationAttribute(int numBins, int w, int h) :
   _numBins(numBins), HistogramAttribute("Saturation", w, h)
@@ -26,36 +25,6 @@ double SaturationAttribute::evaluateScene(Snapshot * s)
   Histogram1D sat = getSatHist(i, _numBins);
   return sat.avg() * 100;
 }
-
-//void SaturationAttribute::preProcess()
-//{
-//  auto& devices = getRig()->getDeviceRaw();
-//
-//  // this attribute attempts to find the pre-computed brightnessAttributeWeight if it exists
-//  // if it doesn't we kinda just cheat a bit by creating a brightness attribute and preprocessing it
-//  // and then copying the values resulting from that.
-//  bool weightsExist = true;
-//  for (const auto& d : devices) {
-//    if (!d->metadataExists("brightnessAttributeWeight")) {
-//      weightsExist = false;
-//      break;
-//    }
-//  }
-//
-//  if (!weightsExist) {
-//    // make those things exist
-//    BrightAttribute* ba = new BrightAttribute("CONTRAST HELPER");
-//    ba->preProcess();
-//    delete ba;
-//  }
-//
-//  // now that the metadata exists, copy it
-//  for (const auto& d : devices) {
-//    if (d->metadataExists("brightnessAttributeWeight")) {
-//      _weights[d->getId()] = stof(d->getMetadata("brightnessAttributeWeight"));
-//    }
-//  }
-//}
 
 list<Snapshot*> SaturationAttribute::nonSemanticSearch()
 {

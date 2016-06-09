@@ -397,13 +397,7 @@
     <ClCompile Include="..\..\Source\StatusBar.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\BrightAttribute.cpp">
-      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\CompColorAttribute.cpp">
-      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\ContrastAttribute.cpp">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\HistogramAttribute.cpp">
@@ -2178,13 +2172,7 @@
     <ClInclude Include="..\..\Source\TopComponentContainer.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\BrightAttribute.h">
-      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\CompColorAttribute.h">
-      <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\ContrastAttribute.h">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\HistogramAttribute.h">

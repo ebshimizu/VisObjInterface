@@ -34,18 +34,10 @@
       </GROUP>
       <GROUP id="{2AE89FBF-419D-C3BF-F7EF-2317DD7C267B}" name="attributes">
         <GROUP id="{9D54FF1D-9ACE-EBC7-F1C5-BC6BB3FDA4C7}" name="attribute instances">
-          <FILE id="fgXToS" name="BrightAttribute.cpp" compile="1" resource="0"
-                file="Source/BrightAttribute.cpp"/>
-          <FILE id="mAgE17" name="BrightAttribute.h" compile="0" resource="0"
-                file="Source/BrightAttribute.h"/>
           <FILE id="lte0l3" name="CompColorAttribute.cpp" compile="1" resource="0"
                 file="Source/CompColorAttribute.cpp"/>
           <FILE id="PjKvau" name="CompColorAttribute.h" compile="0" resource="0"
                 file="Source/CompColorAttribute.h"/>
-          <FILE id="qavHAv" name="ContrastAttribute.cpp" compile="1" resource="0"
-                file="Source/ContrastAttribute.cpp"/>
-          <FILE id="Kzop1g" name="ContrastAttribute.h" compile="0" resource="0"
-                file="Source/ContrastAttribute.h"/>
           <FILE id="Rn9Nec" name="HistogramAttribute.cpp" compile="1" resource="0"
                 file="Source/HistogramAttribute.cpp"/>
           <FILE id="eQDJa6" name="HistogramAttribute.h" compile="0" resource="0"
