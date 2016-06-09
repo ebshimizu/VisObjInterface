@@ -13,6 +13,8 @@
 
 #include "AttributeSearchResult.h"
 
+class AttributeSearchResult;
+
 class AttributeSorter
 {
 public:

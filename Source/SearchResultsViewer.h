@@ -44,7 +44,7 @@ public:
   void paint (Graphics&);
   void resized();
 
-  void redisplay();
+  void cluster();
   void sort();
 
   Array<AttributeSearchResult*> getResults();

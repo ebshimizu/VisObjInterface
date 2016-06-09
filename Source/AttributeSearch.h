@@ -14,7 +14,6 @@
 #include "globals.h"
 #include "AttributeControllerBase.h"
 #include <random>
-#include <dlib/clustering.h>
 #include "Edit.h"
 #include "SearchResultsViewer.h"
 
@@ -27,10 +26,6 @@ struct DeviceInfo {
   EditConstraint _c;
   string _id;
 };
-
-// kmeans typedefs
-typedef dlib::matrix<double, 0, 1> sampleType;
-typedef dlib::linear_kernel<sampleType> kernelType;
 
 // Clusters results using k-means. K is chosen iteratively by computing the
 // mean distance from every scene to the cluster center until it is below

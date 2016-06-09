@@ -88,12 +88,19 @@ AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(res
   tt = tt + " (" + String(-result->_objFuncVal) + ")";
   setTooltip(tt);
   _isHovered = false;
+
+  _clusterContents = new SearchResultsContainer();
+
+  // magic number alert
+  _clusterContents->setWidth(660);
 }
 
 AttributeSearchResult::~AttributeSearchResult()
 {
   if (_result != nullptr)
     delete _result;
+
+  delete _clusterContents;
 }
 
 void AttributeSearchResult::paint (Graphics& g)
@@ -189,11 +196,16 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
       }
     }
   }
-  else if (event.mods.isLeftButtonDown()) {
+  else if (event.mods.isLeftButtonDown() && event.mods.isCommandDown()) {
     // popup window to allow blending of current scene with search scene
     SearchResultBlender* popupComponent = new SearchResultBlender(_result);
     popupComponent->setSize(300, 45);
     CallOutBox& cb = CallOutBox::launchAsynchronously(popupComponent, getScreenBounds(), nullptr);
+  }
+  else if (event.mods.isLeftButtonDown()) {
+    if (isClusterCenter()) {
+      CallOutBox& cb = CallOutBox::launchAsynchronously(_clusterContents, getScreenBounds(), nullptr, false);
+    }
   }
 }
 
@@ -230,4 +242,20 @@ int AttributeSearchResult::compareElements(AttributeSearchResult * first, Attrib
 Eigen::VectorXd AttributeSearchResult::getFeatures()
 {
   return _features;
+}
+
+bool AttributeSearchResult::isClusterCenter()
+{
+  return _clusterContents->getResults().size() > 0;
+}
+
+SearchResultsContainer * AttributeSearchResult::getClusterContainer()
+{
+  return _clusterContents;
+}
+
+void AttributeSearchResult::addToCluster(AttributeSearchResult * elem)
+{
+  _clusterContents->appendNewResult(elem);
+
 }

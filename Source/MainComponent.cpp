@@ -134,7 +134,7 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.addDefaultKeypress('s', ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
     break;
   case command::RECLUSTER:
-    result.setInfo("Recluster", "Recluster results based on user settings", "Explore", 0);
+    result.setInfo("Cluster", "Cluster results", "Explore", 0);
     break;
   case command::UNDO:
     result.setInfo("Undo", "Undo", "Edit", 0);
@@ -236,7 +236,7 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     saveAs();
     break;
   case command::RECLUSTER:
-    _search->redisplay();
+    _search->cluster();
     break;
   case command::UNDO:
     undo();

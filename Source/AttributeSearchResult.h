@@ -13,6 +13,9 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "globals.h"
+#include "SearchResultsContainer.h"
+
+class SearchResultsContainer;
 
 //==============================================================================
 class SearchResultBlender : public Component, public Slider::Listener
@@ -68,6 +71,15 @@ public:
 
   Eigen::VectorXd getFeatures();
 
+  // if true, the clusterContents field has stuff in it
+  bool isClusterCenter();
+
+  // Gets the container for cluster elements 
+  SearchResultsContainer* getClusterContainer();
+
+  // Adds the specified element to this cluster
+  void addToCluster(AttributeSearchResult* elem);
+
 private:
   // Search result object from the attribute search
   SearchResult* _result;
@@ -77,6 +89,9 @@ private:
 
   // vector representation of a scaled down (100 x 100) thumbnail image
   Eigen::VectorXd _features;
+
+  // Contains elements that belong to this particular cluster
+  SearchResultsContainer* _clusterContents;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AttributeSearchResult)
 };

@@ -11,8 +11,13 @@
 #include "AttributeSearch.h"
 #include "MeanShift.h"
 #include "MainComponent.h"
+#include <dlib/clustering.h>
 #include <list>
 #include <algorithm>
+
+// kmeans typedefs
+typedef dlib::matrix<double, 0, 1> sampleType;
+typedef dlib::linear_kernel<sampleType> kernelType;
 
 // Search functions
 // ==============================================================================

@@ -126,9 +126,9 @@ void SearchResultsViewer::resized()
   _viewer->setBounds(lbounds);
 }
 
-void SearchResultsViewer::redisplay()
+void SearchResultsViewer::cluster()
 {
-  _results->resized();
+  _results->cluster();
   resized();
 }
 

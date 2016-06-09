@@ -11,6 +11,11 @@
 #include "SearchResultsContainer.h"
 #include "AttributeSorting.h"
 #include "AttributeSearch.h"
+#include <dlib/clustering.h>
+
+// kmeans typedefs
+typedef dlib::matrix<double, 0, 1> sampleType;
+typedef dlib::linear_kernel<sampleType> kernelType;
 
 SearchResultsContainer::SearchResultsContainer()
 {
@@ -197,6 +202,19 @@ void SearchResultsContainer::clear()
   _sampleId = 0;
 }
 
+void SearchResultsContainer::remove()
+{
+  lock_guard<mutex> lock(_resultsLock);
+
+  _newResults.clear();
+  _results.clear();
+  _numResults = _results.size();
+  setWidth(getLocalBounds().getWidth());
+  resized();
+  repaint();
+  _sampleId = 0;
+}
+
 bool SearchResultsContainer::isFull()
 {
   return (_newResults.size() + _results.size()) > getGlobalSettings()->_maxReturnedScenes;
@@ -253,6 +271,53 @@ void SearchResultsContainer::cleanUp(int resultsToKeep)
   }
 
   _results = newResults;
+  setWidth(getLocalBounds().getWidth());
+  repaint();
+}
+
+void SearchResultsContainer::cluster()
+{
+  lock_guard<mutex> lock(_resultsLock);
+
+  Array<AttributeSearchResult*> elems;
+
+  // gather everything back up into a single array
+  // and delete current cluster centers
+  for (auto& r : _results) {
+    if (r->isClusterCenter()) {
+      SearchResultsContainer* c = r->getClusterContainer();
+
+      for (auto& r2 : c->getResults()) {
+        // no heirarchy allowed at the moment
+        elems.add(r2);
+      }
+
+      // remove, don't delete, elements from cluster object before deletion
+      c->remove();
+      delete r;
+    }
+    else {
+      elems.add(r);
+    }
+  }
+
+  _results.clear();
+
+  // now that all the current elements are in a single place, run a clustering algorithm
+  auto centers = kmeansClustering(elems, 5);
+
+  // we have the centers, place the other elements into the proper containers
+  for (auto& e : elems) {
+    unsigned long c = e->getSearchResult()->_cluster;
+    centers[c]->addToCluster(e);
+  }
+
+  // add centers to the main container
+  for (auto& c : centers) {
+    addAndMakeVisible(c);
+    _results.add(c);
+  }
+
   setWidth(getLocalBounds().getWidth());
   repaint();
 }
@@ -401,4 +466,110 @@ void SearchResultsContainer::loadTrace(int selected)
   resized();
   repaint();
   getStatusBar()->setStatusMessage("Load complete.");
+}
+
+void SearchResultsContainer::appendNewResult(AttributeSearchResult * r)
+{
+  lock_guard<mutex> lock(_resultsLock);
+  addAndMakeVisible(r);
+  _results.add(r);
+  _numResults = _results.size();
+  setWidth(getLocalBounds().getWidth());
+  resized();
+  repaint();
+}
+
+AttributeSearchResult * SearchResultsContainer::createContainerFor(SearchResult * r)
+{
+  AttributeSearchResult* newResult = new AttributeSearchResult(r);
+
+  // render
+  auto p = getAnimationPatch();
+  int width = getGlobalSettings()->_renderWidth;
+  int height = getGlobalSettings()->_renderHeight;
+  p->setDims(width, height);
+
+  Image img = Image(Image::ARGB, width, height, true);
+  uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+
+  Snapshot* s = vectorToSnapshot(r->_scene);
+  p->renderSingleFrameToBuffer(s->getDevices(), bufptr, width, height);
+  delete s;
+  newResult->setImage(img);
+
+  return newResult;
+}
+
+Array<AttributeSearchResult *> SearchResultsContainer::kmeansClustering(Array<AttributeSearchResult*>& elems, int k)
+{
+  // mostly this function is a debug one to test that we can place things in
+  // the proper GUI components
+  if (elems.size() == 0)
+    return Array<AttributeSearchResult*>();
+  
+  if (k <= 1) {
+    // average of all elements is center
+    Eigen::VectorXd avg;
+    avg.resize(elems.getFirst()->getSearchResult()->_scene.size());
+    avg.setZero();
+
+    for (auto e : elems) {
+      avg += e->getSearchResult()->_scene;
+      e->getSearchResult()->_cluster = 0;
+    }
+    avg /= (double)elems.size();
+
+    SearchResult* r = new SearchResult();
+    r->_cluster = 0;
+    r->_scene = avg;
+
+    Array<AttributeSearchResult*> ret;
+    ret.add(createContainerFor(r));
+    return ret;
+  }
+  else if (elems.size() <= k) {
+    return elems;
+  }
+  else {
+    // kmeans setup
+    dlib::kcentroid<kernelType> kkmeansKernel(kernelType(), 0.001);
+    dlib::kkmeans<kernelType> kern(kkmeansKernel);
+
+    vector<sampleType> samples;
+    for (auto& e : elems) {
+      samples.push_back(dlib::mat(e->getSearchResult()->_scene));
+    }
+    vector<sampleType> centers;
+
+    // use dlib to get the initial centers
+    dlib::pick_initial_centers(k, centers, samples, kern.get_kernel());
+
+    // Run kmeans
+    dlib::find_clusters_using_kmeans(samples, centers);
+
+    // assign results to clusters
+    for (int i = 0; i < elems.size(); i++) {
+      unsigned long center = dlib::nearest_center(centers, samples[i]);
+      elems[i]->getSearchResult()->_cluster = center;
+    }
+
+    // create search result objects
+    Array<AttributeSearchResult*> ret;
+    for (int i = 0; i < centers.size(); i++) {
+      Eigen::VectorXd center;
+      center.resize(centers[i].nr());
+
+      for (int j = 0; j < centers[i].nr(); j++) {
+        center[j] = centers[i](j);
+      }
+
+      SearchResult* r = new SearchResult();
+      r->_cluster = i;
+      r->_scene = center;
+
+      ret.add(createContainerFor(r));
+    }
+
+    return ret;
+  }
 }
