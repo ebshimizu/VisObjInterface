@@ -80,6 +80,13 @@ public:
   // Adds the specified element to this cluster
   void addToCluster(AttributeSearchResult* elem);
 
+  // convert RGB to Lab, D65 ref illuminant
+  Eigen::Vector3d rgbToLab(double r, double g, double b);
+
+  // Calculate the distance between this result and another result
+  // Current metric: average pixel difference in Lab
+  double dist(Eigen::VectorXd& y);
+
 private:
   // Search result object from the attribute search
   SearchResult* _result;
@@ -87,7 +94,7 @@ private:
   // rendered image 
   Image _render;
 
-  // vector representation of a scaled down (100 x 100) thumbnail image
+  // vector representation of a scaled down (100 x 100) thumbnail image in Lab
   Eigen::VectorXd _features;
 
   // Contains elements that belong to this particular cluster

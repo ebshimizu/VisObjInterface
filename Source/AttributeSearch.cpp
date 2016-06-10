@@ -1040,7 +1040,7 @@ void AttributeSearch::run()
     if (_viewer->isFull()) {
       // clear new results queue, forcefully
       {
-        MessageManagerLock mmlock;
+        MessageManagerLock mmlock(this);
         if (mmlock.lockWasGained()) {
           // reach into the main component and call the function
           MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
@@ -1056,7 +1056,7 @@ void AttributeSearch::run()
       signalThreadShouldExit();
     }
     else {
-      MessageManagerLock mmlock;
+      MessageManagerLock mmlock(this);
       if (mmlock.lockWasGained()) {
         getApplicationCommandManager()->invokeDirectly(command::GET_NEW_RESULTS, false);
       }

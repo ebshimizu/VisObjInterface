@@ -92,7 +92,7 @@ AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(res
   _clusterContents = new SearchResultsContainer();
 
   // magic number alert
-  _clusterContents->setWidth(660);
+  _clusterContents->setWidth(820);
 }
 
 AttributeSearchResult::~AttributeSearchResult()
@@ -145,9 +145,11 @@ void AttributeSearchResult::setImage(Image img)
     for (int x = 0; x < scaled.getWidth(); x++) {
       int idx = y * scaled.getWidth() + x;
       auto px = scaled.getPixelAt(x, y);
-      _features[idx] = px.getRed() / 255.0;
-      _features[idx + 1] = px.getGreen() / 255.0;
-      _features[idx + 2] = px.getBlue() / 255.0;
+      Eigen::Vector3d Lab = rgbToLab(px.getRed() / 255.0, px.getGreen() / 255.0, px.getBlue() / 255.0);
+
+      _features[idx] = Lab[0];
+      _features[idx + 1] = Lab[1];
+      _features[idx + 2] = Lab[2];
     }
   }
 }
@@ -258,4 +260,26 @@ void AttributeSearchResult::addToCluster(AttributeSearchResult * elem)
 {
   _clusterContents->appendNewResult(elem);
 
+}
+
+Eigen::Vector3d AttributeSearchResult::rgbToLab(double r, double g, double b)
+{
+  Eigen::Vector3d xyz = ColorUtils::convRGBtoXYZ(r, g, b, sRGB);
+  return ColorUtils::convXYZtoLab(xyz, refWhites[D65] / 100.0);
+}
+
+double AttributeSearchResult::dist(Eigen::VectorXd & y)
+{
+  double sum = 0;
+
+  // iterate through pixels in groups of 3
+  for (int i = 0; i < _render.getWidth() * _render.getHeight(); i++) {
+    int idx = i * 3;
+
+    sum += sqrt(pow(y[idx] - _features[idx], 2) +
+                pow(y[idx + 1] - _features[idx + 1], 2) +
+                pow(y[idx + 2] - _features[idx + 2], 2));
+  }
+
+  return sum / ((double)_render.getWidth() * _render.getHeight());
 }
