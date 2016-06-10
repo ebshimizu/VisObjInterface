@@ -71,6 +71,10 @@ public:
   // Does no similarity checks, is also thread safe
   void appendNewResult(AttributeSearchResult* r);
 
+  // Number of elements to display on each row, defaults to the value stored in
+  // the global settings
+  void setElemsPerRow(int epr);
+
 private:
   Array<AttributeSearchResult*> _results;
   Array<AttributeSearchResult*> _newResults;
@@ -78,12 +82,20 @@ private:
   // Creates an attribute search result container for the given result struct
   AttributeSearchResult* createContainerFor(SearchResult* r);
 
+  // Clustering functions should all return an array of attribute search results contianers
+  // that contain the elements belonging to that cluster center
+
   // cluster elements using k-means. K is specified arbitrarily.
   // Returns the centers.
   Array<AttributeSearchResult*> kmeansClustering(Array<AttributeSearchResult*>& elems, int k);
 
+  // Mean Shift clustering
+  Array<AttributeSearchResult*> meanShiftClustering(Array<AttributeSearchResult*>& elems, double bandwidth);
+
   mutex _resultsLock;
   int _numResults;
+
+  int _elemsPerRow;
 
   // internal sample id added to the result when its added to the container
   unsigned int _sampleId;

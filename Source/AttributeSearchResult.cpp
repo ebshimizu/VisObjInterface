@@ -93,6 +93,7 @@ AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(res
 
   // magic number alert
   _clusterContents->setWidth(820);
+  _clusterContents->setElemsPerRow(4);
 }
 
 AttributeSearchResult::~AttributeSearchResult()
@@ -143,7 +144,7 @@ void AttributeSearchResult::setImage(Image img)
   _features.resize(100 * 100 * 3);
   for (int y = 0; y < scaled.getHeight(); y++) {
     for (int x = 0; x < scaled.getWidth(); x++) {
-      int idx = y * scaled.getWidth() + x;
+      int idx = (y * scaled.getWidth() + x) * 3;
       auto px = scaled.getPixelAt(x, y);
       Eigen::Vector3d Lab = rgbToLab(px.getRed() / 255.0, px.getGreen() / 255.0, px.getBlue() / 255.0);
 

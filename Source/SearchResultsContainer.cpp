@@ -11,6 +11,7 @@
 #include "SearchResultsContainer.h"
 #include "AttributeSorting.h"
 #include "AttributeSearch.h"
+#include "MeanShift.h"
 #include <dlib/clustering.h>
 
 // kmeans typedefs
@@ -20,6 +21,7 @@ typedef dlib::linear_kernel<sampleType> kernelType;
 SearchResultsContainer::SearchResultsContainer()
 {
   _sampleId = 0;
+  _elemsPerRow = getGlobalSettings()->_clusterElemsPerRow;
 }
 
 SearchResultsContainer::~SearchResultsContainer()
@@ -40,12 +42,12 @@ void SearchResultsContainer::paint(Graphics & g)
 void SearchResultsContainer::resized()
 {
   auto lbounds = getLocalBounds();
-  int elemWidth = lbounds.getWidth() / getGlobalSettings()->_clusterElemsPerRow;
+  int elemWidth = lbounds.getWidth() / _elemsPerRow;
   int elemHeight = elemWidth * (9.0 / 16.0);
 
   juce::Rectangle<int> row;
   for (int i = 0; i < _results.size(); i++) {
-    if (i % getGlobalSettings()->_clusterElemsPerRow == 0)
+    if (i % _elemsPerRow == 0)
       row = lbounds.removeFromTop(elemHeight);
 
     _results[i]->setBounds(row.removeFromLeft(elemWidth));
@@ -54,9 +56,9 @@ void SearchResultsContainer::resized()
 
 void SearchResultsContainer::setWidth(int width)
 {
-  int elemWidth = width / getGlobalSettings()->_clusterElemsPerRow;
+  int elemWidth = width / _elemsPerRow;
   int elemHeight = elemWidth * (9.0 / 16.0);
-  int rows = ceil((float)_results.size() / getGlobalSettings()->_clusterElemsPerRow);
+  int rows = ceil((float)_results.size() / _elemsPerRow);
   int height = elemHeight * rows;
   setBounds(0, 0, width, height);
 }
@@ -304,18 +306,25 @@ void SearchResultsContainer::cluster()
   _results.clear();
 
   // now that all the current elements are in a single place, run a clustering algorithm
-  auto centers = kmeansClustering(elems, 5);
+  //auto centers = kmeansClustering(elems, 5);
+  Array<AttributeSearchResult*> centers = meanShiftClustering(elems, 7);
 
-  // we have the centers, place the other elements into the proper containers
-  for (auto& e : elems) {
-    unsigned long c = e->getSearchResult()->_cluster;
-    centers[c]->addToCluster(e);
-  }
+  // assign image to center based on best one in cluster
+  // and insert into results
+  for (auto& r : centers) {
+    double minVal = DBL_MAX;
 
-  // add centers to the main container
-  for (auto& c : centers) {
-    addAndMakeVisible(c);
-    _results.add(c);
+    // iterate through contents
+    for (auto& e : r->getClusterContainer()->getResults()) {
+      if (e->getSearchResult()->_objFuncVal < minVal) {
+        r->setImage(e->getImage());
+        r->getSearchResult()->_sampleNo = e->getSearchResult()->_sampleNo;
+        minVal = e->getSearchResult()->_objFuncVal;
+      }
+    }
+
+    addAndMakeVisible(r);
+    _results.add(r);
   }
 
   setWidth(getLocalBounds().getWidth());
@@ -479,6 +488,12 @@ void SearchResultsContainer::appendNewResult(AttributeSearchResult * r)
   repaint();
 }
 
+void SearchResultsContainer::setElemsPerRow(int epr)
+{
+  _elemsPerRow = epr;
+  setWidth(getLocalBounds().getWidth());
+}
+
 AttributeSearchResult * SearchResultsContainer::createContainerFor(SearchResult * r)
 {
   AttributeSearchResult* newResult = new AttributeSearchResult(r);
@@ -524,7 +539,14 @@ Array<AttributeSearchResult *> SearchResultsContainer::kmeansClustering(Array<At
     r->_scene = avg;
 
     Array<AttributeSearchResult*> ret;
-    ret.add(createContainerFor(r));
+    AttributeSearchResult* newResult = new AttributeSearchResult(r);
+
+    // add all scenes to this cluster
+    for (auto& e : elems) {
+      newResult->addToCluster(e);
+    }
+
+    ret.add(newResult);
     return ret;
   }
   else if (elems.size() <= k) {
@@ -547,12 +569,6 @@ Array<AttributeSearchResult *> SearchResultsContainer::kmeansClustering(Array<At
     // Run kmeans
     dlib::find_clusters_using_kmeans(samples, centers);
 
-    // assign results to clusters
-    for (int i = 0; i < elems.size(); i++) {
-      unsigned long center = dlib::nearest_center(centers, samples[i]);
-      elems[i]->getSearchResult()->_cluster = center;
-    }
-
     // create search result objects
     Array<AttributeSearchResult*> ret;
     for (int i = 0; i < centers.size(); i++) {
@@ -570,6 +586,56 @@ Array<AttributeSearchResult *> SearchResultsContainer::kmeansClustering(Array<At
       ret.add(createContainerFor(r));
     }
 
+    // assign results to clusters
+    for (int i = 0; i < elems.size(); i++) {
+      unsigned long center = dlib::nearest_center(centers, samples[i]);
+      ret[center]->addToCluster(elems[i]);
+    }
+
     return ret;
   }
+}
+
+Array<AttributeSearchResult*> SearchResultsContainer::meanShiftClustering(Array<AttributeSearchResult*>& elems, double bandwidth)
+{
+  // place feature vecs into a vector
+  vector<Eigen::VectorXd> features;
+  for (auto& e : elems) {
+    features.push_back(e->getFeatures());
+  }
+
+  function<double(Eigen::VectorXd, Eigen::VectorXd)> distFunc = [](Eigen::VectorXd x, Eigen::VectorXd y) {
+    double sum = 0;
+
+    // iterate through vector in groups of 3
+    for (int i = 0; i < x.size() / 3; i++) {
+      int idx = i * 3;
+
+      sum += sqrt(pow(y[idx] - x[idx], 2) +
+        pow(y[idx + 1] - x[idx + 1], 2) +
+        pow(y[idx + 2] - x[idx + 2], 2));
+    }
+
+    return sum / (x.size() / 3.0);
+  };
+
+  MeanShift shifter;
+  vector<Eigen::VectorXd> centers = shifter.cluster(features, 8, distFunc);
+
+  Array<AttributeSearchResult*> centerContainers;
+
+  // create containers for centers and add to main container
+  int i = 0;
+  for (auto& c : centers) {
+    SearchResult* r = new SearchResult();
+    r->_scene = c;
+    r->_cluster = i;
+    r->_sampleNo = i;
+    AttributeSearchResult* newResult = new AttributeSearchResult(r);
+
+    centerContainers.add(newResult);
+    i++;
+  }
+
+  return centerContainers;
 }
