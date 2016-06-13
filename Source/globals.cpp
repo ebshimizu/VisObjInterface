@@ -367,12 +367,14 @@ GlobalSettings::GlobalSettings()
   _traceRootDir = "C:/Users/eshimizu/Documents/AttributesInterface/traces";
   _clusterCounter = 0;
   _meanShiftEps = 1e-4;
-  _meanShiftBandwidth = 0.005;
+  _meanShiftBandwidth = 7;
   _grayscaleMode = false;
   _searchFailureLimit = 3;
   _searchThreads = thread::hardware_concurrency() / 2;
   _autoRunTraceGraph = false;
   _standardMCMCIters = 5e3;
+  _numClusters = 5;
+  _clusterMethodName = "K-Means";
 
   if (_searchThreads <= 0)
     _searchThreads = 1;

@@ -42,10 +42,20 @@ private:
   string _id;
 };
 
+class SettingsChoice : public ChoicePropertyComponent
+{
+public:
+  SettingsChoice(string name, StringArray choices);
+  ~SettingsChoice();
+
+  virtual int getIndex() const override;
+  virtual void setIndex(int newIndex) override;
+};
+
 //==============================================================================
 /*
 */
-class SettingsEditor    : public Component
+class SettingsEditor : public Component
 {
 public:
   SettingsEditor();

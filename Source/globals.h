@@ -166,6 +166,8 @@ public:
   bool _grayscaleMode;          // Render images in grayscale instead of color
   int _searchFailureLimit;      // How many times a search thread can fail before increasing the max depth.
   int _searchThreads;           // Background threads for search
+  string _clusterMethodName;    // Clustering method
+  int _numClusters;             // Number of clusters to use
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

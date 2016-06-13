@@ -306,8 +306,14 @@ void SearchResultsContainer::cluster()
   _results.clear();
 
   // now that all the current elements are in a single place, run a clustering algorithm
-  //auto centers = kmeansClustering(elems, 5);
-  Array<AttributeSearchResult*> centers = meanShiftClustering(elems, 7);
+  Array<AttributeSearchResult*> centers;
+  string mode = getGlobalSettings()->_clusterMethodName;
+  if (mode == "K-Means") {
+    centers = kmeansClustering(elems, getGlobalSettings()->_numClusters);
+  }
+  else if (mode == "Mean Shift") {
+    centers = meanShiftClustering(elems, getGlobalSettings()->_meanShiftBandwidth);
+  }
 
   // assign image to center based on best one in cluster
   // and insert into results
@@ -328,6 +334,7 @@ void SearchResultsContainer::cluster()
   }
 
   setWidth(getLocalBounds().getWidth());
+  resized();
   repaint();
 }
 
@@ -635,6 +642,22 @@ Array<AttributeSearchResult*> SearchResultsContainer::meanShiftClustering(Array<
 
     centerContainers.add(newResult);
     i++;
+  }
+
+  // add elements to the proper center
+  for (int i = 0; i < features.size(); i++) {
+    // find closest center
+    double minDist = DBL_MAX;
+    int minIdx = 0;
+    for (int j = 0; j < centers.size(); j++) {
+      double dist = distFunc(features[i], centers[j]);
+      if (dist < minDist) {
+        minDist = dist;
+        minIdx = j;
+      }
+    }
+
+    centerContainers[minIdx]->addToCluster(elems[i]);
   }
 
   return centerContainers;

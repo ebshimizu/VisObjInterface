@@ -60,8 +60,6 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_editStepSize = newValue;
   else if (_id == "MCMC Max Iterations")
     getGlobalSettings()->_maxMCMCIters = (int)newValue;
-  else if (_id == "Number of Clusters")
-    getGlobalSettings()->_numDisplayClusters = (int)newValue;
   else if (_id == "JND Threshold")
     getGlobalSettings()->_jndThreshold = newValue;
   else if (_id == "Thumbnails Per Row")
@@ -102,6 +100,8 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_meanShiftEps = newValue;
   else if (_id == "Search Threads")
     getGlobalSettings()->_searchThreads = (int)newValue;
+  else if (_id == "Number of Clusters")
+    getGlobalSettings()->_numClusters = (int)newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -132,8 +132,6 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_editStepSize;
   else if (_id == "MCMC Max Iterations")
     return getGlobalSettings()->_maxMCMCIters;
-  else if (_id == "Number of Clusters")
-    return getGlobalSettings()->_numDisplayClusters;
   else if (_id == "JND Threshold")
     return getGlobalSettings()->_jndThreshold;
   else if (_id == "Thumbnails Per Row")
@@ -174,6 +172,8 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_meanShiftEps;
   else if (_id == "Search Threads")
     return getGlobalSettings()->_searchThreads;
+  else if (_id == "Number of Clusters")
+    return getGlobalSettings()->_numClusters;
 
   return 0;
 }
@@ -222,6 +222,34 @@ bool SettingsBoolButton::getState() const
   return false;
 }
 
+SettingsChoice::SettingsChoice(string name, StringArray choices) :
+  ChoicePropertyComponent(name)
+{
+  for (auto& c : choices) {
+    this->choices.add(c);
+  }
+}
+
+SettingsChoice::~SettingsChoice()
+{
+}
+
+int SettingsChoice::getIndex() const
+{
+  if (getName() == "Clustering Method") {
+    string mode = getGlobalSettings()->_clusterMethodName;
+    return choices.indexOf(String(mode));
+  }
+}
+
+void SettingsChoice::setIndex(int newIndex)
+{
+  if (getName() == "Clustering Method") {
+    getGlobalSettings()->_clusterMethodName = choices[newIndex].toStdString();
+  }
+}
+
+
 //==============================================================================
 SettingsEditor::SettingsEditor()
 {
@@ -231,7 +259,6 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Max Results", 1, 500, 1));
   searchComponents.add(new SettingsSlider("MCMC Step Size", 0, 0.25, 0.001));
   searchComponents.add(new SettingsSlider("MCMC Max Iterations", 1, 100, 1));
-  //searchComponents.add(new SettingsSlider("Mean Shift Bandwidth", 0, 10, 0.001));
   //searchComponents.add(new SettingsSlider("Mean Shift Epsilon", 0, 0.01, 1e-6));
   searchComponents.add(new SettingsSlider("Temperature", 0, 25, 0.01));
   //searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1e-3, 1e-7));
@@ -240,6 +267,13 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsBoolButton("Generate Graph"));
   searchComponents.add(new SettingsSlider("Search Threads", 1, thread::hardware_concurrency(), 1));
   _settings.addSection("Search", searchComponents);
+
+
+  Array<PropertyComponent*> clusterComponents;
+  clusterComponents.add(new SettingsChoice("Clustering Method", { "K-Means", "Mean Shift" }));
+  clusterComponents.add(new SettingsSlider("Number of Clusters", 1, 25, 1));
+  clusterComponents.add(new SettingsSlider("Mean Shift Bandwidth", 0, 20, 0.01));
+  _settings.addSection("Clustering", clusterComponents);
 
   Array<PropertyComponent*> renderComponents;
   //_width = new SettingsSlider("Frame Width", 1, 3840, 1);
