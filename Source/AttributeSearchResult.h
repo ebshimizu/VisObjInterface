@@ -45,6 +45,8 @@ public:
   AttributeSearchResult(SearchResult* result);
   ~AttributeSearchResult();
 
+  void regenToolTip();
+
   void paint (Graphics&);
   void resized();
 

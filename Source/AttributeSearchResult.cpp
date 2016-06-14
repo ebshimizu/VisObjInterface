@@ -73,20 +73,7 @@ AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(res
 {
   // In your constructor, you should add any child components, and
   // initialise any special settings that your component needs.
-  String tt = "";
-  bool first = true;
-  for (const auto& t : result->_editHistory) {
-    if (!first) {
-      tt = tt + " -> " + t->_name;
-    }
-    else {
-      tt = tt + t->_name;
-      first = false;
-    }
-  }
-
-  tt = tt + " (" + String(-result->_objFuncVal) + ")";
-  setTooltip(tt);
+  regenToolTip();
   _isHovered = false;
 
   _clusterContents = new SearchResultsContainer();
@@ -102,6 +89,24 @@ AttributeSearchResult::~AttributeSearchResult()
     delete _result;
 
   delete _clusterContents;
+}
+
+void AttributeSearchResult::regenToolTip()
+{
+  String tt = "";
+  bool first = true;
+  for (const auto& t : _result->_editHistory) {
+    if (!first) {
+      tt = tt + " -> " + t->_name;
+    }
+    else {
+      tt = tt + t->_name;
+      first = false;
+    }
+  }
+
+  tt = tt + " (" + String(-_result->_objFuncVal) + ")";
+  setTooltip(tt);
 }
 
 void AttributeSearchResult::paint (Graphics& g)
@@ -207,7 +212,11 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
   }
   else if (event.mods.isLeftButtonDown()) {
     if (isClusterCenter()) {
-      CallOutBox& cb = CallOutBox::launchAsynchronously(_clusterContents, getScreenBounds(), nullptr, false);
+      Viewport* vp = new Viewport();
+      vp->setViewedComponent(_clusterContents, false);
+      vp->setSize(_clusterContents->getWidth() + vp->getScrollBarThickness(), 300);
+
+      CallOutBox& cb = CallOutBox::launchAsynchronously(vp, getScreenBounds(), nullptr);
     }
   }
 }
@@ -219,6 +228,8 @@ void AttributeSearchResult::mouseEnter(const MouseEvent & event)
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
   mc->setThumbImage(_render);
   mc->repaint();
+  _clusterContents->repaint();
+  getParentComponent()->repaint();
 }
 
 void AttributeSearchResult::mouseExit(const MouseEvent & event)
@@ -227,6 +238,8 @@ void AttributeSearchResult::mouseExit(const MouseEvent & event)
   getGlobalSettings()->_showThumbnailImg = false;
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
   mc->repaint();
+  _clusterContents->repaint();
+  getParentComponent();
 }
 
 int AttributeSearchResult::compareElements(AttributeSearchResult * first, AttributeSearchResult * second)

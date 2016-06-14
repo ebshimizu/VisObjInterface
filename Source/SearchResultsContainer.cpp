@@ -321,10 +321,12 @@ void SearchResultsContainer::cluster()
       if (e->getSearchResult()->_objFuncVal < minVal) {
         r->setImage(e->getImage());
         r->getSearchResult()->_sampleNo = e->getSearchResult()->_sampleNo;
+        r->getSearchResult()->_objFuncVal = e->getSearchResult()->_objFuncVal;
         minVal = e->getSearchResult()->_objFuncVal;
       }
     }
 
+    r->regenToolTip();
     addAndMakeVisible(r);
     _results.add(r);
   }
