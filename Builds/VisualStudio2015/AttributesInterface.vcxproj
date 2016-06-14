@@ -136,6 +136,8 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\lib\dlib-18.18\dlib\all\source.cpp"/>
     <ClCompile Include="..\..\..\lib\libsvm-3.21\svm.cpp"/>
+    <ClCompile Include="..\..\Source\KMeans.cpp"/>
+    <ClCompile Include="..\..\Source\MeanShift.cpp"/>
     <ClCompile Include="..\..\Source\HistoryEntry.cpp"/>
     <ClCompile Include="..\..\Source\HistoryPanel.cpp"/>
     <ClCompile Include="..\..\Source\MainMenu.cpp"/>
@@ -164,7 +166,6 @@
     <ClCompile Include="..\..\Source\SearchResultsContainer.cpp"/>
     <ClCompile Include="..\..\Source\AttributeSearchResult.cpp"/>
     <ClCompile Include="..\..\Source\AttributeSorting.cpp"/>
-    <ClCompile Include="..\..\Source\MeanShift.cpp"/>
     <ClCompile Include="..\..\Source\SearchResultsViewer.cpp"/>
     <ClCompile Include="..\..\Source\ParamControls.cpp"/>
     <ClCompile Include="..\..\Source\globals.cpp"/>
@@ -1706,6 +1707,8 @@
     <ClCompile Include="..\..\JuceLibraryCode\juce_video.cpp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\KMeans.h"/>
+    <ClInclude Include="..\..\Source\MeanShift.h"/>
     <ClInclude Include="..\..\Source\HistoryEntry.h"/>
     <ClInclude Include="..\..\Source\HistoryPanel.h"/>
     <ClInclude Include="..\..\Source\MainMenu.h"/>
@@ -1734,7 +1737,6 @@
     <ClInclude Include="..\..\Source\SearchResultsContainer.h"/>
     <ClInclude Include="..\..\Source\AttributeSearchResult.h"/>
     <ClInclude Include="..\..\Source\AttributeSorting.h"/>
-    <ClInclude Include="..\..\Source\MeanShift.h"/>
     <ClInclude Include="..\..\Source\SearchResultsViewer.h"/>
     <ClInclude Include="..\..\Source\ParamControls.h"/>
     <ClInclude Include="..\..\Source\globals.h"/>

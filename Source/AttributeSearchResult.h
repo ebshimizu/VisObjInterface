@@ -70,6 +70,7 @@ public:
   int compareElements(AttributeSearchResult* first, AttributeSearchResult* second);
 
   Eigen::VectorXd getFeatures();
+  void setFeatures(Eigen::VectorXd features);
 
   // if true, the clusterContents field has stuff in it
   bool isClusterCenter();
@@ -85,6 +86,7 @@ public:
 
   // Calculate the distance between this result and another result
   // Current metric: average pixel difference in Lab
+  double dist(AttributeSearchResult* y);
   double dist(Eigen::VectorXd& y);
 
 private:

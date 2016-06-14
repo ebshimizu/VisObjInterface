@@ -14,6 +14,9 @@
     <Filter Include="AttributesInterface\Source\GUI">
       <UniqueIdentifier>{DDC2ADB9-D561-438D-C9F6-602C92B55677}</UniqueIdentifier>
     </Filter>
+    <Filter Include="AttributesInterface\Source\GUI\clustering">
+      <UniqueIdentifier>{97DADACB-DC8A-9609-A065-DECAF33CB367}</UniqueIdentifier>
+    </Filter>
     <Filter Include="AttributesInterface\Source\attributes">
       <UniqueIdentifier>{D05B258C-3807-F9D0-9ACB-0E3A287920CA}</UniqueIdentifier>
     </Filter>
@@ -376,6 +379,12 @@
     <ClCompile Include="..\..\..\lib\libsvm-3.21\svm.cpp">
       <Filter>AttributesInterface\Source\third_party</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\KMeans.cpp">
+      <Filter>AttributesInterface\Source\GUI\clustering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\MeanShift.cpp">
+      <Filter>AttributesInterface\Source\GUI\clustering</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\HistoryEntry.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
@@ -452,9 +461,6 @@
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\AttributeSorting.cpp">
-      <Filter>AttributesInterface\Source\attributes</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Source\MeanShift.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\SearchResultsViewer.cpp">
@@ -2148,6 +2154,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\KMeans.h">
+      <Filter>AttributesInterface\Source\GUI\clustering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\MeanShift.h">
+      <Filter>AttributesInterface\Source\GUI\clustering</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\HistoryEntry.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClInclude>
@@ -2230,9 +2242,6 @@
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\AttributeSorting.h">
-      <Filter>AttributesInterface\Source\attributes</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\MeanShift.h">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\SearchResultsViewer.h">

@@ -247,6 +247,11 @@ Eigen::VectorXd AttributeSearchResult::getFeatures()
   return _features;
 }
 
+void AttributeSearchResult::setFeatures(Eigen::VectorXd features)
+{
+  _features = features;
+}
+
 bool AttributeSearchResult::isClusterCenter()
 {
   return _clusterContents->getResults().size() > 0;
@@ -269,12 +274,17 @@ Eigen::Vector3d AttributeSearchResult::rgbToLab(double r, double g, double b)
   return ColorUtils::convXYZtoLab(xyz, refWhites[D65] / 100.0);
 }
 
+double AttributeSearchResult::dist(AttributeSearchResult * y)
+{
+  return dist(y->getFeatures());
+}
+
 double AttributeSearchResult::dist(Eigen::VectorXd & y)
 {
   double sum = 0;
 
   // iterate through pixels in groups of 3
-  for (int i = 0; i < _render.getWidth() * _render.getHeight(); i++) {
+  for (int i = 0; i < _features.size() / 3; i++) {
     int idx = i * 3;
 
     sum += sqrt(pow(y[idx] - _features[idx], 2) +

@@ -12,11 +12,7 @@
 #include "AttributeSorting.h"
 #include "AttributeSearch.h"
 #include "MeanShift.h"
-#include <dlib/clustering.h>
-
-// kmeans typedefs
-typedef dlib::matrix<double, 0, 1> sampleType;
-typedef dlib::linear_kernel<sampleType> kernelType;
+#include "KMeans.h"
 
 SearchResultsContainer::SearchResultsContainer()
 {
@@ -528,79 +524,9 @@ Array<AttributeSearchResult *> SearchResultsContainer::kmeansClustering(Array<At
   // the proper GUI components
   if (elems.size() == 0)
     return Array<AttributeSearchResult*>();
-  
-  if (k <= 1) {
-    // average of all elements is center
-    Eigen::VectorXd avg;
-    avg.resize(elems.getFirst()->getSearchResult()->_scene.size());
-    avg.setZero();
 
-    for (auto e : elems) {
-      avg += e->getSearchResult()->_scene;
-      e->getSearchResult()->_cluster = 0;
-    }
-    avg /= (double)elems.size();
-
-    SearchResult* r = new SearchResult();
-    r->_cluster = 0;
-    r->_scene = avg;
-
-    Array<AttributeSearchResult*> ret;
-    AttributeSearchResult* newResult = new AttributeSearchResult(r);
-
-    // add all scenes to this cluster
-    for (auto& e : elems) {
-      newResult->addToCluster(e);
-    }
-
-    ret.add(newResult);
-    return ret;
-  }
-  else if (elems.size() <= k) {
-    return elems;
-  }
-  else {
-    // kmeans setup
-    dlib::kcentroid<kernelType> kkmeansKernel(kernelType(), 0.001);
-    dlib::kkmeans<kernelType> kern(kkmeansKernel);
-
-    vector<sampleType> samples;
-    for (auto& e : elems) {
-      samples.push_back(dlib::mat(e->getSearchResult()->_scene));
-    }
-    vector<sampleType> centers;
-
-    // use dlib to get the initial centers
-    dlib::pick_initial_centers(k, centers, samples, kern.get_kernel());
-
-    // Run kmeans
-    dlib::find_clusters_using_kmeans(samples, centers);
-
-    // create search result objects
-    Array<AttributeSearchResult*> ret;
-    for (int i = 0; i < centers.size(); i++) {
-      Eigen::VectorXd center;
-      center.resize(centers[i].nr());
-
-      for (int j = 0; j < centers[i].nr(); j++) {
-        center[j] = centers[i](j);
-      }
-
-      SearchResult* r = new SearchResult();
-      r->_cluster = i;
-      r->_scene = center;
-
-      ret.add(createContainerFor(r));
-    }
-
-    // assign results to clusters
-    for (int i = 0; i < elems.size(); i++) {
-      unsigned long center = dlib::nearest_center(centers, samples[i]);
-      ret[center]->addToCluster(elems[i]);
-    }
-
-    return ret;
-  }
+  KMeans clusterer;
+  return clusterer.cluster(k, elems, KMeans::InitMode::FORGY);
 }
 
 Array<AttributeSearchResult*> SearchResultsContainer::meanShiftClustering(Array<AttributeSearchResult*>& elems, double bandwidth)
