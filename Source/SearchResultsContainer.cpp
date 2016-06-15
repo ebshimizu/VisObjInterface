@@ -117,14 +117,11 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
     p->renderSingleFrameToBuffer(s->getDevices(), bufptr, width, height);
     delete s;
     newResult->setImage(img);
-    Eigen::VectorXd features = newResult->getFeatures();
 
     {
       lock_guard<mutex> lock(_resultsLock);
       for (auto& res : _results) {
-        Eigen::VectorXd other = res->getFeatures();
-
-        if ((features - other).norm() < getGlobalSettings()->_jndThreshold) {
+        if (newResult->dist(res) < getGlobalSettings()->_jndThreshold) {
           delete newResult;
           return false;
         }
@@ -132,9 +129,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
 
       // also check things in the waiting queue
       for (auto& res : _newResults) {
-        Eigen::VectorXd other = res->getFeatures();
-
-        if ((features - other).norm() < getGlobalSettings()->_jndThreshold) {
+        if (newResult->dist(res) < getGlobalSettings()->_jndThreshold) {
           delete newResult;
           return false;
         }

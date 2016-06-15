@@ -393,18 +393,12 @@ void MainContentComponent::openRig() {
 void MainContentComponent::openRig(String fname)
 {
   File selected = File(fname);
-  String fileName = fname.upToFirstOccurrenceOf(".", false, false);
 
-  _parentDir = selected.getParentDirectory();
-
-  File rig = _parentDir.getChildFile(fileName + ".rig.json");
-  File playback = _parentDir.getChildFile(fileName + ".playback.json");
-
-  bool res = getRig()->load(rig.getFullPathName().toStdString());
+  bool res = getRig()->load(selected.getFullPathName().toStdString());
 
   if (res) {
-    getStatusBar()->setStatusMessage("Loaded file \"" + rig.getFullPathName() + "\" successfully.");
-    getRecorder()->log(SYSTEM, "Loaded file \"" + rig.getFullPathName().toStdString() + "\" successfully.");
+    getStatusBar()->setStatusMessage("Loaded file \"" + selected.getFullPathName() + "\" successfully.");
+    getRecorder()->log(SYSTEM, "Loaded file \"" + selected.getFullPathName().toStdString() + "\" successfully.");
 
     getRig()->init();
 
@@ -412,12 +406,12 @@ void MainContentComponent::openRig(String fname)
     _attrs->reload();
     // Also should delete history and clear any displayed clusters
 
-    _showName = rig.getFileName();
+    _showName = selected.getFileName();
     getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);
   }
   else {
-    getStatusBar()->setStatusMessage("Error loading \"" + rig.getFullPathName() + "\"");
-    getRecorder()->log(SYSTEM, "Failed to load \"" + rig.getFullPathName().toStdString() + "\"");
+    getStatusBar()->setStatusMessage("Error loading \"" + selected.getFullPathName() + "\"");
+    getRecorder()->log(SYSTEM, "Failed to load \"" + selected.getFullPathName().toStdString() + "\"");
   }
 }
 
