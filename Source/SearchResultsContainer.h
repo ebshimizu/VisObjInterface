@@ -52,6 +52,7 @@ public:
   bool isFull();
 
   // Removes results from the results section
+  // also resets any clustering that was done previously
   void cleanUp(int resultsToKeep);
 
   // Sorts current elements into clusters

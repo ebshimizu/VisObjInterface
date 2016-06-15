@@ -59,7 +59,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>..\..\JuceLibraryCode;..\..\JuceLibraryCode\modules;C:\Program Files\Lumiverse\include;C:\Program Files\libpng\include;C:\Program Files\Lumiverse\include\lib\arnold\include;C:\Program Files\zlib\include;C:\Users\eshimizu\Documents\lib\dlib-18.18;C:\Users\eshimizu\Documents\lib\libsvm-3.21;C:\Program Files\CURL\include;C:\Program Files\CURLCPP\include;C:\Program Files\openexr\Debug\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\JuceLibraryCode;..\..\JuceLibraryCode\modules;C:\Program Files\Lumiverse\include;C:\Program Files\libpng\include;C:\Program Files\Lumiverse\include\lib\arnold\include;C:\Program Files\zlib\include;C:\Users\eshimizu\Documents\lib\libsvm-3.21;C:\Program Files\CURL\include;C:\Program Files\CURLCPP\include;C:\Program Files\openexr\Debug\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;DEBUG;_DEBUG;JUCER_VS2015_78A5022=1;JUCE_APP_VERSION=0.02;JUCE_APP_VERSION_HEX=0x200;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -100,7 +100,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Full</Optimization>
-      <AdditionalIncludeDirectories>..\..\JuceLibraryCode;..\..\JuceLibraryCode\modules;C:\Program Files\Lumiverse\include;C:\Program Files\libpng\include;C:\Program Files\Lumiverse\include\lib\arnold\include;C:\Program Files\zlib\include;C:\Users\eshimizu\Documents\lib\dlib-18.18;C:\Users\eshimizu\Documents\lib\libsvm-3.21;C:\Program Files\CURL\include;C:\Program Files\CURLCPP\include;C:\Program Files\openexr\Release\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\JuceLibraryCode;..\..\JuceLibraryCode\modules;C:\Program Files\Lumiverse\include;C:\Program Files\libpng\include;C:\Program Files\Lumiverse\include\lib\arnold\include;C:\Program Files\zlib\include;C:\Users\eshimizu\Documents\lib\libsvm-3.21;C:\Program Files\CURL\include;C:\Program Files\CURLCPP\include;C:\Program Files\openexr\Release\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;NDEBUG;JUCER_VS2015_78A5022=1;JUCE_APP_VERSION=0.02;JUCE_APP_VERSION_HEX=0x200;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>

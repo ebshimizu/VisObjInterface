@@ -27,12 +27,6 @@ struct DeviceInfo {
   string _id;
 };
 
-// Clusters results using k-means. K is chosen iteratively by computing the
-// mean distance from every scene to the cluster center until it is below
-// a specified threshold (global setting)
-// Returns the cluster centers as vectors
-vector<Eigen::VectorXd> clusterResults(list<SearchResult*> results, int c = -1);
-
 // Remove vectors from the set that are within a specified threshold of other elements
 // in the set
 void filterResults(list<mcmcSample>& results, double t);

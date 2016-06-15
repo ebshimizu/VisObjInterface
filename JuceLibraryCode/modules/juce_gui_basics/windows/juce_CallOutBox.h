@@ -52,9 +52,6 @@
     @endcode
 
     The call-out will resize and position itself when the content changes size.
-
-    NOTE: THIS VERSION OF THE CALLOUTBOX HAS A FLAG INDICATING IF THE OWNED COMPONENT
-    WILL BE DELETED WHEN THE COMPONENT EXITS
 */
 class JUCE_API  CallOutBox    : public Component
 {
@@ -73,10 +70,9 @@ public:
         @param parentComponent      if non-zero, this is the component to add the call-out to. If
                                     this is a nullptr, the call-out will be added to the desktop.
     */
-    CallOutBox (Component* contentComponent,
+    CallOutBox (Component& contentComponent,
                 const Rectangle<int>& areaToPointTo,
-                Component* parentComponent,
-                bool dcoe = true);
+                Component* parentComponent);
 
     /** Destructor. */
     ~CallOutBox();
@@ -120,8 +116,7 @@ public:
     */
     static CallOutBox& launchAsynchronously (Component* contentComponent,
                                              const Rectangle<int>& areaToPointTo,
-                                             Component* parentComponent,
-                                             bool dcoe = true);
+                                             Component* parentComponent);
 
     /** Posts a message which will dismiss the callout box asynchronously.
         NB: it's safe to call this method from any thread.
@@ -171,13 +166,12 @@ public:
 private:
     //==============================================================================
     float arrowSize;
-    Component* content;
+    Component& content;
     Path outline;
     Point<float> targetPoint;
     Rectangle<int> availableArea, targetArea;
     Image background;
     bool dismissalMouseClicksAreAlwaysConsumed;
-    bool deleteContentOnExit;
 
     void refreshPath();
 

@@ -168,6 +168,7 @@ void SearchResultsContainer::showNewResults()
       _results.add(r);
     }
     _newResults.clear();
+    _numResults = _results.size();
   }
 
   setWidth(getLocalBounds().getWidth());
@@ -220,51 +221,75 @@ void SearchResultsContainer::cleanUp(int resultsToKeep)
 
   // for now we do k-means clustering and keep the result closest to the center
   // first check to see if we even need to filter
-  if (resultsToKeep >= _results.size())
+  if (resultsToKeep >= _numResults)
     return;
 
-  // get list of cluster results
-  list<SearchResult*> results;
+  // gather everything back up into a single array
+  // and delete current cluster centers
+  Array<AttributeSearchResult*> elems;
+
   for (auto& r : _results) {
-    results.push_back(r->getSearchResult());
+    if (r->isClusterCenter()) {
+      SearchResultsContainer* c = r->getClusterContainer();
+
+      for (auto& r2 : c->getResults()) {
+        // no heirarchy allowed at the moment
+        elems.add(r2);
+      }
+
+      // remove, don't delete, elements from cluster object before deletion
+      c->remove();
+      delete r;
+    }
+    else {
+      elems.add(r);
+    }
   }
+
+  _results.clear();
 
   // get the centers and the results closest to the centers
-  auto centers = clusterResults(results, resultsToKeep);
-  auto keep = getClosestScenesToCenters(results, centers);
+  KMeans km;
+  auto centers = km.cluster(resultsToKeep, elems, KMeans::InitMode::FORGY);
 
-  // Copy results into new results list
-  // Reason: deleting search result containers deletes the search result too
-  Array<AttributeSearchResult*> newResults;
-  for (auto& r : keep) {
-    auto newResult = new AttributeSearchResult(new SearchResult(*r));
+  // save closest results to centers
+  for (auto& r : centers) {
+    double minVal = DBL_MAX;
+    AttributeSearchResult* resToKeep = nullptr;
 
-    // render
-    auto p = getAnimationPatch();
-    int width = getGlobalSettings()->_renderWidth;
-    int height = getGlobalSettings()->_renderHeight;
-    p->setDims(width, height);
-    p->setSamples(getGlobalSettings()->_stageRenderSamples);
+    // iterate through contents
+    for (auto& e : r->getClusterContainer()->getResults()) {
+      if (e->getSearchResult()->_objFuncVal < minVal) {
+        r->setImage(e->getImage());
+        r->getSearchResult()->_sampleNo = e->getSearchResult()->_sampleNo;
+        r->getSearchResult()->_objFuncVal = e->getSearchResult()->_objFuncVal;
+        minVal = e->getSearchResult()->_objFuncVal;
+        resToKeep = e;
+      }
+    }
 
-    Image img = Image(Image::ARGB, width, height, true);
-    uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
-
-    Snapshot* s = vectorToSnapshot(r->_scene);
-    p->renderSingleFrameToBuffer(s->getDevices(), bufptr, width, height);
-    delete s;
-    newResult->setImage(img);
-
-    addAndMakeVisible(newResult);
-    newResults.add(newResult);
+    _results.add(resToKeep);
   }
 
-  // delete old results
-  for (auto& r : _results) {
+  // delete unused items
+  for (auto& r : centers) {
+    for (auto& e : r->getClusterContainer()->getResults()) {
+      if (!_results.contains(e)) {
+        delete e;
+      }
+    }
+
+    r->getClusterContainer()->remove();
     delete r;
   }
 
-  _results = newResults;
+  // add new results
+  for (auto r : _results) {
+    addAndMakeVisible(r);
+  }
+
   setWidth(getLocalBounds().getWidth());
+  resized();
   repaint();
 }
 
