@@ -550,7 +550,7 @@ Array<AttributeSearchResult*> SearchResultsContainer::meanShiftClustering(Array<
   };
 
   MeanShift shifter;
-  vector<Eigen::VectorXd> centers = shifter.cluster(features, 8, distFunc);
+  vector<Eigen::VectorXd> centers = shifter.cluster(features, bandwidth, distFunc);
 
   Array<AttributeSearchResult*> centerContainers;
 

@@ -176,7 +176,6 @@ void GlobalSettings::loadDiagnosticData(string filename)
       stringstream lineStream(line);
       string cell;
 
-      SearchResult* r = new SearchResult();
       vector<double> sceneVals;
       string tooltip;
       DebugData sample;
