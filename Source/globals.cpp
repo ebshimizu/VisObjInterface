@@ -371,7 +371,7 @@ GlobalSettings::GlobalSettings()
   _searchFailureLimit = 3;
   _searchThreads = thread::hardware_concurrency() / 2;
   _autoRunTraceGraph = false;
-  _standardMCMCIters = 5e3;
+  _standardMCMCIters = 5.0e3;
   _numClusters = 6;
   _clusterMethodName = "K-Means";
 

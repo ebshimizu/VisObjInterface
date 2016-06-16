@@ -51,7 +51,7 @@ double TintAttribute::evaluateScene(Snapshot * s)
   // color diff
   Eigen::Vector3d targetColor(_targetColor.getRed() / 255.0, _targetColor.getGreen() / 255.0, _targetColor.getBlue() / 255.0);
 
-  return (1 - (color - targetColor).norm()) * 100;
+  return ((sqrt(3) - (color - targetColor).norm()) / sqrt(3)) * 100;
 }
 
 void TintAttribute::mouseDown(const MouseEvent & e)

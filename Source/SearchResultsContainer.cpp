@@ -63,19 +63,18 @@ void SearchResultsContainer::sort()
 {
   string id = getGlobalSettings()->_currentSortMode;
 
-  if (id == "Attribute Default")
-    sort(&DefaultSorter());
-  else if (id == "Average Hue")
-    sort(&AvgHueSorter());
-  else if (id == "Key Hue")
-    sort(&KeyHueSorter());
-  else if (id == "Average Intensity")
-    sort(&AvgBrightSorter());
-  else if (id == "Key Intensity")
-    sort(&KeyBrightSorter());
-  else if (id == "Key Azimuth Angle")
-    sort(&KeyAzmSorter());
-
+  if (id == "Attribute Default") {
+    DefaultSorter sorter;
+    sort(&sorter);
+  }
+  else if (id == "Average Hue") {
+    AvgHueSorter sorter;
+    sort(&sorter);
+  }
+  else if (id == "Average Intensity") {
+    AvgBrightSorter sorter;
+    sort(&sorter);
+  }
 }
 
 void SearchResultsContainer::sort(AttributeSorter* s)
@@ -168,7 +167,6 @@ void SearchResultsContainer::showNewResults()
       _results.add(r);
     }
     _newResults.clear();
-    _numResults = _results.size();
   }
 
   setWidth(getLocalBounds().getWidth());
@@ -189,7 +187,6 @@ void SearchResultsContainer::clear()
 
   _newResults.clear();
   _results.clear();
-  _numResults = _results.size();
   setWidth(getLocalBounds().getWidth());
   resized();
   repaint();
@@ -202,7 +199,6 @@ void SearchResultsContainer::remove()
 
   _newResults.clear();
   _results.clear();
-  _numResults = _results.size();
   setWidth(getLocalBounds().getWidth());
   resized();
   repaint();
@@ -221,7 +217,7 @@ void SearchResultsContainer::cleanUp(int resultsToKeep)
 
   // for now we do k-means clustering and keep the result closest to the center
   // first check to see if we even need to filter
-  if (resultsToKeep >= _numResults)
+  if (resultsToKeep >= numResults())
     return;
 
   // gather everything back up into a single array
@@ -446,7 +442,6 @@ void SearchResultsContainer::loadResults(string filename)
     }
   }
 
-  _numResults = _results.size();
   setWidth(getLocalBounds().getWidth());
   resized();
   repaint();
@@ -495,7 +490,6 @@ void SearchResultsContainer::loadTrace(int selected)
     _results.add(newResult);
   }
 
-  _numResults = _results.size();
   setWidth(getLocalBounds().getWidth());
   resized();
   repaint();
@@ -507,7 +501,6 @@ void SearchResultsContainer::appendNewResult(AttributeSearchResult * r)
   lock_guard<mutex> lock(_resultsLock);
   addAndMakeVisible(r);
   _results.add(r);
-  _numResults = _results.size();
   setWidth(getLocalBounds().getWidth());
   resized();
   repaint();
@@ -517,6 +510,22 @@ void SearchResultsContainer::setElemsPerRow(int epr)
 {
   _elemsPerRow = epr;
   setWidth(getLocalBounds().getWidth());
+}
+
+int SearchResultsContainer::numResults()
+{
+  int count;
+  for (auto& r : _results) {
+    if (r->isClusterCenter()) {
+      // no nested clusters, so can do this
+      count += r->getClusterContainer()->getResults().size();
+    }
+    else {
+      count++;
+    }
+  }
+
+  return count;
 }
 
 AttributeSearchResult * SearchResultsContainer::createContainerFor(SearchResult * r)

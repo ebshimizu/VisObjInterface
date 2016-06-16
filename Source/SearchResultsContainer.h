@@ -76,6 +76,9 @@ public:
   // the global settings
   void setElemsPerRow(int epr);
 
+  // Returns the number of results contained in this container and all child containers
+  int numResults();
+
 private:
   Array<AttributeSearchResult*> _results;
   Array<AttributeSearchResult*> _newResults;
@@ -94,7 +97,6 @@ private:
   Array<AttributeSearchResult*> meanShiftClustering(Array<AttributeSearchResult*>& elems, double bandwidth);
 
   mutex _resultsLock;
-  int _numResults;
 
   int _elemsPerRow;
 

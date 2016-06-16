@@ -6,7 +6,6 @@
               companyEmail="eshimizu@adobe.com">
   <MAINGROUP id="upFVKV" name="AttributesInterface">
     <GROUP id="{E33A23C0-94A8-8A6D-0624-83F1C8438329}" name="Source">
-      <FILE id="VBJxKj" name="source.cpp" compile="1" resource="0" file="../lib/dlib-18.18/dlib/all/source.cpp"/>
       <GROUP id="{87E6B34E-AD15-F89C-D590-669F122FB46E}" name="third_party">
         <FILE id="nZLXpW" name="svm.cpp" compile="1" resource="0" file="../lib/libsvm-3.21/svm.cpp"/>
       </GROUP>

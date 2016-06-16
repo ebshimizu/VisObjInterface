@@ -31,82 +31,53 @@ int DefaultSorter::compareElements(AttributeSearchResult * first, AttributeSearc
 
 int AvgHueSorter::compareElements(AttributeSearchResult * first, AttributeSearchResult * second)
 {
-  Snapshot* firstScene = vectorToSnapshot(first->getSearchResult()->_scene);
-  Snapshot* secondScene = vectorToSnapshot(second->getSearchResult()->_scene);
+  // get hue from images
+  Image i1 = first->getImage().rescaled(100, 100);
+  Image i2 = second->getImage().rescaled(100, 100);
 
-  double firstHue = 0;
-  for (auto d : firstScene->getDevices()) {
-    auto hsv = d->getParam<LumiverseColor>("color")->getHSV();
-    firstHue += hsv[0];
+  double avgHue1 = 0;
+  double avgHue2 = 0;
+
+  for (int y = 0; y < i1.getHeight(); y++) {
+    for (int x = 0; x < i1.getWidth(); x++) {
+      avgHue1 += i1.getPixelAt(x, y).getHue();
+      avgHue2 += i2.getPixelAt(x, y).getHue();
+    }
   }
-  firstHue /= firstScene->getDevices().size();
 
-  double secondHue = 0;
-  for (auto d : secondScene->getDevices()) {
-    auto hsv = d->getParam<LumiverseColor>("color")->getHSV();
-    secondHue += hsv[0];
-  }
-  secondHue /= secondScene->getDevices().size();
+  avgHue1 /= (i1.getWidth() * i1.getHeight());
+  avgHue2 /= (i2.getWidth() * i2.getHeight());
 
-  delete firstScene;
-  delete secondScene;
-
-  if (firstHue < secondHue)
+  if (avgHue1 < avgHue2)
     return -1;
-  if (firstHue > secondHue)
+  if (avgHue1 > avgHue2)
     return 1;
   else
     return 0;
-}
-
-int KeyHueSorter::compareElements(AttributeSearchResult * first, AttributeSearchResult * second)
-{
-  Snapshot* firstScene = vectorToSnapshot(first->getSearchResult()->_scene);
-  Snapshot* secondScene = vectorToSnapshot(second->getSearchResult()->_scene);
-
-  return 0;
 }
 
 int AvgBrightSorter::compareElements(AttributeSearchResult * first, AttributeSearchResult * second)
 {
-  Snapshot* firstScene = vectorToSnapshot(first->getSearchResult()->_scene);
-  Snapshot* secondScene = vectorToSnapshot(second->getSearchResult()->_scene);
+  // use average luminance in Lab
+  Eigen::VectorXd s1 = first->getFeatures();
+  Eigen::VectorXd s2 = second->getFeatures();
 
-  double firstInt = 0;
-  for (auto d : firstScene->getDevices()) {
-    firstInt += d->getIntensity()->asPercent();
+  double avgL1 = 0;
+  double avgL2 = 0;
+
+  for (int i = 0; i < s1.size() / 3; i++) {
+    int idx = i * 3;
+    avgL1 += s1[idx];
+    avgL2 += s2[idx];
   }
-  firstInt /= firstScene->getDevices().size();
 
-  double secondInt = 0;
-  for (auto d : secondScene->getDevices()) {
-    secondInt += d->getIntensity()->asPercent();
-  }
-  secondInt /= secondScene->getDevices().size();
+  avgL1 /= (s1.size() / 3);
+  avgL2 /= (s2.size() / 3);
 
-  delete firstScene;
-  delete secondScene;
-
-  if (firstInt < secondInt)
+  if (avgL1 < avgL2)
     return -1;
-  if (firstInt > secondInt)
+  if (avgL1 > avgL2)
     return 1;
   else
     return 0;
-}
-
-int KeyBrightSorter::compareElements(AttributeSearchResult * first, AttributeSearchResult * second)
-{
-  Snapshot* firstScene = vectorToSnapshot(first->getSearchResult()->_scene);
-  Snapshot* secondScene = vectorToSnapshot(second->getSearchResult()->_scene);
-
-  return 0;
-}
-
-int KeyAzmSorter::compareElements(AttributeSearchResult * first, AttributeSearchResult * second)
-{
-  Snapshot* firstScene = vectorToSnapshot(first->getSearchResult()->_scene);
-  Snapshot* secondScene = vectorToSnapshot(second->getSearchResult()->_scene);
-
-  return 0;
 }
