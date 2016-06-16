@@ -96,6 +96,9 @@ private:
   // Mean Shift clustering
   Array<AttributeSearchResult*> meanShiftClustering(Array<AttributeSearchResult*>& elems, double bandwidth);
 
+  // Spectral clustering
+  Array<AttributeSearchResult*> spectralClustering(Array<AttributeSearchResult*>& elems);
+
   mutex _resultsLock;
 
   int _elemsPerRow;

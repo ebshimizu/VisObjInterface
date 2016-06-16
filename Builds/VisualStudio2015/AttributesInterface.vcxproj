@@ -137,6 +137,7 @@
     <ClCompile Include="..\..\..\lib\libsvm-3.21\svm.cpp"/>
     <ClCompile Include="..\..\Source\KMeans.cpp"/>
     <ClCompile Include="..\..\Source\MeanShift.cpp"/>
+    <ClCompile Include="..\..\Source\SpectralCluster.cpp"/>
     <ClCompile Include="..\..\Source\HistoryEntry.cpp"/>
     <ClCompile Include="..\..\Source\HistoryPanel.cpp"/>
     <ClCompile Include="..\..\Source\MainMenu.cpp"/>
@@ -1708,6 +1709,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\Source\KMeans.h"/>
     <ClInclude Include="..\..\Source\MeanShift.h"/>
+    <ClInclude Include="..\..\Source\SpectralCluster.h"/>
     <ClInclude Include="..\..\Source\HistoryEntry.h"/>
     <ClInclude Include="..\..\Source\HistoryPanel.h"/>
     <ClInclude Include="..\..\Source\MainMenu.h"/>

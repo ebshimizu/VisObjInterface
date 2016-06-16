@@ -164,3 +164,138 @@ int KMeans::closestCenter(AttributeSearchResult * point, Array<AttributeSearchRe
 
   return minCenter;
 }
+
+GenericKMeans::GenericKMeans()
+{
+  _distFunc = [](Eigen::VectorXd x, Eigen::VectorXd y) {
+    return (x - y).norm();
+  };
+}
+
+GenericKMeans::GenericKMeans(gdistFuncType distFunc) : _distFunc(distFunc)
+{
+}
+
+vector<Eigen::VectorXd> GenericKMeans::cluster(int k, vector<pair<Eigen::VectorXd, int> >& points, InitMode init)
+{
+  // initialize points, vector and assigned center
+  vector<Eigen::VectorXd> centers;
+
+  if (init == FORGY)
+    centers = forgy(k, points);
+  if (init == RND_PART)
+    centers = rndpart(k, points);
+
+  // assign each point to closest center
+  // stop when no changes happen
+  bool noChangeHappened = false;
+  while (!noChangeHappened) {
+    noChangeHappened = true;
+
+    for (auto& p : points) {
+      // find closest center
+      int closest = closestCenter(p.first, centers);
+
+      // assign center, mark if change
+      if (closest != p.second)
+      {
+        noChangeHappened = false;
+        p.second = closest;
+      }
+    }
+
+    // reset centers
+    vector<int> counts;
+    for (auto& c : centers) {
+      c.setZero();
+      counts.push_back(0);
+    }
+
+    // update centers
+    for (auto& p : points) {
+      centers[p.second] += p.first;
+      counts[p.second] += 1;
+    }
+
+    for (int i = 0; i < centers.size(); i++) {
+      centers[i] /= counts[i];
+    }
+  }
+
+  // points should contain mapping from point to assigned center as well
+  return centers;
+}
+
+vector<Eigen::VectorXd> GenericKMeans::forgy(int k, vector<pair<Eigen::VectorXd, int>>& points)
+{
+  // pick k random elements for centers, no repeats
+  // we'll do this by removing random elements until the number remaining is <= k.
+  vector<pair<Eigen::VectorXd, int> > tempPoints(points);
+
+  while (tempPoints.size() > k) {
+    // select random element to remove
+    tempPoints.erase(tempPoints.begin() + (rand() % tempPoints.size()));
+  }
+
+  // create centers
+  vector<Eigen::VectorXd> centers;
+
+  for (auto& p : tempPoints) {
+    centers.push_back(p.first);
+  }
+
+  return centers;
+}
+
+vector<Eigen::VectorXd> GenericKMeans::rndpart(int k, vector<pair<Eigen::VectorXd, int>>& points)
+{
+  // randomly sort elements into k clusters
+  vector<pair<Eigen::VectorXd, int> > tempPoints(points);
+
+  // first make sure that we place at least one point in each cluster
+  for (int i = 0; i < k; i++) {
+    int selected = rand() % tempPoints.size();
+    points[selected].second = i;
+    tempPoints.erase(tempPoints.begin() + selected);
+  }
+
+  while (tempPoints.size() > 0) {
+    int selected = rand() % tempPoints.size();
+    points[selected].second = rand() % k;
+    tempPoints.erase(tempPoints.begin() + selected);
+  }
+
+  // calculate centers
+  vector<Eigen::VectorXd> centers;
+
+  for (int i = 0; i < k; i++) {
+    Eigen::VectorXd avg;
+    int count = 0;
+    for (auto& p : points) {
+      if (p.second == i) {
+        avg += p.first;
+        count++;
+      }
+    }
+
+    centers.push_back(avg / count);
+  }
+
+  return centers;
+}
+
+int GenericKMeans::closestCenter(Eigen::VectorXd point, vector<Eigen::VectorXd>& centers)
+{
+  int minCenter = -1;
+  double minDist = DBL_MAX;
+
+  for (int i = 0; i < centers.size(); i++) {
+    double dist = _distFunc(point, centers[i]);
+    if (dist < minDist) {
+      minCenter = i;
+      minDist = dist;
+    }
+  }
+
+  return minCenter;
+}

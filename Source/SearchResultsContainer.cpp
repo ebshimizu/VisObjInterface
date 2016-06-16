@@ -13,6 +13,7 @@
 #include "AttributeSearch.h"
 #include "MeanShift.h"
 #include "KMeans.h"
+#include "SpectralCluster.h"
 
 SearchResultsContainer::SearchResultsContainer()
 {
@@ -246,7 +247,7 @@ void SearchResultsContainer::cleanUp(int resultsToKeep)
 
   // get the centers and the results closest to the centers
   KMeans km;
-  auto centers = km.cluster(resultsToKeep, elems, KMeans::InitMode::FORGY);
+  auto centers = km.cluster(resultsToKeep, elems, InitMode::FORGY);
 
   // save closest results to centers
   for (auto& r : centers) {
@@ -325,6 +326,9 @@ void SearchResultsContainer::cluster()
   }
   else if (mode == "Mean Shift") {
     centers = meanShiftClustering(elems, getGlobalSettings()->_meanShiftBandwidth);
+  }
+  else if (mode == "Spectral Clustering") {
+    centers = spectralClustering(elems);
   }
 
   // assign image to center based on best one in cluster
@@ -557,7 +561,7 @@ Array<AttributeSearchResult *> SearchResultsContainer::kmeansClustering(Array<At
     return Array<AttributeSearchResult*>();
 
   KMeans clusterer;
-  return clusterer.cluster(k, elems, KMeans::InitMode::FORGY);
+  return clusterer.cluster(k, elems, InitMode::FORGY);
 }
 
 Array<AttributeSearchResult*> SearchResultsContainer::meanShiftClustering(Array<AttributeSearchResult*>& elems, double bandwidth)
@@ -618,4 +622,13 @@ Array<AttributeSearchResult*> SearchResultsContainer::meanShiftClustering(Array<
   }
 
   return centerContainers;
+}
+
+Array<AttributeSearchResult*> SearchResultsContainer::spectralClustering(Array<AttributeSearchResult*>& elems)
+{
+  SpectralCluster clusterer;
+  // DEBUG: magic number alert
+  auto centers = clusterer.cluster(elems, getGlobalSettings()->_numClusters, 0.01);
+
+  return centers;
 }

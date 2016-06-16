@@ -382,6 +382,9 @@
     <ClCompile Include="..\..\Source\MeanShift.cpp">
       <Filter>AttributesInterface\Source\GUI\clustering</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\SpectralCluster.cpp">
+      <Filter>AttributesInterface\Source\GUI\clustering</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\HistoryEntry.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
@@ -2155,6 +2158,9 @@
       <Filter>AttributesInterface\Source\GUI\clustering</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\MeanShift.h">
+      <Filter>AttributesInterface\Source\GUI\clustering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SpectralCluster.h">
       <Filter>AttributesInterface\Source\GUI\clustering</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\HistoryEntry.h">

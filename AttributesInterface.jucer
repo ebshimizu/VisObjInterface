@@ -15,6 +15,10 @@
           <FILE id="GspJNe" name="KMeans.h" compile="0" resource="0" file="Source/KMeans.h"/>
           <FILE id="oCCSvH" name="MeanShift.cpp" compile="1" resource="0" file="Source/MeanShift.cpp"/>
           <FILE id="sYEPNO" name="MeanShift.h" compile="0" resource="0" file="Source/MeanShift.h"/>
+          <FILE id="snCT8s" name="SpectralCluster.cpp" compile="1" resource="0"
+                file="Source/SpectralCluster.cpp"/>
+          <FILE id="HH1hup" name="SpectralCluster.h" compile="0" resource="0"
+                file="Source/SpectralCluster.h"/>
         </GROUP>
         <FILE id="cmHY0e" name="HistoryEntry.cpp" compile="1" resource="0"
               file="Source/HistoryEntry.cpp"/>

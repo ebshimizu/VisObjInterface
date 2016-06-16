@@ -270,7 +270,7 @@ SettingsEditor::SettingsEditor()
 
 
   Array<PropertyComponent*> clusterComponents;
-  clusterComponents.add(new SettingsChoice("Clustering Method", { "K-Means", "Mean Shift" }));
+  clusterComponents.add(new SettingsChoice("Clustering Method", { "K-Means", "Mean Shift", "Spectral Clustering" }));
   clusterComponents.add(new SettingsSlider("Number of Clusters", 1, 25, 1));
   clusterComponents.add(new SettingsSlider("Mean Shift Bandwidth", 0, 20, 0.01));
   _settings.addSection("Clustering", clusterComponents);
