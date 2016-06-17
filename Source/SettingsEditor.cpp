@@ -244,12 +244,19 @@ int SettingsChoice::getIndex() const
     string mode = getGlobalSettings()->_clusterMethodName;
     return choices.indexOf(String(mode));
   }
+  else if (getName() == "Distance Metric") {
+    string metric = getGlobalSettings()->_distMetric;
+    return choices.indexOf(String(metric));
+  }
 }
 
 void SettingsChoice::setIndex(int newIndex)
 {
   if (getName() == "Clustering Method") {
     getGlobalSettings()->_clusterMethodName = choices[newIndex].toStdString();
+  }
+  else if (getName() == "Distance Metric") {
+    getGlobalSettings()->_distMetric = choices[newIndex].toStdString();
   }
 }
 
@@ -275,9 +282,11 @@ SettingsEditor::SettingsEditor()
 
   Array<PropertyComponent*> clusterComponents;
   clusterComponents.add(new SettingsChoice("Clustering Method", { "K-Means", "Mean Shift", "Spectral Clustering" }));
+  clusterComponents.add(new SettingsChoice("Distance Metric", { "Per-Pixel Average Lab Difference",
+    "Per-Pixel Maximum Lab Difference", "Per-Pixel 90th Percentile Difference", "Lab L2 Norm", "Parameter L2 Norm" })); //, "Whitened Parameter L2 Norm", "Softmax Parameter L2 Norm"
   clusterComponents.add(new SettingsSlider("Number of Clusters", 1, 25, 1));
   clusterComponents.add(new SettingsSlider("Mean Shift Bandwidth", 0, 20, 0.01));
-  clusterComponents.add(new SettingsSlider("Spectral Bandwidth", 1e-5, 1000, 0.00001));
+  clusterComponents.add(new SettingsSlider("Spectral Bandwidth", 1e-3, 1000, 0.001));
   _settings.addSection("Clustering", clusterComponents);
 
   Array<PropertyComponent*> renderComponents;

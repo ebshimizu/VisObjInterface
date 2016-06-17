@@ -128,7 +128,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
     {
       lock_guard<mutex> lock(_resultsLock);
       for (auto& res : _results) {
-        if (newResult->dist(res) < getGlobalSettings()->_jndThreshold) {
+        if (newResult->avgPixDist(res) < getGlobalSettings()->_jndThreshold) {
           delete newResult;
           return false;
         }
@@ -136,7 +136,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
 
       // also check things in the waiting queue
       for (auto& res : _newResults) {
-        if (newResult->dist(res) < getGlobalSettings()->_jndThreshold) {
+        if (newResult->avgPixDist(res) < getGlobalSettings()->_jndThreshold) {
           delete newResult;
           return false;
         }

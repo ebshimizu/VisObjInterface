@@ -374,7 +374,8 @@ GlobalSettings::GlobalSettings()
   _standardMCMCIters = 5.0e3;
   _numClusters = 6;
   _clusterMethodName = "K-Means";
-  _spectralBandwidth = 0.02;
+  _spectralBandwidth = 2;
+  _distMetric = "Per-Pixel Average Lab Difference";
 
   if (_searchThreads <= 0)
     _searchThreads = 1;

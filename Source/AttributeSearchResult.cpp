@@ -80,7 +80,7 @@ AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(res
 
   // magic number alert
   _clusterContents->setWidth(820);
-  _clusterContents->setElemsPerRow(4);
+  _clusterContents->setElemsPerRow(3);
 }
 
 AttributeSearchResult::~AttributeSearchResult()
@@ -145,8 +145,8 @@ void AttributeSearchResult::setImage(Image img)
     _render.desaturate();
 
   // create feature vector
-  Image scaled = _render.rescaled(100, 100);
-  _features.resize(100 * 100 * 3);
+  Image scaled = _render.rescaled(64, 64);
+  _features.resize(64 * 64 * 3);
   for (int y = 0; y < scaled.getHeight(); y++) {
     for (int x = 0; x < scaled.getWidth(); x++) {
       int idx = (y * scaled.getWidth() + x) * 3;
@@ -289,7 +289,26 @@ Eigen::Vector3d AttributeSearchResult::rgbToLab(double r, double g, double b)
 
 double AttributeSearchResult::dist(AttributeSearchResult * y)
 {
-  return dist(y->getFeatures());
+  string metric = getGlobalSettings()->_distMetric;
+  if (metric == "Per-Pixel Average Lab Difference") {
+    return avgPixDist(y);
+  }
+  else if (metric == "Per-Pixel Maximum Lab Difference") {
+    return maxPixDist(y);
+  }
+  else if (metric == "Per-Pixel 90th Percentile Difference") {
+    return pctPixDist(y);
+  }
+  else if (metric == "Lab L2 Norm") {
+    return l2dist(y);
+  }
+  else if (metric == "Parameter L2 Norm") {
+    return l2paramDist(y);
+  }
+  else {
+    // default to Per-Pixel average if no mode specified.
+    return avgPixDist(y);
+  }
 }
 
 double AttributeSearchResult::dist(Eigen::VectorXd & y)
@@ -306,4 +325,104 @@ double AttributeSearchResult::dist(Eigen::VectorXd & y)
   }
 
   return sum / (_features.size() / 3);
+}
+
+double AttributeSearchResult::avgPixDist(AttributeSearchResult * y)
+{
+  double sum = 0;
+  Eigen::VectorXd fy = y->getFeatures();
+
+  // iterate through pixels in groups of 3
+  for (int i = 0; i < _features.size() / 3; i++) {
+    int idx = i * 3;
+
+    sum += sqrt(pow(fy[idx] - _features[idx], 2) +
+      pow(fy[idx + 1] - _features[idx + 1], 2) +
+      pow(fy[idx + 2] - _features[idx + 2], 2));
+  }
+
+  return sum / (_features.size() / 3);
+}
+
+double AttributeSearchResult::l2dist(AttributeSearchResult * y)
+{
+  return (_features - y->getFeatures()).norm();
+}
+
+double AttributeSearchResult::maxPixDist(AttributeSearchResult * y)
+{
+  double maxDist = 0;
+  Eigen::VectorXd fy = y->getFeatures();
+
+  // iterate through pixels in groups of 3
+  for (int i = 0; i < _features.size() / 3; i++) {
+    int idx = i * 3;
+
+    double dist = sqrt(pow(fy[idx] - _features[idx], 2) +
+      pow(fy[idx + 1] - _features[idx + 1], 2) +
+      pow(fy[idx + 2] - _features[idx + 2], 2));
+
+    if (dist > maxDist)
+      maxDist = dist;
+  }
+
+  return maxDist;
+}
+
+double AttributeSearchResult::pctPixDist(AttributeSearchResult * y)
+{
+  Array<double> dists;
+  Eigen::VectorXd fy = y->getFeatures();
+
+  // iterate through pixels in groups of 3
+  for (int i = 0; i < _features.size() / 3; i++) {
+    int idx = i * 3;
+
+    double dist = sqrt(pow(fy[idx] - _features[idx], 2) +
+      pow(fy[idx + 1] - _features[idx + 1], 2) +
+      pow(fy[idx + 2] - _features[idx + 2], 2));
+
+    dists.add(dist);
+  }
+
+  dists.sort();
+
+  // pick point around 90% mark
+  int pct = .9 * dists.size();
+
+  return dists[pct];
+}
+
+double AttributeSearchResult::l2paramDist(AttributeSearchResult * y)
+{
+  // the scene is stored as a vector in the SearchResult of each container.
+  Snapshot* ys = vectorToSnapshot(y->getSearchResult()->_scene);
+  Snapshot* xs = vectorToSnapshot(_result->_scene);
+
+  auto xdevices = xs->getRigData();
+  auto ydevices = ys->getRigData();
+
+  double sum = 0;
+
+  for (auto& d : xdevices) {
+    // get relevant parameters (color and intensity)
+    Device* dy = ydevices[d.first];
+
+    float xintens = d.second->getIntensity()->asPercent();
+    float yintens = dy->getIntensity()->asPercent();
+
+    LumiverseColor* xcolor = d.second->getColor();
+    LumiverseColor* ycolor = dy->getColor();
+
+    Eigen::Vector3d xc = xcolor->getRGB() * xintens;
+    Eigen::Vector3d yc = ycolor->getRGB() * yintens;
+
+    sum += (xc - yc).norm();
+  }
+
+  int count = xdevices.size();
+
+  delete ys;
+  delete xs;
+  return sum / count;
 }

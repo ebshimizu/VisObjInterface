@@ -130,16 +130,19 @@ Array<AttributeSearchResult*> KMeans::rndpart(int k, Array<AttributeSearchResult
 
   for (int i = 0; i < k; i++) {
     Eigen::VectorXd avg;
+    Eigen::VectorXd sceneAvg;
     int count = 0;
     for (auto& p : points) {
       if (p->getSearchResult()->_cluster == i) {
         avg += p->getFeatures();
+        sceneAvg += p->getSearchResult()->_scene;
         count++;
       }
     }
 
     SearchResult* r = new SearchResult();
     r->_cluster = i;
+    r->_scene = sceneAvg / count;
 
     AttributeSearchResult* c = new AttributeSearchResult(r);
     c->setFeatures(avg / count);

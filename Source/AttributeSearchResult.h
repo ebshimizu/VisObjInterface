@@ -91,6 +91,21 @@ public:
   double dist(AttributeSearchResult* y);
   double dist(Eigen::VectorXd& y);
 
+  // Per-pixel average Lab pixel difference
+  double avgPixDist(AttributeSearchResult* y);
+
+  // L2 norm over Lab image vector
+  double l2dist(AttributeSearchResult* y);
+  
+  // Maximum per-pixel Lab distance
+  double maxPixDist(AttributeSearchResult* y);
+
+  // 90th percentile per-pixel Lab distance
+  double pctPixDist(AttributeSearchResult* y);
+
+  // Parameter-wise L2 distance
+  double l2paramDist(AttributeSearchResult* y);
+
 private:
   // Search result object from the attribute search
   SearchResult* _result;
