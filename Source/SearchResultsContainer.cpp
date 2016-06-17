@@ -626,9 +626,12 @@ Array<AttributeSearchResult*> SearchResultsContainer::meanShiftClustering(Array<
 
 Array<AttributeSearchResult*> SearchResultsContainer::spectralClustering(Array<AttributeSearchResult*>& elems)
 {
+  function<double(AttributeSearchResult*, AttributeSearchResult*)> f = [](AttributeSearchResult* x, AttributeSearchResult* y) {
+    return (x->getFeatures() - y->getFeatures()).norm();
+  };
   SpectralCluster clusterer;
-  // DEBUG: magic number alert
-  auto centers = clusterer.cluster(elems, getGlobalSettings()->_numClusters, 0.01);
+
+  auto centers = clusterer.cluster(elems, getGlobalSettings()->_numClusters, getGlobalSettings()->_spectralBandwidth);
 
   return centers;
 }

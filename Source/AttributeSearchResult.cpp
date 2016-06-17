@@ -305,5 +305,5 @@ double AttributeSearchResult::dist(Eigen::VectorXd & y)
                 pow(y[idx + 2] - _features[idx + 2], 2));
   }
 
-  return sum / ((double)_render.getWidth() * _render.getHeight());
+  return sum / (_features.size() / 3);
 }

@@ -168,6 +168,7 @@ public:
   int _searchThreads;           // Background threads for search
   string _clusterMethodName;    // Clustering method
   int _numClusters;             // Number of clusters to use
+  double _spectralBandwidth;    // Bandwidth used in spectral clustering similarity function
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

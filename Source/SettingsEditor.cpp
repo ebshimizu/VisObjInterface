@@ -102,6 +102,8 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_searchThreads = (int)newValue;
   else if (_id == "Number of Clusters")
     getGlobalSettings()->_numClusters = (int)newValue;
+  else if (_id == "Spectral Bandwidth")
+    getGlobalSettings()->_spectralBandwidth = newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -174,6 +176,8 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_searchThreads;
   else if (_id == "Number of Clusters")
     return getGlobalSettings()->_numClusters;
+  else if (_id == "Spectral Bandwidth")
+    return getGlobalSettings()->_spectralBandwidth;
 
   return 0;
 }
@@ -255,7 +259,7 @@ SettingsEditor::SettingsEditor()
 {
   Array<PropertyComponent*> searchComponents;
   searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 25, 1));
-  searchComponents.add(new SettingsSlider("JND Threshold", 0.001, 2, 0.001));
+  searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 10, 0.01));
   searchComponents.add(new SettingsSlider("Max Results", 1, 500, 1));
   searchComponents.add(new SettingsSlider("MCMC Step Size", 0, 0.25, 0.001));
   searchComponents.add(new SettingsSlider("MCMC Max Iterations", 1, 100, 1));
@@ -273,6 +277,7 @@ SettingsEditor::SettingsEditor()
   clusterComponents.add(new SettingsChoice("Clustering Method", { "K-Means", "Mean Shift", "Spectral Clustering" }));
   clusterComponents.add(new SettingsSlider("Number of Clusters", 1, 25, 1));
   clusterComponents.add(new SettingsSlider("Mean Shift Bandwidth", 0, 20, 0.01));
+  clusterComponents.add(new SettingsSlider("Spectral Bandwidth", 1e-5, 1000, 0.00001));
   _settings.addSection("Clustering", clusterComponents);
 
   Array<PropertyComponent*> renderComponents;

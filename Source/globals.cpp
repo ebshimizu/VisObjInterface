@@ -355,7 +355,7 @@ GlobalSettings::GlobalSettings()
   _editStepSize = 0.1;
   _maxMCMCIters = 10;
   _numDisplayClusters = 1;
-  _jndThreshold = 0.02;
+  _jndThreshold = 3;
   _standardMCMC = false;
   _currentSortMode = "Attribute Default";
   _clusterElemsPerRow = 6;
@@ -374,6 +374,7 @@ GlobalSettings::GlobalSettings()
   _standardMCMCIters = 5.0e3;
   _numClusters = 6;
   _clusterMethodName = "K-Means";
+  _spectralBandwidth = 0.02;
 
   if (_searchThreads <= 0)
     _searchThreads = 1;

@@ -28,16 +28,19 @@ SpectralCluster::~SpectralCluster()
 
 Array<AttributeSearchResult*> SpectralCluster::cluster(Array<AttributeSearchResult*>& points, int maxK, double bandwidth)
 {
+  // DEBUG: OUTPUT TO FILE TO SEE MATRICES
+  ofstream debugFile("debug.log", ios::trunc);
+
   // construct similarity matrix
   Eigen::MatrixXd W = constructSimilarityMatrix(points, bandwidth);
 
   // compute D and W (here S is W, fully connected similarity matrix)
-  // and D is just points.size() - 1 for each element
   Eigen::MatrixXd D;
   D.resize(points.size(), points.size());
+  D.setZero();
 
   for (int i = 0; i < points.size(); i++) {
-    D(i, i) = points.size() - 1;
+    D(i, i) = W.row(i).sum();
   }
 
   // compute Lrw
@@ -48,10 +51,17 @@ Array<AttributeSearchResult*> SpectralCluster::cluster(Array<AttributeSearchResu
   // I - D^-1 W
   Eigen::MatrixXd Lrw = I - D.inverse() * W;
 
+  debugFile << "W:\n" << W << "\n";
+  debugFile << "D:\n" << D << "\n";
+  debugFile << "Lrw:\n" << Lrw << "\n";
+
   // calculate eigenvectors and eigenvalues
   Eigen::EigenSolver<Eigen::MatrixXd> es(Lrw);
   auto eigenvals = es.eigenvalues();
   auto eigenvectors = es.eigenvectors();
+
+  debugFile << "Eigenvalues:\n" << eigenvals << "\n";
+  debugFile << "Eigenvectors:\n" << eigenvectors << "\n";
 
   // need to sort vectors and vals in ascending order and pick k of them to be clusters.
   // we'll maintain references to where each value came from during the sort
@@ -74,10 +84,8 @@ Array<AttributeSearchResult*> SpectralCluster::cluster(Array<AttributeSearchResu
     }
   }
 
-  int k = (maxIdx + 1 > maxK) ? maxK : maxIdx + 1;
-
-  // DEBUG: enforcing additional clusters if too few
-  k = (k <= 1) ? 3 : k;
+  debugFile << "Proposed K: " << maxIdx + 1 << "\n";
+  int k = maxIdx + 1;
 
   // assemble feature vectors for clustering
   vector<pair<Eigen::VectorXd, int> > vecs;
