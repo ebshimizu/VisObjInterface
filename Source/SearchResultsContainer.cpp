@@ -76,6 +76,13 @@ void SearchResultsContainer::sort()
     AvgBrightSorter sorter;
     sort(&sorter);
   }
+
+  // sort child elements
+  for (auto& r : _results) {
+    if (r->isClusterCenter()) {
+      r->getClusterContainer()->sort();
+    }
+  }
 }
 
 void SearchResultsContainer::sort(AttributeSorter* s)
