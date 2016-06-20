@@ -419,6 +419,8 @@ void MainContentComponent::openRig(String fname)
     getStatusBar()->setStatusMessage("Error loading \"" + selected.getFullPathName() + "\"");
     getRecorder()->log(SYSTEM, "Failed to load \"" + selected.getFullPathName().toStdString() + "\"");
   }
+
+  arnoldRender();
 }
 
 void MainContentComponent::openMask()

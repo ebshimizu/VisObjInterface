@@ -215,7 +215,7 @@ void SearchResultsContainer::remove()
 
 bool SearchResultsContainer::isFull()
 {
-  return (_newResults.size() + _results.size()) > getGlobalSettings()->_maxReturnedScenes;
+  return (_newResults.size() + numResults()) > getGlobalSettings()->_maxReturnedScenes;
 }
 
 void SearchResultsContainer::cleanUp(int resultsToKeep)
