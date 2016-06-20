@@ -72,6 +72,7 @@ Array<AttributeSearchResult*> KMeans::cluster(int k, Array<AttributeSearchResult
 
     for (auto& c : centers) {
       c->setFeatures(feats[c->getSearchResult()->_cluster] / counts[c->getSearchResult()->_cluster]);
+      c->getSearchResult()->_scene /= counts[c->getSearchResult()->_cluster];
     }
   }
 
