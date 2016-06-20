@@ -208,6 +208,11 @@ void SettingsBoolButton::setState(bool newState)
     getGlobalSettings()->_grayscaleMode = newState;
   else if (_id == "Generate Graph")
     getGlobalSettings()->_autoRunTraceGraph = newState;
+  else if (_id == "Use Mask") {
+    if (getGlobalSettings()->_fgMask.getWidth() != 0) {
+      getGlobalSettings()->_useFGMask = newState;
+    }
+  }
 
   refresh();
 }
@@ -222,6 +227,9 @@ bool SettingsBoolButton::getState() const
     return getGlobalSettings()->_grayscaleMode;
   else if (_id == "Generate Graph")
     return getGlobalSettings()->_autoRunTraceGraph;
+  else if (_id == "Use Mask") {
+    return getGlobalSettings()->_useFGMask;
+  }
 
   return false;
 }
@@ -277,6 +285,7 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsBoolButton("Export Traces"));
   searchComponents.add(new SettingsBoolButton("Generate Graph"));
   searchComponents.add(new SettingsSlider("Search Threads", 1, thread::hardware_concurrency(), 1));
+  searchComponents.add(new SettingsBoolButton("Use Mask"));
   _settings.addSection("Search", searchComponents);
 
 

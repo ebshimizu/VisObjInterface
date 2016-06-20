@@ -33,6 +33,7 @@ enum command {
   SAVE = 0x0002,
   SAVE_AS = 0x0003,
   SAVE_RENDER = 0x0004,
+  OPEN_MASK = 0x0005,
 
   // Internal
   REFRESH_PARAMS = 0x2000,
@@ -170,6 +171,7 @@ public:
   int _numClusters;             // Number of clusters to use
   double _spectralBandwidth;    // Bandwidth used in spectral clustering similarity function
   string _distMetric;           // Distance metric
+  bool _useFGMask;              // toggles the use of the foreground mask, if loaded
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results
@@ -212,6 +214,9 @@ public:
 
   // deletes edits currently stored in the global cache
   void clearEdits();
+
+  // Foregorund mask
+  Image _fgMask;
 };
 
 // Results that eventually get returned to the UI layer

@@ -128,7 +128,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
     {
       lock_guard<mutex> lock(_resultsLock);
       for (auto& res : _results) {
-        if (newResult->avgPixDist(res) < getGlobalSettings()->_jndThreshold) {
+        if (newResult->avgPixDist(res, true) < getGlobalSettings()->_jndThreshold) {
           delete newResult;
           return false;
         }
@@ -136,7 +136,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
 
       // also check things in the waiting queue
       for (auto& res : _newResults) {
-        if (newResult->avgPixDist(res) < getGlobalSettings()->_jndThreshold) {
+        if (newResult->avgPixDist(res, true) < getGlobalSettings()->_jndThreshold) {
           delete newResult;
           return false;
         }
@@ -641,13 +641,8 @@ Array<AttributeSearchResult*> SearchResultsContainer::meanShiftClustering(Array<
 
 Array<AttributeSearchResult*> SearchResultsContainer::spectralClustering(Array<AttributeSearchResult*>& elems)
 {
-  function<double(AttributeSearchResult*, AttributeSearchResult*)> f = [](AttributeSearchResult* x, AttributeSearchResult* y) {
-    return (x->getFeatures() - y->getFeatures()).norm();
-  };
   SpectralCluster clusterer;
-
   auto centers = clusterer.cluster(elems, getGlobalSettings()->_numClusters, getGlobalSettings()->_spectralBandwidth);
-
   return centers;
 }
 

@@ -78,6 +78,7 @@ private:
   // Open a Lumiverse file
   void openRig();
   void openRig(String fname);
+  void openMask();
 
   void saveRig();
   void saveAs();

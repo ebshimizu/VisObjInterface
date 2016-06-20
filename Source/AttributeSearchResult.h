@@ -89,10 +89,10 @@ public:
   // Calculate the distance between this result and another result
   // Current metric: average pixel difference in Lab
   double dist(AttributeSearchResult* y);
-  double dist(Eigen::VectorXd& y);
 
   // Per-pixel average Lab pixel difference
-  double avgPixDist(AttributeSearchResult* y);
+  // special case: avgpixdist can ignore mask for purposes of filtering
+  double avgPixDist(AttributeSearchResult* y, bool overrideMask = false);
 
   // L2 norm over Lab image vector
   double l2dist(AttributeSearchResult* y);
@@ -119,7 +119,10 @@ private:
   // rendered image 
   Image _render;
 
-  // vector representation of a scaled down (100 x 100) thumbnail image in Lab
+  // mask
+  Image _mask;
+
+  // vector representation of a scaled down (64 x 64) thumbnail image in Lab
   Eigen::VectorXd _features;
 
   // Contains elements that belong to this particular cluster

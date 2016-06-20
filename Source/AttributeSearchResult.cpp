@@ -147,6 +147,13 @@ void AttributeSearchResult::setImage(Image img)
   // create feature vector
   Image scaled = _render.rescaled(64, 64);
   _features.resize(64 * 64 * 3);
+
+  bool useMask = getGlobalSettings()->_useFGMask;
+
+  if (useMask) {
+    _mask = getGlobalSettings()->_fgMask.rescaled(64, 64);
+  }
+
   for (int y = 0; y < scaled.getHeight(); y++) {
     for (int x = 0; x < scaled.getWidth(); x++) {
       int idx = (y * scaled.getWidth() + x) * 3;
@@ -317,23 +324,7 @@ double AttributeSearchResult::dist(AttributeSearchResult * y)
   }
 }
 
-double AttributeSearchResult::dist(Eigen::VectorXd & y)
-{
-  double sum = 0;
-
-  // iterate through pixels in groups of 3
-  for (int i = 0; i < _features.size() / 3; i++) {
-    int idx = i * 3;
-
-    sum += sqrt(pow(y[idx] - _features[idx], 2) +
-                pow(y[idx + 1] - _features[idx + 1], 2) +
-                pow(y[idx + 2] - _features[idx + 2], 2));
-  }
-
-  return sum / (_features.size() / 3);
-}
-
-double AttributeSearchResult::avgPixDist(AttributeSearchResult * y)
+double AttributeSearchResult::avgPixDist(AttributeSearchResult * y, bool overrideMask)
 {
   double sum = 0;
   Eigen::VectorXd fy = y->getFeatures();
@@ -342,7 +333,12 @@ double AttributeSearchResult::avgPixDist(AttributeSearchResult * y)
   for (int i = 0; i < _features.size() / 3; i++) {
     int idx = i * 3;
 
-    sum += sqrt(pow(fy[idx] - _features[idx], 2) +
+    double maskFactor = 1;
+    if (!overrideMask && getGlobalSettings()->_useFGMask) {
+      maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+    }
+
+    sum += maskFactor * sqrt(pow(fy[idx] - _features[idx], 2) +
       pow(fy[idx + 1] - _features[idx + 1], 2) +
       pow(fy[idx + 2] - _features[idx + 2], 2));
   }
@@ -352,7 +348,24 @@ double AttributeSearchResult::avgPixDist(AttributeSearchResult * y)
 
 double AttributeSearchResult::l2dist(AttributeSearchResult * y)
 {
-  return (_features - y->getFeatures()).norm();
+  double sum = 0;
+  Eigen::VectorXd fy = y->getFeatures();
+
+  // iterate through pixels in groups of 3
+  for (int i = 0; i < _features.size() / 3; i++) {
+    int idx = i * 3;
+
+    double maskFactor = 1;
+    if (getGlobalSettings()->_useFGMask) {
+      maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+    }
+
+    sum += maskFactor * (pow(fy[idx] - _features[idx], 2) +
+      pow(fy[idx + 1] - _features[idx + 1], 2) +
+      pow(fy[idx + 2] - _features[idx + 2], 2));
+  }
+
+  return sqrt(sum);
 }
 
 double AttributeSearchResult::maxPixDist(AttributeSearchResult * y)
@@ -364,7 +377,12 @@ double AttributeSearchResult::maxPixDist(AttributeSearchResult * y)
   for (int i = 0; i < _features.size() / 3; i++) {
     int idx = i * 3;
 
-    double dist = sqrt(pow(fy[idx] - _features[idx], 2) +
+    double maskFactor = 1;
+    if (getGlobalSettings()->_useFGMask) {
+      maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+    }
+
+    double dist = maskFactor * sqrt(pow(fy[idx] - _features[idx], 2) +
       pow(fy[idx + 1] - _features[idx + 1], 2) +
       pow(fy[idx + 2] - _features[idx + 2], 2));
 
@@ -384,7 +402,12 @@ double AttributeSearchResult::pctPixDist(AttributeSearchResult * y)
   for (int i = 0; i < _features.size() / 3; i++) {
     int idx = i * 3;
 
-    double dist = sqrt(pow(fy[idx] - _features[idx], 2) +
+    double maskFactor = 1;
+    if (getGlobalSettings()->_useFGMask) {
+      maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+    }
+
+    double dist = maskFactor * sqrt(pow(fy[idx] - _features[idx], 2) +
       pow(fy[idx + 1] - _features[idx + 1], 2) +
       pow(fy[idx + 2] - _features[idx + 2], 2));
 
@@ -497,7 +520,12 @@ double AttributeSearchResult::l2LuminanceDist(AttributeSearchResult * y)
   Eigen::VectorXd yf = y->getFeatures();
 
   for (int i = 0; i < _features.size() / 3; i++) {
-    sum += pow(_features[i * 3] - yf[i * 3], 2);
+    double maskFactor = 1;
+    if (getGlobalSettings()->_useFGMask) {
+      maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+    }
+
+    sum += maskFactor * pow(_features[i * 3] - yf[i * 3], 2);
   }
 
   return sqrt(sum);

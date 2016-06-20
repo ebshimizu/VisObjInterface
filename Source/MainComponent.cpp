@@ -94,7 +94,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::LOCK_ALL_AREAS_EXCEPT, command::LOCK_AREA, command::LOCK_SYSTEM, command::LOCK_ALL_SYSTEMS_EXCEPT,
     command::SAVE_RENDER, command::GET_FROM_ARNOLD, command::STOP_SEARCH, command::GET_NEW_RESULTS,
     command::UPDATE_NUM_THREADS, command::SAVE_RESULTS, command::LOAD_RESULTS, command::LOAD_TRACES,
-    command::PICK_TRACE
+    command::PICK_TRACE, command::OPEN_MASK
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -203,6 +203,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::PICK_TRACE:
     result.setInfo("Display Trace", "Displays a loaded trace in the results window", "Explore", 0);
     break;
+  case command::OPEN_MASK:
+    result.setInfo("Open Mask...", "Opens a mask file", "File", 0);
+    break;
   default:
     return;
   }
@@ -295,6 +298,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::PICK_TRACE:
     pickTrace();
+    break;
+  case command::OPEN_MASK:
+    openMask();
     break;
   default:
     return false;
@@ -413,6 +419,27 @@ void MainContentComponent::openRig(String fname)
     getStatusBar()->setStatusMessage("Error loading \"" + selected.getFullPathName() + "\"");
     getRecorder()->log(SYSTEM, "Failed to load \"" + selected.getFullPathName().toStdString() + "\"");
   }
+}
+
+void MainContentComponent::openMask()
+{
+  FileChooser fc("Load Mask", File::getCurrentWorkingDirectory(),
+    "*.png", true);
+
+  if (fc.browseForFileToOpen()) {
+    File selected = fc.getResult();
+    FileInputStream in(selected);
+
+    if (in.openedOk()) {
+      // load image
+      PNGImageFormat pngReader;
+      getGlobalSettings()->_fgMask = pngReader.decodeImage(in);
+      getGlobalSettings()->_useFGMask = true;
+
+      getStatusBar()->setStatusMessage("Loaded mask.");
+    }
+  }
+  repaint();
 }
 
 void MainContentComponent::saveRig()
