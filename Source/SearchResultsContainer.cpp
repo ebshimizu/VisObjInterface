@@ -533,7 +533,7 @@ void SearchResultsContainer::setElemsPerRow(int epr)
 
 int SearchResultsContainer::numResults()
 {
-  int count;
+  int count = 0;
   for (auto& r : _results) {
     if (r->isClusterCenter()) {
       // no nested clusters, so can do this
