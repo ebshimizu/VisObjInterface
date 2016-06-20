@@ -79,6 +79,8 @@ public:
   // Returns the number of results contained in this container and all child containers
   int numResults();
 
+  void calculateClusterStats();
+
 private:
   Array<AttributeSearchResult*> _results;
   Array<AttributeSearchResult*> _newResults;
@@ -99,6 +101,7 @@ private:
   // Spectral clustering
   Array<AttributeSearchResult*> spectralClustering(Array<AttributeSearchResult*>& elems);
 
+  double daviesBouldin();
   mutex _resultsLock;
 
   int _elemsPerRow;

@@ -53,9 +53,12 @@ Array<AttributeSearchResult*> KMeans::cluster(int k, Array<AttributeSearchResult
     // reset centers
     map<int, int> counts;
     map<int, Eigen::VectorXd> feats;
+    map<int, Eigen::VectorXd> scenes;
     for (auto& c : centers) {
       feats[c->getSearchResult()->_cluster] = c->getFeatures();
       feats[c->getSearchResult()->_cluster].setZero();
+      scenes[c->getSearchResult()->_cluster] = c->getSearchResult()->_scene;
+      scenes[c->getSearchResult()->_cluster].setZero();
       counts[c->getSearchResult()->_cluster] = 0;
     }
 
@@ -63,6 +66,7 @@ Array<AttributeSearchResult*> KMeans::cluster(int k, Array<AttributeSearchResult
     for (auto& p : points) {
       SearchResult* r = p->getSearchResult();
       feats[r->_cluster] += p->getFeatures();
+      scenes[r->_cluster] += r->_scene;
       counts[r->_cluster] += 1;
     }
 
@@ -96,6 +100,7 @@ Array<AttributeSearchResult*> KMeans::forgy(int k, Array<AttributeSearchResult*>
   for (auto& p : tempPoints) {
     SearchResult* r = new SearchResult();
     r->_cluster = i;
+    r->_scene = p->getSearchResult()->_scene;
     
     AttributeSearchResult* c = new AttributeSearchResult(r);
     c->setFeatures(p->getFeatures());

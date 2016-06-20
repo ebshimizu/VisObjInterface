@@ -305,6 +305,12 @@ double AttributeSearchResult::dist(AttributeSearchResult * y)
   else if (metric == "Parameter L2 Norm") {
     return l2paramDist(y);
   }
+  else if (metric == "Softmax Parameter L2 Norm") {
+    return l2paramDistSoftmax(y);
+  }
+  else if (metric == "Luminance L2 Norm") {
+    return l2LuminanceDist(y);
+  }
   else {
     // default to Per-Pixel average if no mode specified.
     return avgPixDist(y);
@@ -425,4 +431,74 @@ double AttributeSearchResult::l2paramDist(AttributeSearchResult * y)
   delete ys;
   delete xs;
   return sum / count;
+}
+
+double AttributeSearchResult::l2paramDistSoftmax(AttributeSearchResult * y)
+{
+  // the scene is stored as a vector in the SearchResult of each container.
+  Snapshot* ys = vectorToSnapshot(y->getSearchResult()->_scene);
+  Snapshot* xs = vectorToSnapshot(_result->_scene);
+
+  auto xdevices = xs->getRigData();
+  auto ydevices = ys->getRigData();
+
+  // vector of intensity scaled RGB colors
+  Eigen::VectorXd xparams, yparams;
+  xparams.resize(xdevices.size() * 3);
+  yparams.resize(ydevices.size() * 3);
+  xparams.setZero();
+  yparams.setZero();
+
+  int i = 0;
+  for (auto& d : xdevices) {
+    // get relevant parameters (color and intensity)
+    Device* dy = ydevices[d.first];
+
+    float xintens = d.second->getIntensity()->getVal();
+    float yintens = dy->getIntensity()->getVal();
+
+    LumiverseColor* xcolor = d.second->getColor();
+    LumiverseColor* ycolor = dy->getColor();
+
+    Eigen::Vector3d xc = xcolor->getRGB() * xintens;
+    Eigen::Vector3d yc = ycolor->getRGB() * yintens;
+
+    int idx = i * 3;
+    xparams[idx] = xc[0];
+    xparams[idx + 1] = xc[1];
+    xparams[idx + 2] = xc[2];
+
+    yparams[idx] = yc[0];
+    yparams[idx + 1] = yc[1];
+    yparams[idx + 2] = yc[2];
+
+    i++;
+  }
+
+  // softmax normalization
+  for (int i = 0; i < xparams.size(); i++) {
+    xparams[i] = pow(xparams[i], xparams.size());
+    yparams[i] = pow(yparams[i], yparams.size());
+  }
+
+  xparams /= xparams.sum();
+  yparams /= yparams.sum();
+
+  delete ys;
+  delete xs;
+
+  return (xparams - yparams).norm();
+}
+
+double AttributeSearchResult::l2LuminanceDist(AttributeSearchResult * y)
+{
+  // just pull the luminance component of each image and take the L2 norm
+  double sum = 0;
+  Eigen::VectorXd yf = y->getFeatures();
+
+  for (int i = 0; i < _features.size() / 3; i++) {
+    sum += pow(_features[i * 3] - yf[i * 3], 2);
+  }
+
+  return sqrt(sum);
 }

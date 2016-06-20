@@ -106,6 +106,12 @@ public:
   // Parameter-wise L2 distance
   double l2paramDist(AttributeSearchResult* y);
 
+  // Does a softmax normalization of the parameter vector and then takes the L2 norm
+  double l2paramDistSoftmax(AttributeSearchResult* y);
+
+  // Luminance L2 norm
+  double l2LuminanceDist(AttributeSearchResult* y);
+
 private:
   // Search result object from the attribute search
   SearchResult* _result;

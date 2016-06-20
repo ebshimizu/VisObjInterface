@@ -342,21 +342,29 @@ void SearchResultsContainer::cluster()
   // and insert into results
   for (auto& r : centers) {
     double minVal = DBL_MAX;
-
-    // iterate through contents
-    for (auto& e : r->getClusterContainer()->getResults()) {
-      if (e->getSearchResult()->_objFuncVal < minVal) {
-        r->setImage(e->getImage());
-        r->getSearchResult()->_sampleNo = e->getSearchResult()->_sampleNo;
-        r->getSearchResult()->_objFuncVal = e->getSearchResult()->_objFuncVal;
-        minVal = e->getSearchResult()->_objFuncVal;
+    
+    if (r->isClusterCenter()) {
+      // iterate through contents
+      for (auto& e : r->getClusterContainer()->getResults()) {
+        if (e->getSearchResult()->_objFuncVal < minVal) {
+          r->setImage(e->getImage());
+          r->getSearchResult()->_sampleNo = e->getSearchResult()->_sampleNo;
+          r->getSearchResult()->_objFuncVal = e->getSearchResult()->_objFuncVal;
+          minVal = e->getSearchResult()->_objFuncVal;
+        }
       }
-    }
 
-    r->regenToolTip();
-    addAndMakeVisible(r);
-    _results.add(r);
+      r->regenToolTip();
+      addAndMakeVisible(r);
+      _results.add(r);
+    }
+    else {
+      delete r;
+    }
   }
+
+  // calculate cluster stats
+  calculateClusterStats();
 
   setWidth(getLocalBounds().getWidth());
   resized();
@@ -641,4 +649,52 @@ Array<AttributeSearchResult*> SearchResultsContainer::spectralClustering(Array<A
   auto centers = clusterer.cluster(elems, getGlobalSettings()->_numClusters, getGlobalSettings()->_spectralBandwidth);
 
   return centers;
+}
+
+double SearchResultsContainer::daviesBouldin()
+{
+  //calculate S for each cluster
+  Eigen::VectorXd S;
+  S.resize(_results.size());
+
+  for (int i = 0; i < _results.size(); i++) {
+    S[i] = 0;
+    // calculate average distance between centroid and other points
+    for (auto& r : _results[i]->getClusterContainer()->getResults()) {
+      S[i] += r->dist(_results[i]);
+    }
+    S[i] = sqrt(S[i] / _results[i]->getClusterContainer()->getResults().size());
+  }
+
+  // Calculate R
+  Eigen::MatrixXd R;
+  R.resize(_results.size(), _results.size());
+
+  for (int i = 0; i < _results.size(); i++) {
+    R(i, i) = -1;
+    for (int j = i + 1; j < _results.size(); j++) {
+      double M = _results[i]->dist(_results[j]);
+      R(i, j) = (S[i] + S[j]) / M;
+      R(j, i) = R(i, j);
+    }
+  }
+
+  Eigen::VectorXd D;
+  D.resize(_results.size());
+
+  for (int i = 0; i < _results.size(); i++) {
+    D[i] = R.row(i).maxCoeff();
+  }
+
+  // return average of D
+  return D.sum() / D.size();
+}
+
+void SearchResultsContainer::calculateClusterStats()
+{
+  // calculate davies-bouldin and save to log
+  double db = daviesBouldin();
+
+  getRecorder()->log(SYSTEM, "Clustering Davies-Bouldin Index: " + String(db).toStdString());
+  getStatusBar()->setStatusMessage("Clustering finished. k = " + String(_results.size()) + ", DB = " + String(db));
 }
