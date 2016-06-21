@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    AttributeSearchResult.cpp
+    SearchResultContainer.cpp
     Created: 7 Jan 2016 4:59:12pm
     Author:  falindrith
 
@@ -69,7 +69,7 @@ void SearchResultBlender::sliderValueChanged(Slider * s)
 
 
 //==============================================================================
-AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(result)
+SearchResultContainer::SearchResultContainer(SearchResult* result) : _result(result)
 {
   // In your constructor, you should add any child components, and
   // initialise any special settings that your component needs.
@@ -83,7 +83,7 @@ AttributeSearchResult::AttributeSearchResult(SearchResult* result) : _result(res
   _clusterContents->setElemsPerRow(3);
 }
 
-AttributeSearchResult::~AttributeSearchResult()
+SearchResultContainer::~SearchResultContainer()
 {
   if (_result != nullptr)
     delete _result;
@@ -91,7 +91,7 @@ AttributeSearchResult::~AttributeSearchResult()
   delete _clusterContents;
 }
 
-void AttributeSearchResult::regenToolTip()
+void SearchResultContainer::regenToolTip()
 {
   String tt = "";
   bool first = true;
@@ -109,7 +109,7 @@ void AttributeSearchResult::regenToolTip()
   setTooltip(tt);
 }
 
-void AttributeSearchResult::paint (Graphics& g)
+void SearchResultContainer::paint (Graphics& g)
 {
   if (_isHovered) {
     g.fillAll(Colours::yellow);
@@ -133,11 +133,11 @@ void AttributeSearchResult::paint (Graphics& g)
   g.drawText(String(_result->_sampleNo), textArea, Justification::centredLeft, false);
 }
 
-void AttributeSearchResult::resized()
+void SearchResultContainer::resized()
 {
 }
 
-void AttributeSearchResult::setImage(Image img)
+void SearchResultContainer::setImage(Image img)
 {
   _render = img;
 
@@ -167,7 +167,7 @@ void AttributeSearchResult::setImage(Image img)
   }
 }
 
-void AttributeSearchResult::clearSearchResult()
+void SearchResultContainer::clearSearchResult()
 {
   if (_result != nullptr)
     delete _result;
@@ -175,7 +175,7 @@ void AttributeSearchResult::clearSearchResult()
   _result = nullptr;
 }
 
-void AttributeSearchResult::mouseDown(const MouseEvent & event)
+void SearchResultContainer::mouseDown(const MouseEvent & event)
 {
   if (event.mods.isRightButtonDown()) {
     PopupMenu m;
@@ -228,7 +228,7 @@ void AttributeSearchResult::mouseDown(const MouseEvent & event)
   }
 }
 
-void AttributeSearchResult::mouseEnter(const MouseEvent & event)
+void SearchResultContainer::mouseEnter(const MouseEvent & event)
 {
   _isHovered = true;
   getGlobalSettings()->_showThumbnailImg = true;
@@ -239,7 +239,7 @@ void AttributeSearchResult::mouseEnter(const MouseEvent & event)
   getParentComponent()->repaint();
 }
 
-void AttributeSearchResult::mouseExit(const MouseEvent & event)
+void SearchResultContainer::mouseExit(const MouseEvent & event)
 {
   _isHovered = false;
   getGlobalSettings()->_showThumbnailImg = false;
@@ -249,7 +249,7 @@ void AttributeSearchResult::mouseExit(const MouseEvent & event)
   getParentComponent();
 }
 
-int AttributeSearchResult::compareElements(AttributeSearchResult * first, AttributeSearchResult * second)
+int SearchResultContainer::compareElements(SearchResultContainer * first, SearchResultContainer * second)
 {
   double firstScore = first->getSearchResult()->_objFuncVal;
   double secondScore = second->getSearchResult()->_objFuncVal;
@@ -262,39 +262,39 @@ int AttributeSearchResult::compareElements(AttributeSearchResult * first, Attrib
     return 0;
 }
 
-Eigen::VectorXd AttributeSearchResult::getFeatures()
+Eigen::VectorXd SearchResultContainer::getFeatures()
 {
   return _features;
 }
 
-void AttributeSearchResult::setFeatures(Eigen::VectorXd features)
+void SearchResultContainer::setFeatures(Eigen::VectorXd features)
 {
   _features = features;
 }
 
-bool AttributeSearchResult::isClusterCenter()
+bool SearchResultContainer::isClusterCenter()
 {
   return _clusterContents->getResults().size() > 0;
 }
 
-SearchResultsContainer * AttributeSearchResult::getClusterContainer()
+SearchResultsContainer * SearchResultContainer::getClusterContainer()
 {
   return _clusterContents;
 }
 
-void AttributeSearchResult::addToCluster(AttributeSearchResult * elem)
+void SearchResultContainer::addToCluster(SearchResultContainer * elem)
 {
   _clusterContents->appendNewResult(elem);
 
 }
 
-Eigen::Vector3d AttributeSearchResult::rgbToLab(double r, double g, double b)
+Eigen::Vector3d SearchResultContainer::rgbToLab(double r, double g, double b)
 {
   Eigen::Vector3d xyz = ColorUtils::convRGBtoXYZ(r, g, b, sRGB);
   return ColorUtils::convXYZtoLab(xyz, refWhites[D65] / 100.0);
 }
 
-double AttributeSearchResult::dist(AttributeSearchResult * y)
+double SearchResultContainer::dist(SearchResultContainer * y)
 {
   string metric = getGlobalSettings()->_distMetric;
   if (metric == "Per-Pixel Average Lab Difference") {
@@ -327,7 +327,7 @@ double AttributeSearchResult::dist(AttributeSearchResult * y)
   }
 }
 
-double AttributeSearchResult::avgPixDist(AttributeSearchResult * y, bool overrideMask)
+double SearchResultContainer::avgPixDist(SearchResultContainer * y, bool overrideMask)
 {
   double sum = 0;
   Eigen::VectorXd fy = y->getFeatures();
@@ -349,7 +349,7 @@ double AttributeSearchResult::avgPixDist(AttributeSearchResult * y, bool overrid
   return sum / (_features.size() / 3);
 }
 
-double AttributeSearchResult::l2dist(AttributeSearchResult * y)
+double SearchResultContainer::l2dist(SearchResultContainer * y)
 {
   double sum = 0;
   Eigen::VectorXd fy = y->getFeatures();
@@ -371,7 +371,7 @@ double AttributeSearchResult::l2dist(AttributeSearchResult * y)
   return sqrt(sum);
 }
 
-double AttributeSearchResult::maxPixDist(AttributeSearchResult * y)
+double SearchResultContainer::maxPixDist(SearchResultContainer * y)
 {
   double maxDist = 0;
   Eigen::VectorXd fy = y->getFeatures();
@@ -396,7 +396,7 @@ double AttributeSearchResult::maxPixDist(AttributeSearchResult * y)
   return maxDist;
 }
 
-double AttributeSearchResult::pctPixDist(AttributeSearchResult * y)
+double SearchResultContainer::pctPixDist(SearchResultContainer * y)
 {
   Array<double> dists;
   Eigen::VectorXd fy = y->getFeatures();
@@ -425,7 +425,7 @@ double AttributeSearchResult::pctPixDist(AttributeSearchResult * y)
   return dists[pct];
 }
 
-double AttributeSearchResult::l2paramDist(AttributeSearchResult * y)
+double SearchResultContainer::l2paramDist(SearchResultContainer * y)
 {
   // the scene is stored as a vector in the SearchResult of each container.
   Snapshot* ys = vectorToSnapshot(y->getSearchResult()->_scene);
@@ -459,7 +459,7 @@ double AttributeSearchResult::l2paramDist(AttributeSearchResult * y)
   return sum / count;
 }
 
-double AttributeSearchResult::l2paramDistSoftmax(AttributeSearchResult * y)
+double SearchResultContainer::l2paramDistSoftmax(SearchResultContainer * y)
 {
   // the scene is stored as a vector in the SearchResult of each container.
   Snapshot* ys = vectorToSnapshot(y->getSearchResult()->_scene);
@@ -516,7 +516,7 @@ double AttributeSearchResult::l2paramDistSoftmax(AttributeSearchResult * y)
   return (xparams - yparams).norm();
 }
 
-double AttributeSearchResult::l2LuminanceDist(AttributeSearchResult * y)
+double SearchResultContainer::l2LuminanceDist(SearchResultContainer * y)
 {
   // just pull the luminance component of each image and take the L2 norm
   double sum = 0;
@@ -534,7 +534,7 @@ double AttributeSearchResult::l2LuminanceDist(AttributeSearchResult * y)
   return sqrt(sum);
 }
 
-double AttributeSearchResult::attrDist(AttributeSearchResult * y)
+double SearchResultContainer::attrDist(SearchResultContainer * y)
 {
   return abs(_result->_objFuncVal - y->getSearchResult()->_objFuncVal);
 }

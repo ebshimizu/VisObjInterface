@@ -22,14 +22,14 @@
 class SearchResultsRenderer : public ThreadWithProgressWindow
 {
 public:
-  SearchResultsRenderer(Array<AttributeSearchResult*> results);
+  SearchResultsRenderer(Array<SearchResultContainer*> results);
   ~SearchResultsRenderer();
 
   void run() override;
   void threadComplete(bool userPressedCancel) override;
 
 private:
-  Array<AttributeSearchResult*> _results;
+  Array<SearchResultContainer*> _results;
 };
 
 //==============================================================================
@@ -47,7 +47,7 @@ public:
   void cluster();
   void sort();
 
-  Array<AttributeSearchResult*> getResults();
+  Array<SearchResultContainer*> getResults();
 
   HistoryPanel* getHistory() { return _history; }
 

@@ -12,10 +12,10 @@
 #define ATTRIBUTESEARCHCLUSTER_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "AttributeSearchResult.h"
+#include "SearchResultContainer.h"
 #include "AttributeSorting.h"
 
-class AttributeSearchResult;
+class SearchResultContainer;
 class AttributeSorter;
 
 //==============================================================================
@@ -33,7 +33,7 @@ public:
   void sort(AttributeSorter* s);
 
   // Return the results for some other use
-  Array<AttributeSearchResult*> getResults();
+  Array<SearchResultContainer*> getResults();
 
   // Add a new search result to the display area. Is thread safe.
   bool addNewResult(SearchResult* r);
@@ -70,7 +70,7 @@ public:
 
   // Insert pre-constructed attribute search result into this container
   // Does no similarity checks, is also thread safe
-  void appendNewResult(AttributeSearchResult* r);
+  void appendNewResult(SearchResultContainer* r);
 
   // Number of elements to display on each row, defaults to the value stored in
   // the global settings
@@ -82,24 +82,24 @@ public:
   void calculateClusterStats();
 
 private:
-  Array<AttributeSearchResult*> _results;
-  Array<AttributeSearchResult*> _newResults;
+  Array<SearchResultContainer*> _results;
+  Array<SearchResultContainer*> _newResults;
 
   // Creates an attribute search result container for the given result struct
-  AttributeSearchResult* createContainerFor(SearchResult* r);
+  SearchResultContainer* createContainerFor(SearchResult* r);
 
   // Clustering functions should all return an array of attribute search results contianers
   // that contain the elements belonging to that cluster center
 
   // cluster elements using k-means. K is specified arbitrarily.
   // Returns the centers.
-  Array<AttributeSearchResult*> kmeansClustering(Array<AttributeSearchResult*>& elems, int k);
+  Array<SearchResultContainer*> kmeansClustering(Array<SearchResultContainer*>& elems, int k);
 
   // Mean Shift clustering
-  Array<AttributeSearchResult*> meanShiftClustering(Array<AttributeSearchResult*>& elems, double bandwidth);
+  Array<SearchResultContainer*> meanShiftClustering(Array<SearchResultContainer*>& elems, double bandwidth);
 
   // Spectral clustering
-  Array<AttributeSearchResult*> spectralClustering(Array<AttributeSearchResult*>& elems);
+  Array<SearchResultContainer*> spectralClustering(Array<SearchResultContainer*>& elems);
 
   double daviesBouldin();
   mutex _resultsLock;

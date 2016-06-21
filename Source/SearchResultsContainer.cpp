@@ -92,7 +92,7 @@ void SearchResultsContainer::sort(AttributeSorter* s)
   repaint();
 }
 
-Array<AttributeSearchResult*> SearchResultsContainer::getResults()
+Array<SearchResultContainer*> SearchResultsContainer::getResults()
 {
   return _results;
 }
@@ -108,7 +108,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
 
     // Check to make sure result is sufficiently different
     // Create new result container
-    AttributeSearchResult* newResult = new AttributeSearchResult(r);
+    SearchResultContainer* newResult = new SearchResultContainer(r);
 
     // render
     auto p = getAnimationPatch();
@@ -230,7 +230,7 @@ void SearchResultsContainer::cleanUp(int resultsToKeep)
 
   // gather everything back up into a single array
   // and delete current cluster centers
-  Array<AttributeSearchResult*> elems;
+  Array<SearchResultContainer*> elems;
 
   for (auto& r : _results) {
     if (r->isClusterCenter()) {
@@ -259,7 +259,7 @@ void SearchResultsContainer::cleanUp(int resultsToKeep)
   // save closest results to centers
   for (auto& r : centers) {
     double minVal = DBL_MAX;
-    AttributeSearchResult* resToKeep = nullptr;
+    SearchResultContainer* resToKeep = nullptr;
 
     // iterate through contents
     for (auto& e : r->getClusterContainer()->getResults()) {
@@ -301,7 +301,7 @@ void SearchResultsContainer::cluster()
 {
   lock_guard<mutex> lock(_resultsLock);
 
-  Array<AttributeSearchResult*> elems;
+  Array<SearchResultContainer*> elems;
 
   // gather everything back up into a single array
   // and delete current cluster centers
@@ -326,7 +326,7 @@ void SearchResultsContainer::cluster()
   _results.clear();
 
   // now that all the current elements are in a single place, run a clustering algorithm
-  Array<AttributeSearchResult*> centers;
+  Array<SearchResultContainer*> centers;
   string mode = getGlobalSettings()->_clusterMethodName;
   if (mode == "K-Means") {
     centers = kmeansClustering(elems, getGlobalSettings()->_numClusters);
@@ -438,7 +438,7 @@ void SearchResultsContainer::loadResults(string filename)
         r->_scene[i] = sceneVals[i];
       }
 
-      auto newResult = new AttributeSearchResult(r);
+      auto newResult = new SearchResultContainer(r);
       newResult->setTooltip(tooltip);
 
       // render
@@ -488,7 +488,7 @@ void SearchResultsContainer::loadTrace(int selected)
     r->_sampleNo = sample._sampleId;
     r->_objFuncVal = sample._f;
 
-    AttributeSearchResult* newResult = new AttributeSearchResult(r);
+    SearchResultContainer* newResult = new SearchResultContainer(r);
     newResult->setTooltip("Edit: " + sample._editName + "\nAttribute Value: " + String(sample._f) + "\nAcceptance Chance: " + String(sample._a));
     
     // render
@@ -515,7 +515,7 @@ void SearchResultsContainer::loadTrace(int selected)
   getStatusBar()->setStatusMessage("Load complete.");
 }
 
-void SearchResultsContainer::appendNewResult(AttributeSearchResult * r)
+void SearchResultsContainer::appendNewResult(SearchResultContainer * r)
 {
   lock_guard<mutex> lock(_resultsLock);
   addAndMakeVisible(r);
@@ -547,9 +547,9 @@ int SearchResultsContainer::numResults()
   return count;
 }
 
-AttributeSearchResult * SearchResultsContainer::createContainerFor(SearchResult * r)
+SearchResultContainer * SearchResultsContainer::createContainerFor(SearchResult * r)
 {
-  AttributeSearchResult* newResult = new AttributeSearchResult(r);
+  SearchResultContainer* newResult = new SearchResultContainer(r);
 
   // render
   auto p = getAnimationPatch();
@@ -568,18 +568,18 @@ AttributeSearchResult * SearchResultsContainer::createContainerFor(SearchResult 
   return newResult;
 }
 
-Array<AttributeSearchResult *> SearchResultsContainer::kmeansClustering(Array<AttributeSearchResult*>& elems, int k)
+Array<SearchResultContainer *> SearchResultsContainer::kmeansClustering(Array<SearchResultContainer*>& elems, int k)
 {
   // mostly this function is a debug one to test that we can place things in
   // the proper GUI components
   if (elems.size() == 0)
-    return Array<AttributeSearchResult*>();
+    return Array<SearchResultContainer*>();
 
   KMeans clusterer;
   return clusterer.cluster(k, elems, InitMode::FORGY);
 }
 
-Array<AttributeSearchResult*> SearchResultsContainer::meanShiftClustering(Array<AttributeSearchResult*>& elems, double bandwidth)
+Array<SearchResultContainer*> SearchResultsContainer::meanShiftClustering(Array<SearchResultContainer*>& elems, double bandwidth)
 {
   // place feature vecs into a vector
   vector<Eigen::VectorXd> features;
@@ -605,7 +605,7 @@ Array<AttributeSearchResult*> SearchResultsContainer::meanShiftClustering(Array<
   MeanShift shifter;
   vector<Eigen::VectorXd> centers = shifter.cluster(features, bandwidth, distFunc);
 
-  Array<AttributeSearchResult*> centerContainers;
+  Array<SearchResultContainer*> centerContainers;
 
   // create containers for centers and add to main container
   int i = 0;
@@ -614,7 +614,7 @@ Array<AttributeSearchResult*> SearchResultsContainer::meanShiftClustering(Array<
     r->_scene = c;
     r->_cluster = i;
     r->_sampleNo = i;
-    AttributeSearchResult* newResult = new AttributeSearchResult(r);
+    SearchResultContainer* newResult = new SearchResultContainer(r);
 
     centerContainers.add(newResult);
     i++;
@@ -639,7 +639,7 @@ Array<AttributeSearchResult*> SearchResultsContainer::meanShiftClustering(Array<
   return centerContainers;
 }
 
-Array<AttributeSearchResult*> SearchResultsContainer::spectralClustering(Array<AttributeSearchResult*>& elems)
+Array<SearchResultContainer*> SearchResultsContainer::spectralClustering(Array<SearchResultContainer*>& elems)
 {
   SpectralCluster clusterer;
   auto centers = clusterer.cluster(elems, getGlobalSettings()->_numClusters, getGlobalSettings()->_spectralBandwidth);

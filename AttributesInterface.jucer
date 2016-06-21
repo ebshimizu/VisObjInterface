@@ -42,6 +42,10 @@
               file="Source/TopComponentContainer.h"/>
       </GROUP>
       <GROUP id="{2AE89FBF-419D-C3BF-F7EF-2317DD7C267B}" name="attributes">
+        <FILE id="RGDrO1" name="TopLevelCluster.cpp" compile="1" resource="0"
+              file="Source/TopLevelCluster.cpp"/>
+        <FILE id="eWhvQ1" name="TopLevelCluster.h" compile="0" resource="0"
+              file="Source/TopLevelCluster.h"/>
         <GROUP id="{9D54FF1D-9ACE-EBC7-F1C5-BC6BB3FDA4C7}" name="attribute instances">
           <FILE id="lte0l3" name="CompColorAttribute.cpp" compile="1" resource="0"
                 file="Source/CompColorAttribute.cpp"/>
@@ -109,10 +113,10 @@
               file="Source/SearchResultsContainer.cpp"/>
         <FILE id="CfziIR" name="SearchResultsContainer.h" compile="0" resource="0"
               file="Source/SearchResultsContainer.h"/>
-        <FILE id="PM4gCW" name="AttributeSearchResult.cpp" compile="1" resource="0"
-              file="Source/AttributeSearchResult.cpp"/>
-        <FILE id="zhEjoJ" name="AttributeSearchResult.h" compile="0" resource="0"
-              file="Source/AttributeSearchResult.h"/>
+        <FILE id="PM4gCW" name="SearchResultContainer.cpp" compile="1" resource="0"
+              file="Source/SearchResultContainer.cpp"/>
+        <FILE id="zhEjoJ" name="SearchResultContainer.h" compile="0" resource="0"
+              file="Source/SearchResultContainer.h"/>
         <FILE id="B9mqm1" name="AttributeSorting.cpp" compile="1" resource="0"
               file="Source/AttributeSorting.cpp"/>
         <FILE id="flj8HC" name="AttributeSorting.h" compile="0" resource="0"

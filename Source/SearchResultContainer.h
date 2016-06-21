@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    AttributeSearchResult.h
+    SearchResultContainer.h
     Created: 7 Jan 2016 4:59:12pm
     Author:  falindrith
 
@@ -39,11 +39,11 @@ private:
 /*
 This class represents a scene returned from a search operation
 */
-class AttributeSearchResult : public Component, public SettableTooltipClient
+class SearchResultContainer : public Component, public SettableTooltipClient
 {
 public:
-  AttributeSearchResult(SearchResult* result);
-  ~AttributeSearchResult();
+  SearchResultContainer(SearchResult* result);
+  ~SearchResultContainer();
 
   void regenToolTip();
 
@@ -69,7 +69,7 @@ public:
   // Indicates if the result is displaying its current cluster contents
   bool _isHovered;
 
-  int compareElements(AttributeSearchResult* first, AttributeSearchResult* second);
+  int compareElements(SearchResultContainer* first, SearchResultContainer* second);
 
   Eigen::VectorXd getFeatures();
   void setFeatures(Eigen::VectorXd features);
@@ -81,39 +81,39 @@ public:
   SearchResultsContainer* getClusterContainer();
 
   // Adds the specified element to this cluster
-  void addToCluster(AttributeSearchResult* elem);
+  void addToCluster(SearchResultContainer* elem);
 
   // convert RGB to Lab, D65 ref illuminant
   Eigen::Vector3d rgbToLab(double r, double g, double b);
 
   // Calculate the distance between this result and another result
   // Current metric: average pixel difference in Lab
-  double dist(AttributeSearchResult* y);
+  double dist(SearchResultContainer* y);
 
   // Per-pixel average Lab pixel difference
   // special case: avgpixdist can ignore mask for purposes of filtering
-  double avgPixDist(AttributeSearchResult* y, bool overrideMask = false);
+  double avgPixDist(SearchResultContainer* y, bool overrideMask = false);
 
   // L2 norm over Lab image vector
-  double l2dist(AttributeSearchResult* y);
+  double l2dist(SearchResultContainer* y);
   
   // Maximum per-pixel Lab distance
-  double maxPixDist(AttributeSearchResult* y);
+  double maxPixDist(SearchResultContainer* y);
 
   // 90th percentile per-pixel Lab distance
-  double pctPixDist(AttributeSearchResult* y);
+  double pctPixDist(SearchResultContainer* y);
 
   // Parameter-wise L2 distance
-  double l2paramDist(AttributeSearchResult* y);
+  double l2paramDist(SearchResultContainer* y);
 
   // Does a softmax normalization of the parameter vector and then takes the L2 norm
-  double l2paramDistSoftmax(AttributeSearchResult* y);
+  double l2paramDistSoftmax(SearchResultContainer* y);
 
   // Luminance L2 norm
-  double l2LuminanceDist(AttributeSearchResult* y);
+  double l2LuminanceDist(SearchResultContainer* y);
 
   // Distance in the attribute function space
-  double attrDist(AttributeSearchResult* y);
+  double attrDist(SearchResultContainer* y);
 
 private:
   // Search result object from the attribute search
@@ -131,7 +131,7 @@ private:
   // Contains elements that belong to this particular cluster
   SearchResultsContainer* _clusterContents;
 
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AttributeSearchResult)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SearchResultContainer)
 };
 
 

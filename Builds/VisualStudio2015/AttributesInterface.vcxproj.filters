@@ -406,6 +406,9 @@
     <ClCompile Include="..\..\Source\StatusBar.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\TopLevelCluster.cpp">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\CompColorAttribute.cpp">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClCompile>
@@ -457,7 +460,7 @@
     <ClCompile Include="..\..\Source\SearchResultsContainer.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Source\AttributeSearchResult.cpp">
+    <ClCompile Include="..\..\Source\SearchResultContainer.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\AttributeSorting.cpp">
@@ -2187,6 +2190,9 @@
     <ClInclude Include="..\..\Source\TopComponentContainer.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\TopLevelCluster.h">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\CompColorAttribute.h">
       <Filter>AttributesInterface\Source\attributes\attribute instances</Filter>
     </ClInclude>
@@ -2241,7 +2247,7 @@
     <ClInclude Include="..\..\Source\SearchResultsContainer.h">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Source\AttributeSearchResult.h">
+    <ClInclude Include="..\..\Source\SearchResultContainer.h">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\AttributeSorting.h">

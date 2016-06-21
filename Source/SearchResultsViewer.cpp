@@ -12,7 +12,7 @@
 #include "SearchResultsViewer.h"
 #include "MainComponent.h"
 
-SearchResultsRenderer::SearchResultsRenderer(Array<AttributeSearchResult*> results) :
+SearchResultsRenderer::SearchResultsRenderer(Array<SearchResultContainer*> results) :
   ThreadWithProgressWindow("Rendering Thumbnails...", true, true), _results(results)
 {
 }
@@ -175,7 +175,7 @@ void SearchResultsViewer::loadTrace(int selected)
   _results->loadTrace(selected);
 }
 
-Array<AttributeSearchResult*> SearchResultsViewer::getResults()
+Array<SearchResultContainer*> SearchResultsViewer::getResults()
 {
   return _results->getResults();
 }

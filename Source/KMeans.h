@@ -15,7 +15,7 @@
 #include "globals.h"
 #include "AttributeSearchResult.h"
 
-typedef function<double(AttributeSearchResult*, AttributeSearchResult*)> distFuncType;
+typedef function<double(SearchResultContainer*, SearchResultContainer*)> distFuncType;
 typedef function<double(Eigen::VectorXd, Eigen::VectorXd)> gdistFuncType;
 
 enum InitMode {
@@ -29,14 +29,14 @@ public:
   KMeans();
   KMeans(distFuncType distFunc);
 
-  Array<AttributeSearchResult*> cluster(int k, Array<AttributeSearchResult*> points, InitMode init);
+  Array<SearchResultContainer*> cluster(int k, Array<SearchResultContainer*> points, InitMode init);
 
 private:
-  Array<AttributeSearchResult*> forgy(int k, Array<AttributeSearchResult*>& points);
-  Array<AttributeSearchResult*> rndpart(int k, Array<AttributeSearchResult*>& points);
+  Array<SearchResultContainer*> forgy(int k, Array<SearchResultContainer*>& points);
+  Array<SearchResultContainer*> rndpart(int k, Array<SearchResultContainer*>& points);
 
   // Returns the closest center to the specified point
-  int closestCenter(AttributeSearchResult* point, Array<AttributeSearchResult*>& centers);
+  int closestCenter(SearchResultContainer* point, Array<SearchResultContainer*>& centers);
 
   distFuncType _distFunc;
 };

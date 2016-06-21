@@ -13,7 +13,7 @@
 SpectralCluster::SpectralCluster()
 {
   // assign default distance function
-  _distFunc = distFuncType([](AttributeSearchResult* x, AttributeSearchResult* y) {
+  _distFunc = distFuncType([](SearchResultContainer* x, SearchResultContainer* y) {
     return x->dist(y);
   });
 }
@@ -26,7 +26,7 @@ SpectralCluster::~SpectralCluster()
 {
 }
 
-Array<AttributeSearchResult*> SpectralCluster::cluster(Array<AttributeSearchResult*>& points, int maxK, double bandwidth)
+Array<SearchResultContainer*> SpectralCluster::cluster(Array<SearchResultContainer*>& points, int maxK, double bandwidth)
 {
   // DEBUG: OUTPUT TO FILE TO SEE MATRICES
   ofstream debugFile("debug.log", ios::trunc);
@@ -106,13 +106,13 @@ Array<AttributeSearchResult*> SpectralCluster::cluster(Array<AttributeSearchResu
   vector<Eigen::VectorXd> centers = clusterer.cluster(k, vecs, InitMode::FORGY);
 
   // now that we have a clustering, create relevent center attrs
-  Array<AttributeSearchResult*> centerResults;
+  Array<SearchResultContainer*> centerResults;
   for (int i = 0; i < centers.size(); i++) {
     SearchResult* r = new SearchResult();
     r->_scene = centers[i];
     r->_cluster = i;
 
-    AttributeSearchResult* newCenter = new AttributeSearchResult(r);
+    SearchResultContainer* newCenter = new SearchResultContainer(r);
     centerResults.add(newCenter);
   }
 
@@ -124,7 +124,7 @@ Array<AttributeSearchResult*> SpectralCluster::cluster(Array<AttributeSearchResu
   return centerResults;
 }
 
-Eigen::MatrixXd SpectralCluster::constructSimilarityMatrix(Array<AttributeSearchResult*>& points, double bandwidth)
+Eigen::MatrixXd SpectralCluster::constructSimilarityMatrix(Array<SearchResultContainer*>& points, double bandwidth)
 {
   // uses the gaussian similarity function to construct the similarity matrix for the given points.
   Eigen::MatrixXd S;

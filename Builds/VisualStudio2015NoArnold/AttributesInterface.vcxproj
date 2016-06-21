@@ -145,6 +145,7 @@
     <ClCompile Include="..\..\Source\SceneViewer.cpp"/>
     <ClCompile Include="..\..\Source\SettingsEditor.cpp"/>
     <ClCompile Include="..\..\Source\StatusBar.cpp"/>
+    <ClCompile Include="..\..\Source\TopLevelCluster.cpp"/>
     <ClCompile Include="..\..\Source\CompColorAttribute.cpp"/>
     <ClCompile Include="..\..\Source\HistogramAttribute.cpp"/>
     <ClCompile Include="..\..\Source\HistogramBrightness.cpp"/>
@@ -164,7 +165,7 @@
     <ClCompile Include="..\..\Source\Edit.cpp"/>
     <ClCompile Include="..\..\Source\AttributeSearch.cpp"/>
     <ClCompile Include="..\..\Source\SearchResultsContainer.cpp"/>
-    <ClCompile Include="..\..\Source\AttributeSearchResult.cpp"/>
+    <ClCompile Include="..\..\Source\SearchResultContainer.cpp"/>
     <ClCompile Include="..\..\Source\AttributeSorting.cpp"/>
     <ClCompile Include="..\..\Source\SearchResultsViewer.cpp"/>
     <ClCompile Include="..\..\Source\ParamControls.cpp"/>
@@ -1718,6 +1719,7 @@
     <ClInclude Include="..\..\Source\SettingsEditor.h"/>
     <ClInclude Include="..\..\Source\StatusBar.h"/>
     <ClInclude Include="..\..\Source\TopComponentContainer.h"/>
+    <ClInclude Include="..\..\Source\TopLevelCluster.h"/>
     <ClInclude Include="..\..\Source\CompColorAttribute.h"/>
     <ClInclude Include="..\..\Source\HistogramAttribute.h"/>
     <ClInclude Include="..\..\Source\HistogramBrightness.h"/>
@@ -1736,7 +1738,7 @@
     <ClInclude Include="..\..\Source\Edit.h"/>
     <ClInclude Include="..\..\Source\AttributeSearch.h"/>
     <ClInclude Include="..\..\Source\SearchResultsContainer.h"/>
-    <ClInclude Include="..\..\Source\AttributeSearchResult.h"/>
+    <ClInclude Include="..\..\Source\SearchResultContainer.h"/>
     <ClInclude Include="..\..\Source\AttributeSorting.h"/>
     <ClInclude Include="..\..\Source\SearchResultsViewer.h"/>
     <ClInclude Include="..\..\Source\ParamControls.h"/>

@@ -13,7 +13,7 @@
 KMeans::KMeans()
 {
   // assign default distance function
-  _distFunc = distFuncType([](AttributeSearchResult* x, AttributeSearchResult* y) {
+  _distFunc = distFuncType([](SearchResultContainer* x, SearchResultContainer* y) {
     return x->dist(y);
   });
 }
@@ -22,10 +22,10 @@ KMeans::KMeans(distFuncType distFunc) : _distFunc(distFunc)
 {
 }
 
-Array<AttributeSearchResult*> KMeans::cluster(int k, Array<AttributeSearchResult*> points, InitMode init)
+Array<SearchResultContainer*> KMeans::cluster(int k, Array<SearchResultContainer*> points, InitMode init)
 {
   // initialize points
-  Array<AttributeSearchResult*> centers;
+  Array<SearchResultContainer*> centers;
 
   if (init == FORGY)
     centers = forgy(k, points);
@@ -84,10 +84,10 @@ Array<AttributeSearchResult*> KMeans::cluster(int k, Array<AttributeSearchResult
   return centers;
 }
 
-Array<AttributeSearchResult*> KMeans::forgy(int k, Array<AttributeSearchResult*>& points) {
+Array<SearchResultContainer*> KMeans::forgy(int k, Array<SearchResultContainer*>& points) {
   // pick k random elements for centers, no repeats
   // we'll do this by removing random elements until the number remaining is <= k.
-  Array<AttributeSearchResult*> tempPoints(points);
+  Array<SearchResultContainer*> tempPoints(points);
 
   while (tempPoints.size() > k) {
     // select random element to remove
@@ -95,7 +95,7 @@ Array<AttributeSearchResult*> KMeans::forgy(int k, Array<AttributeSearchResult*>
   }
 
   // create containers for centers
-  Array<AttributeSearchResult*> centers;
+  Array<SearchResultContainer*> centers;
 
   int i = 0;
   for (auto& p : tempPoints) {
@@ -103,7 +103,7 @@ Array<AttributeSearchResult*> KMeans::forgy(int k, Array<AttributeSearchResult*>
     r->_cluster = i;
     r->_scene = p->getSearchResult()->_scene;
     
-    AttributeSearchResult* c = new AttributeSearchResult(r);
+    SearchResultContainer* c = new SearchResultContainer(r);
     c->setFeatures(p->getFeatures());
     centers.add(c);
 
@@ -113,10 +113,10 @@ Array<AttributeSearchResult*> KMeans::forgy(int k, Array<AttributeSearchResult*>
   return centers;
 }
 
-Array<AttributeSearchResult*> KMeans::rndpart(int k, Array<AttributeSearchResult*>& points)
+Array<SearchResultContainer*> KMeans::rndpart(int k, Array<SearchResultContainer*>& points)
 {
   // randomly sort elements into k clusters
-  Array<AttributeSearchResult*> tempPoints(points);
+  Array<SearchResultContainer*> tempPoints(points);
 
   // first make sure that we place at least one point in each cluster
   for (int i = 0; i < k; i++) {
@@ -132,7 +132,7 @@ Array<AttributeSearchResult*> KMeans::rndpart(int k, Array<AttributeSearchResult
   }
 
   // calculate centers
-  Array<AttributeSearchResult*> centers;
+  Array<SearchResultContainer*> centers;
 
   for (int i = 0; i < k; i++) {
     Eigen::VectorXd avg;
@@ -150,7 +150,7 @@ Array<AttributeSearchResult*> KMeans::rndpart(int k, Array<AttributeSearchResult
     r->_cluster = i;
     r->_scene = sceneAvg / count;
 
-    AttributeSearchResult* c = new AttributeSearchResult(r);
+    SearchResultContainer* c = new SearchResultContainer(r);
     c->setFeatures(avg / count);
     centers.add(c);
   }
@@ -158,7 +158,7 @@ Array<AttributeSearchResult*> KMeans::rndpart(int k, Array<AttributeSearchResult
   return centers;
 }
 
-int KMeans::closestCenter(AttributeSearchResult * point, Array<AttributeSearchResult*>& centers)
+int KMeans::closestCenter(SearchResultContainer * point, Array<SearchResultContainer*>& centers)
 {
   int minCenter = -1;
   double minDist = DBL_MAX;
