@@ -13,7 +13,8 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "globals.h"
-#include "AttributeSearchResult.h"
+#include "SearchResultContainer.h"
+#include "TopLevelCluster.h"
 
 typedef function<double(SearchResultContainer*, SearchResultContainer*)> distFuncType;
 typedef function<double(Eigen::VectorXd, Eigen::VectorXd)> gdistFuncType;
@@ -29,14 +30,14 @@ public:
   KMeans();
   KMeans(distFuncType distFunc);
 
-  Array<SearchResultContainer*> cluster(int k, Array<SearchResultContainer*> points, InitMode init);
+  Array<shared_ptr<TopLevelCluster> > cluster(int k, Array<shared_ptr<SearchResultContainer> > points, InitMode init);
 
 private:
-  Array<SearchResultContainer*> forgy(int k, Array<SearchResultContainer*>& points);
-  Array<SearchResultContainer*> rndpart(int k, Array<SearchResultContainer*>& points);
+  Array<shared_ptr<TopLevelCluster> > forgy(int k, Array<shared_ptr<SearchResultContainer> >& points);
+  Array<shared_ptr<TopLevelCluster> > rndpart(int k, Array<shared_ptr<SearchResultContainer> >& points);
 
   // Returns the closest center to the specified point
-  int closestCenter(SearchResultContainer* point, Array<SearchResultContainer*>& centers);
+  int closestCenter(shared_ptr<SearchResultContainer> point, Array<shared_ptr<TopLevelCluster> >& centers);
 
   distFuncType _distFunc;
 };

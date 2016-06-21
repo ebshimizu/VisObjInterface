@@ -14,6 +14,8 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "SearchResultContainer.h"
 #include "AttributeSorting.h"
+#include "TopLevelCluster.h"
+#include "SearchResultList.h"
 
 class SearchResultContainer;
 class AttributeSorter;
@@ -28,12 +30,12 @@ public:
   void paint(Graphics& g);
   void resized();
 
-  void setWidth(int width);
+  void updateSize();
   void sort();  // Uses the value in the globals to sort
   void sort(AttributeSorter* s);
 
   // Return the results for some other use
-  Array<SearchResultContainer*> getResults();
+  Array<shared_ptr<SearchResultContainer> > getResults();
 
   // Add a new search result to the display area. Is thread safe.
   bool addNewResult(SearchResult* r);
@@ -43,10 +45,6 @@ public:
 
   // Deletes all scenes currently contained in the viewer.
   void clear();
-
-  // Removes all scenes currently contained in the viewer.
-  // THIS DOES NOT DELETE THE RESULTS
-  void remove();
 
   // Returns true when the container can't support any more elements
   bool isFull();
@@ -68,10 +66,6 @@ public:
   // Load a selected trace into the results section
   void loadTrace(int selected);
 
-  // Insert pre-constructed attribute search result into this container
-  // Does no similarity checks, is also thread safe
-  void appendNewResult(SearchResultContainer* r);
-
   // Number of elements to display on each row, defaults to the value stored in
   // the global settings
   void setElemsPerRow(int epr);
@@ -82,8 +76,23 @@ public:
   void calculateClusterStats();
 
 private:
-  Array<SearchResultContainer*> _results;
-  Array<SearchResultContainer*> _newResults;
+  // All results contains every result in the container. It should only be deleted at the top
+  // level of the container hierarchy, which looks like:
+  // -Search Result Container
+  // --TopLevelCluster
+  // ---SearchResult
+  // ----SearchResultContainer
+  // -----...
+  // --SearchResultContainer
+  // Any function that modifies the arrangement of the clusters needs to make sure to remove
+  // the elements properly before deleting, so that they don't get deleted too early
+  Array<shared_ptr<SearchResultContainer> > _allResults;
+  SearchResultList _unclusteredResults;
+  Array<shared_ptr<SearchResultContainer> > _newResults;
+  Array<shared_ptr<TopLevelCluster> > _clusters;
+
+  // Viewport for unclustered results
+  Viewport* _unclusteredViewer;
 
   // Creates an attribute search result container for the given result struct
   SearchResultContainer* createContainerFor(SearchResult* r);
@@ -93,18 +102,22 @@ private:
 
   // cluster elements using k-means. K is specified arbitrarily.
   // Returns the centers.
-  Array<SearchResultContainer*> kmeansClustering(Array<SearchResultContainer*>& elems, int k);
+  Array<shared_ptr<TopLevelCluster> > kmeansClustering(Array<shared_ptr<SearchResultContainer> >& elems, int k);
 
   // Mean Shift clustering
-  Array<SearchResultContainer*> meanShiftClustering(Array<SearchResultContainer*>& elems, double bandwidth);
+  Array<shared_ptr<SearchResultContainer> > meanShiftClustering(Array<shared_ptr<SearchResultContainer> >& elems, double bandwidth);
 
   // Spectral clustering
-  Array<SearchResultContainer*> spectralClustering(Array<SearchResultContainer*>& elems);
+  Array<shared_ptr<SearchResultContainer> > spectralClustering(Array<shared_ptr<SearchResultContainer >>& elems);
 
+  // clustering quality metric
   double daviesBouldin();
+
   mutex _resultsLock;
 
   int _elemsPerRow;
+
+  int _columnSize;
 
   // internal sample id added to the result when its added to the container
   unsigned int _sampleId;

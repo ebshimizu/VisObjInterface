@@ -22,10 +22,10 @@ KMeans::KMeans(distFuncType distFunc) : _distFunc(distFunc)
 {
 }
 
-Array<SearchResultContainer*> KMeans::cluster(int k, Array<SearchResultContainer*> points, InitMode init)
+Array<shared_ptr<TopLevelCluster> >KMeans::cluster(int k, Array<shared_ptr<SearchResultContainer> > points, InitMode init)
 {
   // initialize points
-  Array<SearchResultContainer*> centers;
+  Array<shared_ptr<TopLevelCluster> > centers;
 
   if (init == FORGY)
     centers = forgy(k, points);
@@ -55,11 +55,11 @@ Array<SearchResultContainer*> KMeans::cluster(int k, Array<SearchResultContainer
     map<int, Eigen::VectorXd> feats;
     map<int, Eigen::VectorXd> scenes;
     for (auto& c : centers) {
-      feats[c->getSearchResult()->_cluster] = c->getFeatures();
-      feats[c->getSearchResult()->_cluster].setZero();
-      scenes[c->getSearchResult()->_cluster] = c->getSearchResult()->_scene;
-      scenes[c->getSearchResult()->_cluster].setZero();
-      counts[c->getSearchResult()->_cluster] = 0;
+      feats[c->getClusterId()] = c->_features;
+      feats[c->getClusterId()].setZero();
+      scenes[c->getClusterId()] = c->_scene;
+      scenes[c->getClusterId()].setZero();
+      counts[c->getClusterId()] = 0;
     }
 
     // update centers
@@ -71,8 +71,8 @@ Array<SearchResultContainer*> KMeans::cluster(int k, Array<SearchResultContainer
     }
 
     for (auto& c : centers) {
-      c->setFeatures(feats[c->getSearchResult()->_cluster] / counts[c->getSearchResult()->_cluster]);
-      c->getSearchResult()->_scene /= counts[c->getSearchResult()->_cluster];
+      c->_features = (feats[c->getClusterId()] / counts[c->getClusterId()]);
+      c->_scene /= counts[c->getClusterId()];
     }
   }
 
@@ -84,10 +84,10 @@ Array<SearchResultContainer*> KMeans::cluster(int k, Array<SearchResultContainer
   return centers;
 }
 
-Array<SearchResultContainer*> KMeans::forgy(int k, Array<SearchResultContainer*>& points) {
+Array<shared_ptr<TopLevelCluster> > KMeans::forgy(int k, Array<shared_ptr<SearchResultContainer> >& points) {
   // pick k random elements for centers, no repeats
   // we'll do this by removing random elements until the number remaining is <= k.
-  Array<SearchResultContainer*> tempPoints(points);
+  Array<shared_ptr<SearchResultContainer> > tempPoints(points);
 
   while (tempPoints.size() > k) {
     // select random element to remove
@@ -95,17 +95,15 @@ Array<SearchResultContainer*> KMeans::forgy(int k, Array<SearchResultContainer*>
   }
 
   // create containers for centers
-  Array<SearchResultContainer*> centers;
+  Array<shared_ptr<TopLevelCluster> > centers;
 
   int i = 0;
   for (auto& p : tempPoints) {
-    SearchResult* r = new SearchResult();
-    r->_cluster = i;
-    r->_scene = p->getSearchResult()->_scene;
-    
-    SearchResultContainer* c = new SearchResultContainer(r);
-    c->setFeatures(p->getFeatures());
-    centers.add(c);
+    auto tlc = shared_ptr<TopLevelCluster>(new TopLevelCluster());
+    tlc->setClusterId(i);
+    tlc->_scene = p->getSearchResult()->_scene;
+    tlc->_features = p->getFeatures();
+    centers.add(tlc);
 
     i++;
   }
@@ -113,10 +111,10 @@ Array<SearchResultContainer*> KMeans::forgy(int k, Array<SearchResultContainer*>
   return centers;
 }
 
-Array<SearchResultContainer*> KMeans::rndpart(int k, Array<SearchResultContainer*>& points)
+Array<shared_ptr<TopLevelCluster> > KMeans::rndpart(int k, Array<shared_ptr<SearchResultContainer> >& points)
 {
   // randomly sort elements into k clusters
-  Array<SearchResultContainer*> tempPoints(points);
+  Array<shared_ptr<SearchResultContainer> > tempPoints(points);
 
   // first make sure that we place at least one point in each cluster
   for (int i = 0; i < k; i++) {
@@ -132,7 +130,7 @@ Array<SearchResultContainer*> KMeans::rndpart(int k, Array<SearchResultContainer
   }
 
   // calculate centers
-  Array<SearchResultContainer*> centers;
+  Array<shared_ptr<TopLevelCluster> > centers;
 
   for (int i = 0; i < k; i++) {
     Eigen::VectorXd avg;
@@ -146,25 +144,24 @@ Array<SearchResultContainer*> KMeans::rndpart(int k, Array<SearchResultContainer
       }
     }
 
-    SearchResult* r = new SearchResult();
-    r->_cluster = i;
-    r->_scene = sceneAvg / count;
-
-    SearchResultContainer* c = new SearchResultContainer(r);
-    c->setFeatures(avg / count);
-    centers.add(c);
+    auto tlc = shared_ptr<TopLevelCluster>(new TopLevelCluster());
+    tlc->setClusterId(i);
+    tlc->_scene = sceneAvg / count;
+    tlc->_features = avg / count;
+    centers.add(tlc);
   }
 
   return centers;
 }
 
-int KMeans::closestCenter(SearchResultContainer * point, Array<SearchResultContainer*>& centers)
+int KMeans::closestCenter(shared_ptr<SearchResultContainer> point, Array<shared_ptr<TopLevelCluster> >& centers)
 {
   int minCenter = -1;
   double minDist = DBL_MAX;
 
   for (int i = 0; i < centers.size(); i++) {
-    double dist = _distFunc(point, centers[i]);
+    auto centerContainer = centers[i]->constructResultContainer();
+    double dist = _distFunc(point.get(), centerContainer.get());
     if (dist < minDist) {
       minCenter = i;
       minDist = dist;

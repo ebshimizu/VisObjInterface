@@ -406,6 +406,9 @@
     <ClCompile Include="..\..\Source\StatusBar.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\SearchResultList.cpp">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\TopLevelCluster.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
@@ -2189,6 +2192,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\TopComponentContainer.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SearchResultList.h">
+      <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\TopLevelCluster.h">
       <Filter>AttributesInterface\Source\attributes</Filter>

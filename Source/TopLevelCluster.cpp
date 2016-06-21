@@ -10,69 +10,10 @@
 
 #include "TopLevelCluster.h"
 
-GridLayout::GridLayout(Array<SearchResultContainer*> components, int cols, float heightRatio) :
-  _components(components), _cols(cols), _heightRatio(heightRatio)
-{
-  for (auto c : _components) {
-    addAndMakeVisible(c);
-  }
-}
-
-GridLayout::~GridLayout()
-{
-}
-
-void GridLayout::resized()
-{
-  auto lbounds = getLocalBounds();
-  int elemWidth = lbounds.getWidth() / _cols;
-  int elemHeight = elemWidth * _heightRatio;
-
-  juce::Rectangle<int> row;
-  for (int i = 0; i < _components.size(); i++) {
-    if (i % _cols == 0)
-      row = lbounds.removeFromTop(elemHeight);
-
-    _components[i]->setBounds(row.removeFromLeft(elemWidth));
-  }
-
-}
-
-void GridLayout::paint(Graphics & g)
-{
-}
-
-void GridLayout::setWidth(int width)
-{
-  // calculate height
-  int elemHeight = (width / _cols) * _heightRatio;
-
-  // calculate number of rows
-  int numRows = ceil(_components.size() / (double)_cols);
-
-  // set bounds
-  setSize(width, elemHeight * numRows);
-  resized();
-}
-
-float GridLayout::setHeightRatio(float heightRatio)
-{
-  _heightRatio = heightRatio;
-  resized();
-}
-
-void GridLayout::updateComponents(Array<SearchResultContainer*> newComponents)
-{
-  _components = newComponents;
-  resized();
-}
-
 TopLevelCluster::TopLevelCluster()
 {
   _rep = nullptr;
-  _grid = new GridLayout(_results, 1, 9.0 / 16.0);
   _viewer = new Viewport();
-  _viewer->setViewedComponent(_grid);
 }
 
 TopLevelCluster::~TopLevelCluster()
@@ -88,7 +29,6 @@ void TopLevelCluster::resized()
     _rep->setBounds(lbounds.removeFromTop(lbounds.getHeight() * 0.33));
   }
 
-  _grid->setWidth(lbounds.getWidth());
   _viewer->setBounds(lbounds);
 }
 
@@ -100,7 +40,6 @@ void TopLevelCluster::paint(Graphics & g)
 void TopLevelCluster::addToCluster(SearchResultContainer * r)
 {
   _results.add(r);
-  _grid->updateComponents(_results);
 }
 
 int TopLevelCluster::numElements()
@@ -147,4 +86,13 @@ void TopLevelCluster::setRepresentativeResult()
   }
 
   _rep = new SearchResultContainer(new SearchResult(*best->getSearchResult()));
+}
+
+shared_ptr<SearchResultContainer> TopLevelCluster::constructResultContainer()
+{
+  auto src = shared_ptr<SearchResultContainer>(new SearchResultContainer(new SearchResult()));
+  src->getSearchResult()->_scene = _scene;
+  src->setFeatures(_features);
+
+  return src;
 }

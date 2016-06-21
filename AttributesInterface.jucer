@@ -42,6 +42,10 @@
               file="Source/TopComponentContainer.h"/>
       </GROUP>
       <GROUP id="{2AE89FBF-419D-C3BF-F7EF-2317DD7C267B}" name="attributes">
+        <FILE id="VJ3E0d" name="SearchResultList.cpp" compile="1" resource="0"
+              file="Source/SearchResultList.cpp"/>
+        <FILE id="d2FGG1" name="SearchResultList.h" compile="0" resource="0"
+              file="Source/SearchResultList.h"/>
         <FILE id="RGDrO1" name="TopLevelCluster.cpp" compile="1" resource="0"
               file="Source/TopLevelCluster.cpp"/>
         <FILE id="eWhvQ1" name="TopLevelCluster.h" compile="0" resource="0"

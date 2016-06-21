@@ -9,8 +9,9 @@
 */
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "AttributeSearchResult.h"
+#include "SearchResultContainer.h"
 #include "MainComponent.h"
+
 
 //==============================================================================
 SearchResultBlender::SearchResultBlender(SearchResult * s) : _target(s)

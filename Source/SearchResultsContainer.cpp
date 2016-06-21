@@ -19,16 +19,15 @@ SearchResultsContainer::SearchResultsContainer()
 {
   _sampleId = 0;
   _elemsPerRow = getGlobalSettings()->_clusterElemsPerRow;
+  _columnSize = 250;
+
+  _unclusteredViewer = new Viewport();
+  _unclusteredViewer->setViewedComponent(&_unclusteredResults);
 }
 
 SearchResultsContainer::~SearchResultsContainer()
 {
-  for (auto& r : _results) {
-    delete r;
-  }
-
-  for (auto& r : _newResults)
-    delete r;
+  delete _unclusteredViewer;
 }
 
 void SearchResultsContainer::paint(Graphics & g)
@@ -38,26 +37,23 @@ void SearchResultsContainer::paint(Graphics & g)
 
 void SearchResultsContainer::resized()
 {
+  // the search results container is organized in columns. The leftmost column
+  // is unclustered results, and every column to the right is a cluster.
   auto lbounds = getLocalBounds();
-  int elemWidth = lbounds.getWidth() / _elemsPerRow;
-  int elemHeight = elemWidth * (9.0 / 16.0);
-
-  juce::Rectangle<int> row;
-  for (int i = 0; i < _results.size(); i++) {
-    if (i % _elemsPerRow == 0)
-      row = lbounds.removeFromTop(elemHeight);
-
-    _results[i]->setBounds(row.removeFromLeft(elemWidth));
+  _unclusteredViewer->setBounds(lbounds.removeFromLeft(_columnSize));
+  
+  // clusters
+  for (int i = 0; i < _clusters.size(); i++) {
+    _clusters[i]->setBounds(lbounds.removeFromLeft(_columnSize));
   }
 }
 
-void SearchResultsContainer::setWidth(int width)
+void SearchResultsContainer::updateSize()
 {
-  int elemWidth = width / _elemsPerRow;
-  int elemHeight = elemWidth * (9.0 / 16.0);
-  int rows = ceil((float)_results.size() / _elemsPerRow);
-  int height = elemHeight * rows;
-  setBounds(0, 0, width, height);
+  // fixed sized, maximum visible area, width defined by number of clusters
+  auto parentBounds = getParentComponent()->getLocalBounds();
+  int width = (1 + _clusters.size()) * _columnSize;
+  setBounds(0, 0, width, parentBounds.getHeight());
 }
 
 void SearchResultsContainer::sort()
@@ -78,23 +74,19 @@ void SearchResultsContainer::sort()
   }
 
   // sort child elements
-  for (auto& r : _results) {
-    if (r->isClusterCenter()) {
-      r->getClusterContainer()->sort();
-    }
-  }
+  // sort clusters instead?
 }
 
 void SearchResultsContainer::sort(AttributeSorter* s)
 {
-  _results.sort(*s);
+  _unclusteredResults.sort(s);
   resized();
   repaint();
 }
 
-Array<SearchResultContainer*> SearchResultsContainer::getResults()
+Array<shared_ptr<SearchResultContainer> > SearchResultsContainer::getResults()
 {
-  return _results;
+  return _allResults;
 }
 
 bool SearchResultsContainer::addNewResult(SearchResult * r)
@@ -108,7 +100,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
 
     // Check to make sure result is sufficiently different
     // Create new result container
-    SearchResultContainer* newResult = new SearchResultContainer(r);
+    shared_ptr<SearchResultContainer> newResult = shared_ptr<SearchResultContainer>(new SearchResultContainer(r));
 
     // render
     auto p = getAnimationPatch();
@@ -125,19 +117,18 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
     delete s;
     newResult->setImage(img);
 
+    // new results get placed into the new results queue
     {
       lock_guard<mutex> lock(_resultsLock);
-      for (auto& res : _results) {
-        if (newResult->avgPixDist(res, true) < getGlobalSettings()->_jndThreshold) {
-          delete newResult;
+      for (auto& res : _allResults) {
+        if (newResult->avgPixDist(res.get(), true) < getGlobalSettings()->_jndThreshold) {
           return false;
         }
       }
 
       // also check things in the waiting queue
       for (auto& res : _newResults) {
-        if (newResult->avgPixDist(res, true) < getGlobalSettings()->_jndThreshold) {
-          delete newResult;
+        if (newResult->avgPixDist(res.get(), true) < getGlobalSettings()->_jndThreshold) {
           return false;
         }
       }
@@ -146,7 +137,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
     r->_sampleNo = _sampleId;
     _sampleId++;
 
-    // add result to container
+    // add result to new results queue
     {
       lock_guard<mutex> lock(_resultsLock);
       _newResults.add(newResult);
@@ -167,17 +158,18 @@ void SearchResultsContainer::showNewResults()
       return;
 
     // integrate new results
-    // We'd like to add the new results to an existing cluster and then recluster everything
-    // while maintaining current clustering settings.
-
+    // goes into unclustered for display, all results for record
     for (auto r : _newResults) {
-      addAndMakeVisible(r);
-      _results.add(r);
+      _unclusteredResults.addResult(r);
+      _allResults.add(r);
     }
     _newResults.clear();
   }
 
-  setWidth(getLocalBounds().getWidth());
+  updateSize();
+  _unclusteredResults.resized();
+  _unclusteredResults.repaint();
+
   resized();
   repaint();
 }
@@ -186,28 +178,12 @@ void SearchResultsContainer::clear()
 {
   lock_guard<mutex> lock(_resultsLock);
 
-  for (auto r : _results) {
-    delete r;
-  }
-  for (auto r : _newResults) {
-    delete r;
-  }
-
+  _allResults.clear();
   _newResults.clear();
-  _results.clear();
-  setWidth(getLocalBounds().getWidth());
-  resized();
-  repaint();
-  _sampleId = 0;
-}
+  _unclusteredResults.removeAllResults();
+  _clusters.clear();
 
-void SearchResultsContainer::remove()
-{
-  lock_guard<mutex> lock(_resultsLock);
-
-  _newResults.clear();
-  _results.clear();
-  setWidth(getLocalBounds().getWidth());
+  updateSize();
   resized();
   repaint();
   _sampleId = 0;
@@ -301,72 +277,45 @@ void SearchResultsContainer::cluster()
 {
   lock_guard<mutex> lock(_resultsLock);
 
-  Array<SearchResultContainer*> elems;
+  // clear out the clusters, we have everything saved in _allResults
+  _clusters.clear();
 
-  // gather everything back up into a single array
-  // and delete current cluster centers
-  for (auto& r : _results) {
-    if (r->isClusterCenter()) {
-      SearchResultsContainer* c = r->getClusterContainer();
-
-      for (auto& r2 : c->getResults()) {
-        // no heirarchy allowed at the moment
-        elems.add(r2);
-      }
-
-      // remove, don't delete, elements from cluster object before deletion
-      c->remove();
-      delete r;
-    }
-    else {
-      elems.add(r);
-    }
-  }
-
-  _results.clear();
+  // clear out unclustered results
+  _unclusteredResults.removeAllResults();
 
   // now that all the current elements are in a single place, run a clustering algorithm
-  Array<SearchResultContainer*> centers;
+  Array<shared_ptr<TopLevelCluster> > centers;
   string mode = getGlobalSettings()->_clusterMethodName;
   if (mode == "K-Means") {
-    centers = kmeansClustering(elems, getGlobalSettings()->_numClusters);
+    centers = kmeansClustering(_allResults, getGlobalSettings()->_numClusters);
   }
   else if (mode == "Mean Shift") {
-    centers = meanShiftClustering(elems, getGlobalSettings()->_meanShiftBandwidth);
+    centers = meanShiftClustering(_allResults, getGlobalSettings()->_meanShiftBandwidth);
   }
   else if (mode == "Spectral Clustering") {
-    centers = spectralClustering(elems);
+    centers = spectralClustering(_allResults);
+  }
+
+  // create top level cluster elements
+  for (auto& c : centers) {
+    TopLevelCluster* tlc = new TopLevelCluster();
+    _clusters.add(tlc);
+  }
+
+  // assign elements to top level clusters
+  for (auto& e : elems) {
+    _clusters[e->getSearchResult()->_cluster]->addToCluster(e);
   }
 
   // assign image to center based on best one in cluster
-  // and insert into results
-  for (auto& r : centers) {
-    double minVal = DBL_MAX;
-    
-    if (r->isClusterCenter()) {
-      // iterate through contents
-      for (auto& e : r->getClusterContainer()->getResults()) {
-        if (e->getSearchResult()->_objFuncVal < minVal) {
-          r->setImage(e->getImage());
-          r->getSearchResult()->_sampleNo = e->getSearchResult()->_sampleNo;
-          r->getSearchResult()->_objFuncVal = e->getSearchResult()->_objFuncVal;
-          minVal = e->getSearchResult()->_objFuncVal;
-        }
-      }
-
-      r->regenToolTip();
-      addAndMakeVisible(r);
-      _results.add(r);
-    }
-    else {
-      delete r;
-    }
+  for (auto& c : _clusters) {
+    c->setRepresentativeResult();
   }
 
   // calculate cluster stats
   calculateClusterStats();
 
-  setWidth(getLocalBounds().getWidth());
+  updateSize();
   resized();
   repaint();
 }
@@ -378,7 +327,7 @@ void SearchResultsContainer::saveResults(string filename)
 
   // all results get saved to a human-readable (but maybe not interpretable) csv file
   // format is: id, obj func val, edit history, scene
-  for (auto& r : _results) {
+  for (auto& r : _allResults) {
     auto result = r->getSearchResult();
     file << result->_sampleNo << "," << result->_objFuncVal << "," << r->getTooltip() << ",";
 
@@ -438,7 +387,7 @@ void SearchResultsContainer::loadResults(string filename)
         r->_scene[i] = sceneVals[i];
       }
 
-      auto newResult = new SearchResultContainer(r);
+      auto newResult = shared_ptr<SearchResultContainer>(new SearchResultContainer(r));
       newResult->setTooltip(tooltip);
 
       // render
@@ -456,12 +405,13 @@ void SearchResultsContainer::loadResults(string filename)
       delete s;
       newResult->setImage(img);
 
-      addAndMakeVisible(newResult);
-      _results.add(newResult);
+      _allResults.add(newResult);
+      _unclusteredResults.addResult(newResult);
     }
   }
 
-  setWidth(getLocalBounds().getWidth());
+  _unclusteredResults.resized();
+  updateSize();
   resized();
   repaint();
   getStatusBar()->setStatusMessage("Load complete.");
@@ -488,7 +438,7 @@ void SearchResultsContainer::loadTrace(int selected)
     r->_sampleNo = sample._sampleId;
     r->_objFuncVal = sample._f;
 
-    SearchResultContainer* newResult = new SearchResultContainer(r);
+    auto newResult = shared_ptr<SearchResultContainer>(new SearchResultContainer(r));
     newResult->setTooltip("Edit: " + sample._editName + "\nAttribute Value: " + String(sample._f) + "\nAcceptance Chance: " + String(sample._a));
     
     // render
@@ -505,46 +455,26 @@ void SearchResultsContainer::loadTrace(int selected)
     delete s;
     newResult->setImage(img);
 
-    addAndMakeVisible(newResult);
-    _results.add(newResult);
+    _allResults.add(newResult);
+    _unclusteredResults.addResult(newResult);
   }
 
-  setWidth(getLocalBounds().getWidth());
+  updateSize();
+  _unclusteredResults.resized();
   resized();
   repaint();
   getStatusBar()->setStatusMessage("Load complete.");
 }
 
-void SearchResultsContainer::appendNewResult(SearchResultContainer * r)
-{
-  lock_guard<mutex> lock(_resultsLock);
-  addAndMakeVisible(r);
-  _results.add(r);
-  setWidth(getLocalBounds().getWidth());
-  resized();
-  repaint();
-}
-
 void SearchResultsContainer::setElemsPerRow(int epr)
 {
   _elemsPerRow = epr;
-  setWidth(getLocalBounds().getWidth());
+  updateSize();
 }
 
 int SearchResultsContainer::numResults()
 {
-  int count = 0;
-  for (auto& r : _results) {
-    if (r->isClusterCenter()) {
-      // no nested clusters, so can do this
-      count += r->getClusterContainer()->getResults().size();
-    }
-    else {
-      count++;
-    }
-  }
-
-  return count;
+  _allResults.size();
 }
 
 SearchResultContainer * SearchResultsContainer::createContainerFor(SearchResult * r)
@@ -568,18 +498,18 @@ SearchResultContainer * SearchResultsContainer::createContainerFor(SearchResult 
   return newResult;
 }
 
-Array<SearchResultContainer *> SearchResultsContainer::kmeansClustering(Array<SearchResultContainer*>& elems, int k)
+Array<shared_ptr<TopLevelCluster> > SearchResultsContainer::kmeansClustering(Array<shared_ptr<SearchResultContainer> >& elems, int k)
 {
   // mostly this function is a debug one to test that we can place things in
   // the proper GUI components
   if (elems.size() == 0)
-    return Array<SearchResultContainer*>();
+    return Array<shared_ptr<TopLevelCluster> >();
 
   KMeans clusterer;
   return clusterer.cluster(k, elems, InitMode::FORGY);
 }
 
-Array<SearchResultContainer*> SearchResultsContainer::meanShiftClustering(Array<SearchResultContainer*>& elems, double bandwidth)
+Array<shared_ptr<SearchResultContainer> > SearchResultsContainer::meanShiftClustering(Array<shared_ptr<SearchResultContainer> >& elems, double bandwidth)
 {
   // place feature vecs into a vector
   vector<Eigen::VectorXd> features;
@@ -639,7 +569,7 @@ Array<SearchResultContainer*> SearchResultsContainer::meanShiftClustering(Array<
   return centerContainers;
 }
 
-Array<SearchResultContainer*> SearchResultsContainer::spectralClustering(Array<SearchResultContainer*>& elems)
+Array<shared_ptr<SearchResultContainer> > SearchResultsContainer::spectralClustering(Array<shared_ptr<SearchResultContainer> >& elems)
 {
   SpectralCluster clusterer;
   auto centers = clusterer.cluster(elems, getGlobalSettings()->_numClusters, getGlobalSettings()->_spectralBandwidth);
@@ -650,9 +580,9 @@ double SearchResultsContainer::daviesBouldin()
 {
   //calculate S for each cluster
   Eigen::VectorXd S;
-  S.resize(_results.size());
+  S.resize(_clusters.size());
 
-  for (int i = 0; i < _results.size(); i++) {
+  for (int i = 0; i < _clusters.size(); i++) {
     S[i] = 0;
     // calculate average distance between centroid and other points
     for (auto& r : _results[i]->getClusterContainer()->getResults()) {
@@ -663,7 +593,7 @@ double SearchResultsContainer::daviesBouldin()
 
   // Calculate R
   Eigen::MatrixXd R;
-  R.resize(_results.size(), _results.size());
+  R.resize(_clusters.size(), _results.size());
 
   for (int i = 0; i < _results.size(); i++) {
     R(i, i) = -1;
@@ -691,5 +621,5 @@ void SearchResultsContainer::calculateClusterStats()
   double db = daviesBouldin();
 
   getRecorder()->log(SYSTEM, "Clustering Davies-Bouldin Index: " + String(db).toStdString());
-  getStatusBar()->setStatusMessage("Clustering finished. k = " + String(_results.size()) + ", DB = " + String(db));
+  getStatusBar()->setStatusMessage("Clustering finished. k = " + String(_clusters.size()) + ", DB = " + String(db));
 }
