@@ -293,7 +293,7 @@ SettingsEditor::SettingsEditor()
   clusterComponents.add(new SettingsChoice("Clustering Method", { "K-Means", "Mean Shift", "Spectral Clustering" }));
   clusterComponents.add(new SettingsChoice("Distance Metric", { "Per-Pixel Average Lab Difference",
     "Per-Pixel Maximum Lab Difference", "Per-Pixel 90th Percentile Difference", "Lab L2 Norm", "Luminance L2 Norm",
-    "Parameter L2 Norm", "Softmax Parameter L2 Norm" })); //, "Whitened Parameter L2 Norm"
+    "Parameter L2 Norm", "Softmax Parameter L2 Norm", "Attribute Function Distance" })); //, "Whitened Parameter L2 Norm"
   clusterComponents.add(new SettingsSlider("Number of Clusters", 1, 25, 1));
   clusterComponents.add(new SettingsSlider("Mean Shift Bandwidth", 0, 20, 0.01));
   clusterComponents.add(new SettingsSlider("Spectral Bandwidth", 1e-3, 5, 0.001));

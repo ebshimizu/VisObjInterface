@@ -318,6 +318,9 @@ double AttributeSearchResult::dist(AttributeSearchResult * y)
   else if (metric == "Luminance L2 Norm") {
     return l2LuminanceDist(y);
   }
+  else if (metric == "Attribute Function Distance") {
+    return attrDist(y);
+  }
   else {
     // default to Per-Pixel average if no mode specified.
     return avgPixDist(y);
@@ -529,4 +532,9 @@ double AttributeSearchResult::l2LuminanceDist(AttributeSearchResult * y)
   }
 
   return sqrt(sum);
+}
+
+double AttributeSearchResult::attrDist(AttributeSearchResult * y)
+{
+  return abs(_result->_objFuncVal - y->getSearchResult()->_objFuncVal);
 }

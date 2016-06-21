@@ -376,6 +376,7 @@ GlobalSettings::GlobalSettings()
   _clusterMethodName = "K-Means";
   _spectralBandwidth = 2;
   _distMetric = "Per-Pixel Average Lab Difference";
+  _useFGMask = false;
 
   if (_searchThreads <= 0)
     _searchThreads = 1;

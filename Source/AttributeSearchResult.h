@@ -112,6 +112,9 @@ public:
   // Luminance L2 norm
   double l2LuminanceDist(AttributeSearchResult* y);
 
+  // Distance in the attribute function space
+  double attrDist(AttributeSearchResult* y);
+
 private:
   // Search result object from the attribute search
   SearchResult* _result;
