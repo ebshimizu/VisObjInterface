@@ -80,6 +80,10 @@ public:
   // Gets the container for cluster elements 
   SearchResultsContainer* getClusterContainer();
 
+  // Returns the number of results contained in this container (including
+  // and sub clusters)
+  int numResults();
+
   // Adds the specified element to this cluster
   void addToCluster(SearchResultContainer* elem);
 

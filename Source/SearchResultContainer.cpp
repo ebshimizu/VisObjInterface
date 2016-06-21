@@ -282,6 +282,20 @@ SearchResultsContainer * SearchResultContainer::getClusterContainer()
   return _clusterContents;
 }
 
+int SearchResultContainer::numResults()
+{
+  if (!isClusterCenter())
+    return 1;
+
+  else {
+    int sum = 0;
+    for (auto& r : _clusterContents->getResults()) {
+      sum += r->numResults();
+    }
+    return sum;
+  }
+}
+
 void SearchResultContainer::addToCluster(SearchResultContainer * elem)
 {
   _clusterContents->appendNewResult(elem);
