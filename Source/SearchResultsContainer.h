@@ -99,19 +99,6 @@ private:
   // Creates an attribute search result container for the given result struct
   SearchResultContainer* createContainerFor(SearchResult* r);
 
-  // Clustering functions should all return an array of attribute search results contianers
-  // that contain the elements belonging to that cluster center
-
-  // cluster elements using k-means. K is specified arbitrarily.
-  // Returns the centers.
-  Array<shared_ptr<TopLevelCluster> > kmeansClustering(Array<shared_ptr<SearchResultContainer> >& elems, int k);
-
-  // Mean Shift clustering
-  Array<shared_ptr<TopLevelCluster> > meanShiftClustering(Array<shared_ptr<SearchResultContainer> >& elems, double bandwidth);
-
-  // Spectral clustering
-  Array<shared_ptr<TopLevelCluster> > spectralClustering(Array<shared_ptr<SearchResultContainer >>& elems);
-
   // clustering quality metric
   double daviesBouldin();
 

@@ -376,6 +376,9 @@
     <ClCompile Include="..\..\..\lib\libsvm-3.21\svm.cpp">
       <Filter>AttributesInterface\Source\third_party</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Clustering.cpp">
+      <Filter>AttributesInterface\Source\GUI\clustering</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\KMeans.cpp">
       <Filter>AttributesInterface\Source\GUI\clustering</Filter>
     </ClCompile>
@@ -2160,6 +2163,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\Clustering.h">
+      <Filter>AttributesInterface\Source\GUI\clustering</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\KMeans.h">
       <Filter>AttributesInterface\Source\GUI\clustering</Filter>
     </ClInclude>

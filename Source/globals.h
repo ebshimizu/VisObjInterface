@@ -133,6 +133,29 @@ struct DebugData {
   Eigen::VectorXd _scene;
 };
 
+enum ClusterMethod {
+  KMEANS,     // "K-Means"
+  MEAN_SHIFT, // "Mean Shift"
+  SPECTRAL    // "Spectral Clustering"
+};
+
+enum DistanceMetric {
+  PPAVGLAB,         // Per-Pixel Average Lab Difference
+  PPMAXLAB,         // Per-Pixel Maximum Lab Difference
+  PP90LAB,          // Per-Pixel 90th Percentile Difference
+  L2LAB,            // Lab L2 Norm
+  L2LUMINANCE,      // Luminance L2 Norm
+  L2PARAM,          // Parameter L2 Norm
+  L2SOFTMAXPARAM,   // Softmax Parameter L2 Norm
+  ATTRDIST          // Attribute Function Distance
+};
+
+enum FocusArea {
+  ALL_IMAGE,  // All
+  FOREGROUND, // Foreground
+  BACKGROUND  // Background
+};
+
 // A container for various things that the entire application may want to access
 // TODO: at some point, have this load from a file
 class GlobalSettings
@@ -167,11 +190,16 @@ public:
   bool _grayscaleMode;          // Render images in grayscale instead of color
   int _searchFailureLimit;      // How many times a search thread can fail before increasing the max depth.
   int _searchThreads;           // Background threads for search
-  string _clusterMethodName;    // Clustering method
-  int _numClusters;             // Number of clusters to use
   double _spectralBandwidth;    // Bandwidth used in spectral clustering similarity function
-  string _distMetric;           // Distance metric
   bool _useFGMask;              // toggles the use of the foreground mask, if loaded
+  ClusterMethod _primaryClusterMethod;    // Primary cluster method
+  DistanceMetric _primaryClusterMetric;   // Primary cluster distance metric to use
+  int _numPrimaryClusters;                // Primary number of clusters
+  ClusterMethod _secondaryClusterMethod;  // Secondary clustering method
+  DistanceMetric _secondaryClusterMetric; // Secondary clustering distance metric
+  int _numSecondaryClusters;    // Number of secondary clusters
+  FocusArea _primaryFocusArea;  // If using a mask, which area to focus on during clustering
+  FocusArea _secondaryFocusArea;// If using a mask, which area to focus on during secondary clustering
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

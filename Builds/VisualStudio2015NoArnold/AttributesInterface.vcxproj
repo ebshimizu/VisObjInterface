@@ -135,6 +135,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\lib\libsvm-3.21\svm.cpp"/>
+    <ClCompile Include="..\..\Source\Clustering.cpp"/>
     <ClCompile Include="..\..\Source\KMeans.cpp"/>
     <ClCompile Include="..\..\Source\MeanShift.cpp"/>
     <ClCompile Include="..\..\Source\SpectralCluster.cpp"/>
@@ -1709,6 +1710,7 @@
     <ClCompile Include="..\..\JuceLibraryCode\juce_video.cpp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\Clustering.h"/>
     <ClInclude Include="..\..\Source\KMeans.h"/>
     <ClInclude Include="..\..\Source\MeanShift.h"/>
     <ClInclude Include="..\..\Source\SpectralCluster.h"/>

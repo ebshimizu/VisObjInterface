@@ -35,15 +35,22 @@ public:
 
   shared_ptr<SearchResultContainer> operator[](int i);
 
+  // number of elements in the list, non-recursive
   int size();
+
+  // number of elements in the list, recursive
+  int numElements();
 
   void resized() override;
   void paint(Graphics& g) override;
 
+  // Use this to trigger a resize and re-layout elements
   void setWidth(int width);
 
+  // number of columns to display
   void setCols(int cols);
 
+  // Sort the contained elements
   void sort(AttributeSorter* s);
 private:
   Array<shared_ptr<SearchResultContainer> > _contents;

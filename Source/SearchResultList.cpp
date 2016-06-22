@@ -40,10 +40,20 @@ void SearchResultList::removeResult(int index)
 Array<shared_ptr<SearchResultContainer>> SearchResultList::removeAllResults()
 {
   removeAllChildren();
-  Array<shared_ptr<SearchResultContainer> > copy(_contents);
+  Array<shared_ptr<SearchResultContainer> > results;
+
+  // recursively look through children to find leaf nodes (don't need cluster centers)
+  for (auto& r : _contents) {
+    if (r->isClusterCenter()) {
+      results.addArray(r->getResults());
+    }
+    else {
+      results.add(r);
+    }
+  }
 
   _contents.clear();
-  return copy;
+  return results;
 }
 
 shared_ptr<SearchResultContainer> SearchResultList::operator[](int i)
@@ -54,6 +64,15 @@ shared_ptr<SearchResultContainer> SearchResultList::operator[](int i)
 int SearchResultList::size()
 {
   return _contents.size();
+}
+
+int SearchResultList::numElements()
+{
+  int count = 0;
+  for (auto r : _contents) {
+    count += r->numResults();
+  }
+  return count;
 }
 
 void SearchResultList::resized()
@@ -81,7 +100,8 @@ void SearchResultList::paint(Graphics & g)
 void SearchResultList::setWidth(int width)
 {
   int elemHeight = (width / _cols) * _heightRatio;
-  int height = ceil(elemHeight * (_contents.size() / _cols));
+  int rows = ceil((float)_contents.size() / _cols);
+  int height = rows * elemHeight;
   setBounds(0, 0, width, height);
   resized();
 }

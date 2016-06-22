@@ -14,7 +14,7 @@ KMeans::KMeans()
 {
   // assign default distance function
   _distFunc = distFuncType([](SearchResultContainer* x, SearchResultContainer* y) {
-    return x->dist(y);
+    return x->dist(y, PPAVGLAB);
   });
 }
 

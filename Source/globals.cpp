@@ -372,10 +372,15 @@ GlobalSettings::GlobalSettings()
   _searchThreads = thread::hardware_concurrency() / 2;
   _autoRunTraceGraph = false;
   _standardMCMCIters = 5.0e3;
-  _numClusters = 6;
-  _clusterMethodName = "K-Means";
+  _numPrimaryClusters = 6;
+  _primaryClusterMethod = KMEANS; // "K-Means";
+  _primaryClusterMetric = PPAVGLAB; // "Per-Pixel Average Lab Difference";
+  _primaryFocusArea = ALL_IMAGE; // "All";
+  _numSecondaryClusters = 3;
+  _secondaryClusterMethod = KMEANS; // "K-Means";
+  _secondaryClusterMetric = PPAVGLAB; // "Per-Pixel Average Lab Difference";
+  _secondaryFocusArea = ALL_IMAGE; // "All";
   _spectralBandwidth = 2;
-  _distMetric = "Per-Pixel Average Lab Difference";
   _useFGMask = false;
 
   if (_searchThreads <= 0)

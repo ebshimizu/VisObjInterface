@@ -53,6 +53,13 @@ public:
 
   void sort(AttributeSorter* s);
 
+  // Clusters the results based on the Secondary Clustering Mode
+  // selected in the options.
+  void cluster();
+
+  // Get element at index i in the search results list
+  shared_ptr<SearchResultContainer> getElement(int i);
+
   Eigen::VectorXd _scene;
   Eigen::VectorXd _features;
 private:

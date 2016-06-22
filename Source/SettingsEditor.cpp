@@ -100,8 +100,10 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_meanShiftEps = newValue;
   else if (_id == "Search Threads")
     getGlobalSettings()->_searchThreads = (int)newValue;
-  else if (_id == "Number of Clusters")
-    getGlobalSettings()->_numClusters = (int)newValue;
+  else if (_id == "Number of Primary Clusters")
+    getGlobalSettings()->_numPrimaryClusters = (int)newValue;
+  else if (_id == "Number of Secondary Clusters")
+    getGlobalSettings()->_numSecondaryClusters = (int)newValue;
   else if (_id == "Spectral Bandwidth")
     getGlobalSettings()->_spectralBandwidth = newValue;
 }
@@ -174,8 +176,10 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_meanShiftEps;
   else if (_id == "Search Threads")
     return getGlobalSettings()->_searchThreads;
-  else if (_id == "Number of Clusters")
-    return getGlobalSettings()->_numClusters;
+  else if (_id == "Number of Primary Clusters")
+    return getGlobalSettings()->_numPrimaryClusters;
+  else if (_id == "Number of Secondary Clusters")
+    return getGlobalSettings()->_numSecondaryClusters;
   else if (_id == "Spectral Bandwidth")
     return getGlobalSettings()->_spectralBandwidth;
 
@@ -248,23 +252,51 @@ SettingsChoice::~SettingsChoice()
 
 int SettingsChoice::getIndex() const
 {
-  if (getName() == "Clustering Method") {
-    string mode = getGlobalSettings()->_clusterMethodName;
-    return choices.indexOf(String(mode));
+  if (getName() == "Primary Clustering Method") {
+    ClusterMethod mode = getGlobalSettings()->_primaryClusterMethod;
+    return (int)mode;
   }
-  else if (getName() == "Distance Metric") {
-    string metric = getGlobalSettings()->_distMetric;
-    return choices.indexOf(String(metric));
+  else if (getName() == "Primary Distance Metric") {
+    DistanceMetric metric = getGlobalSettings()->_primaryClusterMetric;
+    return (int)metric;
+  }
+  else if (getName() == "Primary Focus Area") {
+    FocusArea area = getGlobalSettings()->_primaryFocusArea;
+    return (int)area;
+  }
+  else if (getName() == "Secondary Clustering Method") {
+    ClusterMethod mode = getGlobalSettings()->_secondaryClusterMethod;
+    return (int)mode;
+  }
+  else if (getName() == "Secondary Distance Metric") {
+    DistanceMetric metric = getGlobalSettings()->_secondaryClusterMetric;
+    return (int)metric;
+  }
+  else if (getName() == "Secondary Focus Area") {
+    FocusArea area = getGlobalSettings()->_secondaryFocusArea;
+    return (int)area;
   }
 }
 
 void SettingsChoice::setIndex(int newIndex)
 {
-  if (getName() == "Clustering Method") {
-    getGlobalSettings()->_clusterMethodName = choices[newIndex].toStdString();
+  if (getName() == "Primary Clustering Method") {
+    getGlobalSettings()->_primaryClusterMethod = (ClusterMethod)newIndex;
   }
-  else if (getName() == "Distance Metric") {
-    getGlobalSettings()->_distMetric = choices[newIndex].toStdString();
+  else if (getName() == "Primary Distance Metric") {
+    getGlobalSettings()->_primaryClusterMetric = (DistanceMetric)newIndex;
+  }
+  else if (getName() == "Primary Focus Area") {
+    getGlobalSettings()->_primaryFocusArea = (FocusArea)newIndex;
+  }
+  else if (getName() == "Secondary Clustering Method") {
+    getGlobalSettings()->_secondaryClusterMethod = (ClusterMethod)newIndex;
+  }
+  else if (getName() == "Secondary Distance Metric") {
+    getGlobalSettings()->_secondaryClusterMetric = (DistanceMetric)newIndex;
+  }
+  else if (getName() == "Secondary Focus Area") {
+    getGlobalSettings()->_secondaryFocusArea = (FocusArea)newIndex;
   }
 }
 
@@ -290,11 +322,18 @@ SettingsEditor::SettingsEditor()
 
 
   Array<PropertyComponent*> clusterComponents;
-  clusterComponents.add(new SettingsChoice("Clustering Method", { "K-Means", "Mean Shift", "Spectral Clustering" }));
-  clusterComponents.add(new SettingsChoice("Distance Metric", { "Per-Pixel Average Lab Difference",
+  clusterComponents.add(new SettingsChoice("Primary Clustering Method", { "K-Means", "Mean Shift", "Spectral Clustering" }));
+  clusterComponents.add(new SettingsChoice("Primary Distance Metric", { "Per-Pixel Average Lab Difference",
     "Per-Pixel Maximum Lab Difference", "Per-Pixel 90th Percentile Difference", "Lab L2 Norm", "Luminance L2 Norm",
     "Parameter L2 Norm", "Softmax Parameter L2 Norm", "Attribute Function Distance" })); //, "Whitened Parameter L2 Norm"
-  clusterComponents.add(new SettingsSlider("Number of Clusters", 1, 25, 1));
+  clusterComponents.add(new SettingsSlider("Number of Primary Clusters", 1, 30, 1));
+  clusterComponents.add(new SettingsChoice("Primary Focus Region", { "All", "Foreground", "Background" }));
+  clusterComponents.add(new SettingsChoice("Secondary Clustering Method", { "K-Means", "Mean Shift", "Spectral Clustering" }));
+  clusterComponents.add(new SettingsChoice("Secondary Distance Metric", { "Per-Pixel Average Lab Difference",
+    "Per-Pixel Maximum Lab Difference", "Per-Pixel 90th Percentile Difference", "Lab L2 Norm", "Luminance L2 Norm",
+    "Parameter L2 Norm", "Softmax Parameter L2 Norm", "Attribute Function Distance" })); //, "Whitened Parameter L2 Norm"
+  clusterComponents.add(new SettingsSlider("Number of Secondary Clusters", 1, 30, 1));
+  clusterComponents.add(new SettingsChoice("Secondary Focus Region", { "All", "Foreground", "Background" }));
   clusterComponents.add(new SettingsSlider("Mean Shift Bandwidth", 0, 20, 0.01));
   clusterComponents.add(new SettingsSlider("Spectral Bandwidth", 1e-3, 5, 0.001));
   _settings.addSection("Clustering", clusterComponents);

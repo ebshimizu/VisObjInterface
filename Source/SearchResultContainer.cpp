@@ -80,6 +80,7 @@ SearchResultContainer::SearchResultContainer(SearchResult* result) : _result(res
   // magic number alert
   _clusterContents = new SearchResultList();
   _clusterContents->setWidth(820);
+  _clusterContents->setCols(3);
 }
 
 SearchResultContainer::~SearchResultContainer()
@@ -217,13 +218,14 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
     CallOutBox& cb = CallOutBox::launchAsynchronously(popupComponent, getScreenBounds(), nullptr);
   }
   else if (event.mods.isLeftButtonDown()) {
-    //if (isClusterCenter()) {
-    //  Viewport* vp = new Viewport();
-    //  vp->setViewedComponent(_clusterContents, false);
-    //  vp->setSize(_clusterContents->getWidth() + vp->getScrollBarThickness(), 300);
+    if (isClusterCenter()) {
+      Viewport* vp = new Viewport();
+      _clusterContents->setWidth(820);
+      vp->setViewedComponent(_clusterContents, false);
+      vp->setSize(_clusterContents->getWidth() + vp->getScrollBarThickness(), 300);
 
-    //  CallOutBox& cb = CallOutBox::launchAsynchronously(vp, getScreenBounds(), nullptr);
-    //}
+      CallOutBox& cb = CallOutBox::launchAsynchronously(vp, getScreenBounds(), nullptr);
+    }
   }
 }
 
@@ -282,14 +284,13 @@ int SearchResultContainer::numResults()
     return 1;
 
   else {
-    return _clusterContents->size();
+    return _clusterContents->numElements();
   }
 }
 
 void SearchResultContainer::addToCluster(shared_ptr<SearchResultContainer> elem)
 {
   _clusterContents->addResult(elem);
-
 }
 
 Eigen::Vector3d SearchResultContainer::rgbToLab(double r, double g, double b)
@@ -298,40 +299,73 @@ Eigen::Vector3d SearchResultContainer::rgbToLab(double r, double g, double b)
   return ColorUtils::convXYZtoLab(xyz, refWhites[D65] / 100.0);
 }
 
-double SearchResultContainer::dist(SearchResultContainer * y)
+Array<shared_ptr<SearchResultContainer> > SearchResultContainer::getResults()
 {
-  string metric = getGlobalSettings()->_distMetric;
-  if (metric == "Per-Pixel Average Lab Difference") {
-    return avgPixDist(y);
-  }
-  else if (metric == "Per-Pixel Maximum Lab Difference") {
-    return maxPixDist(y);
-  }
-  else if (metric == "Per-Pixel 90th Percentile Difference") {
-    return pctPixDist(y);
-  }
-  else if (metric == "Lab L2 Norm") {
-    return l2dist(y);
-  }
-  else if (metric == "Parameter L2 Norm") {
-    return l2paramDist(y);
-  }
-  else if (metric == "Softmax Parameter L2 Norm") {
-    return l2paramDistSoftmax(y);
-  }
-  else if (metric == "Luminance L2 Norm") {
-    return l2LuminanceDist(y);
-  }
-  else if (metric == "Attribute Function Distance") {
-    return attrDist(y);
+  if (isClusterCenter()) {
+    return _clusterContents->removeAllResults();
   }
   else {
-    // default to Per-Pixel average if no mode specified.
-    return avgPixDist(y);
+    return Array<shared_ptr<SearchResultContainer> >();
   }
 }
 
-double SearchResultContainer::avgPixDist(SearchResultContainer * y, bool overrideMask)
+double SearchResultContainer::dist(SearchResultContainer * y, DistanceMetric metric, bool overrideMask, bool invert)
+{
+  switch (metric) {
+  case PPAVGLAB:
+    return avgPixDist(y, overrideMask, invert);
+  case PPMAXLAB:
+    return maxPixDist(y, overrideMask, invert);
+  case PP90LAB:
+    return pctPixDist(y, overrideMask, invert);
+  case L2LAB:
+    return l2dist(y, overrideMask, invert);
+  case L2PARAM:
+    return l2paramDist(y);
+  case L2SOFTMAXPARAM:
+    return l2paramDistSoftmax(y);
+  case L2LUMINANCE:
+    return l2LuminanceDist(y, overrideMask, invert);
+  case ATTRDIST:
+    return attrDist(y);
+  default:
+    return avgPixDist(y, overrideMask, invert);
+  }
+}
+
+double SearchResultContainer::avgPixDist(SearchResultContainer * y, bool overrideMask, bool invert)
+{
+  double sum = 0;
+  int count = 0;
+  Eigen::VectorXd fy = y->getFeatures();
+
+  // iterate through pixels in groups of 3
+  for (int i = 0; i < _features.size() / 3; i++) {
+    int idx = i * 3;
+
+    double maskFactor = 1;
+    if (!overrideMask && getGlobalSettings()->_useFGMask) {
+      maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+
+      if (invert)
+        maskFactor = 1 - maskFactor;
+
+      if (maskFactor > 0)
+        count++;
+    }
+    else {
+      count++;
+    }
+
+    sum += maskFactor * sqrt(pow(fy[idx] - _features[idx], 2) +
+      pow(fy[idx + 1] - _features[idx + 1], 2) +
+      pow(fy[idx + 2] - _features[idx + 2], 2));
+  }
+
+  return sum / count;
+}
+
+double SearchResultContainer::l2dist(SearchResultContainer * y, bool overrideMask, bool invert)
 {
   double sum = 0;
   Eigen::VectorXd fy = y->getFeatures();
@@ -343,28 +377,9 @@ double SearchResultContainer::avgPixDist(SearchResultContainer * y, bool overrid
     double maskFactor = 1;
     if (!overrideMask && getGlobalSettings()->_useFGMask) {
       maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
-    }
 
-    sum += maskFactor * sqrt(pow(fy[idx] - _features[idx], 2) +
-      pow(fy[idx + 1] - _features[idx + 1], 2) +
-      pow(fy[idx + 2] - _features[idx + 2], 2));
-  }
-
-  return sum / (_features.size() / 3);
-}
-
-double SearchResultContainer::l2dist(SearchResultContainer * y)
-{
-  double sum = 0;
-  Eigen::VectorXd fy = y->getFeatures();
-
-  // iterate through pixels in groups of 3
-  for (int i = 0; i < _features.size() / 3; i++) {
-    int idx = i * 3;
-
-    double maskFactor = 1;
-    if (getGlobalSettings()->_useFGMask) {
-      maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+      if (invert)
+        maskFactor = 1 - maskFactor;
     }
 
     sum += maskFactor * (pow(fy[idx] - _features[idx], 2) +
@@ -375,7 +390,7 @@ double SearchResultContainer::l2dist(SearchResultContainer * y)
   return sqrt(sum);
 }
 
-double SearchResultContainer::maxPixDist(SearchResultContainer * y)
+double SearchResultContainer::maxPixDist(SearchResultContainer * y, bool overrideMask, bool invert)
 {
   double maxDist = 0;
   Eigen::VectorXd fy = y->getFeatures();
@@ -385,8 +400,11 @@ double SearchResultContainer::maxPixDist(SearchResultContainer * y)
     int idx = i * 3;
 
     double maskFactor = 1;
-    if (getGlobalSettings()->_useFGMask) {
+    if (!overrideMask && getGlobalSettings()->_useFGMask) {
       maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+      
+      if (invert)
+        maskFactor = 1 - maskFactor;
     }
 
     double dist = maskFactor * sqrt(pow(fy[idx] - _features[idx], 2) +
@@ -400,7 +418,7 @@ double SearchResultContainer::maxPixDist(SearchResultContainer * y)
   return maxDist;
 }
 
-double SearchResultContainer::pctPixDist(SearchResultContainer * y)
+double SearchResultContainer::pctPixDist(SearchResultContainer * y, bool overrideMask, bool invert)
 {
   Array<double> dists;
   Eigen::VectorXd fy = y->getFeatures();
@@ -410,8 +428,11 @@ double SearchResultContainer::pctPixDist(SearchResultContainer * y)
     int idx = i * 3;
 
     double maskFactor = 1;
-    if (getGlobalSettings()->_useFGMask) {
+    if (!overrideMask && getGlobalSettings()->_useFGMask) {
       maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+
+      if (invert)
+        maskFactor = 1 - maskFactor;
     }
 
     double dist = maskFactor * sqrt(pow(fy[idx] - _features[idx], 2) +
@@ -520,7 +541,7 @@ double SearchResultContainer::l2paramDistSoftmax(SearchResultContainer * y)
   return (xparams - yparams).norm();
 }
 
-double SearchResultContainer::l2LuminanceDist(SearchResultContainer * y)
+double SearchResultContainer::l2LuminanceDist(SearchResultContainer * y, bool overrideMask, bool invert)
 {
   // just pull the luminance component of each image and take the L2 norm
   double sum = 0;
@@ -528,8 +549,11 @@ double SearchResultContainer::l2LuminanceDist(SearchResultContainer * y)
 
   for (int i = 0; i < _features.size() / 3; i++) {
     double maskFactor = 1;
-    if (getGlobalSettings()->_useFGMask) {
+    if (!overrideMask && getGlobalSettings()->_useFGMask) {
       maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+
+      if (invert)
+        maskFactor = 1 - maskFactor;
     }
 
     sum += maskFactor * pow(_features[i * 3] - yf[i * 3], 2);

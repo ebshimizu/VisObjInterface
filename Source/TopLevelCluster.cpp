@@ -9,6 +9,7 @@
 */
 
 #include "TopLevelCluster.h"
+#include "Clustering.h"
 
 TopLevelCluster::TopLevelCluster()
 {
@@ -116,4 +117,59 @@ shared_ptr<SearchResultContainer> TopLevelCluster::constructResultContainer()
 void TopLevelCluster::sort(AttributeSorter * s)
 {
   _contents->sort(s);
+}
+
+void TopLevelCluster::cluster()
+{
+  // here we'll want to take everything from contents and cluster them
+  // we will need to convert from top level clusters to regular clusters however
+  // remove everything from contents
+  auto results = _contents->removeAllResults();
+
+  // cluster results using secondary clustering settings
+  ClusterMethod mode = getGlobalSettings()->_secondaryClusterMethod;
+  bool invert = (getGlobalSettings()->_secondaryFocusArea == BACKGROUND) ? true : false;
+  bool overrideMask = (getGlobalSettings()->_secondaryFocusArea == ALL_IMAGE) ? true : false;
+  DistanceMetric dm = getGlobalSettings()->_secondaryClusterMetric;
+
+  // run the clustering
+  Array<shared_ptr<TopLevelCluster> > centers;
+
+  distFuncType f = [invert, overrideMask, dm](SearchResultContainer* x, SearchResultContainer* y) {
+    return x->dist(y, dm, overrideMask, invert);
+  };
+
+  switch (mode) {
+  case KMEANS:
+    centers = Clustering::kmeansClustering(results, getGlobalSettings()->_numSecondaryClusters, f);
+    break;
+  case MEAN_SHIFT:
+    centers = Clustering::meanShiftClustering(results, getGlobalSettings()->_meanShiftBandwidth);
+    break;
+  case SPECTRAL:
+    centers = Clustering::spectralClustering(results, getGlobalSettings()->_numSecondaryClusters, f);
+    break;
+  default:
+    break;
+  }
+
+  // take the cluster centers representative items, and create new elements
+  for (auto& c : centers) {
+    c->setRepresentativeResult();
+    auto subcenter = c->getRepresentativeResult();
+    
+    // add items contained in the top level item to the subcenter
+    for (int i = 0; i < c->numElements(); i++) {
+      subcenter->addToCluster(c->getElement(i));
+    }
+
+    _contents->addResult(subcenter);
+  }
+
+  resized();
+}
+
+shared_ptr<SearchResultContainer> TopLevelCluster::getElement(int i)
+{
+  return (*_contents)[i];
 }

@@ -89,22 +89,27 @@ public:
   // convert RGB to Lab, D65 ref illuminant
   Eigen::Vector3d rgbToLab(double r, double g, double b);
 
+  // Returns the results contained within search result container.
+  // this will either nothing, or all elements contained
+  // within clusters contained by this element
+  Array<shared_ptr<SearchResultContainer> > getResults();
+
   // Calculate the distance between this result and another result
   // Current metric: average pixel difference in Lab
-  double dist(SearchResultContainer* y);
+  double dist(SearchResultContainer* y, DistanceMetric metric, bool overrideMask = false, bool invert = false);
 
   // Per-pixel average Lab pixel difference
   // special case: avgpixdist can ignore mask for purposes of filtering
-  double avgPixDist(SearchResultContainer* y, bool overrideMask = false);
+  double avgPixDist(SearchResultContainer* y, bool overrideMask = false, bool invert = false);
 
   // L2 norm over Lab image vector
-  double l2dist(SearchResultContainer* y);
+  double l2dist(SearchResultContainer* y, bool overrideMask = false, bool invert = false);
   
   // Maximum per-pixel Lab distance
-  double maxPixDist(SearchResultContainer* y);
+  double maxPixDist(SearchResultContainer* y, bool overrideMask = false, bool invert = false);
 
   // 90th percentile per-pixel Lab distance
-  double pctPixDist(SearchResultContainer* y);
+  double pctPixDist(SearchResultContainer* y, bool overrideMask = false, bool invert = false);
 
   // Parameter-wise L2 distance
   double l2paramDist(SearchResultContainer* y);
@@ -113,7 +118,7 @@ public:
   double l2paramDistSoftmax(SearchResultContainer* y);
 
   // Luminance L2 norm
-  double l2LuminanceDist(SearchResultContainer* y);
+  double l2LuminanceDist(SearchResultContainer* y, bool overrideMask = false, bool invert = false);
 
   // Distance in the attribute function space
   double attrDist(SearchResultContainer* y);
