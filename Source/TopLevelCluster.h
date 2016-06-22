@@ -51,6 +51,8 @@ public:
   // top level cluster 
   shared_ptr<SearchResultContainer> constructResultContainer();
 
+  void sort(AttributeSorter* s);
+
   Eigen::VectorXd _scene;
   Eigen::VectorXd _features;
 private:

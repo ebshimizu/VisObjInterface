@@ -112,3 +112,8 @@ shared_ptr<SearchResultContainer> TopLevelCluster::constructResultContainer()
 
   return src;
 }
+
+void TopLevelCluster::sort(AttributeSorter * s)
+{
+  _contents->sort(s);
+}

@@ -76,14 +76,18 @@ void SearchResultsContainer::sort()
     AvgBrightSorter sorter;
     sort(&sorter);
   }
-
-  // sort child elements
-  // sort clusters instead?
 }
 
 void SearchResultsContainer::sort(AttributeSorter* s)
 {
   _unclusteredResults->sort(s);
+
+  // sort clusters
+  for (auto& c : _clusters) {
+    c->sort(s);
+    c->resized();
+  }
+
   resized();
   repaint();
 }
