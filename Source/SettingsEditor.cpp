@@ -260,7 +260,7 @@ int SettingsChoice::getIndex() const
     DistanceMetric metric = getGlobalSettings()->_primaryClusterMetric;
     return (int)metric;
   }
-  else if (getName() == "Primary Focus Area") {
+  else if (getName() == "Primary Focus Region") {
     FocusArea area = getGlobalSettings()->_primaryFocusArea;
     return (int)area;
   }
@@ -272,7 +272,7 @@ int SettingsChoice::getIndex() const
     DistanceMetric metric = getGlobalSettings()->_secondaryClusterMetric;
     return (int)metric;
   }
-  else if (getName() == "Secondary Focus Area") {
+  else if (getName() == "Secondary Focus Region") {
     FocusArea area = getGlobalSettings()->_secondaryFocusArea;
     return (int)area;
   }
@@ -286,7 +286,7 @@ void SettingsChoice::setIndex(int newIndex)
   else if (getName() == "Primary Distance Metric") {
     getGlobalSettings()->_primaryClusterMetric = (DistanceMetric)newIndex;
   }
-  else if (getName() == "Primary Focus Area") {
+  else if (getName() == "Primary Focus Region") {
     getGlobalSettings()->_primaryFocusArea = (FocusArea)newIndex;
   }
   else if (getName() == "Secondary Clustering Method") {
@@ -295,7 +295,7 @@ void SettingsChoice::setIndex(int newIndex)
   else if (getName() == "Secondary Distance Metric") {
     getGlobalSettings()->_secondaryClusterMetric = (DistanceMetric)newIndex;
   }
-  else if (getName() == "Secondary Focus Area") {
+  else if (getName() == "Secondary Focus Region") {
     getGlobalSettings()->_secondaryFocusArea = (FocusArea)newIndex;
   }
 }
