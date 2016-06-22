@@ -26,7 +26,7 @@ SpectralCluster::~SpectralCluster()
 {
 }
 
-Array<SearchResultContainer*> SpectralCluster::cluster(Array<SearchResultContainer*>& points, int maxK, double bandwidth)
+Array<shared_ptr<TopLevelCluster> > SpectralCluster::cluster(Array<shared_ptr<SearchResultContainer> >& points, int maxK, double bandwidth)
 {
   // DEBUG: OUTPUT TO FILE TO SEE MATRICES
   ofstream debugFile("debug.log", ios::trunc);
@@ -106,14 +106,13 @@ Array<SearchResultContainer*> SpectralCluster::cluster(Array<SearchResultContain
   vector<Eigen::VectorXd> centers = clusterer.cluster(k, vecs, InitMode::FORGY);
 
   // now that we have a clustering, create relevent center attrs
-  Array<SearchResultContainer*> centerResults;
+  Array<shared_ptr<TopLevelCluster> > centerResults;
   for (int i = 0; i < centers.size(); i++) {
-    SearchResult* r = new SearchResult();
-    r->_scene = centers[i];
-    r->_cluster = i;
+    auto tlc = shared_ptr<TopLevelCluster>(new TopLevelCluster());
+    tlc->_scene = centers[i];
+    tlc->setClusterId(i);
 
-    SearchResultContainer* newCenter = new SearchResultContainer(r);
-    centerResults.add(newCenter);
+    centerResults.add(tlc);
   }
 
   // assign elements to centers
@@ -124,7 +123,7 @@ Array<SearchResultContainer*> SpectralCluster::cluster(Array<SearchResultContain
   return centerResults;
 }
 
-Eigen::MatrixXd SpectralCluster::constructSimilarityMatrix(Array<SearchResultContainer*>& points, double bandwidth)
+Eigen::MatrixXd SpectralCluster::constructSimilarityMatrix(Array<shared_ptr<SearchResultContainer> >& points, double bandwidth)
 {
   // uses the gaussian similarity function to construct the similarity matrix for the given points.
   Eigen::MatrixXd S;
@@ -134,7 +133,7 @@ Eigen::MatrixXd SpectralCluster::constructSimilarityMatrix(Array<SearchResultCon
     S(i, i) = 0;
     for (int j = i + 1; j < points.size(); j++) {
       // S is symmetric
-      double diff = _distFunc(points[i], points[j]);
+      double diff = _distFunc(points[i].get(), points[j].get());
       double weight = exp(-pow(diff, 2) / (2 * pow(bandwidth, 2)));
       S(i, j) = weight;
       S(j, i) = weight; 

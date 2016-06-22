@@ -11,7 +11,12 @@
 #ifndef SEARCHRESULTLIST_H_INCLUDED
 #define SEARCHRESULTLIST_H_INCLUDED
 
+#include "../JuceLibraryCode/JuceHeader.h"
 #include "SearchResultContainer.h"
+#include "AttributeSorting.h"
+
+class SearchResultContainer;
+class AttributeSorter;
 
 // The search result list contains a list of search results. 
 // It is also a displayable, resizable, component

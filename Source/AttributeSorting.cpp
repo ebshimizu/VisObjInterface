@@ -16,7 +16,7 @@
 using namespace Lumiverse;
 using namespace Lumiverse::ShowControl;
 
-int DefaultSorter::compareElements(SearchResultContainer * first, SearchResultContainer * second)
+int DefaultSorter::compareElements(shared_ptr<SearchResultContainer> first, shared_ptr<SearchResultContainer> second)
 {
   double firstScore = first->getSearchResult()->_objFuncVal;
   double secondScore = second->getSearchResult()->_objFuncVal;
@@ -29,7 +29,7 @@ int DefaultSorter::compareElements(SearchResultContainer * first, SearchResultCo
     return 0;
 }
 
-int AvgHueSorter::compareElements(SearchResultContainer * first, SearchResultContainer * second)
+int AvgHueSorter::compareElements(shared_ptr<SearchResultContainer> first, shared_ptr<SearchResultContainer> second)
 {
   // get hue from images
   Image i1 = first->getImage().rescaled(100, 100);
@@ -56,7 +56,7 @@ int AvgHueSorter::compareElements(SearchResultContainer * first, SearchResultCon
     return 0;
 }
 
-int AvgBrightSorter::compareElements(SearchResultContainer * first, SearchResultContainer * second)
+int AvgBrightSorter::compareElements(shared_ptr<SearchResultContainer> first, shared_ptr<SearchResultContainer> second)
 {
   // use average luminance in Lab
   Eigen::VectorXd s1 = first->getFeatures();

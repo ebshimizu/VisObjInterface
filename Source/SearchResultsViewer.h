@@ -14,7 +14,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "globals.h"
 #include "AttributeSearch.h"
-#include "AttributeSearchResult.h"
+#include "SearchResultContainer.h"
 #include "HistoryPanel.h"
 #include "SearchResultsContainer.h"
 #include <mutex>
@@ -46,8 +46,6 @@ public:
 
   void cluster();
   void sort();
-
-  Array<SearchResultContainer*> getResults();
 
   HistoryPanel* getHistory() { return _history; }
 

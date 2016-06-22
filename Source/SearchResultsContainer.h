@@ -19,6 +19,8 @@
 
 class SearchResultContainer;
 class AttributeSorter;
+class SearchResultList;
+class TopLevelCluster;
 
 //==============================================================================
 class SearchResultsContainer : public Component
@@ -87,7 +89,7 @@ private:
   // Any function that modifies the arrangement of the clusters needs to make sure to remove
   // the elements properly before deleting, so that they don't get deleted too early
   Array<shared_ptr<SearchResultContainer> > _allResults;
-  SearchResultList _unclusteredResults;
+  SearchResultList* _unclusteredResults;
   Array<shared_ptr<SearchResultContainer> > _newResults;
   Array<shared_ptr<TopLevelCluster> > _clusters;
 
@@ -105,10 +107,10 @@ private:
   Array<shared_ptr<TopLevelCluster> > kmeansClustering(Array<shared_ptr<SearchResultContainer> >& elems, int k);
 
   // Mean Shift clustering
-  Array<shared_ptr<SearchResultContainer> > meanShiftClustering(Array<shared_ptr<SearchResultContainer> >& elems, double bandwidth);
+  Array<shared_ptr<TopLevelCluster> > meanShiftClustering(Array<shared_ptr<SearchResultContainer> >& elems, double bandwidth);
 
   // Spectral clustering
-  Array<shared_ptr<SearchResultContainer> > spectralClustering(Array<shared_ptr<SearchResultContainer >>& elems);
+  Array<shared_ptr<TopLevelCluster> > spectralClustering(Array<shared_ptr<SearchResultContainer >>& elems);
 
   // clustering quality metric
   double daviesBouldin();

@@ -31,15 +31,12 @@ public:
   SpectralCluster(distFuncType distFunc);
   ~SpectralCluster();
 
-  Array<SearchResultContainer*> cluster(Array<SearchResultContainer*>& points, int maxK, double bandwidth);
+  Array<shared_ptr<TopLevelCluster> > cluster(Array<shared_ptr<SearchResultContainer> >& points, int maxK, double bandwidth);
 private:
   distFuncType _distFunc;
 
   // Constructs a fully connected similarity matrix using the gaussian similarity function
-  Eigen::MatrixXd constructSimilarityMatrix(Array<SearchResultContainer*>& points, double bandwidth);
+  Eigen::MatrixXd constructSimilarityMatrix(Array<shared_ptr<SearchResultContainer> >& points, double bandwidth);
 };
-
-
-
 
 #endif  // SPECTRALCLUSTER_H_INCLUDED

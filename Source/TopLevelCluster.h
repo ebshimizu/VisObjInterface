@@ -13,6 +13,10 @@
 
 #include "globals.h"
 #include "SearchResultContainer.h"
+#include "SearchResultList.h"
+
+class SearchResultList;
+class SearchResultContainer;
 
 // TopLevelCluster componets contain all elements that are part of the cluster
 // TopLevelClusters typically reside in the SearchResultsContainer element
@@ -37,10 +41,11 @@ public:
   void setClusterId(int id);
 
   // Returns the elemented contained by this cluster
-  Array<SearchResultContainer*> getChildElements();
+  Array<shared_ptr<SearchResultContainer> > getChildElements();
 
   // Looks in _results and picks the best one to represent the cluster
   void setRepresentativeResult();
+  shared_ptr<SearchResultContainer> getRepresentativeResult();
 
   // mainly for distance metrics, constructs a search result container from the
   // top level cluster 
@@ -50,11 +55,11 @@ public:
   Eigen::VectorXd _features;
 private:
   int _id;
-  SearchResultList _contents;
+  SearchResultList* _contents;
   Viewport* _viewer;
 
   // representative reults container, a copy of something in _results
-  SearchResultContainer* _rep;
+  shared_ptr<SearchResultContainer> _rep;
 };
 
 

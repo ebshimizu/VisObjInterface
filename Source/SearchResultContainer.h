@@ -14,8 +14,10 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "globals.h"
 #include "SearchResultsContainer.h"
+#include "SearchResultList.h"
 
 class SearchResultsContainer;
+class SearchResultList;
 
 //==============================================================================
 class SearchResultBlender : public Component, public Slider::Listener
@@ -77,15 +79,12 @@ public:
   // if true, the clusterContents field has stuff in it
   bool isClusterCenter();
 
-  // Gets the container for cluster elements 
-  SearchResultsContainer* getClusterContainer();
-
   // Returns the number of results contained in this container (including
   // and sub clusters)
   int numResults();
 
   // Adds the specified element to this cluster
-  void addToCluster(SearchResultContainer* elem);
+  void addToCluster(shared_ptr<SearchResultContainer> elem);
 
   // convert RGB to Lab, D65 ref illuminant
   Eigen::Vector3d rgbToLab(double r, double g, double b);
@@ -133,7 +132,7 @@ private:
   Eigen::VectorXd _features;
 
   // Contains elements that belong to this particular cluster
-  SearchResultsContainer* _clusterContents;
+  SearchResultList* _clusterContents;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SearchResultContainer)
 };

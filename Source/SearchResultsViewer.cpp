@@ -120,7 +120,7 @@ void SearchResultsViewer::resized()
 
   // preserve viewer position
   Point<int> pos = _viewer->getViewPosition();
-  _results->setWidth(lbounds.getWidth() - _viewer->getScrollBarThickness());
+  _results->updateSize();
   _viewer->setViewPosition(pos);
 
   _viewer->setBounds(lbounds);
@@ -173,11 +173,6 @@ void SearchResultsViewer::loadResults(string filename)
 void SearchResultsViewer::loadTrace(int selected)
 {
   _results->loadTrace(selected);
-}
-
-Array<SearchResultContainer*> SearchResultsViewer::getResults()
-{
-  return _results->getResults();
 }
 
 bool SearchResultsViewer::addNewResult(SearchResult * r)

@@ -77,11 +77,9 @@ SearchResultContainer::SearchResultContainer(SearchResult* result) : _result(res
   regenToolTip();
   _isHovered = false;
 
-  _clusterContents = new SearchResultsContainer();
-
   // magic number alert
+  _clusterContents = new SearchResultList();
   _clusterContents->setWidth(820);
-  _clusterContents->setElemsPerRow(3);
 }
 
 SearchResultContainer::~SearchResultContainer()
@@ -219,13 +217,13 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
     CallOutBox& cb = CallOutBox::launchAsynchronously(popupComponent, getScreenBounds(), nullptr);
   }
   else if (event.mods.isLeftButtonDown()) {
-    if (isClusterCenter()) {
-      Viewport* vp = new Viewport();
-      vp->setViewedComponent(_clusterContents, false);
-      vp->setSize(_clusterContents->getWidth() + vp->getScrollBarThickness(), 300);
+    //if (isClusterCenter()) {
+    //  Viewport* vp = new Viewport();
+    //  vp->setViewedComponent(_clusterContents, false);
+    //  vp->setSize(_clusterContents->getWidth() + vp->getScrollBarThickness(), 300);
 
-      CallOutBox& cb = CallOutBox::launchAsynchronously(vp, getScreenBounds(), nullptr);
-    }
+    //  CallOutBox& cb = CallOutBox::launchAsynchronously(vp, getScreenBounds(), nullptr);
+    //}
   }
 }
 
@@ -247,7 +245,7 @@ void SearchResultContainer::mouseExit(const MouseEvent & event)
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
   mc->repaint();
   _clusterContents->repaint();
-  getParentComponent();
+  getParentComponent()->repaint();
 }
 
 int SearchResultContainer::compareElements(SearchResultContainer * first, SearchResultContainer * second)
@@ -275,12 +273,7 @@ void SearchResultContainer::setFeatures(Eigen::VectorXd features)
 
 bool SearchResultContainer::isClusterCenter()
 {
-  return _clusterContents->getResults().size() > 0;
-}
-
-SearchResultsContainer * SearchResultContainer::getClusterContainer()
-{
-  return _clusterContents;
+  return _clusterContents->size() > 0;
 }
 
 int SearchResultContainer::numResults()
@@ -289,17 +282,13 @@ int SearchResultContainer::numResults()
     return 1;
 
   else {
-    int sum = 0;
-    for (auto& r : _clusterContents->getResults()) {
-      sum += r->numResults();
-    }
-    return sum;
+    return _clusterContents->size();
   }
 }
 
-void SearchResultContainer::addToCluster(SearchResultContainer * elem)
+void SearchResultContainer::addToCluster(shared_ptr<SearchResultContainer> elem)
 {
-  _clusterContents->appendNewResult(elem);
+  _clusterContents->addResult(elem);
 
 }
 
