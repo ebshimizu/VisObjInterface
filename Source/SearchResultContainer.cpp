@@ -222,7 +222,7 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
       Viewport* vp = new Viewport();
       _clusterContents->setWidth(820);
       vp->setViewedComponent(_clusterContents, false);
-      vp->setSize(_clusterContents->getWidth() + vp->getScrollBarThickness(), 300);
+      vp->setSize(_clusterContents->getWidth() + vp->getScrollBarThickness(), min(300, _clusterContents->getHeight()));
 
       CallOutBox& cb = CallOutBox::launchAsynchronously(vp, getScreenBounds(), nullptr);
     }
@@ -565,4 +565,11 @@ double SearchResultContainer::l2LuminanceDist(SearchResultContainer * y, bool ov
 double SearchResultContainer::attrDist(SearchResultContainer * y)
 {
   return abs(_result->_objFuncVal - y->getSearchResult()->_objFuncVal);
+}
+
+void SearchResultContainer::sort(AttributeSorter * s)
+{
+  if (_clusterContents->size() > 1) {
+    _clusterContents->sort(s);
+  }
 }

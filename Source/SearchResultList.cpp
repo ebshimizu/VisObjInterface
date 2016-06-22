@@ -115,6 +115,12 @@ void SearchResultList::setCols(int cols)
 void SearchResultList::sort(AttributeSorter * s)
 {
   _contents.sort(*s);
+
+  // nested sort
+  for (int i = 0; i < _contents.size(); i++) {
+    _contents[i]->sort(s);
+  }
+
   resized();
   repaint();
 }

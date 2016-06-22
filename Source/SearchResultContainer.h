@@ -123,6 +123,9 @@ public:
   // Distance in the attribute function space
   double attrDist(SearchResultContainer* y);
 
+  // sort cluster, if it exists.
+  void sort(AttributeSorter* s);
+
 private:
   // Search result object from the attribute search
   SearchResult* _result;
