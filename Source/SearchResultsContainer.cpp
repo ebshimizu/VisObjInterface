@@ -24,6 +24,7 @@ SearchResultsContainer::SearchResultsContainer()
   _unclusteredResults = new SearchResultList();
   _unclusteredViewer = new Viewport();
   _unclusteredViewer->setViewedComponent(_unclusteredResults);
+  addAndMakeVisible(_unclusteredViewer);
 }
 
 SearchResultsContainer::~SearchResultsContainer()
@@ -41,20 +42,22 @@ void SearchResultsContainer::resized()
   // the search results container is organized in columns. The leftmost column
   // is unclustered results, and every column to the right is a cluster.
   auto lbounds = getLocalBounds();
+  auto viewPt = _unclusteredViewer->getViewPosition();
+  _unclusteredResults->setWidth(_columnSize - _unclusteredViewer->getScrollBarThickness());
   _unclusteredViewer->setBounds(lbounds.removeFromLeft(_columnSize));
-  
+  _unclusteredViewer->setViewPosition(viewPt);
+
   // clusters
   for (int i = 0; i < _clusters.size(); i++) {
     _clusters[i]->setBounds(lbounds.removeFromLeft(_columnSize));
   }
 }
 
-void SearchResultsContainer::updateSize()
+void SearchResultsContainer::updateSize(int height)
 {
   // fixed sized, maximum visible area, width defined by number of clusters
-  auto parentBounds = getParentComponent()->getLocalBounds();
   int width = (1 + _clusters.size()) * _columnSize;
-  setBounds(0, 0, width, parentBounds.getHeight());
+  setBounds(0, 0, width, height);
 }
 
 void SearchResultsContainer::sort()
@@ -167,12 +170,10 @@ void SearchResultsContainer::showNewResults()
     _newResults.clear();
   }
 
-  updateSize();
-  _unclusteredResults->resized();
-  _unclusteredResults->repaint();
-
+  updateSize(getLocalBounds().getHeight());
   resized();
   repaint();
+  _unclusteredResults->repaint();
 }
 
 void SearchResultsContainer::clear()
@@ -184,7 +185,7 @@ void SearchResultsContainer::clear()
   _unclusteredResults->removeAllResults();
   _clusters.clear();
 
-  updateSize();
+  updateSize(getLocalBounds().getHeight());
   resized();
   repaint();
   _sampleId = 0;
@@ -222,7 +223,7 @@ void SearchResultsContainer::cleanUp(int resultsToKeep)
     _allResults.add(r->getRepresentativeResult());
   }
 
-  updateSize();
+  updateSize(getLocalBounds().getHeight());
   resized();
   repaint();
 }
@@ -253,22 +254,18 @@ void SearchResultsContainer::cluster()
   // add clusters to our list
   for (auto& c : centers) {
     _clusters.add(c);
-  }
 
-  // assign elements to top level clusters
-  for (auto& e : _allResults) {
-    _clusters[e->getSearchResult()->_cluster]->addToCluster(e);
-  }
-
-  // assign image to center based on best one in cluster
-  for (auto& c : _clusters) {
+    // assign image to center based on best one in cluster
     c->setRepresentativeResult();
+
+    // when the pointer goes out of scope, hopefully juce picks up on that automatically...
+    addAndMakeVisible(c.get());
   }
 
   // calculate cluster stats
   calculateClusterStats();
 
-  updateSize();
+  updateSize(getLocalBounds().getHeight());
   resized();
   repaint();
 }
@@ -364,7 +361,7 @@ void SearchResultsContainer::loadResults(string filename)
   }
 
   _unclusteredResults->resized();
-  updateSize();
+  updateSize(getLocalBounds().getHeight());
   resized();
   repaint();
   getStatusBar()->setStatusMessage("Load complete.");
@@ -412,7 +409,7 @@ void SearchResultsContainer::loadTrace(int selected)
     _unclusteredResults->addResult(newResult);
   }
 
-  updateSize();
+  updateSize(getLocalBounds().getHeight());
   _unclusteredResults->resized();
   resized();
   repaint();
@@ -422,7 +419,7 @@ void SearchResultsContainer::loadTrace(int selected)
 void SearchResultsContainer::setElemsPerRow(int epr)
 {
   _elemsPerRow = epr;
-  updateSize();
+  updateSize(getLocalBounds().getHeight());
 }
 
 int SearchResultsContainer::numResults()

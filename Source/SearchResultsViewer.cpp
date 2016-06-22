@@ -120,7 +120,7 @@ void SearchResultsViewer::resized()
 
   // preserve viewer position
   Point<int> pos = _viewer->getViewPosition();
-  _results->updateSize();
+  _results->updateSize(lbounds.getHeight());
   _viewer->setViewPosition(pos);
 
   _viewer->setBounds(lbounds);

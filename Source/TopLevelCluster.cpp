@@ -16,6 +16,7 @@ TopLevelCluster::TopLevelCluster()
   _viewer = new Viewport();
   _contents = new SearchResultList();
   _viewer->setViewedComponent(_contents);
+  addAndMakeVisible(_viewer);
 }
 
 TopLevelCluster::~TopLevelCluster()
@@ -92,8 +93,10 @@ void TopLevelCluster::setRepresentativeResult()
   }
 
   _rep = shared_ptr<SearchResultContainer>(new SearchResultContainer(new SearchResult(*best->getSearchResult())));
+  _rep->setImage(best->getImage());
   _scene = _rep->getSearchResult()->_scene;
-  _features = _rep->getFeatures();
+  _features = best->getFeatures();
+  addAndMakeVisible(_rep.get());
 }
 
 shared_ptr<SearchResultContainer> TopLevelCluster::getRepresentativeResult()
