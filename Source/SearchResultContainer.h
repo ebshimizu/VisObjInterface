@@ -126,6 +126,9 @@ public:
   // sort cluster, if it exists.
   void sort(AttributeSorter* s);
 
+  // Set the cluster distance
+  void setClusterDistance(double dist);
+
 private:
   // Search result object from the attribute search
   SearchResult* _result;
@@ -141,6 +144,8 @@ private:
 
   // Contains elements that belong to this particular cluster
   SearchResultList* _clusterContents;
+
+  double _distToCenter;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SearchResultContainer)
 };

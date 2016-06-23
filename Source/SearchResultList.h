@@ -33,6 +33,9 @@ public:
   // basically transfers owenership of the results to something else
   Array<shared_ptr<SearchResultContainer> > removeAllResults();
 
+  // Gets a copy of the results contained in the list
+  Array<shared_ptr<SearchResultContainer> > getAllResults();
+
   shared_ptr<SearchResultContainer> operator[](int i);
 
   // number of elements in the list, non-recursive

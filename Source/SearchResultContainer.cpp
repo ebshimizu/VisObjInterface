@@ -81,6 +81,7 @@ SearchResultContainer::SearchResultContainer(SearchResult* result) : _result(res
   _clusterContents = new SearchResultList();
   _clusterContents->setWidth(820);
   _clusterContents->setCols(3);
+  _distToCenter = NAN;
 }
 
 SearchResultContainer::~SearchResultContainer()
@@ -106,6 +107,10 @@ void SearchResultContainer::regenToolTip()
   }
 
   tt = tt + " (" + String(-_result->_objFuncVal) + ")";
+  if (!isnan(_distToCenter)) {
+    tt = tt + "\nDistance to Cluster Center: " + String(_distToCenter);
+  }
+
   setTooltip(tt);
 }
 
@@ -302,7 +307,7 @@ Eigen::Vector3d SearchResultContainer::rgbToLab(double r, double g, double b)
 Array<shared_ptr<SearchResultContainer> > SearchResultContainer::getResults()
 {
   if (isClusterCenter()) {
-    return _clusterContents->removeAllResults();
+    return _clusterContents->getAllResults();
   }
   else {
     return Array<shared_ptr<SearchResultContainer> >();
@@ -572,4 +577,10 @@ void SearchResultContainer::sort(AttributeSorter * s)
   if (_clusterContents->size() > 1) {
     _clusterContents->sort(s);
   }
+}
+
+void SearchResultContainer::setClusterDistance(double dist)
+{
+  _distToCenter = dist;
+  regenToolTip();
 }

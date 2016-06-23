@@ -40,7 +40,7 @@ void AttributeControlsList::paint(Graphics& g)
 }
 
 void AttributeControlsList::resized() {
-  int numComponents = _controls.size();
+  int numComponents = (int)_controls.size();
   if (numComponents == 0)
     return;
 
@@ -62,7 +62,7 @@ void AttributeControlsList::addAttributeController(AttributeControllerBase * con
   addAndMakeVisible(control);
   _controls[name] = control;
 
-  _height = _controls.size() * _componentHeight;
+  _height = (int) (_controls.size() * _componentHeight);
   setBounds(0, 0, _width, _height);
 }
 
@@ -72,7 +72,7 @@ void AttributeControlsList::removeAttributeController(string name)
     delete _controls[name];
 
   _controls.erase(name);
-  _height = _controls.size() * _componentHeight;
+  _height = (int)(_controls.size() * _componentHeight);
   setBounds(0, 0, _width, _height);
 }
 
@@ -234,7 +234,7 @@ void AttributeControls::buttonClicked(Button * b)
   }
 }
 
-void AttributeControls::comboBoxChanged(ComboBox * b)
+void AttributeControls::comboBoxChanged(ComboBox * /* b */)
 {
   // actions only taken when button is pressed
 }

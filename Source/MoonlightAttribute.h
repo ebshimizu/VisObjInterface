@@ -13,7 +13,7 @@
 
 #include "HistogramAttribute.h"
 
-class MoonlightAttribute : public HistogramAttribute, public Button::Listener
+class MoonlightAttribute : public HistogramAttribute
 {
 public:
   MoonlightAttribute(int w, int h);

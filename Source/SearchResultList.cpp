@@ -56,6 +56,11 @@ Array<shared_ptr<SearchResultContainer>> SearchResultList::removeAllResults()
   return results;
 }
 
+Array<shared_ptr<SearchResultContainer>> SearchResultList::getAllResults()
+{
+  return Array<shared_ptr<SearchResultContainer>>(_contents);
+}
+
 shared_ptr<SearchResultContainer> SearchResultList::operator[](int i)
 {
   return _contents[i];

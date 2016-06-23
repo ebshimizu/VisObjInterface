@@ -271,7 +271,7 @@ void SearchResultsContainer::cluster()
   // add clusters to our list
   for (auto& c : centers) {
     _clusters.add(c);
-      
+
     // run subclustering
     c->cluster();
 
@@ -280,6 +280,16 @@ void SearchResultsContainer::cluster()
 
     // when the pointer goes out of scope, hopefully juce picks up on that automatically...
     addAndMakeVisible(c.get());
+
+    // calculate distance to center
+    auto ce = c->constructResultContainer();
+    for (auto& e : c->getAllChildElements()) {
+      e->setClusterDistance(f(e.get(), ce.get()));
+    }
+    for (auto& e : c->getChildElements()) {
+      e->setClusterDistance(f(e.get(), ce.get()));
+    }
+    c->getRepresentativeResult()->setClusterDistance(f(c->getRepresentativeResult().get(), ce.get()));
   }
 
   // calculate cluster stats

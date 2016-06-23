@@ -113,8 +113,8 @@ void TopLevelCluster::setRepresentativeResult()
 
   _rep = shared_ptr<SearchResultContainer>(new SearchResultContainer(new SearchResult(*best->getSearchResult())));
   _rep->setImage(best->getImage());
-  _scene = _rep->getSearchResult()->_scene;
-  _features = best->getFeatures();
+  //_scene = _rep->getSearchResult()->_scene;
+  //_features = best->getFeatures();
   addAndMakeVisible(_rep.get());
 }
 

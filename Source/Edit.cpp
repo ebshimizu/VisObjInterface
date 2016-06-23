@@ -110,33 +110,33 @@ Edit * Edit::getNextEdit(Snapshot* current, attrObjFunc f, vector<Edit*>& editHi
   int idx = (int) (_udist(_gen) * availableEdits.size());
   return availableEdits[idx];
 
-  // weighted draw from the available edits towards edits with a stronger gradient magnitude
-  vector<float> weights;
-  float total = 0;
-  double fx = f(current);
+  //// weighted draw from the available edits towards edits with a stronger gradient magnitude
+  //vector<float> weights;
+  //float total = 0;
+  //double fx = f(current);
 
-  for (auto& e : availableEdits) {
-    auto grad = e->numericDeriv(current, f, fx);
+  //for (auto& e : availableEdits) {
+  //  auto grad = e->numericDeriv(current, f, fx);
 
-    // minimum magnitude, so at least something gets selected if they're all 0.
-    double mag = grad.norm();
-    if (mag < 0.01)
-      mag = 0.01;
+  //  // minimum magnitude, so at least something gets selected if they're all 0.
+  //  double mag = grad.norm();
+  //  if (mag < 0.01)
+  //    mag = 0.01;
 
-    weights.push_back(mag);
-    total += mag;
-  }
+  //  weights.push_back(mag);
+  //  total += mag;
+  //}
 
-  // normalize and sort
-  map<float, Edit*> normWeights;
-  float sum = 0;
-  for (int i = 0; i < availableEdits.size(); i++) {
-    sum += weights[i] / total;
-    normWeights[sum] = availableEdits[i];
-  }
+  //// normalize and sort
+  //map<float, Edit*> normWeights;
+  //float sum = 0;
+  //for (int i = 0; i < availableEdits.size(); i++) {
+  //  sum += weights[i] / total;
+  //  normWeights[sum] = availableEdits[i];
+  //}
 
-  // pick an edit
-  return normWeights.lower_bound(_udist(_gen))->second;
+  //// pick an edit
+  //return normWeights.lower_bound(_udist(_gen))->second;
 }
 
 bool Edit::canDoEdit()
