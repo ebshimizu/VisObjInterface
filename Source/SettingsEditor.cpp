@@ -322,13 +322,13 @@ SettingsEditor::SettingsEditor()
 
 
   Array<PropertyComponent*> clusterComponents;
-  clusterComponents.add(new SettingsChoice("Primary Clustering Method", { "K-Means", "Mean Shift", "Spectral Clustering" }));
+  clusterComponents.add(new SettingsChoice("Primary Clustering Method", { "K-Means", "Mean Shift", "Spectral Clustering", "Divisive K-Means" }));
   clusterComponents.add(new SettingsChoice("Primary Distance Metric", { "Per-Pixel Average Lab Difference",
     "Per-Pixel Maximum Lab Difference", "Per-Pixel 90th Percentile Difference", "Lab L2 Norm", "Luminance L2 Norm",
     "Parameter L2 Norm", "Softmax Parameter L2 Norm", "Attribute Function Distance" })); //, "Whitened Parameter L2 Norm"
   clusterComponents.add(new SettingsSlider("Number of Primary Clusters", 1, 30, 1));
   clusterComponents.add(new SettingsChoice("Primary Focus Region", { "All", "Foreground", "Background" }));
-  clusterComponents.add(new SettingsChoice("Secondary Clustering Method", { "K-Means", "Mean Shift", "Spectral Clustering" }));
+  clusterComponents.add(new SettingsChoice("Secondary Clustering Method", { "K-Means", "Mean Shift", "Spectral Clustering", "Divisive K-Means" }));
   clusterComponents.add(new SettingsChoice("Secondary Distance Metric", { "Per-Pixel Average Lab Difference",
     "Per-Pixel Maximum Lab Difference", "Per-Pixel 90th Percentile Difference", "Lab L2 Norm", "Luminance L2 Norm",
     "Parameter L2 Norm", "Softmax Parameter L2 Norm", "Attribute Function Distance" })); //, "Whitened Parameter L2 Norm"

@@ -30,7 +30,14 @@ public:
   KMeans();
   KMeans(distFuncType distFunc);
 
-  Array<shared_ptr<TopLevelCluster> > cluster(int k, Array<shared_ptr<SearchResultContainer> > points, InitMode init);
+  // cluster, let alg determine starting center points
+  Array<shared_ptr<TopLevelCluster> > cluster(int k, Array<shared_ptr<SearchResultContainer> >& points, InitMode init);
+
+  // cluster with a preset set of center points
+  Array<shared_ptr<TopLevelCluster> > cluster(int k, Array<shared_ptr<SearchResultContainer> >& points, Array<shared_ptr<TopLevelCluster> >& centers);
+
+  // top-down hierarchical clustering
+  Array<shared_ptr<TopLevelCluster> > divisive(int maxK, Array<shared_ptr<SearchResultContainer> >& points);
 
 private:
   Array<shared_ptr<TopLevelCluster> > forgy(int k, Array<shared_ptr<SearchResultContainer> >& points);

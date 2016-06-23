@@ -18,6 +18,8 @@ TopLevelCluster::TopLevelCluster()
   _contents = new SearchResultList();
   _viewer->setViewedComponent(_contents);
   addAndMakeVisible(_viewer);
+
+  _statsUpdated = false;
 }
 
 TopLevelCluster::~TopLevelCluster()
@@ -47,6 +49,7 @@ void TopLevelCluster::addToCluster(shared_ptr<SearchResultContainer> r)
 {
   _contents->addResult(r);
   resized();
+  _statsUpdated = false;
 }
 
 int TopLevelCluster::numElements()
@@ -70,6 +73,21 @@ Array<shared_ptr<SearchResultContainer> > TopLevelCluster::getChildElements()
 
   for (int i = 0; i < _contents->size(); i++)
     res.add((*_contents)[i]);
+
+  return res;
+}
+
+Array<shared_ptr<SearchResultContainer>> TopLevelCluster::getAllChildElements()
+{
+  Array<shared_ptr<SearchResultContainer> > res;
+  for (int i = 0; i < _contents->size(); i++) {
+    if ((*_contents)[i]->isClusterCenter()) {
+      res.addArray((*_contents)[i]->getResults());
+    }
+    else {
+      res.add((*_contents)[i]);
+    }
+  }
 
   return res;
 }
@@ -149,6 +167,9 @@ void TopLevelCluster::cluster()
   case SPECTRAL:
     centers = Clustering::spectralClustering(results, getGlobalSettings()->_numSecondaryClusters, f);
     break;
+  case DIVISIVE:
+    centers = Clustering::divisiveKMeansClustering(results, getGlobalSettings()->_numSecondaryClusters, f);
+    break;
   default:
     break;
   }
@@ -172,4 +193,48 @@ void TopLevelCluster::cluster()
 shared_ptr<SearchResultContainer> TopLevelCluster::getElement(int i)
 {
   return (*_contents)[i];
+}
+
+void TopLevelCluster::clear()
+{
+  _contents->removeAllResults();
+  resized();
+  _statsUpdated = false;
+}
+
+void TopLevelCluster::calculateStats(function<double(SearchResultContainer*, SearchResultContainer*)> f)
+{
+  if (_statsUpdated)
+    return;
+
+  // get the elements
+  auto elems = getAllChildElements();
+  
+  // calculate pairwise distances 
+  _distMatrix.resize(elems.size(), elems.size());
+  _distMatrix.setZero();
+
+  double max = 0;
+  int x; 
+  int y;
+  for (int i = 0; i < elems.size(); i++) {
+    _distMatrix(i, i) = 0;
+    for (int j = i + 1; j < elems.size(); j++) {
+      double dist = f(elems[i].get(), elems[j].get());
+      _distMatrix(i, j) = dist;
+      _distMatrix(j, i) = dist;
+
+      if (dist > max) {
+        max = dist;
+        x = i;
+        y = j;
+      }
+    }
+  }
+
+  // save max distance and relevant elements
+  _diameter = max;
+  _x = elems[x];
+  _y = elems[y];
+  _statsUpdated = true;
 }

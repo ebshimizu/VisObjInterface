@@ -136,7 +136,8 @@ struct DebugData {
 enum ClusterMethod {
   KMEANS,     // "K-Means"
   MEAN_SHIFT, // "Mean Shift"
-  SPECTRAL    // "Spectral Clustering"
+  SPECTRAL,   // "Spectral Clustering"
+  DIVISIVE    // "Divisive K-Means"
 };
 
 enum DistanceMetric {

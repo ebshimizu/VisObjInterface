@@ -43,6 +43,9 @@ public:
   // Returns the elemented contained by this cluster
   Array<shared_ptr<SearchResultContainer> > getChildElements();
 
+  // gets all elements contained by the cluster, including sub cluster elements
+  Array<shared_ptr<SearchResultContainer> > getAllChildElements();
+
   // Looks in _results and picks the best one to represent the cluster
   void setRepresentativeResult();
   shared_ptr<SearchResultContainer> getRepresentativeResult();
@@ -60,12 +63,30 @@ public:
   // Get element at index i in the search results list
   shared_ptr<SearchResultContainer> getElement(int i);
 
+  // Removes all child elements from this container
+  void clear();
+
+  // calculates cluster diameter and identifies the points involved
+  void calculateStats(function<double(SearchResultContainer*, SearchResultContainer*)> f);
+
+  double getDiameter() { return _diameter; }
+  pair<shared_ptr<SearchResultContainer>,shared_ptr<SearchResultContainer> > getDiameterEndpoints() { 
+    return pair<shared_ptr<SearchResultContainer>, shared_ptr<SearchResultContainer> >(_x, _y);
+  }
+  int clusterSize() { return getAllChildElements().size(); }
+
   Eigen::VectorXd _scene;
   Eigen::VectorXd _features;
 private:
   int _id;
   SearchResultList* _contents;
   Viewport* _viewer;
+
+  bool _statsUpdated;                   // indicates that the below stats need to be recalculated
+  double _diameter;                     // maximum distance between two points in the cluster
+  shared_ptr<SearchResultContainer> _x; // endpoint of diameter
+  shared_ptr<SearchResultContainer> _y; // endpoint of diameter
+  Eigen::MatrixXd _distMatrix;          // Pairwise distance matrix
 
   // representative reults container, a copy of something in _results
   shared_ptr<SearchResultContainer> _rep;

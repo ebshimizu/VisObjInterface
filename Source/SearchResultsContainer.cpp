@@ -261,6 +261,9 @@ void SearchResultsContainer::cluster()
   case SPECTRAL:
     centers = Clustering::spectralClustering(_allResults, getGlobalSettings()->_numPrimaryClusters, f);
     break;
+  case DIVISIVE:
+    centers = Clustering::divisiveKMeansClustering(_allResults, getGlobalSettings()->_numPrimaryClusters, f);
+    break;
   default:
     break;
   }

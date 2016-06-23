@@ -88,4 +88,10 @@ Array<shared_ptr<TopLevelCluster> > spectralClustering(Array<shared_ptr<SearchRe
   return centers;
 }
 
+Array<shared_ptr<TopLevelCluster>> divisiveKMeansClustering(Array<shared_ptr<SearchResultContainer>>& elems, int k, distFuncType f)
+{
+  KMeans clusterer(f);
+  return clusterer.divisive(k, elems);
+}
+
 }

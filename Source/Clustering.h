@@ -28,6 +28,9 @@ namespace Clustering {
 
   // Spectral clustering
   Array<shared_ptr<TopLevelCluster> > spectralClustering(Array<shared_ptr<SearchResultContainer >>& elems, int k, distFuncType f);
+
+  // Divisive clustering (hierarchical) using K-Means
+  Array<shared_ptr<TopLevelCluster> > divisiveKMeansClustering(Array<shared_ptr<SearchResultContainer> >& elems, int k, distFuncType f);
 }
 
 
