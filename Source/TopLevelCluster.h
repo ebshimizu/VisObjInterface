@@ -50,10 +50,6 @@ public:
   void setRepresentativeResult();
   shared_ptr<SearchResultContainer> getRepresentativeResult();
 
-  // mainly for distance metrics, constructs a search result container from the
-  // top level cluster 
-  shared_ptr<SearchResultContainer> constructResultContainer();
-
   void sort(AttributeSorter* s);
 
   // Clusters the results based on the Secondary Clustering Mode
@@ -69,14 +65,18 @@ public:
   // calculates cluster diameter and identifies the points involved
   void calculateStats(function<double(SearchResultContainer*, SearchResultContainer*)> f);
 
+  // calculates cluster diameter and identifies the points involved from a cached distance matrix
+  void calculateStats(map<int, map<int, double> >& distanceMatrix);
+
   double getDiameter() { return _diameter; }
   pair<shared_ptr<SearchResultContainer>,shared_ptr<SearchResultContainer> > getDiameterEndpoints() { 
     return pair<shared_ptr<SearchResultContainer>, shared_ptr<SearchResultContainer> >(_x, _y);
   }
   int clusterSize() { return getAllChildElements().size(); }
 
-  Eigen::VectorXd _scene;
-  Eigen::VectorXd _features;
+  // Returns the search result containe representing this center object
+  shared_ptr<SearchResultContainer> getContainer();
+
 private:
   int _id;
   SearchResultList* _contents;
@@ -90,6 +90,10 @@ private:
 
   // representative reults container, a copy of something in _results
   shared_ptr<SearchResultContainer> _rep;
+
+  // Contains the _scene and _features for use in distance function computations.
+  // it's a bit of 
+  shared_ptr<SearchResultContainer> _centerContainer;
 };
 
 

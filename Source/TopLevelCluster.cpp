@@ -20,6 +20,7 @@ TopLevelCluster::TopLevelCluster()
   addAndMakeVisible(_viewer);
 
   _statsUpdated = false;
+  _centerContainer = shared_ptr<SearchResultContainer>(new SearchResultContainer(new SearchResult()));
 }
 
 TopLevelCluster::~TopLevelCluster()
@@ -123,13 +124,9 @@ shared_ptr<SearchResultContainer> TopLevelCluster::getRepresentativeResult()
   return _rep;
 }
 
-shared_ptr<SearchResultContainer> TopLevelCluster::constructResultContainer()
+shared_ptr<SearchResultContainer> TopLevelCluster::getContainer()
 {
-  auto src = shared_ptr<SearchResultContainer>(new SearchResultContainer(new SearchResult()));
-  src->getSearchResult()->_scene = _scene;
-  src->setFeatures(_features);
-
-  return src;
+  return _centerContainer;
 }
 
 void TopLevelCluster::sort(AttributeSorter * s)
@@ -236,6 +233,36 @@ void TopLevelCluster::calculateStats(function<double(SearchResultContainer*, Sea
   }
 
   // save max distance and relevant elements
+  _diameter = max;
+  _x = elems[x];
+  _y = elems[y];
+  _statsUpdated = true;
+}
+
+void TopLevelCluster::calculateStats(map<int, map<int, double> >& distanceMatrix)
+{
+  if (_statsUpdated)
+    return;
+
+  auto elems = getAllChildElements();
+
+  // retrieve pairwise distances from matrix, find max
+  double max = 0;
+  int x;
+  int y;
+  for (int i = 0; i < elems.size(); i++) {
+    int r = elems[i]->getSearchResult()->_sampleNo;
+    for (int j = i + 1; j < elems.size(); j++) {
+      int c = elems[j]->getSearchResult()->_sampleNo;
+      double dist = distanceMatrix[r][c];
+      if (dist > max) {
+        max = dist;
+        x = i;
+        y = j;
+      }
+    }
+  }
+
   _diameter = max;
   _x = elems[x];
   _y = elems[y];

@@ -60,9 +60,9 @@ Array<shared_ptr<TopLevelCluster>> KMeans::cluster(int k, Array<shared_ptr<Searc
     map<int, Eigen::VectorXd> feats;
     map<int, Eigen::VectorXd> scenes;
     for (auto& c : centers) {
-      feats[c->getClusterId()] = c->_features;
+      feats[c->getClusterId()] = c->getContainer()->getFeatures();
       feats[c->getClusterId()].setZero();
-      scenes[c->getClusterId()] = c->_scene;
+      scenes[c->getClusterId()] = c->getContainer()->getSearchResult()->_scene;
       scenes[c->getClusterId()].setZero();
       counts[c->getClusterId()] = 0;
     }
@@ -76,8 +76,8 @@ Array<shared_ptr<TopLevelCluster>> KMeans::cluster(int k, Array<shared_ptr<Searc
     }
 
     for (auto& c : centers) {
-      c->_features = (feats[c->getClusterId()] / counts[c->getClusterId()]);
-      c->_scene /= counts[c->getClusterId()];
+      c->getContainer()->setFeatures(feats[c->getClusterId()] / counts[c->getClusterId()]);
+      c->getContainer()->getSearchResult()->_scene /= counts[c->getClusterId()];
     }
   }
 
@@ -105,6 +105,21 @@ Array<shared_ptr<TopLevelCluster>> KMeans::divisive(int maxK, Array<shared_ptr<S
   first->setClusterId(0);
   centers.add(first);
 
+  // calculate distance matrix
+  map<int, map<int, double> > dist;
+
+  for (int i = 0; i < points.size(); i++) {
+    // we index based on sample number
+    int r = points[i]->getSearchResult()->_sampleNo;
+    dist[r][r] = 0;
+    for (int j = i + 1; j < points.size(); j++) {
+      int c = points[j]->getSearchResult()->_sampleNo;
+      double d = _distFunc(points[i].get(), points[j].get());
+      dist[r][c] = d;
+      dist[c][r] = d;
+    }
+  }
+
   // loop
   while (centers.size() < maxK && centers.size() < points.size()) {
     // calculate cluster stats
@@ -112,7 +127,7 @@ Array<shared_ptr<TopLevelCluster>> KMeans::divisive(int maxK, Array<shared_ptr<S
     shared_ptr<TopLevelCluster> largest;
     int largestIdx = 0;
     for (int i = 0; i < centers.size(); i++) {
-      centers[i]->calculateStats(_distFunc);
+      centers[i]->calculateStats(dist);
       double diam = centers[i]->getDiameter();
       if (diam > max) {
         max = diam;
@@ -129,12 +144,12 @@ Array<shared_ptr<TopLevelCluster>> KMeans::divisive(int maxK, Array<shared_ptr<S
     auto c2 = shared_ptr<TopLevelCluster>(new TopLevelCluster());
 
     // 25% c1 - 75% c2
-    c1->_scene = endpoints.first->getSearchResult()->_scene * 0.25 + endpoints.second->getSearchResult()->_scene * 0.75;
-    c1->_features = endpoints.first->getFeatures() * 0.25 + endpoints.second->getFeatures() * 0.75;
+    c1->getContainer()->getSearchResult()->_scene = endpoints.first->getSearchResult()->_scene * 0.25 + endpoints.second->getSearchResult()->_scene * 0.75;
+    c1->getContainer()->setFeatures(endpoints.first->getFeatures() * 0.25 + endpoints.second->getFeatures() * 0.75);
 
     // 75% c1 - 25% c2
-    c2->_scene = endpoints.first->getSearchResult()->_scene * 0.75 + endpoints.second->getSearchResult()->_scene * 0.25;
-    c2->_features = endpoints.first->getFeatures() * 0.75 + endpoints.second->getFeatures() * 0.25;
+    c2->getContainer()->getSearchResult()->_scene = endpoints.first->getSearchResult()->_scene * 0.75 + endpoints.second->getSearchResult()->_scene * 0.25;
+    c2->getContainer()->setFeatures(endpoints.first->getFeatures() * 0.75 + endpoints.second->getFeatures() * 0.25);
 
     // remove old center
     centers.remove(largestIdx);
@@ -171,6 +186,21 @@ Array<shared_ptr<TopLevelCluster>> KMeans::divisive(double t, Array<shared_ptr<S
   first->setClusterId(0);
   centers.add(first);
 
+  // calculate distance matrix
+  map<int, map<int, double> > dist;
+
+  for (int i = 0; i < points.size(); i++) {
+    // we index based on sample number
+    int r = points[i]->getSearchResult()->_sampleNo;
+    dist[r][r] = 0;
+    for (int j = i + 1; j < points.size(); j++) {
+      int c = points[j]->getSearchResult()->_sampleNo;
+      double d = _distFunc(points[i].get(), points[j].get());
+      dist[r][c] = d;
+      dist[c][r] = d;
+    }
+  }
+
   // loop
   while (centers.size() < points.size()) {
     // calculate cluster stats
@@ -180,7 +210,7 @@ Array<shared_ptr<TopLevelCluster>> KMeans::divisive(double t, Array<shared_ptr<S
     bool allDiamsBelowT = true;
     
     for (int i = 0; i < centers.size(); i++) {
-      centers[i]->calculateStats(_distFunc);
+      centers[i]->calculateStats(dist);
       double diam = centers[i]->getDiameter();
       if (diam > max) {
         max = diam;
@@ -204,12 +234,12 @@ Array<shared_ptr<TopLevelCluster>> KMeans::divisive(double t, Array<shared_ptr<S
     auto c2 = shared_ptr<TopLevelCluster>(new TopLevelCluster());
 
     // 25% c1 - 75% c2
-    c1->_scene = endpoints.first->getSearchResult()->_scene * 0.25 + endpoints.second->getSearchResult()->_scene * 0.75;
-    c1->_features = endpoints.first->getFeatures() * 0.25 + endpoints.second->getFeatures() * 0.75;
+    c1->getContainer()->getSearchResult()->_scene = endpoints.first->getSearchResult()->_scene * 0.25 + endpoints.second->getSearchResult()->_scene * 0.75;
+    c1->getContainer()->setFeatures(endpoints.first->getFeatures() * 0.25 + endpoints.second->getFeatures() * 0.75);
 
     // 75% c1 - 25% c2
-    c2->_scene = endpoints.first->getSearchResult()->_scene * 0.75 + endpoints.second->getSearchResult()->_scene * 0.25;
-    c2->_features = endpoints.first->getFeatures() * 0.75 + endpoints.second->getFeatures() * 0.25;
+    c2->getContainer()->getSearchResult()->_scene = endpoints.first->getSearchResult()->_scene * 0.75 + endpoints.second->getSearchResult()->_scene * 0.25;
+    c2->getContainer()->setFeatures(endpoints.first->getFeatures() * 0.75 + endpoints.second->getFeatures() * 0.25);;
 
     // remove old center
     centers.remove(largestIdx);
@@ -248,8 +278,8 @@ Array<shared_ptr<TopLevelCluster> > KMeans::forgy(int k, Array<shared_ptr<Search
   for (auto& p : tempPoints) {
     auto tlc = shared_ptr<TopLevelCluster>(new TopLevelCluster());
     tlc->setClusterId(i);
-    tlc->_scene = p->getSearchResult()->_scene;
-    tlc->_features = p->getFeatures();
+    tlc->getContainer()->getSearchResult()->_scene = p->getSearchResult()->_scene;
+    tlc->getContainer()->setFeatures(p->getFeatures());
     centers.add(tlc);
 
     i++;
@@ -293,8 +323,8 @@ Array<shared_ptr<TopLevelCluster> > KMeans::rndpart(int k, Array<shared_ptr<Sear
 
     auto tlc = shared_ptr<TopLevelCluster>(new TopLevelCluster());
     tlc->setClusterId(i);
-    tlc->_scene = sceneAvg / count;
-    tlc->_features = avg / count;
+    tlc->getContainer()->getSearchResult()->_scene = sceneAvg / count;
+    tlc->getContainer()->setFeatures(avg / count);
     centers.add(tlc);
   }
 
@@ -307,7 +337,7 @@ int KMeans::closestCenter(shared_ptr<SearchResultContainer> point, Array<shared_
   double minDist = DBL_MAX;
 
   for (int i = 0; i < centers.size(); i++) {
-    auto centerContainer = centers[i]->constructResultContainer();
+    auto centerContainer = centers[i]->getContainer();
     double dist = _distFunc(point.get(), centerContainer.get());
     if (dist < minDist) {
       minCenter = i;

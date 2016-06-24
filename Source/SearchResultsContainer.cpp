@@ -285,7 +285,7 @@ void SearchResultsContainer::cluster()
     addAndMakeVisible(c.get());
 
     // calculate distance to center
-    auto ce = c->constructResultContainer();
+    auto ce = c->getContainer();
     for (auto& e : c->getAllChildElements()) {
       e->setClusterDistance(f(e.get(), ce.get()));
     }
@@ -491,7 +491,7 @@ double SearchResultsContainer::daviesBouldin()
     S[i] = 0;
     // calculate average distance between centroid and other points
     for (auto& r : _clusters[i]->getChildElements()) {
-      S[i] += r->dist(_clusters[i]->constructResultContainer().get(), getGlobalSettings()->_primaryClusterMetric);
+      S[i] += r->dist(_clusters[i]->getContainer().get(), getGlobalSettings()->_primaryClusterMetric);
     }
     S[i] = sqrt(S[i] / _clusters[i]->numElements());
   }
@@ -503,7 +503,7 @@ double SearchResultsContainer::daviesBouldin()
   for (int i = 0; i < _clusters.size(); i++) {
     R(i, i) = -1;
     for (int j = i + 1; j < _clusters.size(); j++) {
-      double M = _clusters[i]->constructResultContainer()->dist(_clusters[j]->constructResultContainer().get(), getGlobalSettings()->_primaryClusterMetric);
+      double M = _clusters[i]->getContainer()->dist(_clusters[j]->getContainer().get(), getGlobalSettings()->_primaryClusterMetric);
       R(i, j) = (S[i] + S[j]) / M;
       R(j, i) = R(i, j);
     }

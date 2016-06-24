@@ -109,7 +109,7 @@ Array<shared_ptr<TopLevelCluster> > SpectralCluster::cluster(Array<shared_ptr<Se
   Array<shared_ptr<TopLevelCluster> > centerResults;
   for (int i = 0; i < centers.size(); i++) {
     auto tlc = shared_ptr<TopLevelCluster>(new TopLevelCluster());
-    tlc->_scene = centers[i];
+    tlc->getContainer()->getSearchResult()->_scene = centers[i];
     tlc->setClusterId(i);
 
     centerResults.add(tlc);

@@ -55,7 +55,7 @@ Array<shared_ptr<TopLevelCluster> > meanShiftClustering(Array<shared_ptr<SearchR
   int i = 0;
   for (auto& c : centers) {
     auto tlc = shared_ptr<TopLevelCluster>(new TopLevelCluster());
-    tlc->_scene = c;
+    tlc->getContainer()->getSearchResult()->_scene = c;
     tlc->setClusterId(i);
 
     centerContainers.add(tlc);
