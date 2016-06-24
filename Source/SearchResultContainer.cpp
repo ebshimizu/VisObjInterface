@@ -130,8 +130,14 @@ void SearchResultContainer::paint (Graphics& g)
   auto textArea = lbounds.removeFromTop(25);
   textArea.removeFromLeft(10);
   g.setColour(Colours::black);
-  g.setFont(14);
+  g.setFont(12);
   g.drawText(String(_result->_sampleNo), textArea, Justification::centredLeft, false);
+  g.drawText(String(_result->_sampleNo), textArea.translated(-1, -1), Justification::centredLeft, false);
+  g.drawText(String(_result->_sampleNo), textArea.translated(1, 2), Justification::centredLeft, false);
+  g.drawText(String(_result->_sampleNo), textArea.translated(1, 0), Justification::centredLeft, false);
+  g.drawText(String(_result->_sampleNo), textArea.translated(-1, 0), Justification::centredLeft, false);
+  g.drawText(String(_result->_sampleNo), textArea.translated(0, -1), Justification::centredLeft, false);
+  g.drawText(String(_result->_sampleNo), textArea.translated(0, 1), Justification::centredLeft, false);
 
   g.setColour(Colours::white);
   g.setFont(12);
