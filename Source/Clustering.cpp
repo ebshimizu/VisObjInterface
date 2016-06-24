@@ -94,4 +94,10 @@ Array<shared_ptr<TopLevelCluster>> divisiveKMeansClustering(Array<shared_ptr<Sea
   return clusterer.divisive(k, elems);
 }
 
+Array<shared_ptr<TopLevelCluster>> thresholdedKMeansClustering(Array<shared_ptr<SearchResultContainer>>& elems, double t, distFuncType f)
+{
+  KMeans clusterer(f);
+  return clusterer.divisive(t, elems);
+}
+
 }

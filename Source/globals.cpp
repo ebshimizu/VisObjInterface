@@ -382,6 +382,8 @@ GlobalSettings::GlobalSettings()
   _secondaryFocusArea = ALL_IMAGE; // "All";
   _spectralBandwidth = 2;
   _useFGMask = false;
+  _primaryDivisiveThreshold = 7.5;
+  _secondaryDivisiveThreshold = 5;
 
   if (_searchThreads <= 0)
     _searchThreads = 1;

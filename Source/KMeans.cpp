@@ -156,6 +156,81 @@ Array<shared_ptr<TopLevelCluster>> KMeans::divisive(int maxK, Array<shared_ptr<S
   return centers;
 }
 
+Array<shared_ptr<TopLevelCluster>> KMeans::divisive(double t, Array<shared_ptr<SearchResultContainer>>& points)
+{
+  // this does the divisive algorithm as normal, except it stops when all cluster
+  // diameters are below the threshold t instead of a pre-defined k
+
+  // intialization, all points in one cluster
+  Array<shared_ptr<TopLevelCluster> > centers;
+  shared_ptr<TopLevelCluster> first = shared_ptr<TopLevelCluster>(new TopLevelCluster());
+  for (auto& p : points) {
+    first->addToCluster(p);
+  }
+
+  first->setClusterId(0);
+  centers.add(first);
+
+  // loop
+  while (centers.size() < points.size()) {
+    // calculate cluster stats
+    double max = 0;
+    shared_ptr<TopLevelCluster> largest;
+    int largestIdx = 0;
+    bool allDiamsBelowT = true;
+    
+    for (int i = 0; i < centers.size(); i++) {
+      centers[i]->calculateStats(_distFunc);
+      double diam = centers[i]->getDiameter();
+      if (diam > max) {
+        max = diam;
+        largest = centers[i];
+        largestIdx = i;
+      }
+
+      if (diam >= t) {
+        allDiamsBelowT = false;
+      }
+    }
+
+    if (allDiamsBelowT)
+      break;
+
+    // have largest cluster, split into two centers
+    auto endpoints = largest->getDiameterEndpoints();
+
+    // create the centers
+    auto c1 = shared_ptr<TopLevelCluster>(new TopLevelCluster());
+    auto c2 = shared_ptr<TopLevelCluster>(new TopLevelCluster());
+
+    // 25% c1 - 75% c2
+    c1->_scene = endpoints.first->getSearchResult()->_scene * 0.25 + endpoints.second->getSearchResult()->_scene * 0.75;
+    c1->_features = endpoints.first->getFeatures() * 0.25 + endpoints.second->getFeatures() * 0.75;
+
+    // 75% c1 - 25% c2
+    c2->_scene = endpoints.first->getSearchResult()->_scene * 0.75 + endpoints.second->getSearchResult()->_scene * 0.25;
+    c2->_features = endpoints.first->getFeatures() * 0.75 + endpoints.second->getFeatures() * 0.25;
+
+    // remove old center
+    centers.remove(largestIdx);
+    centers.add(c1);
+    centers.add(c2);
+
+    // clear results from all centers
+    for (int i = 0; i < centers.size(); i++) {
+      centers[i]->clear();
+      centers[i]->setClusterId(i);
+    }
+
+    // cluster with kmeans
+    centers = cluster(centers.size(), points, centers);
+
+    // repeat
+  }
+
+  return centers;
+}
+
 Array<shared_ptr<TopLevelCluster> > KMeans::forgy(int k, Array<shared_ptr<SearchResultContainer> >& points) {
   // pick k random elements for centers, no repeats
   // we'll do this by removing random elements until the number remaining is <= k.

@@ -137,7 +137,8 @@ enum ClusterMethod {
   KMEANS,     // "K-Means"
   MEAN_SHIFT, // "Mean Shift"
   SPECTRAL,   // "Spectral Clustering"
-  DIVISIVE    // "Divisive K-Means"
+  DIVISIVE,   // "Divisive K-Means"
+  TDIVISIVE   // "Thresholdede Devisive"
 };
 
 enum DistanceMetric {
@@ -201,6 +202,8 @@ public:
   int _numSecondaryClusters;    // Number of secondary clusters
   FocusArea _primaryFocusArea;  // If using a mask, which area to focus on during clustering
   FocusArea _secondaryFocusArea;// If using a mask, which area to focus on during secondary clustering
+  double _primaryDivisiveThreshold;       // Divisive clustering threshold
+  double _secondaryDivisiveThreshold;     // Divisive clustering threshold - secondary
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

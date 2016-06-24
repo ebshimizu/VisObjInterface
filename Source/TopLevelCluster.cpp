@@ -170,6 +170,9 @@ void TopLevelCluster::cluster()
   case DIVISIVE:
     centers = Clustering::divisiveKMeansClustering(results, getGlobalSettings()->_numSecondaryClusters, f);
     break;
+  case TDIVISIVE:
+    centers = Clustering::thresholdedKMeansClustering(results, getGlobalSettings()->_secondaryDivisiveThreshold, f);
+    break;
   default:
     break;
   }

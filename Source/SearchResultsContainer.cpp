@@ -264,6 +264,9 @@ void SearchResultsContainer::cluster()
   case DIVISIVE:
     centers = Clustering::divisiveKMeansClustering(_allResults, getGlobalSettings()->_numPrimaryClusters, f);
     break;
+  case TDIVISIVE:
+    centers = Clustering::thresholdedKMeansClustering(_allResults, getGlobalSettings()->_primaryDivisiveThreshold, f);
+    break;
   default:
     break;
   }

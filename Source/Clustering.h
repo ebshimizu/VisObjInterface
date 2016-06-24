@@ -31,6 +31,9 @@ namespace Clustering {
 
   // Divisive clustering (hierarchical) using K-Means
   Array<shared_ptr<TopLevelCluster> > divisiveKMeansClustering(Array<shared_ptr<SearchResultContainer> >& elems, int k, distFuncType f);
+
+  // Divisive clustering with a threshold
+  Array<shared_ptr<TopLevelCluster> > thresholdedKMeansClustering(Array<shared_ptr<SearchResultContainer> >& elems, double t, distFuncType f);
 }
 
 

@@ -39,6 +39,9 @@ public:
   // top-down hierarchical clustering
   Array<shared_ptr<TopLevelCluster> > divisive(int maxK, Array<shared_ptr<SearchResultContainer> >& points);
 
+  // top-down hierarchical clustering with a threshold as the stop criteria
+  Array<shared_ptr<TopLevelCluster> > divisive(double t, Array<shared_ptr<SearchResultContainer> >& points);
+
 private:
   Array<shared_ptr<TopLevelCluster> > forgy(int k, Array<shared_ptr<SearchResultContainer> >& points);
   Array<shared_ptr<TopLevelCluster> > rndpart(int k, Array<shared_ptr<SearchResultContainer> >& points);
