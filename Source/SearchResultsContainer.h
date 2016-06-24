@@ -77,6 +77,15 @@ public:
 
   void calculateClusterStats();
 
+  // Saves the current clusters to a separate list
+  void saveClustering();
+
+	// Loads the specified clusters from the specified index
+	void loadClustering(int idx);
+
+	// Returns the number of saved clusters
+	int numSavedClusters();
+
 private:
   // All results contains every result in the container. It should only be deleted at the top
   // level of the container hierarchy, which looks like:
@@ -85,9 +94,7 @@ private:
   // ---SearchResult
   // ----SearchResultContainer
   // -----...
-  // --SearchResultContainer
-  // Any function that modifies the arrangement of the clusters needs to make sure to remove
-  // the elements properly before deleting, so that they don't get deleted too early
+  // --SearchResultContainery
   Array<shared_ptr<SearchResultContainer> > _allResults;
   SearchResultList* _unclusteredResults;
   Array<shared_ptr<SearchResultContainer> > _newResults;
@@ -110,6 +117,11 @@ private:
 
   // internal sample id added to the result when its added to the container
   unsigned int _sampleId;
+
+  // list containing saved clusterings
+  // Saving a clustering configuration should be as easy as saving the top level
+  // clusters. 
+  Array<Array<shared_ptr<TopLevelCluster> > > _savedResults;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SearchResultsContainer)
 };

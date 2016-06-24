@@ -175,6 +175,21 @@ void SearchResultsViewer::loadTrace(int selected)
   _results->loadTrace(selected);
 }
 
+void SearchResultsViewer::saveClusters()
+{
+	_results->saveClustering();
+}
+
+void SearchResultsViewer::loadClusters(int i)
+{
+	_results->loadClustering(i);
+}
+
+int SearchResultsViewer::numSavedClusters()
+{
+	return _results->numSavedClusters();
+}
+
 bool SearchResultsViewer::addNewResult(SearchResult * r)
 {
   return _results->addNewResult(r);

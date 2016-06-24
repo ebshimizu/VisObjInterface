@@ -186,6 +186,7 @@ void SearchResultsContainer::clear()
   _newResults.clear();
   _unclusteredResults->removeAllResults();
   _clusters.clear();
+	_savedResults.clear();
 
   updateSize(getLocalBounds().getHeight());
   resized();
@@ -208,8 +209,14 @@ void SearchResultsContainer::cleanUp(int resultsToKeep)
   if (resultsToKeep >= numResults())
     return;
 
+	// remove cluster children
+	for (auto& c : _clusters) {
+		removeChildComponent(getIndexOfChildComponent(c.get()));
+	}
+
   // delete current cluster centers
   _clusters.clear();
+
   _unclusteredResults->removeAllResults();
 
   // get the centers and the results closest to the centers
@@ -233,6 +240,11 @@ void SearchResultsContainer::cleanUp(int resultsToKeep)
 void SearchResultsContainer::cluster()
 {
   lock_guard<mutex> lock(_resultsLock);
+
+	// remove cluster children
+	for (auto& c : _clusters) {
+		removeChildComponent(getIndexOfChildComponent(c.get()));
+	}
 
   // clear out the clusters, we have everything saved in _allResults
   _clusters.clear();
@@ -527,4 +539,36 @@ void SearchResultsContainer::calculateClusterStats()
 
   getRecorder()->log(SYSTEM, "Clustering Davies-Bouldin Index: " + String(db).toStdString());
   getStatusBar()->setStatusMessage("Clustering finished. k = " + String(_clusters.size()) + ", DB = " + String(db));
+}
+
+void SearchResultsContainer::saveClustering()
+{
+	_savedResults.add(Array<shared_ptr<TopLevelCluster> >(_clusters));
+}
+
+void SearchResultsContainer::loadClustering(int idx)
+{
+	if (idx < _savedResults.size()) {
+		// remove cluster children
+		for (auto& c : _clusters) {
+			removeChildComponent(getIndexOfChildComponent(c.get()));
+		}
+
+		_clusters.clear();
+
+		_clusters = _savedResults[idx];
+
+		for (auto& c : _clusters) {
+			addAndMakeVisible(c.get());
+		}
+
+		updateSize(getLocalBounds().getHeight());
+		resized();
+		repaint();
+	}
+}
+
+int SearchResultsContainer::numSavedClusters()
+{
+	return _savedResults.size();
 }

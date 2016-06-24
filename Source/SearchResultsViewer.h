@@ -73,6 +73,15 @@ public:
   // display the selected trace in the results window
   void loadTrace(int selected);
 
+	// Saves the currently displayed clusters
+	void saveClusters();
+
+	// Loads the specified clusters
+	void loadClusters(int i);
+
+	// Returns the number of clusters saved by the container
+	int numSavedClusters();
+
 private:
   Viewport* _viewer;
   Viewport* _historyViewer;

@@ -104,6 +104,9 @@ private:
   void lockDevice(Device* d);
   void getDefaultsFromArnold();
 
+	void saveClusters();
+	void loadClusters();
+
   // Opens a selection box presenting a dropdown consisting of the selected
   // metadata field
   void selectBox(string metadataKey, bool inv, string title);

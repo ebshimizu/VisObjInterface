@@ -94,7 +94,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::LOCK_ALL_AREAS_EXCEPT, command::LOCK_AREA, command::LOCK_SYSTEM, command::LOCK_ALL_SYSTEMS_EXCEPT,
     command::SAVE_RENDER, command::GET_FROM_ARNOLD, command::STOP_SEARCH, command::GET_NEW_RESULTS,
     command::UPDATE_NUM_THREADS, command::SAVE_RESULTS, command::LOAD_RESULTS, command::LOAD_TRACES,
-    command::PICK_TRACE, command::OPEN_MASK
+    command::PICK_TRACE, command::OPEN_MASK, command::SAVE_CLUSTERS, command::LOAD_CLUSTERS
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -135,6 +135,7 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     break;
   case command::RECLUSTER:
     result.setInfo("Cluster", "Cluster results", "Explore", 0);
+		result.addDefaultKeypress('c', ModifierKeys::noModifiers);
     break;
   case command::UNDO:
     result.setInfo("Undo", "Undo", "Edit", 0);
@@ -206,6 +207,12 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::OPEN_MASK:
     result.setInfo("Open Mask...", "Opens a mask file", "File", 0);
     break;
+	case command::SAVE_CLUSTERS:
+		result.setInfo("Save Clusters", "Save the current clusters", "Explore", 0);
+		break;
+	case command::LOAD_CLUSTERS:
+		result.setInfo("Load Clusters", "Load a cluster configuration", "Explore", 0);
+		break;
   default:
     return;
   }
@@ -302,6 +309,12 @@ bool MainContentComponent::perform(const InvocationInfo & info)
   case command::OPEN_MASK:
     openMask();
     break;
+	case command::SAVE_CLUSTERS:
+		saveClusters();
+		break;
+	case command::LOAD_CLUSTERS:
+		loadClusters();
+		break;
   default:
     return false;
   }
@@ -705,6 +718,44 @@ void MainContentComponent::getDefaultsFromArnold()
   //arnold->getPositionFromAss(getRig()->getDeviceRaw());
   arnold->getBeamPropsFromAss(getRig()->getDeviceRaw());
   _params->initProperties();
+}
+
+void MainContentComponent::saveClusters()
+{
+	_search->saveClusters();
+	getStatusBar()->setStatusMessage("Saved current cluster configuration.");
+}
+
+void MainContentComponent::loadClusters()
+{
+	if (_search->numSavedClusters() <= 0) {
+		getStatusBar()->setStatusMessage("Can't load clusters. No clusters have been saved.", true);
+		return;
+	}
+
+	AlertWindow w("Load Clusters",
+		"Select Cluster Set",
+		AlertWindow::QuestionIcon);
+
+	// construct list of available clusterings
+	StringArray options;
+	for (int i = 0; i < _search->numSavedClusters(); i++) {
+		options.add(String(i));
+	}
+
+	w.addComboBox("Cluster ID", options);
+
+	w.addButton("Load", 1, KeyPress(KeyPress::returnKey, 0, 0));
+	w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+	if (w.runModalLoop() != 0) // is they picked 'go'
+	{
+		// this is the item they selected
+		auto box = w.getComboBoxComponent("Cluster ID");
+		int selected = options[box->getSelectedItemIndex()].getIntValue();
+		_search->loadClusters(selected);
+		getStatusBar()->setStatusMessage("Loaded cluster set " + String(selected));
+	}
 }
 
 void MainContentComponent::selectBox(string metadataKey, bool inv, string title)
