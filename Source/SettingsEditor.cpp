@@ -421,6 +421,11 @@ void SettingsEditor::updateDims()
   _height->refresh();
 }
 
+void SettingsEditor::refresh()
+{
+	_settings.refreshAll();
+}
+
 SettingsWindow::SettingsWindow() :
   DocumentWindow("Settings", Colour(0xff333333), TitleBarButtons::closeButton, true)
 {
@@ -445,4 +450,9 @@ void SettingsWindow::closeButtonPressed()
 void SettingsWindow::updateDims()
 {
   _settingsEditor->updateDims();
+}
+
+void SettingsWindow::refresh()
+{
+	_settingsEditor->refresh();
 }

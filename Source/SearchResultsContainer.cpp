@@ -687,6 +687,7 @@ void SearchResultsContainer::loadClustering(int idx)
 		updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
 		resized();
 		repaint();
+		getApplicationCommandManager()->invokeDirectly(command::REFRESH_SETTINGS, true);
 	}
 }
 

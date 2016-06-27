@@ -38,6 +38,7 @@ enum command {
   // Internal
   REFRESH_PARAMS = 0x2000,
   REFRESH_ATTR = 0x2001,
+	REFRESH_SETTINGS = 0x2002,
 
   // Render
   ARNOLD_RENDER = 0x3000,

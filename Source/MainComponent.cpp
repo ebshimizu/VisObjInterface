@@ -94,7 +94,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::LOCK_ALL_AREAS_EXCEPT, command::LOCK_AREA, command::LOCK_SYSTEM, command::LOCK_ALL_SYSTEMS_EXCEPT,
     command::SAVE_RENDER, command::GET_FROM_ARNOLD, command::STOP_SEARCH, command::GET_NEW_RESULTS,
     command::UPDATE_NUM_THREADS, command::SAVE_RESULTS, command::LOAD_RESULTS, command::LOAD_TRACES,
-    command::PICK_TRACE, command::OPEN_MASK, command::SAVE_CLUSTERS, command::LOAD_CLUSTERS
+    command::PICK_TRACE, command::OPEN_MASK, command::SAVE_CLUSTERS, command::LOAD_CLUSTERS, command::REFRESH_SETTINGS
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -213,6 +213,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
 	case command::LOAD_CLUSTERS:
 		result.setInfo("Load Clusters", "Load a cluster configuration", "Explore", 0);
 		break;
+	case command::REFRESH_SETTINGS:
+		result.setInfo("Refresh Settings", "Refreshes the settings window", "Internal", 0);
+		break;
   default:
     return;
   }
@@ -315,6 +318,12 @@ bool MainContentComponent::perform(const InvocationInfo & info)
 	case command::LOAD_CLUSTERS:
 		loadClusters();
 		break;
+	case command::REFRESH_SETTINGS:
+	{
+		if (_settingsWindow != nullptr) {
+			_settingsWindow->refresh();
+		}
+	}
   default:
     return false;
   }

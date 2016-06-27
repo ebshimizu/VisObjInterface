@@ -65,6 +65,7 @@ public:
   void resized();
 
   void updateDims();
+	void refresh();
 
 private:
   PropertyPanel _settings;
@@ -84,6 +85,7 @@ public:
 
   void closeButtonPressed() override;
   void updateDims();
+	void refresh();
 
 private:
   ScopedPointer<SettingsEditor> _settingsEditor;
