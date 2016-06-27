@@ -438,6 +438,19 @@ void MainContentComponent::openRig(String fname)
     loadComponents();
     _attrs->reload();
     // Also should delete history and clear any displayed clusters
+		_search->clearContainer();
+
+		// try to auto load mask
+		// looks for mask.png in same folder as loaded .json
+		File mask = selected.getParentDirectory();
+		File maskFile = mask.getChildFile("mask.png");
+		FileInputStream in(maskFile);
+
+		if (in.openedOk()) {
+			PNGImageFormat pngReader;
+			getGlobalSettings()->_fgMask = pngReader.decodeImage(in);
+			getGlobalSettings()->_useFGMask = true;
+		}
 
     _showName = selected.getFileName();
     getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);
