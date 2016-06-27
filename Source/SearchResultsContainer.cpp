@@ -639,6 +639,20 @@ void SearchResultsContainer::calculateClusterStats()
 void SearchResultsContainer::saveClustering()
 {
 	_savedResults.add(Array<shared_ptr<TopLevelCluster> >(_clusters));
+
+	SearchMetadata md;
+	md._mode = getGlobalSettings()->_clusterDisplay;
+	md._primaryArea = getGlobalSettings()->_primaryFocusArea;
+	md._primaryClusters = getGlobalSettings()->_numPrimaryClusters;
+	md._primaryMethod = getGlobalSettings()->_primaryClusterMethod;
+	md._primaryMetric = getGlobalSettings()->_primaryClusterMetric;
+	md._primaryThreshold = getGlobalSettings()->_primaryDivisiveThreshold;
+	md._secondaryArea = getGlobalSettings()->_secondaryFocusArea;
+	md._secondaryClusters = getGlobalSettings()->_numSecondaryClusters;
+	md._secondaryMethod = getGlobalSettings()->_secondaryClusterMethod;
+	md._secondaryMetric = getGlobalSettings()->_secondaryClusterMetric;
+	md._secondaryThreshold = getGlobalSettings()->_secondaryDivisiveThreshold;
+	_savedMetadata.add(md);
 }
 
 void SearchResultsContainer::loadClustering(int idx)
@@ -652,6 +666,19 @@ void SearchResultsContainer::loadClustering(int idx)
 		_clusters.clear();
 
 		_clusters = _savedResults[idx];
+
+		SearchMetadata md = _savedMetadata[idx];
+		getGlobalSettings()->_clusterDisplay = md._mode;
+		getGlobalSettings()->_primaryFocusArea = md._primaryArea;
+		getGlobalSettings()->_numPrimaryClusters = md._primaryClusters;
+		getGlobalSettings()->_primaryClusterMethod = md._primaryMethod;
+		getGlobalSettings()->_primaryClusterMetric = md._primaryMetric;
+		getGlobalSettings()->_primaryDivisiveThreshold = md._primaryThreshold;
+		getGlobalSettings()->_secondaryFocusArea = md._secondaryArea;
+		getGlobalSettings()->_numSecondaryClusters = md._secondaryClusters;
+		getGlobalSettings()->_secondaryClusterMethod = md._secondaryMethod;
+		getGlobalSettings()->_secondaryClusterMetric = md._secondaryMetric;
+		getGlobalSettings()->_secondaryDivisiveThreshold = md._secondaryThreshold;
 
 		for (auto& c : _clusters) {
 			addAndMakeVisible(c.get());

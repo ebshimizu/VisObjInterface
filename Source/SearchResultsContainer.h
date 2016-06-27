@@ -22,6 +22,20 @@ class AttributeSorter;
 class SearchResultList;
 class TopLevelCluster;
 
+struct SearchMetadata {
+	ClusterDisplayMode _mode;
+	int _primaryClusters;
+	int _secondaryClusters;
+	ClusterMethod _primaryMethod;
+	ClusterMethod _secondaryMethod;
+	DistanceMetric _primaryMetric;
+	DistanceMetric _secondaryMetric;
+	FocusArea _primaryArea;
+	FocusArea _secondaryArea;
+	double _primaryThreshold;
+	double _secondaryThreshold;
+};
+
 //==============================================================================
 class SearchResultsContainer : public Component
 {
@@ -125,6 +139,7 @@ private:
   // Saving a clustering configuration should be as easy as saving the top level
   // clusters. 
   Array<Array<shared_ptr<TopLevelCluster> > > _savedResults;
+	Array<SearchMetadata> _savedMetadata;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SearchResultsContainer)
 };
