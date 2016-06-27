@@ -52,28 +52,28 @@ void SearchResultsContainer::resized()
 		}
 	}
 	else if (getGlobalSettings()->_clusterDisplay == GRID) {
+		int width = lbounds.getWidth() / getGlobalSettings()->_numPrimaryClusters;
+		int height = lbounds.getHeight() / getGlobalSettings()->_numSecondaryClusters;
+
 		for (int i = 0; i < getGlobalSettings()->_numSecondaryClusters; i++) {
-			auto row = lbounds.removeFromTop(_columnSize * (9.0 / 16.0));
+			auto row = lbounds.removeFromTop(height);
 			for (int j = 0; j < getGlobalSettings()->_numPrimaryClusters; j++) {
 				int idx = i * getGlobalSettings()->_numPrimaryClusters + j;
 				if (idx < _clusters.size()) {
-					_clusters[idx]->setBounds(row.removeFromLeft(_columnSize));
+					_clusters[idx]->setBounds(row.removeFromLeft(width));
 				}
 			}
 		}
 	}
 }
 
-void SearchResultsContainer::updateSize(int height)
+void SearchResultsContainer::updateSize(int height, int width)
 {
   // fixed sized, maximum visible area, width defined by number of clusters
-	int width = 0;
 	if (getGlobalSettings()->_clusterDisplay == COLUMNS) {
 		width = (1 + _clusters.size()) * _columnSize;
 	}
 	else if (getGlobalSettings()->_clusterDisplay == GRID) {
-		width = (1 + getGlobalSettings()->_numPrimaryClusters) * _columnSize;
-		height = (1 + getGlobalSettings()->_numSecondaryClusters) * (_columnSize * (9.0 / 16.0)); // magic number but should be fine
 		resized();
 	}
   setBounds(0, 0, width, height);
@@ -193,7 +193,7 @@ void SearchResultsContainer::showNewResults()
     _newResults.clear();
   }
 
-  updateSize(getLocalBounds().getHeight());
+  updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
   resized();
   repaint();
   _unclusteredResults->repaint();
@@ -209,7 +209,7 @@ void SearchResultsContainer::clear()
   _clusters.clear();
 	_savedResults.clear();
 
-  updateSize(getLocalBounds().getHeight());
+  updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
   resized();
   repaint();
   _sampleId = 0;
@@ -253,7 +253,7 @@ void SearchResultsContainer::cleanUp(int resultsToKeep)
     _allResults.add(r->getRepresentativeResult());
   }
 
-  updateSize(getLocalBounds().getHeight());
+  updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
   resized();
   repaint();
 }
@@ -405,7 +405,7 @@ void SearchResultsContainer::cluster()
 		}
 	}
 
-  updateSize(getLocalBounds().getHeight());
+  updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
   resized();
   repaint();
 }
@@ -501,7 +501,7 @@ void SearchResultsContainer::loadResults(string filename)
   }
 
   _unclusteredResults->resized();
-  updateSize(getLocalBounds().getHeight());
+  updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
   resized();
   repaint();
   getStatusBar()->setStatusMessage("Load complete.");
@@ -549,7 +549,7 @@ void SearchResultsContainer::loadTrace(int selected)
     _unclusteredResults->addResult(newResult);
   }
 
-  updateSize(getLocalBounds().getHeight());
+  updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
   _unclusteredResults->resized();
   resized();
   repaint();
@@ -559,7 +559,7 @@ void SearchResultsContainer::loadTrace(int selected)
 void SearchResultsContainer::setElemsPerRow(int epr)
 {
   _elemsPerRow = epr;
-  updateSize(getLocalBounds().getHeight());
+  updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
 }
 
 int SearchResultsContainer::numResults()
@@ -657,7 +657,7 @@ void SearchResultsContainer::loadClustering(int idx)
 			addAndMakeVisible(c.get());
 		}
 
-		updateSize(getLocalBounds().getHeight());
+		updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
 		resized();
 		repaint();
 	}
@@ -686,7 +686,7 @@ void SearchResultsContainer::clearClusters()
 	}
 
 	_unclusteredResults->resized();
-	updateSize(getLocalBounds().getHeight());
+	updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
 	resized();
 	repaint();
 }
