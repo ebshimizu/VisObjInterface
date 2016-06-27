@@ -82,6 +82,9 @@ public:
 	// Returns the number of clusters saved by the container
 	int numSavedClusters();
 
+	// Clears clusters but doesn't remove elements from the results container
+	void clearClusters();
+
 private:
   Viewport* _viewer;
   Viewport* _historyViewer;

@@ -74,6 +74,8 @@ public:
 
   void showNewResults();
 
+	void clearClusters();
+
 private:
   // Open a Lumiverse file
   void openRig();

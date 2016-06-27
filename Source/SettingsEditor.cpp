@@ -10,7 +10,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "SettingsEditor.h"
-
+#include "MainComponent.h"
 
 SettingsSlider::SettingsSlider(string id, double min, double max, double step) :
   SliderPropertyComponent(id, min, max, step), _id(id), _other(nullptr)
@@ -284,6 +284,10 @@ int SettingsChoice::getIndex() const
     FocusArea area = getGlobalSettings()->_secondaryFocusArea;
     return (int)area;
   }
+	else if (getName() == "Cluster Display Mode") {
+		ClusterDisplayMode mode = getGlobalSettings()->_clusterDisplay;
+		return (int)mode;
+	}
 }
 
 void SettingsChoice::setIndex(int newIndex)
@@ -306,6 +310,18 @@ void SettingsChoice::setIndex(int newIndex)
   else if (getName() == "Secondary Focus Region") {
     getGlobalSettings()->_secondaryFocusArea = (FocusArea)newIndex;
   }
+	else if (getName() == "Cluster Display Mode") {
+		ClusterDisplayMode newMode = (ClusterDisplayMode)newIndex;
+		if (newMode != getGlobalSettings()->_clusterDisplay) {
+			getGlobalSettings()->_clusterDisplay = newMode;
+			MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+			if (mc != nullptr) {
+				mc->clearClusters();
+				mc->resized();
+			}
+		}
+	}
 }
 
 
@@ -330,6 +346,7 @@ SettingsEditor::SettingsEditor()
 
 
   Array<PropertyComponent*> clusterComponents;
+	clusterComponents.add(new SettingsChoice("Cluster Display Mode", { "Columns", "Grid" }));
   clusterComponents.add(new SettingsChoice("Primary Clustering Method", { "K-Means", "Mean Shift", "Spectral Clustering",
     "Divisive K-Means", "Thresholded Devisive" }));
   clusterComponents.add(new SettingsChoice("Primary Distance Metric", { "Per-Pixel Average Lab Difference",

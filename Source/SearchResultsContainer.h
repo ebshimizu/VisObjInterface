@@ -85,6 +85,9 @@ public:
 
 	// Returns the number of saved clusters
 	int numSavedClusters();
+	
+	// Resets the clusters. Used when the display mode changes.
+	void clearClusters();
 
 private:
   // All results contains every result in the container. It should only be deleted at the top

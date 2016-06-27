@@ -160,6 +160,11 @@ enum FocusArea {
   BACKGROUND  // Background
 };
 
+enum ClusterDisplayMode {
+	COLUMNS,		// Arrange clusters in variable height columns
+	GRID				// Arrange clusters in a fixed grid size
+};
+
 // A container for various things that the entire application may want to access
 // TODO: at some point, have this load from a file
 class GlobalSettings
@@ -206,6 +211,7 @@ public:
   FocusArea _secondaryFocusArea;// If using a mask, which area to focus on during secondary clustering
   double _primaryDivisiveThreshold;       // Divisive clustering threshold
   double _secondaryDivisiveThreshold;     // Divisive clustering threshold - secondary
+	ClusterDisplayMode _clusterDisplay;			// Determines how clusters are layed out, primary and secondary clusters are still used
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

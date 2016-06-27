@@ -46,15 +46,36 @@ void SearchResultsContainer::resized()
   _unclusteredViewer->setViewPosition(viewPt);
 
   // clusters
-  for (int i = 0; i < _clusters.size(); i++) {
-    _clusters[i]->setBounds(lbounds.removeFromLeft(_columnSize));
-  }
+	if (getGlobalSettings()->_clusterDisplay == COLUMNS) {
+		for (int i = 0; i < _clusters.size(); i++) {
+			_clusters[i]->setBounds(lbounds.removeFromLeft(_columnSize));
+		}
+	}
+	else if (getGlobalSettings()->_clusterDisplay == GRID) {
+		for (int i = 0; i < getGlobalSettings()->_numSecondaryClusters; i++) {
+			auto row = lbounds.removeFromTop(_columnSize * (9.0 / 16.0));
+			for (int j = 0; j < getGlobalSettings()->_numPrimaryClusters; j++) {
+				int idx = i * getGlobalSettings()->_numPrimaryClusters + j;
+				if (idx < _clusters.size()) {
+					_clusters[idx]->setBounds(row.removeFromLeft(_columnSize));
+				}
+			}
+		}
+	}
 }
 
 void SearchResultsContainer::updateSize(int height)
 {
   // fixed sized, maximum visible area, width defined by number of clusters
-  int width = (1 + _clusters.size()) * _columnSize;
+	int width = 0;
+	if (getGlobalSettings()->_clusterDisplay == COLUMNS) {
+		width = (1 + _clusters.size()) * _columnSize;
+	}
+	else if (getGlobalSettings()->_clusterDisplay == GRID) {
+		width = (1 + getGlobalSettings()->_numPrimaryClusters) * _columnSize;
+		height = (1 + getGlobalSettings()->_numSecondaryClusters) * (_columnSize * (9.0 / 16.0)); // magic number but should be fine
+		resized();
+	}
   setBounds(0, 0, width, height);
 }
 
@@ -283,32 +304,106 @@ void SearchResultsContainer::cluster()
     break;
   }
 
-  // add clusters to our list
-  for (auto& c : centers) {
-    _clusters.add(c);
+	if (getGlobalSettings()->_clusterDisplay == COLUMNS) {
+		// add clusters to our list
+		for (auto& c : centers) {
+			_clusters.add(c);
 
-    // run subclustering
-    c->cluster();
+			// run subclustering
+			c->cluster();
 
-    // assign image to center based on best one in cluster
-    c->setRepresentativeResult();
+			// assign image to center based on best one in cluster
+			c->setRepresentativeResult();
 
-    // when the pointer goes out of scope, hopefully juce picks up on that automatically...
-    addAndMakeVisible(c.get());
+			// when the pointer goes out of scope, hopefully juce picks up on that automatically...
+			addAndMakeVisible(c.get());
 
-    // calculate distance to center
-    auto ce = c->getContainer();
-    for (auto& e : c->getAllChildElements()) {
-      e->setClusterDistance(f(e.get(), ce.get()));
-    }
-    for (auto& e : c->getChildElements()) {
-      e->setClusterDistance(f(e.get(), ce.get()));
-    }
-    c->getRepresentativeResult()->setClusterDistance(f(c->getRepresentativeResult().get(), ce.get()));
-  }
+			// calculate distance to center
+			auto ce = c->getContainer();
+			for (auto& e : c->getAllChildElements()) {
+				e->setClusterDistance(f(e.get(), ce.get()));
+			}
+			for (auto& e : c->getChildElements()) {
+				e->setClusterDistance(f(e.get(), ce.get()));
+			}
+			c->getRepresentativeResult()->setClusterDistance(f(c->getRepresentativeResult().get(), ce.get()));
+		}
 
-  // calculate cluster stats
-  calculateClusterStats();
+		// calculate cluster stats
+		calculateClusterStats();
+	}
+	else if (getGlobalSettings()->_clusterDisplay == GRID) {
+		// need to do a second clustering here, but first we extract the details of this
+		// first clustering
+		int numCols, numRows;
+		map<int, int> elemToCluster1;
+		for (auto& r : _allResults) {
+			// elems should be assigned to the right centers here
+			elemToCluster1[r->getSearchResult()->_sampleNo] = r->getSearchResult()->_cluster;
+		}
+		numCols = centers.size();
+
+		ClusterMethod mode2 = getGlobalSettings()->_secondaryClusterMethod;
+		bool invert2 = (getGlobalSettings()->_secondaryFocusArea == BACKGROUND) ? true : false;
+		bool overrideMask2 = (getGlobalSettings()->_secondaryFocusArea == ALL_IMAGE) ? true : false;
+		DistanceMetric dm2 = getGlobalSettings()->_secondaryClusterMetric;
+
+		distFuncType f2 = [invert2, overrideMask2, dm2](SearchResultContainer* x, SearchResultContainer* y) {
+			return x->dist(y, dm2, overrideMask2, invert2);
+		};
+
+		// do the clustering again with secondary options
+		switch (mode2) {
+		case KMEANS:
+			centers = Clustering::kmeansClustering(_allResults, getGlobalSettings()->_numSecondaryClusters, f2);
+			break;
+		case MEAN_SHIFT:
+			centers = Clustering::meanShiftClustering(_allResults, getGlobalSettings()->_meanShiftBandwidth);
+			break;
+		case SPECTRAL:
+			centers = Clustering::spectralClustering(_allResults, getGlobalSettings()->_numSecondaryClusters, f2);
+			break;
+		case DIVISIVE:
+			centers = Clustering::divisiveKMeansClustering(_allResults, getGlobalSettings()->_numSecondaryClusters, f2);
+			break;
+		case TDIVISIVE:
+			centers = Clustering::thresholdedKMeansClustering(_allResults, getGlobalSettings()->_secondaryDivisiveThreshold, f2);
+			break;
+		default:
+			break;
+		}
+	 
+		// save this clustering too
+		map<int, int> elemToCluster2;
+		for (auto& r : _allResults) {
+			// elems should be assigned to the right centers here
+			elemToCluster2[r->getSearchResult()->_sampleNo] = r->getSearchResult()->_cluster;
+		}
+		numRows = centers.size();
+		
+		// create a new top level item and add to centers for each grid space
+		for (int i = 0; i < numRows; i++) {
+			for (int j = 0; j < numCols; j++) {
+				auto center = shared_ptr<TopLevelCluster>(new TopLevelCluster());
+				center->setClusterId(i * numCols + j);
+				_clusters.add(center);
+			}
+		}
+
+		// for each element, assign to the proper cluster based on the two cluster operations perfomed
+		for (auto& r : _allResults) {
+			int sampleId = r->getSearchResult()->_sampleNo;
+			int clusterId = elemToCluster2[sampleId] * numCols + elemToCluster1[sampleId];
+			_clusters[clusterId]->addToCluster(r);
+			r->setClusterDistance(NAN);
+		}
+
+		// make clusters visible and pick representative scenes
+		for (auto& c : _clusters) {
+			addAndMakeVisible(c.get());
+			c->setRepresentativeResult();
+		}
+	}
 
   updateSize(getLocalBounds().getHeight());
   resized();
@@ -571,4 +666,27 @@ void SearchResultsContainer::loadClustering(int idx)
 int SearchResultsContainer::numSavedClusters()
 {
 	return _savedResults.size();
+}
+
+void SearchResultsContainer::clearClusters()
+{
+  lock_guard<mutex> lock(_resultsLock);
+
+	// remove cluster children
+	for (auto& c : _clusters) {
+		removeChildComponent(getIndexOfChildComponent(c.get()));
+	}
+
+	_clusters.clear();
+	_unclusteredResults->removeAllResults();
+
+	// add things to unclustered again
+	for (auto& r : _allResults) {
+		_unclusteredResults->addResult(r);
+	}
+
+	_unclusteredResults->resized();
+	updateSize(getLocalBounds().getHeight());
+	resized();
+	repaint();
 }

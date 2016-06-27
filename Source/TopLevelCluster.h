@@ -29,6 +29,8 @@ public:
   void resized() override;
   void paint(Graphics& g) override;
 
+	void mouseDown(const MouseEvent& event);
+
   // adds and element to this cluster
   void addToCluster(shared_ptr<SearchResultContainer> r);
 

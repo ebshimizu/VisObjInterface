@@ -397,6 +397,11 @@ void MainContentComponent::showNewResults()
   _search->showNewResults();
 }
 
+void MainContentComponent::clearClusters()
+{
+	_search->clearClusters();
+}
+
 void MainContentComponent::openRig() {
   FileChooser fc("Load Show (pick a .rig.json or .playback.json file)", File::getCurrentWorkingDirectory(),
     "*.rig.json;*.playback.json", true);

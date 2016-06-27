@@ -190,6 +190,11 @@ int SearchResultsViewer::numSavedClusters()
 	return _results->numSavedClusters();
 }
 
+void SearchResultsViewer::clearClusters()
+{
+	_results->clearClusters();
+}
+
 bool SearchResultsViewer::addNewResult(SearchResult * r)
 {
   return _results->addNewResult(r);

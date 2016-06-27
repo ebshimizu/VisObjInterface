@@ -384,6 +384,7 @@ GlobalSettings::GlobalSettings()
   _useFGMask = false;
   _primaryDivisiveThreshold = 7.5;
   _secondaryDivisiveThreshold = 5;
+	_clusterDisplay = COLUMNS;
 
   if (_searchThreads <= 0)
     _searchThreads = 1;

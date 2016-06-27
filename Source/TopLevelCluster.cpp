@@ -33,17 +33,29 @@ void TopLevelCluster::resized()
   // proportionally the top element will take up 33%
   auto lbounds = getLocalBounds();
 
-  if (_rep != nullptr) {
-    _rep->setBounds(lbounds.removeFromTop(lbounds.getHeight() * 0.33));
-  }
+	if (getGlobalSettings()->_clusterDisplay == COLUMNS) {
+		if (_rep != nullptr) {
+			_rep->setBounds(lbounds.removeFromTop(lbounds.getHeight() * 0.33));
+		}
 
-  _contents->setWidth(lbounds.getWidth() - _viewer->getScrollBarThickness());
-  _viewer->setBounds(lbounds);
+		_contents->setWidth(lbounds.getWidth() - _viewer->getScrollBarThickness());
+		_viewer->setBounds(lbounds);
+	}
+	else if (getGlobalSettings()->_clusterDisplay == GRID) {
+		if (_rep != nullptr) {
+			_rep->setBounds(lbounds);
+		}
+		_viewer->setBounds(0, 0, 0, 0);
+	}
 }
 
 void TopLevelCluster::paint(Graphics & g)
 {
   // borders likely need to be drawn eventually
+}
+
+void TopLevelCluster::mouseDown(const MouseEvent & event)
+{
 }
 
 void TopLevelCluster::addToCluster(shared_ptr<SearchResultContainer> r)
@@ -112,11 +124,20 @@ void TopLevelCluster::setRepresentativeResult()
     _rep = nullptr;
   }
 
-  _rep = shared_ptr<SearchResultContainer>(new SearchResultContainer(new SearchResult(*best->getSearchResult())));
-  _rep->setImage(best->getImage());
-  //_scene = _rep->getSearchResult()->_scene;
-  //_features = best->getFeatures();
-  addAndMakeVisible(_rep.get());
+	if (best != nullptr) {
+		_rep = shared_ptr<SearchResultContainer>(new SearchResultContainer(new SearchResult(*best->getSearchResult())));
+		_rep->setImage(best->getImage());
+		//_scene = _rep->getSearchResult()->_scene;
+		//_features = best->getFeatures();
+		addAndMakeVisible(_rep.get());
+
+		// if this is in grid mode, treat the rep as a cluster
+		if (getGlobalSettings()->_clusterDisplay == GRID) {
+			for (int i = 0; i < _contents->size(); i++) {
+				_rep->addToCluster((*_contents)[i]);
+			}
+		}
+	}
 }
 
 shared_ptr<SearchResultContainer> TopLevelCluster::getRepresentativeResult()
