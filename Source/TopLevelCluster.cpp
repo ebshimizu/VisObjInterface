@@ -153,6 +153,9 @@ shared_ptr<SearchResultContainer> TopLevelCluster::getContainer()
 void TopLevelCluster::sort(AttributeSorter * s)
 {
   _contents->sort(s);
+
+	if (_rep != nullptr)
+		_rep->sort(s);
 }
 
 void TopLevelCluster::cluster()
