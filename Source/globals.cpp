@@ -359,7 +359,7 @@ GlobalSettings::GlobalSettings()
   _standardMCMC = false;
   _currentSortMode = "Attribute Default";
   _clusterElemsPerRow = 6;
-  _maxReturnedScenes = 50;
+  _maxReturnedScenes = 100;
   _showThumbnailImg = false;
   _T = 1;
   _exportTraces = false;
@@ -372,19 +372,19 @@ GlobalSettings::GlobalSettings()
   _searchThreads = thread::hardware_concurrency() / 2;
   _autoRunTraceGraph = false;
   _standardMCMCIters = 5.0e3;
-  _numPrimaryClusters = 8;
+  _numPrimaryClusters = 5;
   _primaryClusterMethod = DIVISIVE; // "K-Means";
-  _primaryClusterMetric = L2LAB; // "Per-Pixel Average Lab Difference";
+  _primaryClusterMetric = PPAVGLAB; // "Per-Pixel Average Lab Difference";
   _primaryFocusArea = FOREGROUND; // "All";
-  _numSecondaryClusters = 4;
+  _numSecondaryClusters = 5;
   _secondaryClusterMethod = DIVISIVE; // "K-Means";
-  _secondaryClusterMetric = L2LAB; // "Per-Pixel Average Lab Difference";
+  _secondaryClusterMetric = PPAVGLAB; // "Per-Pixel Average Lab Difference";
   _secondaryFocusArea = BACKGROUND; // "All";
   _spectralBandwidth = 2;
   _useFGMask = false;
   _primaryDivisiveThreshold = 7.5;
   _secondaryDivisiveThreshold = 5;
-	_clusterDisplay = COLUMNS;
+	_clusterDisplay = GRID;
 
   if (_searchThreads <= 0)
     _searchThreads = 1;

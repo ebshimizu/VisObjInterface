@@ -807,7 +807,7 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 	statsFile << "Data Set Diameter (secondary axis): " << maxDist2 << " (" << x2 << "," << y2 << ")\n";
 	// calculate center diameters
 	statsFile << "\nCluster Center Stats\n";
-	statsFile << "ID\tCount\tf1 Dia\tf2 Dia\tpp Dia\tf1 Avg\tf2 Avg\tpp Avg\tf1 var\tf2 var\tpp var\tf1 sd\tf2 sd\tpp sd\n";
+	statsFile << "ID\tCount\tf1 Dia\t\tf2 Dia\t\tpp Dia\t\tf1 Avg\t\tf2 Avg\t\tpp Avg\t\tf1 var\t\tf2 var\t\tpp var\t\tf1 sd\t\tf2 sd\t\tpp sd\n";
 	for (auto& c : _clusters) {
 		statsFile << c->getClusterId() << "\t" << c->clusterSize() << "\t";
 
@@ -858,6 +858,7 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 			avg1 += dist1;
 			avg2 += dist2;
 			ppavg += ppdist;
+			r->getSearchResult()->_cluster = c->getClusterId();
 		}
 		avg1 /= c->clusterSize();
 		avg2 /= c->clusterSize();
@@ -878,7 +879,7 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 		ppdev /= c->clusterSize();
 
 		char fmt[1000];
-		sprintf_s(fmt, 990, "%8f.3\t%8f.3\t%8f.3\t%8f.3\t%8f.3\t%8f.3\t%8f.3\t%8f.3\t%8f.3\t%8f.3\t%8f.3\t%8f.3\n",
+		sprintf_s(fmt, 990, "%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\n",
 			f1d, f2d, ppd, avg1, avg2, ppavg, dev1, dev2, ppdev, pow(dev1, 0.5), pow(dev2, 0.5), pow(ppdev, 0.5));
 		statsFile << fmt;
 	}
@@ -923,12 +924,15 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 
 	// individual element stats
 	statsFile << "\nElement Stats\n";
-	statsFile << "ID\tx\ty\tf1 to C\tf2 to C\tpp to C\tDist c1\tDist c2\n";
+	statsFile << "ID\tPrimary\tSecond\t\tf1 to C\t\tf2 to C\t\tpp to C\t\tDist c1\t\tDist c2\n";
 	for (auto& r : _allResults) {
 		int id = r->getSearchResult()->_sampleNo;
 		int cid = r->getSearchResult()->_cluster;
-		statsFile << id << "\t" << cid % centers1.size() << "\t" << cid / centers2.size() << "\t" <<
-			d1[id] << "\t" << d2[id] << "\t" << dpp[id] << "\t" << c1d[id] << "\t" << c2d[id] << "\n";
+		
+		char fmt[1000];
+		sprintf_s(fmt, 990, "%8i%8i%8i\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\n",
+			id, cid % centers1.size(), cid / centers1.size(), d1[id], d2[id], dpp[id], c1d[id], c2d[id]);
+		statsFile << fmt;
 	}
 
 	statsFile.close();
