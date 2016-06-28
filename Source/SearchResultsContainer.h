@@ -91,8 +91,18 @@ public:
 
   void calculateClusterStats();
 
+	// these functions save stats about the clusters to a file,
+	// based on which display mode was used
+	void saveClusterStats(function<double(SearchResultContainer*, SearchResultContainer*)> f, SearchMetadata md);
+	void saveClusterStats(function<double(SearchResultContainer*, SearchResultContainer*)> f,
+		function<double(SearchResultContainer*, SearchResultContainer*)> f2, SearchMetadata md,
+		Array<shared_ptr<TopLevelCluster> >& centers1, Array<shared_ptr<TopLevelCluster> >& centers2);
+
   // Saves the current clusters to a separate list
   void saveClustering();
+
+	// create a search metadata object using current global settings
+	SearchMetadata createSearchMetadata();
 
 	// Loads the specified clusters from the specified index
 	void loadClustering(int idx);
@@ -129,7 +139,6 @@ private:
   mutex _resultsLock;
 
   int _elemsPerRow;
-
   int _columnSize;
 
   // internal sample id added to the result when its added to the container
@@ -140,6 +149,9 @@ private:
   // clusters. 
   Array<Array<shared_ptr<TopLevelCluster> > > _savedResults;
 	Array<SearchMetadata> _savedMetadata;
+
+	void writeMetadata(std::ofstream &statsFile, SearchMetadata &md);
+	map<int, map<int, double> > getPairwiseDist(function<double(SearchResultContainer*, SearchResultContainer*)> f, double& maxDist, int& x, int& y);
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SearchResultsContainer)
 };

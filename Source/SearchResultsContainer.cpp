@@ -273,6 +273,9 @@ void SearchResultsContainer::cluster()
   // clear out unclustered results
   _unclusteredResults->removeAllResults();
 
+	// logging: record settings at time of cluster
+	SearchMetadata currentState = createSearchMetadata();
+
   // now that all the current elements are in a single place, run a clustering algorithm
   Array<shared_ptr<TopLevelCluster> > centers;
   ClusterMethod mode = getGlobalSettings()->_primaryClusterMethod;
@@ -331,6 +334,8 @@ void SearchResultsContainer::cluster()
 
 		// calculate cluster stats
 		calculateClusterStats();
+
+		saveClusterStats(f, currentState);
 	}
 	else if (getGlobalSettings()->_clusterDisplay == GRID) {
 		// need to do a second clustering here, but first we extract the details of this
@@ -352,22 +357,23 @@ void SearchResultsContainer::cluster()
 			return x->dist(y, dm2, overrideMask2, invert2);
 		};
 
+		Array<shared_ptr<TopLevelCluster> > centers2;
 		// do the clustering again with secondary options
 		switch (mode2) {
 		case KMEANS:
-			centers = Clustering::kmeansClustering(_allResults, getGlobalSettings()->_numSecondaryClusters, f2);
+			centers2 = Clustering::kmeansClustering(_allResults, getGlobalSettings()->_numSecondaryClusters, f2);
 			break;
 		case MEAN_SHIFT:
-			centers = Clustering::meanShiftClustering(_allResults, getGlobalSettings()->_meanShiftBandwidth);
+			centers2 = Clustering::meanShiftClustering(_allResults, getGlobalSettings()->_meanShiftBandwidth);
 			break;
 		case SPECTRAL:
-			centers = Clustering::spectralClustering(_allResults, getGlobalSettings()->_numSecondaryClusters, f2);
+			centers2 = Clustering::spectralClustering(_allResults, getGlobalSettings()->_numSecondaryClusters, f2);
 			break;
 		case DIVISIVE:
-			centers = Clustering::divisiveKMeansClustering(_allResults, getGlobalSettings()->_numSecondaryClusters, f2);
+			centers2 = Clustering::divisiveKMeansClustering(_allResults, getGlobalSettings()->_numSecondaryClusters, f2);
 			break;
 		case TDIVISIVE:
-			centers = Clustering::thresholdedKMeansClustering(_allResults, getGlobalSettings()->_secondaryDivisiveThreshold, f2);
+			centers2 = Clustering::thresholdedKMeansClustering(_allResults, getGlobalSettings()->_secondaryDivisiveThreshold, f2);
 			break;
 		default:
 			break;
@@ -379,7 +385,7 @@ void SearchResultsContainer::cluster()
 			// elems should be assigned to the right centers here
 			elemToCluster2[r->getSearchResult()->_sampleNo] = r->getSearchResult()->_cluster;
 		}
-		numRows = centers.size();
+		numRows = centers2.size();
 		
 		// create a new top level item and add to centers for each grid space
 		for (int i = 0; i < numRows; i++) {
@@ -403,6 +409,9 @@ void SearchResultsContainer::cluster()
 			addAndMakeVisible(c.get());
 			c->setRepresentativeResult();
 		}
+
+		// logging: save stats
+		saveClusterStats(f, f2, currentState, centers, centers2);
 	}
 
   updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
@@ -636,10 +645,304 @@ void SearchResultsContainer::calculateClusterStats()
   getStatusBar()->setStatusMessage("Clustering finished. k = " + String(_clusters.size()) + ", DB = " + String(db));
 }
 
+void SearchResultsContainer::saveClusterStats(function<double(SearchResultContainer*, SearchResultContainer*)> f, SearchMetadata md)
+{
+	setSessionName();
+	string filename = getGlobalSettings()->_logRootDir + "/clusters/" + getGlobalSettings()->_sessionName;
+
+	// save pairwise distances
+	double maxDist;
+	int x, y;
+	map<int, map<int, double> > pairwiseDists = getPairwiseDist(f, maxDist, x, y);
+
+	// write to file, we convert to csv here for viewing in excel or similar
+	ofstream distFile(filename + "_dists.csv", ios::trunc);
+
+	for (int i = 0; i < pairwiseDists.size(); i++) {
+		for (int j = 0; j < pairwiseDists.size(); j++) {
+			if (j > 0)
+				distFile << ",";
+
+			distFile << pairwiseDists[i][j];
+		}
+		distFile << "\n";
+	}
+
+	distFile.close();
+
+	// write other stats
+	ofstream statsFile(filename + "_stats.txt", ios::trunc);
+
+	writeMetadata(statsFile, md);
+	statsFile << "Data Set Diameter: " << maxDist << " (" << x << "," << y << ")\n";
+
+	// calculate center diameters
+	statsFile << "\nCluster Center Stats\n";
+	statsFile << "ID\tElements\tDiameter\tAvg. dist\n";
+	for (auto& c : _clusters) {
+		c->calculateStats(pairwiseDists);
+		statsFile << c->getClusterId() << "\t" << c->clusterSize() << "\t" << c->getDiameter() << "\t";
+
+		// calculate average distance to cluster center.
+		double avg = 0;
+		for (auto& r : c->getAllChildElements()) {
+			double dist = f(c->getContainer().get(), r.get());
+			avg += dist;
+			r->setClusterDistance(dist);
+		}
+		avg /= c->clusterSize();
+		statsFile << avg << "\n";
+	}
+
+	// individual element stats
+	statsFile << "\nElement Stats\n";
+	statsFile << "ID\tDist. to Center\n";
+	for (auto& r : _allResults) {
+		statsFile << r->getSearchResult()->_sampleNo << "\t" << r->getClusterDistance();
+	}
+
+	statsFile.close();
+}
+
+void SearchResultsContainer::writeMetadata(std::ofstream &statsFile, SearchMetadata &md)
+{
+	statsFile << "Cluster mode: " << md._mode << "\n";
+	statsFile << "Primary Clusters: " << md._primaryClusters << "\n";
+	statsFile << "Primary Area: " << md._primaryArea << "\n";
+	statsFile << "Primary Distance Metric: " << md._primaryMetric << "\n";
+	statsFile << "Primary Cluster Method: " << md._primaryMethod << "\n";
+	statsFile << "Secondary Clusters: " << md._secondaryClusters << "\n";
+	statsFile << "Secondary Area: " << md._secondaryArea << "\n";
+	statsFile << "Secondary Distance Metric: " << md._secondaryMetric << "\n";
+	statsFile << "Secondary Cluster Method: " << md._secondaryMethod << "\n";
+
+}
+
+map<int, map<int, double>> SearchResultsContainer::getPairwiseDist(function<double(SearchResultContainer*, SearchResultContainer*)> f,
+	double & maxDist, int & x, int & y)
+{
+	maxDist = 0;
+	map<int, map<int, double> > pairwiseDists;
+	for (int i = 0; i < _allResults.size(); i++) {
+		pairwiseDists[i][i] = 0;
+		for (int j = i + 1; j < _allResults.size(); j++) {
+			double dist = f(_allResults[i].get(), _allResults[j].get());
+			pairwiseDists[i][j] = dist;
+			pairwiseDists[j][i] = dist;
+			if (dist > maxDist) {
+				maxDist = dist;
+				x = i;
+				y = j;
+			}
+		}
+	}
+
+	return pairwiseDists;
+}
+
+void SearchResultsContainer::saveClusterStats(function<double(SearchResultContainer*, SearchResultContainer*)> f,
+	function<double(SearchResultContainer*, SearchResultContainer*)> f2, SearchMetadata md,
+	Array<shared_ptr<TopLevelCluster>>& centers1, Array<shared_ptr<TopLevelCluster>>& centers2)
+{
+	setSessionName();
+	string filename = getGlobalSettings()->_logRootDir + "/clusters/" + getGlobalSettings()->_sessionName;
+
+	// save pairwise distances
+	double maxDist;
+	int x, y;
+	map<int, map<int, double> > pairwiseDists = getPairwiseDist(f, maxDist, x, y);
+
+	// pairwise dists for f2 
+	double maxDist2;
+	int x2, y2;
+	map<int, map<int, double> > pairwiseDists2 = getPairwiseDist(f2, maxDist2, x2, y2);
+
+	// pairwise unmasked distamces for pp avg lab
+	double ppmaxDist;
+	int ppx, ppy;
+	distFuncType ppf = [](SearchResultContainer* x, SearchResultContainer* y) {
+		return x->dist(y, PPAVGLAB, true, false);
+	};
+	map<int, map<int, double> > ppPairwiseDist = getPairwiseDist(ppf, ppmaxDist, ppx, ppy);
+
+	// write to file, we convert to csv here for viewing in excel or similar
+	ofstream distFile(filename + "_dists1.csv", ios::trunc);
+
+	for (int i = 0; i < pairwiseDists.size(); i++) {
+		for (int j = 0; j < pairwiseDists.size(); j++) {
+			if (j > 0)
+				distFile << ",";
+
+			distFile << pairwiseDists[i][j];
+		}
+		distFile << "\n";
+	}
+
+	distFile.close();
+
+	ofstream distFile2(filename + "_dists2.csv", ios::trunc);
+
+	for (int i = 0; i < pairwiseDists2.size(); i++) {
+		for (int j = 0; j < pairwiseDists2.size(); j++) {
+			if (j > 0)
+				distFile2 << ",";
+
+			distFile2 << pairwiseDists2[i][j];
+		}
+		distFile2 << "\n";
+	}
+
+	distFile2.close();
+
+	// write other stats
+	ofstream statsFile(filename + "_stats.txt", ios::trunc);
+	map<int, double> d1;
+	map<int, double> d2;
+	map<int, double> dpp;
+	map<int, double> c1d;
+	map<int, double> c2d;
+
+	writeMetadata(statsFile, md);
+	statsFile << "Data Set Diameter (primary axis): " << maxDist << " (" << x << "," << y << ")\n";
+	statsFile << "Data Set Diameter (secondary axis): " << maxDist2 << " (" << x2 << "," << y2 << ")\n";
+	// calculate center diameters
+	statsFile << "\nCluster Center Stats\n";
+	statsFile << "ID\tCount\tf1 Dia\tf2 Dia\tpp Dia\tf1 Avg\tf2 Avg\tpp Avg\tf1 var\tf2 var\tpp var\tf1 sd\tf2 sd\tpp sd\n";
+	for (auto& c : _clusters) {
+		statsFile << c->getClusterId() << "\t" << c->clusterSize() << "\t";
+
+		// empty clusters are skipped
+		if (c->clusterSize() == 0) {
+			statsFile << "\n";
+			continue;
+		}
+
+		// center stats are a bit involved here. we need 3 different distances
+		// they are already pairwise computed
+		c->calculateStats(pairwiseDists);
+		double f1d = c->getDiameter();
+		c->calculateStats(pairwiseDists2);
+		double f2d = c->getDiameter();
+		c->calculateStats(ppPairwiseDist);
+		double ppd = c->getDiameter();
+
+
+		// ok so here we have to actually compute the cluster centers cause they
+		// are not computed in the pairwise grid mode
+		auto container = c->getContainer();
+		Eigen::VectorXd feats;
+		feats.resize(_allResults[0]->getFeatures().size());
+		feats.setZero();
+		container->getSearchResult()->_scene.resize(_allResults[0]->getSearchResult()->_scene.size());
+		container->getSearchResult()->_scene.setZero();
+		for (auto& r : c->getAllChildElements()) {
+			feats += r->getFeatures();
+			container->getSearchResult()->_scene += r->getSearchResult()->_scene;
+		}
+		feats /= c->clusterSize();
+		container->setFeatures(feats);
+		container->getSearchResult()->_scene /= c->clusterSize();
+		container->updateMask();
+
+		// calculate average distance to cluster center.
+		double avg1 = 0;
+		double avg2 = 0;
+		double ppavg = 0;
+		for (auto& r : c->getAllChildElements()) {
+			double dist1 = f(container.get(), r.get());
+			double dist2 = f2(container.get(), r.get());
+			double ppdist = ppf(container.get(), r.get());
+			d1[r->getSearchResult()->_sampleNo] = dist1;
+			d2[r->getSearchResult()->_sampleNo] = dist2;
+			dpp[r->getSearchResult()->_sampleNo] = ppdist;
+			avg1 += dist1;
+			avg2 += dist2;
+			ppavg += ppdist;
+		}
+		avg1 /= c->clusterSize();
+		avg2 /= c->clusterSize();
+		ppavg /= c->clusterSize();
+
+		// standard deviation
+		double dev1 = 0;
+		double dev2 = 0;
+		double ppdev = 0;
+		for (auto& r : c->getAllChildElements()) {
+			int id = r->getSearchResult()->_sampleNo;
+			dev1 += pow(d1[id] - avg1, 2);
+			dev2 += pow(d2[id] - avg2, 2);
+			ppdev += pow(dpp[id] - ppavg, 2);
+		}
+		dev1 /= c->clusterSize();
+		dev2 /= c->clusterSize();
+		ppdev /= c->clusterSize();
+
+		char fmt[1000];
+		sprintf_s(fmt, 990, "%8f.3\t%8f.3\t%8f.3\t%8f.3\t%8f.3\t%8f.3\t%8f.3\t%8f.3\t%8f.3\t%8f.3\t%8f.3\t%8f.3\n",
+			f1d, f2d, ppd, avg1, avg2, ppavg, dev1, dev2, ppdev, pow(dev1, 0.5), pow(dev2, 0.5), pow(ppdev, 0.5));
+		statsFile << fmt;
+	}
+
+	// primary clustering stats
+	statsFile << "\nPrimary Cluster Stats\n";
+	statsFile << "ID\tCount\tDiam\tAvg.\n";
+	for (auto& c : centers1) {
+		c->calculateStats(pairwiseDists);
+		statsFile << c->getClusterId() << "\t" << c->clusterSize() << "\t" << c->getDiameter() << "\t";
+		c->getContainer()->updateMask();
+
+		// calculate average distance to cluster center.
+		double avg = 0;
+		for (auto& r : c->getAllChildElements()) {
+			double dist = f(c->getContainer().get(), r.get());
+			c1d[r->getSearchResult()->_sampleNo] = dist;
+			avg += dist;
+		}
+		avg /= c->clusterSize();
+		statsFile << avg << "\n";
+	}
+
+	// primary clustering stats
+	statsFile << "\nSecondary Cluster Stats\n";
+	statsFile << "ID\tCount\tDiam\tAvg.\n";
+	for (auto& c : centers2) {
+		c->calculateStats(pairwiseDists);
+		statsFile << c->getClusterId() << "\t" << c->clusterSize() << "\t" << c->getDiameter() << "\t";
+		c->getContainer()->updateMask();
+
+		// calculate average distance to cluster center.
+		double avg = 0;
+		for (auto& r : c->getAllChildElements()) {
+			double dist = f2(c->getContainer().get(), r.get());
+			c2d[r->getSearchResult()->_sampleNo] = dist;
+			avg += dist;
+		}
+		avg /= c->clusterSize();
+		statsFile << avg << "\n";
+	}
+
+	// individual element stats
+	statsFile << "\nElement Stats\n";
+	statsFile << "ID\tx\ty\tf1 to C\tf2 to C\tpp to C\tDist c1\tDist c2\n";
+	for (auto& r : _allResults) {
+		int id = r->getSearchResult()->_sampleNo;
+		int cid = r->getSearchResult()->_cluster;
+		statsFile << id << "\t" << cid % centers1.size() << "\t" << cid / centers2.size() << "\t" <<
+			d1[id] << "\t" << d2[id] << "\t" << dpp[id] << "\t" << c1d[id] << "\t" << c2d[id] << "\n";
+	}
+
+	statsFile.close();
+}
+
 void SearchResultsContainer::saveClustering()
 {
 	_savedResults.add(Array<shared_ptr<TopLevelCluster> >(_clusters));
 
+	_savedMetadata.add(createSearchMetadata());
+}
+
+SearchMetadata SearchResultsContainer::createSearchMetadata()
+{
 	SearchMetadata md;
 	md._mode = getGlobalSettings()->_clusterDisplay;
 	md._primaryArea = getGlobalSettings()->_primaryFocusArea;
@@ -652,7 +955,8 @@ void SearchResultsContainer::saveClustering()
 	md._secondaryMethod = getGlobalSettings()->_secondaryClusterMethod;
 	md._secondaryMetric = getGlobalSettings()->_secondaryClusterMetric;
 	md._secondaryThreshold = getGlobalSettings()->_secondaryDivisiveThreshold;
-	_savedMetadata.add(md);
+	
+	return md;
 }
 
 void SearchResultsContainer::loadClustering(int idx)

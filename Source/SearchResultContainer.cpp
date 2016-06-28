@@ -159,11 +159,7 @@ void SearchResultContainer::setImage(Image img)
   Image scaled = _render.rescaled(64, 64);
   _features.resize(64 * 64 * 3);
 
-  bool useMask = getGlobalSettings()->_useFGMask;
-
-  if (useMask) {
-    _mask = getGlobalSettings()->_fgMask.rescaled(64, 64);
-  }
+	updateMask();
 
   for (int y = 0; y < scaled.getHeight(); y++) {
     for (int x = 0; x < scaled.getWidth(); x++) {
@@ -589,4 +585,16 @@ void SearchResultContainer::setClusterDistance(double dist)
 {
   _distToCenter = dist;
   regenToolTip();
+}
+
+double SearchResultContainer::getClusterDistance()
+{
+	return _distToCenter;
+}
+
+void SearchResultContainer::updateMask()
+{
+	if (getGlobalSettings()->_useFGMask) {
+		_mask = getGlobalSettings()->_fgMask.rescaled(64, 64);
+	}
 }

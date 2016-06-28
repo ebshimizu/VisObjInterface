@@ -128,6 +128,10 @@ public:
 
   // Set the cluster distance
   void setClusterDistance(double dist);
+	double getClusterDistance();
+
+	// updates the mask used by the container
+	void updateMask();
 
 private:
   // Search result object from the attribute search

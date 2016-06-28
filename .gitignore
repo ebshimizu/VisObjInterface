@@ -285,3 +285,4 @@ traces/*
 dataviz/bh_tsne.exe
 Builds/VisualStudio2015/AttributesInterface.VC.db
 Builds/VisualStudio2015NoArnold/AttributesInterface.VC.db
+logs/*

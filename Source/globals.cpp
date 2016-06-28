@@ -110,7 +110,7 @@ void GlobalSettings::dumpDiagnosticData()
   if (_exportTraces) {
     ofstream file;
 
-    string filename = _traceRootDir + "/" + _sessionName + ".csv";
+    string filename = _logRootDir + "/traces/" + _sessionName + ".csv";
     
     file.open(filename, ios::trunc);
 
@@ -152,7 +152,7 @@ void GlobalSettings::dumpDiagnosticData()
 
     if (_autoRunTraceGraph) {
       // actually just go generate a report now
-      string cmd = "python C:/Users/eshimizu/Documents/AttributesInterface/dataviz/tsne2.py " + _traceRootDir + "/" + _sessionName + " 30";
+      string cmd = "python C:/Users/eshimizu/Documents/AttributesInterface/dataviz/tsne2.py " + _logRootDir + "/traces/" + _sessionName + " 30";
       system(cmd.c_str());
     }
   }
@@ -363,7 +363,7 @@ GlobalSettings::GlobalSettings()
   _showThumbnailImg = false;
   _T = 1;
   _exportTraces = false;
-  _traceRootDir = "C:/Users/eshimizu/Documents/AttributesInterface/traces";
+  _logRootDir = "C:/Users/eshimizu/Documents/AttributesInterface/logs";
   _clusterCounter = 0;
   _meanShiftEps = 1e-4;
   _meanShiftBandwidth = 7;

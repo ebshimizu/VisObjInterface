@@ -194,7 +194,7 @@ public:
   double _T;                    // Temperature controlling MCMC tolerance to worse suggestions
   bool _exportTraces;           // Export trace data for each search operation
   bool _autoRunTraceGraph;      // Automatically call the python script for making graphs. Can be slow, so you can turn it off if you want.
-  string _traceRootDir;         // Trace file location
+  string _logRootDir;         // Trace file location
   double _meanShiftEps;         // Mean shift epsilon
   double _meanShiftBandwidth;   // Mean shift bandwidth
   bool _grayscaleMode;          // Render images in grayscale instead of color

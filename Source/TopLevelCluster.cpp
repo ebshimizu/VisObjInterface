@@ -265,9 +265,6 @@ void TopLevelCluster::calculateStats(function<double(SearchResultContainer*, Sea
 
 void TopLevelCluster::calculateStats(map<int, map<int, double> >& distanceMatrix)
 {
-  if (_statsUpdated)
-    return;
-
   auto elems = getAllChildElements();
 
   // retrieve pairwise distances from matrix, find max
