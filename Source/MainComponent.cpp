@@ -436,9 +436,6 @@ void MainContentComponent::openRig(String fname)
     getRig()->init();
 
     loadComponents();
-    _attrs->reload();
-    // Also should delete history and clear any displayed clusters
-		_search->clearContainer();
 
 		// try to auto load mask
 		// looks for mask.png in same folder as loaded .json
@@ -452,6 +449,9 @@ void MainContentComponent::openRig(String fname)
 			getGlobalSettings()->_useFGMask = true;
 		}
 
+    _attrs->reload();
+    // Also should delete history and clear any displayed clusters
+		_search->clearContainer();
     _showName = selected.getFileName();
     getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);
   }
@@ -478,6 +478,7 @@ void MainContentComponent::openMask()
       getGlobalSettings()->_fgMask = pngReader.decodeImage(in);
       getGlobalSettings()->_useFGMask = true;
 
+			_attrs->reload();
       getStatusBar()->setStatusMessage("Loaded mask.");
     }
   }

@@ -45,6 +45,9 @@ private:
 
   // image for color normalization
   Image _fullWhite;
+
+	// Foreground mask, if it exists.
+	Image _mask;
 };
 
 

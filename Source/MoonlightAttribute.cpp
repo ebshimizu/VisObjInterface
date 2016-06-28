@@ -29,7 +29,7 @@ double MoonlightAttribute::evaluateScene(Snapshot * s)
   // -the background should be dark, but not black, and should have a blue-purple tint
 
   // make sure the foreground is actually defined.
-  if (_foreground.getWidth() == 0 || _foreground.getHeight() == 0)
+  if (!getGlobalSettings()->_useFGMask && (_foreground.getWidth() == 0 || _foreground.getHeight() == 0))
     return 0;
 
   Image i = generateImage(s);
@@ -54,53 +54,75 @@ double MoonlightAttribute::evaluateScene(Snapshot * s)
   int bgAccurate = 0;
 
   for (int y = 0; y < _canonicalHeight; y++) {
-    for (int x = 0; x < _canonicalWidth; x++) {
-      Colour px = i.getPixelAt(x, y);
-      Colour nrm = _fullWhite.getPixelAt(x, y);
+		for (int x = 0; x < _canonicalWidth; x++) {
+			Colour px = i.getPixelAt(x, y);
+			Colour nrm = _fullWhite.getPixelAt(x, y);
 
-      Eigen::Vector3d rgbnrm(nrm.getRed() / 255.0, nrm.getGreen() / 255.0, nrm.getBlue() / 255.0);
-      Eigen::Vector3d rgbpx(px.getRed() / 255.0, px.getGreen() / 255.0, px.getBlue() / 255.0);
+			Eigen::Vector3d rgbnrm(nrm.getRed() / 255.0, nrm.getGreen() / 255.0, nrm.getBlue() / 255.0);
+			Eigen::Vector3d rgbpx(px.getRed() / 255.0, px.getGreen() / 255.0, px.getBlue() / 255.0);
 
-      for (int i = 0; i < 3; i++) {
-        if (isnan(rgbpx[i])) {
-          rgbpx[i] = 0;
-        }
+			for (int i = 0; i < 3; i++) {
+				if (isnan(rgbpx[i])) {
+					rgbpx[i] = 0;
+				}
 
-        if (rgbpx[i] > 1)
-          rgbpx[i] = 1;
-      }
+				if (rgbpx[i] > 1)
+					rgbpx[i] = 1;
+			}
 
-      if (fgPixelBounds.contains(x, y)) {
-        // fg score is just the distance from a target color
-        // target hue: 196, low sat, high bright
-        //float hueDist = min(abs(hue - .54), abs((hue + 1) - .54));
-        //float sat = max(0.25f, 1 - px.getSaturation());
+			if (getGlobalSettings()->_useFGMask) {
+				if (_mask.getPixelAt(x, y).getBrightness() > 0.5) {
+					float score = (sqrt(3) - (targetFg - rgbpx).norm()) / sqrt(3);
 
-        //fgScore += pow(0.5 - hueDist, 2) * 2 * px.getBrightness() * sat;
-        float score = (sqrt(3) - (targetFg - rgbpx).norm()) / sqrt(3);
-        
-        if (score >= 0.85)
-          fgAccurate++;
+					if (score >= 0.85)
+						fgAccurate++;
 
-        fgScore += score * score;
-        fgCount++;
-      }
-      else {
-        // bg score
-        // target hue: 238, highish sat, low bright
-        //float hueDist = min(abs(hue - .66), abs((hue + 1) - .66));
-        //float bri = max(0.25f, 1 - px.getBrightness());
+					fgScore += score * score;
+					fgCount++;
+				}
+				else {
+					float score = (sqrt(3) - (targetBg - rgbpx).norm()) / sqrt(3);
+					bgScore += score * score;
 
-        //bgScore += pow(0.5 - hueDist, 2) * 2 * bri * px.getSaturation();
-        float score = (sqrt(3) - (targetBg - rgbpx).norm()) / sqrt(3);
-        bgScore += score * score;
+					if (score >= 0.85)
+						bgAccurate++;
 
-        if (score >= 0.85)
-          bgAccurate++;
+					bgCount++;
+				}
+			}
+			else {
+				if (fgPixelBounds.contains(x, y)) {
+					// fg score is just the distance from a target color
+					// target hue: 196, low sat, high bright
+					//float hueDist = min(abs(hue - .54), abs((hue + 1) - .54));
+					//float sat = max(0.25f, 1 - px.getSaturation());
 
-        bgCount++;
-      }
-    }
+					//fgScore += pow(0.5 - hueDist, 2) * 2 * px.getBrightness() * sat;
+					float score = (sqrt(3) - (targetFg - rgbpx).norm()) / sqrt(3);
+
+					if (score >= 0.85)
+						fgAccurate++;
+
+					fgScore += score * score;
+					fgCount++;
+				}
+				else {
+					// bg score
+					// target hue: 238, highish sat, low bright
+					//float hueDist = min(abs(hue - .66), abs((hue + 1) - .66));
+					//float bri = max(0.25f, 1 - px.getBrightness());
+
+					//bgScore += pow(0.5 - hueDist, 2) * 2 * bri * px.getSaturation();
+					float score = (sqrt(3) - (targetBg - rgbpx).norm()) / sqrt(3);
+					bgScore += score * score;
+
+					if (score >= 0.85)
+						bgAccurate++;
+
+					bgCount++;
+				}
+			}
+		}
   }
 
   bgScore /= (double)bgCount;
@@ -131,6 +153,12 @@ void MoonlightAttribute::preProcess()
   }
 
   _fullWhite = generateImage(temp);
+
+	// save mask
+	if (getGlobalSettings()->_useFGMask) {
+		_mask = getGlobalSettings()->_fgMask.rescaled(_canonicalWidth, _canonicalHeight);
+	}
+
   delete temp;
 }
 
