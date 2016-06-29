@@ -704,42 +704,6 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 	statsFile.close();
 }
 
-void SearchResultsContainer::writeMetadata(std::ofstream &statsFile, SearchMetadata &md)
-{
-	statsFile << "Cluster mode: " << md._mode << "\n";
-	statsFile << "Primary Clusters: " << md._primaryClusters << "\n";
-	statsFile << "Primary Area: " << md._primaryArea << "\n";
-	statsFile << "Primary Distance Metric: " << md._primaryMetric << "\n";
-	statsFile << "Primary Cluster Method: " << md._primaryMethod << "\n";
-	statsFile << "Secondary Clusters: " << md._secondaryClusters << "\n";
-	statsFile << "Secondary Area: " << md._secondaryArea << "\n";
-	statsFile << "Secondary Distance Metric: " << md._secondaryMetric << "\n";
-	statsFile << "Secondary Cluster Method: " << md._secondaryMethod << "\n";
-
-}
-
-map<int, map<int, double>> SearchResultsContainer::getPairwiseDist(function<double(SearchResultContainer*, SearchResultContainer*)> f,
-	double & maxDist, int & x, int & y)
-{
-	maxDist = 0;
-	map<int, map<int, double> > pairwiseDists;
-	for (int i = 0; i < _allResults.size(); i++) {
-		pairwiseDists[i][i] = 0;
-		for (int j = i + 1; j < _allResults.size(); j++) {
-			double dist = f(_allResults[i].get(), _allResults[j].get());
-			pairwiseDists[i][j] = dist;
-			pairwiseDists[j][i] = dist;
-			if (dist > maxDist) {
-				maxDist = dist;
-				x = i;
-				y = j;
-			}
-		}
-	}
-
-	return pairwiseDists;
-}
-
 void SearchResultsContainer::saveClusterStats(function<double(SearchResultContainer*, SearchResultContainer*)> f,
 	function<double(SearchResultContainer*, SearchResultContainer*)> f2, SearchMetadata md,
 	Array<shared_ptr<TopLevelCluster>>& centers1, Array<shared_ptr<TopLevelCluster>>& centers2)
@@ -886,7 +850,7 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 
 	// primary clustering stats
 	statsFile << "\nPrimary Cluster Stats\n";
-	statsFile << "ID\tCount\tDiam\tAvg.\n";
+	statsFile << "ID\tCount\tDiam\tAvg.\tVar\tsd\n";
 	for (auto& c : centers1) {
 		c->calculateStats(pairwiseDists);
 		statsFile << c->getClusterId() << "\t" << c->clusterSize() << "\t" << c->getDiameter() << "\t";
@@ -900,12 +864,20 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 			avg += dist;
 		}
 		avg /= c->clusterSize();
-		statsFile << avg << "\n";
+		statsFile << avg << "\t";
+
+		// standard deviation
+		double var = 0;
+		for (auto& r : c->getAllChildElements()) {
+			var += pow(avg - c1d[r->getSearchResult()->_sampleNo], 2);
+		}
+		var /= c->clusterSize();
+		statsFile << var << "\t" << sqrt(var) << "\n";
 	}
 
 	// primary clustering stats
 	statsFile << "\nSecondary Cluster Stats\n";
-	statsFile << "ID\tCount\tDiam\tAvg.\n";
+	statsFile << "ID\tCount\tDiam\tAvg.\tVar\tsd\n";
 	for (auto& c : centers2) {
 		c->calculateStats(pairwiseDists);
 		statsFile << c->getClusterId() << "\t" << c->clusterSize() << "\t" << c->getDiameter() << "\t";
@@ -919,7 +891,15 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 			avg += dist;
 		}
 		avg /= c->clusterSize();
-		statsFile << avg << "\n";
+		statsFile << avg << "\t";
+
+		// standard deviation
+		double var = 0;
+		for (auto& r : c->getAllChildElements()) {
+			var += pow(avg - c2d[r->getSearchResult()->_sampleNo], 2);
+		}
+		var /= c->clusterSize();
+		statsFile << var << "\t" << sqrt(var) << "\n";
 	}
 
 	// individual element stats
@@ -934,6 +914,9 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 			id, cid % centers1.size(), cid / centers1.size(), d1[id], d2[id], dpp[id], c1d[id], c2d[id]);
 		statsFile << fmt;
 	}
+
+	// per-pixel standard deviation
+	ppsd(statsFile);
 
 	statsFile.close();
 }
@@ -1025,4 +1008,99 @@ void SearchResultsContainer::clearClusters()
 	updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
 	resized();
 	repaint();
+}
+
+void SearchResultsContainer::writeMetadata(std::ofstream &statsFile, SearchMetadata &md)
+{
+	statsFile << "Cluster mode: " << md._mode << "\n";
+	statsFile << "Primary Clusters: " << md._primaryClusters << "\n";
+	statsFile << "Primary Area: " << md._primaryArea << "\n";
+	statsFile << "Primary Distance Metric: " << md._primaryMetric << "\n";
+	statsFile << "Primary Cluster Method: " << md._primaryMethod << "\n";
+	statsFile << "Secondary Clusters: " << md._secondaryClusters << "\n";
+	statsFile << "Secondary Area: " << md._secondaryArea << "\n";
+	statsFile << "Secondary Distance Metric: " << md._secondaryMetric << "\n";
+	statsFile << "Secondary Cluster Method: " << md._secondaryMethod << "\n";
+
+}
+
+map<int, map<int, double>> SearchResultsContainer::getPairwiseDist(function<double(SearchResultContainer*, SearchResultContainer*)> f,
+	double & maxDist, int & x, int & y)
+{
+	maxDist = 0;
+	map<int, map<int, double> > pairwiseDists;
+	for (int i = 0; i < _allResults.size(); i++) {
+		pairwiseDists[i][i] = 0;
+		for (int j = i + 1; j < _allResults.size(); j++) {
+			double dist = f(_allResults[i].get(), _allResults[j].get());
+			pairwiseDists[i][j] = dist;
+			pairwiseDists[j][i] = dist;
+			if (dist > maxDist) {
+				maxDist = dist;
+				x = i;
+				y = j;
+			}
+		}
+	}
+
+	return pairwiseDists;
+}
+
+void SearchResultsContainer::ppsd(ofstream & out)
+{
+	// computes the per-pixel standard deviation from the sample images
+	// this is fairly compute intensive
+	// works on a downscaled version of the image (64 x 64)
+
+	Eigen::VectorXd avg;
+	avg.resize(_allResults[0]->getFeatures().size());
+	avg.setZero();
+	for (auto& r : _allResults) {
+		avg += r->getFeatures();
+	}
+	avg /= _allResults.size();
+
+	// ok so we have the average, now time to compute distances
+	Eigen::VectorXd var;
+	var.resize(avg.size() / 3);
+	var.setZero();
+	for (auto& r : _allResults) {
+		Eigen::VectorXd feats = r->getFeatures();
+		for (int i = 0; i < avg.size() / 3; i++) {
+			Eigen::Vector3d avgPx(avg[i * 3], avg[i * 3 + 1], avg[i * 3 + 2]);
+			Eigen::Vector3d fPx(feats[i * 3], feats[i * 3 + 1], feats[i * 3 + 2]);
+			var[i] += (avgPx - fPx).squaredNorm();
+		}
+	}
+
+	Image mask = getGlobalSettings()->_fgMask.rescaled(64, 64);
+	out << "\nPer-pixel variance\n";
+	for (int i = 0; i < var.size(); i++) {
+		if (i % 64 == 0)
+			out << "\n";
+
+		char fmt[20];
+		if (mask.getPixelAt(i % 64, i / 64).getBrightness() > 0.5) {
+			sprintf_s(fmt, 20, "[f]%8.5f\t", var[i]);
+		}
+		else {
+			sprintf_s(fmt, 20, "[b]%8.5f\t", var[i]);
+		}
+		out << fmt;
+	}
+
+	out << "\nPer-pixel standard deviation\n";
+	for (int i = 0; i < var.size(); i++) {
+		if (i % 64 == 0)
+			out << "\n";
+
+		char fmt[20];
+		if (mask.getPixelAt(i % 64, i / 64).getBrightness() > 0.5) {
+			sprintf_s(fmt, 20, "[f]%8.5f\t", sqrt(var[i]));
+		}
+		else {
+			sprintf_s(fmt, 20, "[b]%8.5f\t", sqrt(var[i]));
+		}
+		out << fmt;
+	}
 }
