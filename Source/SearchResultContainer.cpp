@@ -81,7 +81,6 @@ SearchResultContainer::SearchResultContainer(SearchResult* result) : _result(res
   _clusterContents = new SearchResultList();
   _clusterContents->setWidth(820);
   _clusterContents->setCols(3);
-  _distToCenter = NAN;
 }
 
 SearchResultContainer::~SearchResultContainer()
@@ -95,21 +94,23 @@ SearchResultContainer::~SearchResultContainer()
 void SearchResultContainer::regenToolTip()
 {
   String tt = "";
-  bool first = true;
-  for (const auto& t : _result->_editHistory) {
-    if (!first) {
-      tt = tt + " -> " + t->_name;
-    }
-    else {
-      tt = tt + t->_name;
-      first = false;
-    }
-  }
 
-  tt = tt + " (" + String(-_result->_objFuncVal) + ")";
-  if (!isnan(_distToCenter)) {
-    tt = tt + "\nDistance to Cluster Center: " + String(_distToCenter);
-  }
+	//bool first = true;
+  //for (const auto& t : _result->_editHistory) {
+  //  if (!first) {
+  //    tt = tt + " -> " + t->_name;
+  //  }
+  //  else {
+  //    tt = tt + t->_name;
+  //    first = false;
+  //  }
+  //}
+
+  tt = tt + "(" + String(-_result->_objFuncVal) + ")";
+
+	for (auto& m : _metadata) {
+		tt = tt + "\n" + m.first + ": " + m.second;
+	}
 
   setTooltip(tt);
 }
@@ -579,17 +580,6 @@ void SearchResultContainer::sort(AttributeSorter * s)
   if (_clusterContents->size() > 1) {
     _clusterContents->sort(s);
   }
-}
-
-void SearchResultContainer::setClusterDistance(double dist)
-{
-  _distToCenter = dist;
-  regenToolTip();
-}
-
-double SearchResultContainer::getClusterDistance()
-{
-	return _distToCenter;
 }
 
 void SearchResultContainer::updateMask()

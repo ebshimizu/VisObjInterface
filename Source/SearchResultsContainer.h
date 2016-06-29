@@ -154,7 +154,7 @@ private:
 	map<int, map<int, double> > getPairwiseDist(function<double(SearchResultContainer*, SearchResultContainer*)> f, double& maxDist, int& x, int& y);
 
 	// calculates the per-pixel standard deviation
-	void ppsd(ofstream& out);
+	void ppsd(String prefix);
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SearchResultsContainer)
 };

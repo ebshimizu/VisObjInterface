@@ -324,12 +324,12 @@ void SearchResultsContainer::cluster()
 			// calculate distance to center
 			auto ce = c->getContainer();
 			for (auto& e : c->getAllChildElements()) {
-				e->setClusterDistance(f(e.get(), ce.get()));
+				e->_metadata["Distance to Center"] = String(f(e.get(), ce.get()));
 			}
 			for (auto& e : c->getChildElements()) {
-				e->setClusterDistance(f(e.get(), ce.get()));
+				e->_metadata["Distance to Center"] = String(f(e.get(), ce.get()));
 			}
-			c->getRepresentativeResult()->setClusterDistance(f(c->getRepresentativeResult().get(), ce.get()));
+			c->getRepresentativeResult()->_metadata["Distance to Center"] = String(f(c->getRepresentativeResult().get(), ce.get()));
 		}
 
 		// calculate cluster stats
@@ -401,7 +401,6 @@ void SearchResultsContainer::cluster()
 			int sampleId = r->getSearchResult()->_sampleNo;
 			int clusterId = elemToCluster2[sampleId] * numCols + elemToCluster1[sampleId];
 			_clusters[clusterId]->addToCluster(r);
-			r->setClusterDistance(NAN);
 		}
 
 		// make clusters visible and pick representative scenes
@@ -688,7 +687,7 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 		for (auto& r : c->getAllChildElements()) {
 			double dist = f(c->getContainer().get(), r.get());
 			avg += dist;
-			r->setClusterDistance(dist);
+			r->_metadata["Distance to Primary Center"] = String(dist);
 		}
 		avg /= c->clusterSize();
 		statsFile << avg << "\n";
@@ -698,7 +697,7 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 	statsFile << "\nElement Stats\n";
 	statsFile << "ID\tDist. to Center\n";
 	for (auto& r : _allResults) {
-		statsFile << r->getSearchResult()->_sampleNo << "\t" << r->getClusterDistance();
+		statsFile << r->getSearchResult()->_sampleNo << "\t" << r->_metadata["Distance to Primary Center"];
 	}
 
 	statsFile.close();
@@ -846,6 +845,14 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 		sprintf_s(fmt, 990, "%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\n",
 			f1d, f2d, ppd, avg1, avg2, ppavg, dev1, dev2, ppdev, pow(dev1, 0.5), pow(dev2, 0.5), pow(ppdev, 0.5));
 		statsFile << fmt;
+
+		c->getRepresentativeResult()->_metadata["Primary Diameter"] = String(f1d);
+		c->getRepresentativeResult()->_metadata["Secondary Diameter"] = String(f2d);
+		c->getRepresentativeResult()->_metadata["Primary Standard Deviation"] = String(sqrt(dev1));
+		c->getRepresentativeResult()->_metadata["Secondary Standard Deviation"] = String(sqrt(dev2));
+		c->getRepresentativeResult()->_metadata["Per-Pixel Diameter"] = String(ppd);
+		c->getRepresentativeResult()->_metadata["Per-Pixel Standard Deviation"] = String(sqrt(ppdev));
+		c->getRepresentativeResult()->regenToolTip();
 	}
 
 	// primary clustering stats
@@ -875,7 +882,7 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 		statsFile << var << "\t" << sqrt(var) << "\n";
 	}
 
-	// primary clustering stats
+	// secondary clustering stats
 	statsFile << "\nSecondary Cluster Stats\n";
 	statsFile << "ID\tCount\tDiam\tAvg.\tVar\tsd\n";
 	for (auto& c : centers2) {
@@ -913,10 +920,17 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 		sprintf_s(fmt, 990, "%8i%8i%8i\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\n",
 			id, cid % centers1.size(), cid / centers1.size(), d1[id], d2[id], dpp[id], c1d[id], c2d[id]);
 		statsFile << fmt;
+
+		r->_metadata["Distance to Primary Center"] = String(d1[id]);
+		r->_metadata["Distance to Secondary Center"] = String(d2[id]);
+		r->_metadata["Primary Distance to Group Center"] = String(c1d[id]);
+		r->_metadata["Secondary Distance to Group Center"] = String(c2d[id]);
+		r->_metadata["Per-Pixel Distance to Group Center"] = String(ppf(r.get(), _clusters[cid]->getContainer().get()));
+		r->regenToolTip();
 	}
 
 	// per-pixel standard deviation
-	ppsd(statsFile);
+	ppsd(filename);
 
 	statsFile.close();
 }
@@ -1046,7 +1060,7 @@ map<int, map<int, double>> SearchResultsContainer::getPairwiseDist(function<doub
 	return pairwiseDists;
 }
 
-void SearchResultsContainer::ppsd(ofstream & out)
+void SearchResultsContainer::ppsd(String prefix)
 {
 	// computes the per-pixel standard deviation from the sample images
 	// this is fairly compute intensive
@@ -1064,43 +1078,38 @@ void SearchResultsContainer::ppsd(ofstream & out)
 	Eigen::VectorXd var;
 	var.resize(avg.size() / 3);
 	var.setZero();
+
+	double maxVar = 0;
 	for (auto& r : _allResults) {
 		Eigen::VectorXd feats = r->getFeatures();
 		for (int i = 0; i < avg.size() / 3; i++) {
 			Eigen::Vector3d avgPx(avg[i * 3], avg[i * 3 + 1], avg[i * 3 + 2]);
 			Eigen::Vector3d fPx(feats[i * 3], feats[i * 3 + 1], feats[i * 3 + 2]);
-			var[i] += (avgPx - fPx).squaredNorm();
+			double v = (avgPx - fPx).squaredNorm();
+			var[i] += v;
+			if (v > maxVar) {
+				maxVar = v;
+			}
 		}
 	}
 
-	Image mask = getGlobalSettings()->_fgMask.rescaled(64, 64);
-	out << "\nPer-pixel variance\n";
+	Image varOut(Image::PixelFormat::RGB, 64, 64, true);
+	Image sdOut(Image::PixelFormat::RGB, 64, 64, true);
+
 	for (int i = 0; i < var.size(); i++) {
-		if (i % 64 == 0)
-			out << "\n";
-
-		char fmt[20];
-		if (mask.getPixelAt(i % 64, i / 64).getBrightness() > 0.5) {
-			sprintf_s(fmt, 20, "[f]%8.5f\t", var[i]);
-		}
-		else {
-			sprintf_s(fmt, 20, "[b]%8.5f\t", var[i]);
-		}
-		out << fmt;
+		int x = i % 64;
+		int y = i / 64;
+		uint8 varpx = (var[i] / maxVar) * 255;
+		uint8 sdpx = (sqrt(var[i]) / sqrt(maxVar)) * 255;
+		varOut.setPixelAt(x, y, Colour(varpx, varpx, varpx));
+		sdOut.setPixelAt(x, y, Colour(sdpx, sdpx, sdpx));
 	}
 
-	out << "\nPer-pixel standard deviation\n";
-	for (int i = 0; i < var.size(); i++) {
-		if (i % 64 == 0)
-			out << "\n";
-
-		char fmt[20];
-		if (mask.getPixelAt(i % 64, i / 64).getBrightness() > 0.5) {
-			sprintf_s(fmt, 20, "[f]%8.5f\t", sqrt(var[i]));
-		}
-		else {
-			sprintf_s(fmt, 20, "[b]%8.5f\t", sqrt(var[i]));
-		}
-		out << fmt;
-	}
+	File vimg(prefix + "_var.png");
+	File sdimg(prefix + "_sd.png");
+	FileOutputStream os(vimg);
+	FileOutputStream os2(sdimg);
+	PNGImageFormat pngif;
+	pngif.writeImageToStream(varOut, os);
+	pngif.writeImageToStream(sdOut, os2);
 }
