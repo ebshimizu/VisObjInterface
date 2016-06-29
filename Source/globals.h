@@ -152,7 +152,9 @@ enum DistanceMetric {
   L2LUMINANCE,      // Luminance L2 Norm
   L2PARAM,          // Parameter L2 Norm
   L2SOFTMAXPARAM,   // Softmax Parameter L2 Norm
-  ATTRDIST          // Attribute Function Distance
+  ATTRDIST,         // Attribute Function Distance
+	DIRPPAVGLAB,			// Directed Per-Pixel Average Lab Difference
+	DIRPPAVG					// Per-Pixel Average Gradient Direction Difference
 };
 
 enum FocusArea {

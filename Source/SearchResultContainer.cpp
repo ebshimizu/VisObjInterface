@@ -157,14 +157,15 @@ void SearchResultContainer::setImage(Image img)
     _render.desaturate();
 
   // create feature vector
-  Image scaled = _render.rescaled(64, 64);
-  _features.resize(64 * 64 * 3);
+  // consists of Lab image (0-2) and per-channel Lab gradient direction (3-5)
+	Image scaled = _render.rescaled(64, 64);
+  _features.resize(64 * 64 * 6);
 
 	updateMask();
 
   for (int y = 0; y < scaled.getHeight(); y++) {
     for (int x = 0; x < scaled.getWidth(); x++) {
-      int idx = (y * scaled.getWidth() + x) * 3;
+      int idx = (y * scaled.getWidth() + x) * 6;
       auto px = scaled.getPixelAt(x, y);
       Eigen::Vector3d Lab = rgbToLab(px.getRed() / 255.0, px.getGreen() / 255.0, px.getBlue() / 255.0);
 
@@ -173,6 +174,27 @@ void SearchResultContainer::setImage(Image img)
       _features[idx + 2] = Lab[2];
     }
   }
+
+	// here we also compute the per-channel gradient direction
+	for (int y = 0; y < scaled.getHeight(); y++) {
+		for (int x = 0; x < scaled.getWidth(); x++) {
+			int idx = (y * scaled.getWidth() + x) * 6;
+
+			// we'll set borders to 0
+			if (y == 0 || y == scaled.getHeight() - 1 || x == 0 || x == scaled.getWidth() - 1) {
+				_features[idx + 3] = 0;
+				_features[idx + 4] = 0;
+				_features[idx + 5] = 0;
+				continue;
+			}
+
+			// compute per-pixel gradient direction
+		  // *100 for scaling to match Lab range
+			_features[idx + 3] = 100 * atan2(_features[idx + scaled.getWidth()] - _features[idx - scaled.getWidth()], _features[idx + 1] - _features[idx - 1]);
+			_features[idx + 4] = 100 * atan2(_features[idx + 1 + scaled.getWidth()] - _features[idx + 1 - scaled.getWidth()], _features[idx + 1 + 1] - _features[idx + 1 - 1]);
+			_features[idx + 5] = 100 * atan2(_features[idx + 2 + scaled.getWidth()] - _features[idx + 2 - scaled.getWidth()], _features[idx + 2 + 1] - _features[idx + 2 - 1]);
+		}
+	}
 }
 
 void SearchResultContainer::clearSearchResult()
@@ -336,6 +358,10 @@ double SearchResultContainer::dist(SearchResultContainer * y, DistanceMetric met
     return l2LuminanceDist(y, overrideMask, invert);
   case ATTRDIST:
     return attrDist(y);
+	case DIRPPAVGLAB:
+		return directedAvgPixDist(y, overrideMask, invert);
+	case DIRPPAVG:
+		return directedOnlyAvgPixDist(y, overrideMask, invert);
   default:
     return avgPixDist(y, overrideMask, invert);
   }
@@ -347,9 +373,9 @@ double SearchResultContainer::avgPixDist(SearchResultContainer * y, bool overrid
   int count = 0;
   Eigen::VectorXd fy = y->getFeatures();
 
-  // iterate through pixels in groups of 3
-  for (int i = 0; i < _features.size() / 3; i++) {
-    int idx = i * 3;
+  // iterate through pixels in groups of 6
+  for (int i = 0; i < _features.size() / 6; i++) {
+    int idx = i * 6;
 
     double maskFactor = 1;
     if (!overrideMask && getGlobalSettings()->_useFGMask) {
@@ -378,9 +404,9 @@ double SearchResultContainer::l2dist(SearchResultContainer * y, bool overrideMas
   double sum = 0;
   Eigen::VectorXd fy = y->getFeatures();
 
-  // iterate through pixels in groups of 3
-  for (int i = 0; i < _features.size() / 3; i++) {
-    int idx = i * 3;
+  // iterate through pixels in groups of 6
+  for (int i = 0; i < _features.size() / 6; i++) {
+    int idx = i * 6;
 
     double maskFactor = 1;
     if (!overrideMask && getGlobalSettings()->_useFGMask) {
@@ -403,9 +429,9 @@ double SearchResultContainer::maxPixDist(SearchResultContainer * y, bool overrid
   double maxDist = 0;
   Eigen::VectorXd fy = y->getFeatures();
 
-  // iterate through pixels in groups of 3
-  for (int i = 0; i < _features.size() / 3; i++) {
-    int idx = i * 3;
+  // iterate through pixels in groups of 6
+  for (int i = 0; i < _features.size() / 6; i++) {
+    int idx = i * 6;
 
     double maskFactor = 1;
     if (!overrideMask && getGlobalSettings()->_useFGMask) {
@@ -431,9 +457,9 @@ double SearchResultContainer::pctPixDist(SearchResultContainer * y, bool overrid
   Array<double> dists;
   Eigen::VectorXd fy = y->getFeatures();
 
-  // iterate through pixels in groups of 3
-  for (int i = 0; i < _features.size() / 3; i++) {
-    int idx = i * 3;
+  // iterate through pixels in groups of 6
+  for (int i = 0; i < _features.size() / 6; i++) {
+    int idx = i * 6;
 
     double maskFactor = 1;
     if (!overrideMask && getGlobalSettings()->_useFGMask) {
@@ -555,7 +581,7 @@ double SearchResultContainer::l2LuminanceDist(SearchResultContainer * y, bool ov
   double sum = 0;
   Eigen::VectorXd yf = y->getFeatures();
 
-  for (int i = 0; i < _features.size() / 3; i++) {
+  for (int i = 0; i < _features.size() / 6; i++) {
     double maskFactor = 1;
     if (!overrideMask && getGlobalSettings()->_useFGMask) {
       maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
@@ -564,7 +590,7 @@ double SearchResultContainer::l2LuminanceDist(SearchResultContainer * y, bool ov
         maskFactor = 1 - maskFactor;
     }
 
-    sum += maskFactor * pow(_features[i * 3] - yf[i * 3], 2);
+    sum += maskFactor * pow(_features[i * 6] - yf[i * 6], 2);
   }
 
   return sqrt(sum);
@@ -573,6 +599,73 @@ double SearchResultContainer::l2LuminanceDist(SearchResultContainer * y, bool ov
 double SearchResultContainer::attrDist(SearchResultContainer * y)
 {
   return abs(_result->_objFuncVal - y->getSearchResult()->_objFuncVal);
+}
+
+double SearchResultContainer::directedAvgPixDist(SearchResultContainer * y, bool overrideMask, bool invert)
+{
+	double sum = 0;
+	int count = 0;
+	Eigen::VectorXd fy = y->getFeatures();
+
+	// iterate through pixels in groups of 6
+	for (int i = 0; i < _features.size() / 6; i++) {
+		int idx = i * 6;
+
+		double maskFactor = 1;
+		if (!overrideMask && getGlobalSettings()->_useFGMask) {
+			maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+
+			if (invert)
+				maskFactor = 1 - maskFactor;
+
+			if (maskFactor > 0)
+				count++;
+		}
+		else {
+			count++;
+		}
+
+		sum += maskFactor * sqrt(pow(fy[idx] - _features[idx], 2) +
+			pow(fy[idx + 1] - _features[idx + 1], 2) +
+			pow(fy[idx + 2] - _features[idx + 2], 2) +
+			pow(fy[idx + 3] - _features[idx + 3], 2) +
+			pow(fy[idx + 4] - _features[idx + 4], 2) +
+			pow(fy[idx + 5] - _features[idx + 5], 2));
+	}
+
+	return sum / count;
+}
+
+double SearchResultContainer::directedOnlyAvgPixDist(SearchResultContainer * y, bool overrideMask, bool invert)
+{
+	double sum = 0;
+	int count = 0;
+	Eigen::VectorXd fy = y->getFeatures();
+
+	// iterate through pixels in groups of 6
+	for (int i = 0; i < _features.size() / 6; i++) {
+		int idx = i * 6;
+
+		double maskFactor = 1;
+		if (!overrideMask && getGlobalSettings()->_useFGMask) {
+			maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+
+			if (invert)
+				maskFactor = 1 - maskFactor;
+
+			if (maskFactor > 0)
+				count++;
+		}
+		else {
+			count++;
+		}
+
+		sum += maskFactor * sqrt(pow(fy[idx + 3] - _features[idx + 3], 2) +
+			pow(fy[idx + 4] - _features[idx + 4], 2) +
+			pow(fy[idx + 5] - _features[idx + 5], 2));
+	}
+
+	return sum / count;
 }
 
 void SearchResultContainer::sort(AttributeSorter * s)

@@ -374,12 +374,12 @@ GlobalSettings::GlobalSettings()
   _standardMCMCIters = 5.0e3;
   _numPrimaryClusters = 5;
   _primaryClusterMethod = DIVISIVE; // "K-Means";
-  _primaryClusterMetric = PPAVGLAB; // "Per-Pixel Average Lab Difference";
-  _primaryFocusArea = FOREGROUND; // "All";
+  _primaryClusterMetric = DIRPPAVGLAB; // "Per-Pixel Average Lab Difference";
+  _primaryFocusArea = ALL_IMAGE; // "All";
   _numSecondaryClusters = 5;
   _secondaryClusterMethod = DIVISIVE; // "K-Means";
-  _secondaryClusterMetric = PPAVGLAB; // "Per-Pixel Average Lab Difference";
-  _secondaryFocusArea = BACKGROUND; // "All";
+  _secondaryClusterMetric = DIRPPAVG; // "Per-Pixel Average Lab Difference";
+  _secondaryFocusArea = ALL_IMAGE; // "All";
   _spectralBandwidth = 2;
   _useFGMask = false;
   _primaryDivisiveThreshold = 7.5;

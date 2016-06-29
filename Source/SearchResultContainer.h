@@ -123,6 +123,12 @@ public:
   // Distance in the attribute function space
   double attrDist(SearchResultContainer* y);
 
+	// Lab + Gradient average per-pixel difference
+	double directedAvgPixDist(SearchResultContainer* y, bool overrideMask = false, bool invert = false);
+
+	// Gradient direction average per-pixel difference
+	double directedOnlyAvgPixDist(SearchResultContainer* y, bool overrideMask = false, bool invert = false);
+
   // sort cluster, if it exists.
   void sort(AttributeSorter* s);
 

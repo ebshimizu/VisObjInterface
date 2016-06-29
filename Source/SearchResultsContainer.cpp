@@ -1076,15 +1076,15 @@ void SearchResultsContainer::ppsd(String prefix)
 
 	// ok so we have the average, now time to compute distances
 	Eigen::VectorXd var;
-	var.resize(avg.size() / 3);
+	var.resize(avg.size() / 6);
 	var.setZero();
 
 	double maxVar = 0;
 	for (auto& r : _allResults) {
 		Eigen::VectorXd feats = r->getFeatures();
-		for (int i = 0; i < avg.size() / 3; i++) {
-			Eigen::Vector3d avgPx(avg[i * 3], avg[i * 3 + 1], avg[i * 3 + 2]);
-			Eigen::Vector3d fPx(feats[i * 3], feats[i * 3 + 1], feats[i * 3 + 2]);
+		for (int i = 0; i < avg.size() / 6; i++) {
+			Eigen::Vector3d avgPx(avg[i * 6], avg[i * 6 + 1], avg[i * 6 + 2]);
+			Eigen::Vector3d fPx(feats[i * 6], feats[i * 6 + 1], feats[i * 6 + 2]);
 			double v = (avgPx - fPx).squaredNorm();
 			var[i] += v;
 			if (v > maxVar) {
