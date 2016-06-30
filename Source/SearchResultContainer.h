@@ -54,6 +54,7 @@ public:
 
   // Sets the image for this component.
   void setImage(Image img);
+	void computeGradient();
   Image getImage() { return _render; }
 
   SearchResult* getSearchResult() { return _result; }

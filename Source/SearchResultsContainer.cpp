@@ -759,11 +759,7 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 
 	// write other stats
 	ofstream statsFile(filename + "_stats.txt", ios::trunc);
-	map<int, double> d1;
-	map<int, double> d2;
-	map<int, double> dpp;
-	map<int, double> c1d;
-	map<int, double> c2d;
+	map<int, double> d1, d2, dpp, c1d, c2d, avgd1, avgd2, sdd1, sdd2;
 
 	writeMetadata(statsFile, md);
 	statsFile << "Data Set Diameter (primary axis): " << maxDist << " (" << x << "," << y << ")\n";
@@ -788,7 +784,6 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 		double f2d = c->getDiameter();
 		c->calculateStats(ppPairwiseDist);
 		double ppd = c->getDiameter();
-
 
 		// ok so here we have to actually compute the cluster centers cause they
 		// are not computed in the pairwise grid mode
@@ -825,6 +820,8 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 		}
 		avg1 /= c->clusterSize();
 		avg2 /= c->clusterSize();
+		avgd1[c->getClusterId()] = avg1;
+		avgd2[c->getClusterId()] = avg2;
 		ppavg /= c->clusterSize();
 
 		// standard deviation
@@ -839,25 +836,20 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 		}
 		dev1 /= c->clusterSize();
 		dev2 /= c->clusterSize();
+		sdd1[c->getClusterId()] = sqrt(dev1);
+		sdd2[c->getClusterId()] = sqrt(dev2);
 		ppdev /= c->clusterSize();
 
 		char fmt[1000];
 		sprintf_s(fmt, 990, "%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\n",
 			f1d, f2d, ppd, avg1, avg2, ppavg, dev1, dev2, ppdev, pow(dev1, 0.5), pow(dev2, 0.5), pow(ppdev, 0.5));
 		statsFile << fmt;
-
-		c->getRepresentativeResult()->_metadata["Primary Diameter"] = String(f1d);
-		c->getRepresentativeResult()->_metadata["Secondary Diameter"] = String(f2d);
-		c->getRepresentativeResult()->_metadata["Primary Standard Deviation"] = String(sqrt(dev1));
-		c->getRepresentativeResult()->_metadata["Secondary Standard Deviation"] = String(sqrt(dev2));
-		c->getRepresentativeResult()->_metadata["Per-Pixel Diameter"] = String(ppd);
-		c->getRepresentativeResult()->_metadata["Per-Pixel Standard Deviation"] = String(sqrt(ppdev));
-		c->getRepresentativeResult()->regenToolTip();
 	}
 
 	// primary clustering stats
 	statsFile << "\nPrimary Cluster Stats\n";
 	statsFile << "ID\tCount\tDiam\tAvg.\tVar\tsd\n";
+	map<int, double> c1avg, c1sd;
 	for (auto& c : centers1) {
 		c->calculateStats(pairwiseDists);
 		statsFile << c->getClusterId() << "\t" << c->clusterSize() << "\t" << c->getDiameter() << "\t";
@@ -871,6 +863,7 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 			avg += dist;
 		}
 		avg /= c->clusterSize();
+		c1avg[c->getClusterId()] = avg;
 		statsFile << avg << "\t";
 
 		// standard deviation
@@ -879,12 +872,14 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 			var += pow(avg - c1d[r->getSearchResult()->_sampleNo], 2);
 		}
 		var /= c->clusterSize();
+		c1sd[c->getClusterId()] = sqrt(var);
 		statsFile << var << "\t" << sqrt(var) << "\n";
 	}
 
 	// secondary clustering stats
 	statsFile << "\nSecondary Cluster Stats\n";
 	statsFile << "ID\tCount\tDiam\tAvg.\tVar\tsd\n";
+	map<int, double> c2avg, c2sd;
 	for (auto& c : centers2) {
 		c->calculateStats(pairwiseDists);
 		statsFile << c->getClusterId() << "\t" << c->clusterSize() << "\t" << c->getDiameter() << "\t";
@@ -898,6 +893,7 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 			avg += dist;
 		}
 		avg /= c->clusterSize();
+		c2avg[c->getClusterId()] = avg;
 		statsFile << avg << "\t";
 
 		// standard deviation
@@ -906,19 +902,28 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 			var += pow(avg - c2d[r->getSearchResult()->_sampleNo], 2);
 		}
 		var /= c->clusterSize();
+		c2sd[c->getClusterId()] = sqrt(var);
 		statsFile << var << "\t" << sqrt(var) << "\n";
 	}
 
 	// individual element stats
 	statsFile << "\nElement Stats\n";
-	statsFile << "ID\tPrimary\tSecond\t\tf1 to C\t\tf2 to C\t\tpp to C\t\tDist c1\t\tDist c2\n";
+	statsFile << "ID\tPrimary\tSecond\t\tf1 to C\t\tf2 to C\t\tpp to C\t\tDist c1\t\tDist c2\t\tCf1 sig\t\tCf2 sig\t\tf1 sigm\t\tf2 sigm\n";
 	for (auto& r : _allResults) {
 		int id = r->getSearchResult()->_sampleNo;
 		int cid = r->getSearchResult()->_cluster;
-		
+		int c1id = cid % centers1.size();
+		int c2id = cid / centers1.size();
+
+		// calculate how many sds element is from various things
+		double csdf1 = abs(d1[id] - sdd1[cid]) / avgd1[cid];
+		double csdf2 = abs(d2[id] - sdd2[cid]) / avgd2[cid];
+		double c1sds = abs(c1d[id] - c1avg[c1id]) / c1sd[c1id];
+		double c2sds = abs(c2d[id] - c2avg[c2id]) / c2sd[c2id];
+
 		char fmt[1000];
-		sprintf_s(fmt, 990, "%8i%8i%8i\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\n",
-			id, cid % centers1.size(), cid / centers1.size(), d1[id], d2[id], dpp[id], c1d[id], c2d[id]);
+		sprintf_s(fmt, 990, "%8i%8i%8i\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f",
+			id, c1id, c2id, d1[id], d2[id], dpp[id], c1d[id], c2d[id], csdf1, csdf2, c1sds, c2sds);
 		statsFile << fmt;
 
 		r->_metadata["Distance to Primary Center"] = String(d1[id]);
@@ -926,11 +931,46 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 		r->_metadata["Primary Distance to Group Center"] = String(c1d[id]);
 		r->_metadata["Secondary Distance to Group Center"] = String(c2d[id]);
 		r->_metadata["Per-Pixel Distance to Group Center"] = String(ppf(r.get(), _clusters[cid]->getContainer().get()));
+
+		if (c1sds >= 2.0 || c2sds >= 2.0) {
+			// flag and move
+			r->_metadata["Outlier"] = "True";
+
+			// move element to different cluster based on per-pixel difference
+			// but only move if the element is not the only thing in its cluster
+			if (_clusters[cid]->numElements() > 1) {
+				double min = FLT_MAX;
+				int minId = 0;
+				for (int i = 0; i < _allResults.size(); i++) {
+					if (i == id)
+						continue;
+
+					if (pairwiseDists[id][i] < min) {
+						minId = i;
+						min = pairwiseDists[id][i];
+					}
+				}
+
+				// remove from old cluster
+				_clusters[cid]->removeFromCluster(r);
+				r->getSearchResult()->_cluster = _allResults[minId]->getSearchResult()->_cluster;
+				_clusters[r->getSearchResult()->_cluster]->addToCluster(r);
+				statsFile << "\tMOVED TO " << r->getSearchResult()->_cluster;
+			}
+		}
+
+		statsFile << "\n";
 		r->regenToolTip();
 	}
 
 	// per-pixel standard deviation
 	ppsd(filename);
+
+	// reselect representative result
+	for (auto& c : _clusters) {
+		c->setRepresentativeResult();
+	}
+
 
 	statsFile.close();
 }

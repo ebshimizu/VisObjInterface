@@ -34,6 +34,9 @@ public:
   // adds and element to this cluster
   void addToCluster(shared_ptr<SearchResultContainer> r);
 
+	// removes the specified element from this cluster
+	void removeFromCluster(shared_ptr<SearchResultContainer> r);
+
   // total number of elements in the cluster.
   // includes subclustered elements
   int numElements();

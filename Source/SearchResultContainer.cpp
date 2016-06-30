@@ -175,13 +175,19 @@ void SearchResultContainer::setImage(Image img)
     }
   }
 
-	// here we also compute the per-channel gradient direction
-	for (int y = 0; y < scaled.getHeight(); y++) {
-		for (int x = 0; x < scaled.getWidth(); x++) {
-			int idx = (y * scaled.getWidth() + x) * 6;
+	computeGradient();
+}
+
+void SearchResultContainer::computeGradient()
+{
+	int dim = 64;
+	// compute luminance gradient (x, y, magnitude)
+	for (int y = 0; y < dim; y++) {
+		for (int x = 0; x < dim; x++) {
+			int idx = (y * dim + x) * 6;
 
 			// we'll set borders to 0
-			if (y == 0 || y == scaled.getHeight() - 1 || x == 0 || x == scaled.getWidth() - 1) {
+			if (y == 0 || y == dim - 1 || x == 0 || x == dim - 1) {
 				_features[idx + 3] = 0;
 				_features[idx + 4] = 0;
 				_features[idx + 5] = 0;
@@ -189,10 +195,11 @@ void SearchResultContainer::setImage(Image img)
 			}
 
 			// compute per-pixel gradient direction
-		  // *100 for scaling to match Lab range
-			_features[idx + 3] = 100 * atan2(_features[idx + scaled.getWidth()] - _features[idx - scaled.getWidth()], _features[idx + 1] - _features[idx - 1]);
-			_features[idx + 4] = 100 * atan2(_features[idx + 1 + scaled.getWidth()] - _features[idx + 1 - scaled.getWidth()], _features[idx + 1 + 1] - _features[idx + 1 - 1]);
-			_features[idx + 5] = 100 * atan2(_features[idx + 2 + scaled.getWidth()] - _features[idx + 2 - scaled.getWidth()], _features[idx + 2 + 1] - _features[idx + 2 - 1]);
+			// *100 for scaling to match Lab range
+			Eigen::Vector2d grad(_features[idx + dim * 6] - _features[idx - dim * 6], _features[idx + 6] - _features[idx - 6]);
+			_features[idx + 3] = grad[0];
+			_features[idx + 4] = grad[1];
+			_features[idx + 5] = 0;// grad.norm();
 		}
 	}
 }

@@ -65,6 +65,13 @@ void TopLevelCluster::addToCluster(shared_ptr<SearchResultContainer> r)
   _statsUpdated = false;
 }
 
+void TopLevelCluster::removeFromCluster(shared_ptr<SearchResultContainer> r)
+{
+	int id = _contents->getAllResults().indexOf(r);
+
+	_contents->removeResult(id);
+}
+
 int TopLevelCluster::numElements()
 {
   return _contents->size();
@@ -269,8 +276,8 @@ void TopLevelCluster::calculateStats(map<int, map<int, double> >& distanceMatrix
 
   // retrieve pairwise distances from matrix, find max
   double max = 0;
-  int x;
-  int y;
+  int x = 0;
+  int y = 0;
   for (int i = 0; i < elems.size(); i++) {
     int r = elems[i]->getSearchResult()->_sampleNo;
     for (int j = i + 1; j < elems.size(); j++) {
