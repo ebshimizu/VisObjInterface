@@ -1084,15 +1084,17 @@ map<int, map<int, double>> SearchResultsContainer::getPairwiseDist(function<doub
 	maxDist = 0;
 	map<int, map<int, double> > pairwiseDists;
 	for (int i = 0; i < _allResults.size(); i++) {
-		pairwiseDists[i][i] = 0;
+		int xid = _allResults[i]->getSearchResult()->_sampleNo;
+		pairwiseDists[xid][xid] = 0;
 		for (int j = i + 1; j < _allResults.size(); j++) {
+			int yid = _allResults[j]->getSearchResult()->_sampleNo;
 			double dist = f(_allResults[i].get(), _allResults[j].get());
-			pairwiseDists[i][j] = dist;
-			pairwiseDists[j][i] = dist;
+			pairwiseDists[xid][yid] = dist;
+			pairwiseDists[yid][xid] = dist;
 			if (dist > maxDist) {
 				maxDist = dist;
-				x = i;
-				y = j;
+				x = xid;
+				y = yid;
 			}
 		}
 	}
