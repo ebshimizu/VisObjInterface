@@ -942,12 +942,13 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 				double min = FLT_MAX;
 				int minId = 0;
 				for (int i = 0; i < _allResults.size(); i++) {
-					if (i == id)
+					int otherId = _allResults[i]->getSearchResult()->_sampleNo;
+					if (id == otherId)
 						continue;
 
-					if (pairwiseDists[id][i] < min) {
+					if (ppPairwiseDist[id][otherId] < min) {
 						minId = i;
-						min = pairwiseDists[id][i];
+						min = ppPairwiseDist[id][otherId];
 					}
 				}
 

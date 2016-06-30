@@ -120,10 +120,13 @@ void TopLevelCluster::setRepresentativeResult()
   for (int i = 0; i < _contents->size(); i++) {
     SearchResult* e = (*_contents)[i]->getSearchResult();
 
-    if (e->_objFuncVal < minVal) {
-      minVal = e->_objFuncVal;
-      best = (*_contents)[i];
-    }
+		// outliers are not allowed to be representative samples
+		if ((*_contents)[i]->_metadata.count("Outlier") == 0) {
+			if (e->_objFuncVal < minVal) {
+				minVal = e->_objFuncVal;
+				best = (*_contents)[i];
+			}
+		}
   }
 
   // copy best
