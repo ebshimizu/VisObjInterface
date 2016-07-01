@@ -375,11 +375,11 @@ GlobalSettings::GlobalSettings()
   _numPrimaryClusters = 5;
   _primaryClusterMethod = DIVISIVE; // "K-Means";
   _primaryClusterMetric = DIRPPAVGLAB; // "Per-Pixel Average Lab Difference";
-  _primaryFocusArea = ALL_IMAGE; // "All";
+  _primaryFocusArea = FOREGROUND; // "All";
   _numSecondaryClusters = 5;
   _secondaryClusterMethod = DIVISIVE; // "K-Means";
-  _secondaryClusterMetric = DIRPPAVG; // "Per-Pixel Average Lab Difference";
-  _secondaryFocusArea = ALL_IMAGE; // "All";
+  _secondaryClusterMetric = DIRPPAVGLAB; // "Per-Pixel Average Lab Difference";
+  _secondaryFocusArea = BACKGROUND; // "All";
   _spectralBandwidth = 2;
   _useFGMask = false;
   _primaryDivisiveThreshold = 7.5;

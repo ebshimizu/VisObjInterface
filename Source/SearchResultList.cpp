@@ -104,8 +104,8 @@ void SearchResultList::paint(Graphics & g)
 
 void SearchResultList::setWidth(int width)
 {
-  int elemHeight = (width / _cols) * _heightRatio;
-  int rows = ceil((float)_contents.size() / _cols);
+  int elemHeight = (int) ((width / _cols) * _heightRatio);
+  int rows = (int)ceil((float)_contents.size() / _cols);
   int height = rows * elemHeight;
   setBounds(0, 0, width, height);
   resized();

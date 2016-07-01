@@ -333,7 +333,7 @@ void SearchResultsContainer::cluster()
 		}
 
 		// calculate cluster stats
-		calculateClusterStats();
+		//calculateClusterStats();
 
 		saveClusterStats(f, currentState);
 	}
@@ -403,7 +403,8 @@ void SearchResultsContainer::cluster()
 			_clusters[clusterId]->addToCluster(r);
 		}
 
-		// make clusters visible and pick representative scenes
+		// make clusters visible and pick representative scene, and then
+		// remove all elements from that cluster.
 		for (auto& c : _clusters) {
 			addAndMakeVisible(c.get());
 			c->setRepresentativeResult();
@@ -971,7 +972,6 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 	for (auto& c : _clusters) {
 		c->setRepresentativeResult();
 	}
-
 
 	statsFile.close();
 }
