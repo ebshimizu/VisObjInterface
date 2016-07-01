@@ -45,6 +45,17 @@ MainContentComponent::MainContentComponent()
   if (getGlobalSettings()->_commandLineArgs.count("preload") > 0) {
     openRig(getGlobalSettings()->_commandLineArgs["preload"]);
   }
+
+	// create log directories if they don't exist
+	File clusterFolder(getGlobalSettings()->_logRootDir + "/clusters/");
+	if (!clusterFolder.exists()) {
+		clusterFolder.createDirectory();
+	}
+
+	File logFolder(getGlobalSettings()->_logRootDir + "/traces/");
+	if (!logFolder.exists()) {
+		logFolder.createDirectory();
+	}
 }
 
 MainContentComponent::~MainContentComponent()

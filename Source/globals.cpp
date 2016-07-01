@@ -363,7 +363,7 @@ GlobalSettings::GlobalSettings()
   _showThumbnailImg = false;
   _T = 1;
   _exportTraces = false;
-  _logRootDir = "C:/Users/eshimizu/Documents/AttributesInterface/logs";
+  _logRootDir = ".";
   _clusterCounter = 0;
   _meanShiftEps = 1e-4;
   _meanShiftBandwidth = 7;
