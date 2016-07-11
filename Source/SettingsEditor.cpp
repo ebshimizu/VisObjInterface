@@ -325,6 +325,51 @@ void SettingsChoice::setIndex(int newIndex)
 }
 
 
+SettingsButton::SettingsButton(string name) : ButtonPropertyComponent(name, false)
+{
+}
+
+SettingsButton::~SettingsButton()
+{
+}
+
+void SettingsButton::buttonClicked()
+{
+	if (getName() == "Log Directory") {
+		FileChooser fc("Select Log Directory", File::getCurrentWorkingDirectory(),
+			"", true);
+
+		if (fc.browseForDirectory()) {
+			File selected = fc.getResult();
+			String logPath = selected.getFullPathName();
+			getGlobalSettings()->_logRootDir = logPath.toStdString();
+
+			File clusterFolder;
+			clusterFolder = clusterFolder.getCurrentWorkingDirectory().getChildFile(String(getGlobalSettings()->_logRootDir + "/clusters/"));
+			if (!clusterFolder.exists()) {
+				clusterFolder.createDirectory();
+			}
+
+			File logFolder;
+			logFolder = logFolder.getCurrentWorkingDirectory().getChildFile(String(getGlobalSettings()->_logRootDir + "/traces/"));
+			if (!logFolder.exists()) {
+				logFolder.createDirectory();
+			}
+
+			refresh();
+		}
+	}
+}
+
+String SettingsButton::getButtonText() const
+{
+	if (getName() == "Log Directory") {
+		return getGlobalSettings()->_logRootDir;
+	}
+
+	return "";
+}
+
 //==============================================================================
 SettingsEditor::SettingsEditor()
 {
@@ -398,6 +443,10 @@ SettingsEditor::SettingsEditor()
 #endif
 
   _settings.addSection("Render", renderComponents);
+
+	Array<PropertyComponent*> otherComponents;
+	otherComponents.add(new SettingsButton("Log Directory"));
+	_settings.addSection("Other", otherComponents);
 
   addAndMakeVisible(_settings);
 }

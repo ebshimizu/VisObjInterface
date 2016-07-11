@@ -47,12 +47,14 @@ MainContentComponent::MainContentComponent()
   }
 
 	// create log directories if they don't exist
-	File clusterFolder(getGlobalSettings()->_logRootDir + "/clusters/");
+	File clusterFolder;
+	clusterFolder = clusterFolder.getCurrentWorkingDirectory().getChildFile(String(getGlobalSettings()->_logRootDir + "/clusters/"));
 	if (!clusterFolder.exists()) {
 		clusterFolder.createDirectory();
 	}
 
-	File logFolder(getGlobalSettings()->_logRootDir + "/traces/");
+	File logFolder;
+	logFolder = logFolder.getCurrentWorkingDirectory().getChildFile(String(getGlobalSettings()->_logRootDir + "/traces/"));
 	if (!logFolder.exists()) {
 		logFolder.createDirectory();
 	}

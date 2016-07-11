@@ -52,6 +52,16 @@ public:
   virtual void setIndex(int newIndex) override;
 };
 
+class SettingsButton : public ButtonPropertyComponent
+{
+public:
+	SettingsButton(string name);
+	~SettingsButton();
+
+	virtual void buttonClicked() override;
+	virtual String getButtonText() const override;
+};
+
 //==============================================================================
 /*
 */
