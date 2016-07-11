@@ -132,6 +132,18 @@ void HistoryPanel::clearRedo()
   _redo.clear();
 }
 
+void HistoryPanel::clearAllHistory()
+{
+	for (auto& h : _history) {
+		delete h;
+	}
+	_history.clear();
+
+	for (auto& h : _redo) {
+		delete h;
+	}
+	_redo.clear();
+}
 
 void HistoryPanel::setWidth(int width)
 {

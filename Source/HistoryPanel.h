@@ -40,6 +40,8 @@ public:
   void deleteRedoItem(int idx = -1);
   void clearRedo();
 
+	void clearAllHistory();
+
   void setWidth(int width);
 
 private:

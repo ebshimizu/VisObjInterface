@@ -148,6 +148,7 @@ void SearchResultsViewer::showNewResults()
 void SearchResultsViewer::clearContainer()
 {
   _results->clear();
+	_history->clearAllHistory();
 }
 
 bool SearchResultsViewer::isFull()
