@@ -1148,8 +1148,11 @@ void SearchResultsContainer::ppsd(String prefix)
 		sdOut.setPixelAt(x, y, Colour(sdpx, sdpx, sdpx));
 	}
 
-	File vimg(prefix + "_var.png");
-	File sdimg(prefix + "_sd.png");
+	File vimg;
+	vimg = vimg.getCurrentWorkingDirectory().getChildFile(String(prefix + "_var.png"));
+	File sdimg;
+	sdimg = sdimg.getCurrentWorkingDirectory().getChildFile(String(prefix + "_sd.png"));
+
 	FileOutputStream os(vimg);
 	FileOutputStream os2(sdimg);
 	PNGImageFormat pngif;

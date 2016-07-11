@@ -286,3 +286,7 @@ dataviz/bh_tsne.exe
 Builds/VisualStudio2015/AttributesInterface.VC.db
 Builds/VisualStudio2015NoArnold/AttributesInterface.VC.db
 logs/*
+Builds/VisualStudio2015NoArnold/clusters/*
+Builds/VisualStudio2015NoArnold/traces/*
+Builds/VisualStudio2015/clusters/*
+Builds/VisualStudio2015/traces/*
