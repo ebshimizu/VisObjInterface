@@ -170,6 +170,7 @@
     <ClCompile Include="..\..\Source\SearchResultContainer.cpp"/>
     <ClCompile Include="..\..\Source\AttributeSorting.cpp"/>
     <ClCompile Include="..\..\Source\SearchResultsViewer.cpp"/>
+    <ClCompile Include="..\..\Source\ColoredTextButton.cpp"/>
     <ClCompile Include="..\..\Source\ParamControls.cpp"/>
     <ClCompile Include="..\..\Source\globals.cpp"/>
     <ClCompile Include="..\..\Source\MainComponent.cpp"/>
@@ -1745,6 +1746,7 @@
     <ClInclude Include="..\..\Source\SearchResultContainer.h"/>
     <ClInclude Include="..\..\Source\AttributeSorting.h"/>
     <ClInclude Include="..\..\Source\SearchResultsViewer.h"/>
+    <ClInclude Include="..\..\Source\ColoredTextButton.h"/>
     <ClInclude Include="..\..\Source\ParamControls.h"/>
     <ClInclude Include="..\..\Source\globals.h"/>
     <ClInclude Include="..\..\Source\MainComponent.h"/>

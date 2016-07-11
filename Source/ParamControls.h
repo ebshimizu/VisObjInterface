@@ -13,6 +13,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "globals.h"
+#include "ColoredTextButton.h"
 
 class FloatPropertySlider : public SliderPropertyComponent
 {
@@ -52,7 +53,7 @@ private:
   string _param;
 };
 
-class ColorPropertyPicker : public ButtonPropertyComponent, public ChangeListener
+class ColorPropertyPicker : public PropertyComponent, public ChangeListener, public Button::Listener
 {
 public:
   ColorPropertyPicker(string id, string param, LumiverseColor* val);
@@ -62,13 +63,14 @@ public:
   void mouseDown(const MouseEvent& event) override;
   virtual void changeListenerCallback(ChangeBroadcaster* source) override;
   
-  virtual void buttonClicked() override;
-  virtual String getButtonText() const override;
+  virtual void buttonClicked(Button* b) override;
+	virtual void refresh() override;
 
 private:
   string _id;
   string _param;
   LumiverseColor* _val;
+	ColoredTextButton* _button;
 };
 
 

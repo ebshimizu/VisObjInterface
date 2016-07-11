@@ -475,6 +475,9 @@
     <ClCompile Include="..\..\Source\SearchResultsViewer.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\ColoredTextButton.cpp">
+      <Filter>AttributesInterface\Source\params</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\ParamControls.cpp">
       <Filter>AttributesInterface\Source\params</Filter>
     </ClCompile>
@@ -2267,6 +2270,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\SearchResultsViewer.h">
       <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\ColoredTextButton.h">
+      <Filter>AttributesInterface\Source\params</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\ParamControls.h">
       <Filter>AttributesInterface\Source\params</Filter>

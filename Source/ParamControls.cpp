@@ -173,12 +173,25 @@ void OrientationPropertySlider::sliderDragEnded(Slider * s)
 }
 
 ColorPropertyPicker::ColorPropertyPicker(string id, string param, LumiverseColor * val) :
-  ButtonPropertyComponent("color", false), _id(id), _param(param), _val(val)
+  PropertyComponent("color"), _id(id), _param(param), _val(val)
 {
+	_button = new ColoredTextButton("Set Color");
+	addAndMakeVisible(_button);
+	_button->setTriggeredOnMouseDown(false);
+	_button->addListener(this);
+
+	Eigen::Vector3d c;
+	c[0] = _val->getColorChannel("Red");
+	c[1] = _val->getColorChannel("Green");
+	c[2] = _val->getColorChannel("Blue");
+	c *= 255;
+
+	_button->setColor(Colour(c[0], c[1], c[2]));
 }
 
 ColorPropertyPicker::~ColorPropertyPicker()
 {
+	delete _button;
 }
 
 void ColorPropertyPicker::paint(Graphics & g)
@@ -234,7 +247,7 @@ void ColorPropertyPicker::changeListenerCallback(ChangeBroadcaster * source)
   }
 }
 
-void ColorPropertyPicker::buttonClicked()
+void ColorPropertyPicker::buttonClicked(Button* b)
 {
   Eigen::Vector3d c;
   c[0] = _val->getColorChannel("Red");
@@ -250,12 +263,18 @@ void ColorPropertyPicker::buttonClicked()
   CallOutBox::launchAsynchronously(cs, this->getScreenBounds(), nullptr);
 }
 
-String ColorPropertyPicker::getButtonText() const
+void ColorPropertyPicker::refresh()
 {
-  return "Pick Color";
+	Eigen::Vector3d c;
+	c[0] = _val->getColorChannel("Red");
+	c[1] = _val->getColorChannel("Green");
+	c[2] = _val->getColorChannel("Blue");
+	c *= 255;
+
+	_button->setColor(Colour(c[0], c[1], c[2]));
+
+	_button->repaint();
 }
-
-
 
 //==============================================================================
 ParamControls::ParamControls()

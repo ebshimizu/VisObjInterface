@@ -133,6 +133,10 @@
               file="Source/SearchResultsViewer.h"/>
       </GROUP>
       <GROUP id="{871C22ED-7245-60E2-E1B3-4883318453AC}" name="params">
+        <FILE id="aCWqDr" name="ColoredTextButton.cpp" compile="1" resource="0"
+              file="Source/ColoredTextButton.cpp"/>
+        <FILE id="biKFPT" name="ColoredTextButton.h" compile="0" resource="0"
+              file="Source/ColoredTextButton.h"/>
         <FILE id="BXTwuH" name="ParamControls.cpp" compile="1" resource="0"
               file="Source/ParamControls.cpp"/>
         <FILE id="jVNQkx" name="ParamControls.h" compile="0" resource="0" file="Source/ParamControls.h"/>
