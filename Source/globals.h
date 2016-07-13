@@ -168,6 +168,11 @@ enum ClusterDisplayMode {
 	GRID				// Arrange clusters in a fixed grid size
 };
 
+enum SearchMode {
+	MCMC_EDIT,				// Markov-Chain Monte Carlo with Metropolis-Hastings criteria + edit system
+	LM_GRAD_DESCENT		// Levenberg-Marquardt Method
+};
+
 // A container for various things that the entire application may want to access
 // TODO: at some point, have this load from a file
 class GlobalSettings
@@ -215,6 +220,8 @@ public:
   double _primaryDivisiveThreshold;       // Divisive clustering threshold
   double _secondaryDivisiveThreshold;     // Divisive clustering threshold - secondary
 	ClusterDisplayMode _clusterDisplay;			// Determines how clusters are layed out, primary and secondary clusters are still used
+	SearchMode _searchMode;				// Search method
+	int _maxGradIters;						// Maximum number of gradient descent iterations.
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

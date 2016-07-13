@@ -36,6 +36,18 @@ struct SearchMetadata {
 	double _secondaryThreshold;
 };
 
+class TopLevelSorter
+{
+public:
+	TopLevelSorter(AttributeSorter* s);
+	~TopLevelSorter();
+
+  virtual int compareElements(shared_ptr<TopLevelCluster> first, shared_ptr<TopLevelCluster> second);
+
+private:
+	AttributeSorter* _sorter;
+};
+
 //==============================================================================
 class SearchResultsContainer : public Component
 {

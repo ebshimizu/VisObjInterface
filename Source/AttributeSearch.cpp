@@ -208,32 +208,38 @@ Eigen::VectorXd snapshotToVector(Snapshot * s)
 Snapshot * vectorToSnapshot(Eigen::VectorXd v)
 {
   Snapshot* s = new Snapshot(getRig());
-  auto devices = s->getRigData();
-  int numFeats = 7;
-
-  int idx = 0;
-
-  for (const auto& d : devices) {
-    int base = idx * numFeats;
-    d.second->getParam<LumiverseFloat>("intensity")->setValAsPercent(v[base]);
-
-    if (d.second->paramExists("polar"))
-      d.second->getParam<LumiverseOrientation>("polar")->setValAsPercent(v[base + 1]);
-    if (d.second->paramExists("azimuth"))
-      d.second->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(v[base + 2]);
-
-    d.second->getParam<LumiverseColor>("color")->setColorChannel("Red", v[base + 3]);
-    d.second->getParam<LumiverseColor>("color")->setColorChannel("Green", v[base + 4]);
-    d.second->getParam<LumiverseColor>("color")->setColorChannel("Blue", v[base + 5]);
-
-    if (d.second->paramExists("penumbraAngle"))
-      d.second->getParam<LumiverseFloat>("penumbraAngle")->setValAsPercent(v[base + 6]);
-
-    idx++;
-  }
+	vectorToExistingSnapshot(v, *s);
 
   return s;
 }
+
+void vectorToExistingSnapshot(Eigen::VectorXd source, Snapshot& dest)
+{
+	auto devices = dest.getRigData();
+	int numFeats = 7;
+
+	int idx = 0;
+
+	for (const auto& d : devices) {
+		int base = idx * numFeats;
+		d.second->getParam<LumiverseFloat>("intensity")->setValAsPercent(source[base]);
+
+		if (d.second->paramExists("polar"))
+			d.second->getParam<LumiverseOrientation>("polar")->setValAsPercent(source[base + 1]);
+		if (d.second->paramExists("azimuth"))
+			d.second->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(source[base + 2]);
+
+		d.second->getParam<LumiverseColor>("color")->setColorChannel("Red", source[base + 3]);
+		d.second->getParam<LumiverseColor>("color")->setColorChannel("Green", source[base + 4]);
+		d.second->getParam<LumiverseColor>("color")->setColorChannel("Blue", source[base + 5]);
+
+		if (d.second->paramExists("penumbraAngle"))
+			d.second->getParam<LumiverseFloat>("penumbraAngle")->setValAsPercent(source[base + 6]);
+
+		idx++;
+	}
+}
+
 
 String vectorToString(Eigen::VectorXd v)
 {
@@ -269,7 +275,7 @@ AttributeSearchThread::~AttributeSearchThread()
   //  delete e;
 }
 
-void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f)
+void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, SearchMode m)
 {
   if (_original != nullptr)
     delete _original;
@@ -282,6 +288,8 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f)
   _failures = 0;
 
   _f = f;
+	_mode = m;
+	_randomInit = false;
 }
 
 void AttributeSearchThread::run()
@@ -301,131 +309,258 @@ void AttributeSearchThread::run()
 
 void AttributeSearchThread::runSearch()
 {
-  // assign start scene, initialize result
-  Snapshot* start = new Snapshot(*_original);
-  SearchResult* r = new SearchResult();
-  double fx = _f(start);
-  double orig = fx;
+	if (_mode == MCMC_EDIT)
+		runMCMCEditSearch();
+	else if (_mode == LM_GRAD_DESCENT)
+		runLMGDSearch();
+}
 
-  // RNG
-  unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
-  default_random_engine gen(seed1);
-  uniform_real_distribution<double> udist(0.0, 1.0);
+void AttributeSearchThread::runMCMCEditSearch()
+{
+	// assign start scene, initialize result
+	Snapshot* start = new Snapshot(*_original);
+	SearchResult* r = new SearchResult();
+	double fx = _f(start);
+	double orig = fx;
 
-  // do the MCMC search
-  int depth = 0;
-  Edit* e = nullptr;
+	// RNG
+	unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
+	default_random_engine gen(seed1);
+	uniform_real_distribution<double> udist(0.0, 1.0);
 
-  // magic number alert
-  int iters = getGlobalSettings()->_standardMCMC ? getGlobalSettings()->_standardMCMCIters : getGlobalSettings()->_maxMCMCIters;
+	// do the MCMC search
+	int depth = 0;
+	Edit* e = nullptr;
 
-  // depth increases when scenes are rejected from the viewer
-  while (depth < _maxDepth) {
-    if (threadShouldExit()) {
-      delete r;
-      delete start;
-      return;
-    }
+	// magic number alert
+	int iters = getGlobalSettings()->_standardMCMC ? getGlobalSettings()->_standardMCMCIters : getGlobalSettings()->_maxMCMCIters;
 
-    //  pick a next plausible edit
-    if (r->_editHistory.size() == 0)
-      e = _edits[0]->getNextEdit(start, _f, r->_editHistory, _edits);
-    else
-      e = e->getNextEdit(start, _f, r->_editHistory, _edits);
+	// depth increases when scenes are rejected from the viewer
+	while (depth < _maxDepth) {
+		if (threadShouldExit()) {
+			delete r;
+			delete start;
+			return;
+		}
 
-    r->_editHistory.push_back(e);
-    
-    // iterate a bit, do a little bit of searching
-    // at this point it's probably better to just do gradient descent, but for testing
-    // we'll simulate this by doing some mcmc iterations
-    Eigen::VectorXd minScene;
-    double minfx = fx;
+		//  pick a next plausible edit
+		if (r->_editHistory.size() == 0)
+			e = _edits[0]->getNextEdit(start, _f, r->_editHistory, _edits);
+		else
+			e = e->getNextEdit(start, _f, r->_editHistory, _edits);
 
-    // do the adjustment until acceptance
-    for (int i = 0; i < iters; i++) {
-      if (threadShouldExit()) {
-        delete r;
-        delete start;
-        return;
-      }
+		r->_editHistory.push_back(e);
 
-      //  adjust the starting scene
-      Snapshot* sp = new Snapshot(*start);
-      e->performEdit(sp, getGlobalSettings()->_editStepSize);
+		// iterate a bit, do a little bit of searching
+		// at this point it's probably better to just do gradient descent, but for testing
+		// we'll simulate this by doing some mcmc iterations
+		Eigen::VectorXd minScene;
+		double minfx = fx;
 
-      // check for acceptance
-      double fxp = _f(sp);
-      double a = min(exp((1 / _T) * (fx - fxp)), 1.0);
+		// do the adjustment until acceptance
+		for (int i = 0; i < iters; i++) {
+			if (threadShouldExit()) {
+				delete r;
+				delete start;
+				return;
+			}
 
-      // accept if a >= 1 or with probability a
-      if (a >= 1 || udist(gen) < a) {
-        unsigned int sampleId = getGlobalSettings()->getSampleID();
+			//  adjust the starting scene
+			Snapshot* sp = new Snapshot(*start);
+			e->performEdit(sp, getGlobalSettings()->_editStepSize);
 
-        // update x
-        delete start;
-        start = sp;
-        fx = fxp;
+			// check for acceptance
+			double fxp = _f(sp);
+			double a = min(exp((1 / _T) * (fx - fxp)), 1.0);
 
-        // update result
-        r->_objFuncVal = fx;
+			// accept if a >= 1 or with probability a
+			if (a >= 1 || udist(gen) < a) {
+				unsigned int sampleId = getGlobalSettings()->getSampleID();
 
-        // diagnostics
-        if (!getGlobalSettings()->_standardMCMC) {
-          DebugData data;
-          auto& samples = getGlobalSettings()->_samples;
-          data._f = r->_objFuncVal;
-          data._a = a;
-          data._sampleId = samples[_id].size() + 1;
-          data._editName = e->_name;
-          data._accepted = true;
-          data._scene = snapshotToVector(sp);
-          samples[_id].push_back(data);
-        }
-      
-        // break after acceptance
-        //break;
-      }
-      else {
-        delete sp;
-      }
-      //sleep(10);
-    }
-    depth++;
-  }
+				// update x
+				delete start;
+				start = sp;
+				fx = fxp;
 
-  r->_scene = snapshotToVector(start);
-  delete start;
-  
-  // diagnostics
-  DebugData data;
-  auto& samples = getGlobalSettings()->_samples;
-  data._f = r->_objFuncVal;
-  data._a = 1;
-  data._sampleId = samples[_id].size() + 1;
-  data._editName = "TERMINAL";
-  data._accepted = true;
-  data._scene = r->_scene;
+				// update result
+				r->_objFuncVal = fx;
 
-  // add if we did better
-  if (r->_objFuncVal < orig) {
-    // send scene to the results area. may chose to not use the scene
-    if (!_viewer->addNewResult(r)) {
-      // r has been deleted by _viewer here
-      _failures++;
-      data._accepted = false;
+				// diagnostics
+				if (!getGlobalSettings()->_standardMCMC) {
+					DebugData data;
+					auto& samples = getGlobalSettings()->_samples;
+					data._f = r->_objFuncVal;
+					data._a = a;
+					data._sampleId = samples[_id].size() + 1;
+					data._editName = e->_name;
+					data._accepted = true;
+					data._scene = snapshotToVector(sp);
+					samples[_id].push_back(data);
+				}
 
-      if (_failures > getGlobalSettings()->_searchFailureLimit) {
-        _failures = 0;
-        _maxDepth++;
-      }
-    }
-  }
-  else {
-    data._accepted = false;
-    delete r;
-  }
+				// break after acceptance
+				//break;
+			}
+			else {
+				delete sp;
+			}
+			//sleep(10);
+		}
+		depth++;
+	}
 
-  samples[_id].push_back(data);
+	r->_scene = snapshotToVector(start);
+	delete start;
+
+	// diagnostics
+	DebugData data;
+	auto& samples = getGlobalSettings()->_samples;
+	data._f = r->_objFuncVal;
+	data._a = 1;
+	data._sampleId = samples[_id].size() + 1;
+	data._editName = "TERMINAL";
+	data._accepted = true;
+	data._scene = r->_scene;
+
+	// add if we did better
+	if (r->_objFuncVal < orig) {
+		// send scene to the results area. may chose to not use the scene
+		if (!_viewer->addNewResult(r)) {
+			// r has been deleted by _viewer here
+			_failures++;
+			data._accepted = false;
+
+			if (_failures > getGlobalSettings()->_searchFailureLimit) {
+				_failures = 0;
+				_maxDepth++;
+			}
+		}
+	}
+	else {
+		data._accepted = false;
+		delete r;
+	}
+
+	samples[_id].push_back(data);
+}
+
+void AttributeSearchThread::runLMGDSearch()
+{
+	// Levenberg-Marquardt
+	// It's a bit questionable whether or not this formulation of the optimization problem
+	// actually fits the non-linear least squares method, however
+	// we're just gonna do it and see what happens.
+
+	Snapshot xs = Snapshot(*_original);
+	Eigen::VectorXd x = snapshotToVector(&xs);
+
+	if (_randomInit) {
+		for (int i = 0; i < x.size(); i++) {
+			x[i] = (rand() % 10000) / 10000.0;
+		}
+		vectorToExistingSnapshot(x, xs);
+		x = snapshotToVector(&xs);
+	}
+
+	int maxIters = getGlobalSettings()->_maxGradIters;
+	double nu = 2;
+	double eps = 1e-3;
+	double tau = 1e-3;
+	double fx = _f(&xs);
+
+	Eigen::MatrixXd J = getJacobian(xs);
+	Eigen::MatrixXd H = J.transpose() * J;		// may need to replace with actual calculation of Hessian
+	Eigen::MatrixXd g = J.transpose() * _f(&xs);
+
+	double mu = tau * H.diagonal().maxCoeff();
+
+	bool found = false;
+	int k = 0;
+
+	while (!found && k < maxIters) {
+		if (threadShouldExit()) {
+			return;
+		}
+
+		k = k + 1;
+		Eigen::MatrixXd inv = (H + mu * Eigen::MatrixXd::Identity(H.rows(), H.cols())).inverse();
+		Eigen::MatrixXd hlm = -inv * g;
+
+		if (hlm.norm() <= eps * (x.norm() + eps)) {
+			found = true;
+		}
+		else {
+			Eigen::VectorXd xnew = x + hlm;
+			
+			// fix constraints, bounded at 1 and 0
+			for (int i = 0; i < x.size(); i++) {
+				xnew[i] = clamp(xnew[i], 0, 1);
+			}
+
+			vectorToExistingSnapshot(xnew, xs);
+			double fnew = _f(&xs);
+			Eigen::MatrixXd rho = (0.5 * hlm.transpose() * (mu * hlm - g)) * (1 / (fx * fx / 2 - fnew * fnew / 2));
+
+			// should be a scalar
+			double rhoval = rho(0);
+
+			if (rhoval > 0) {
+				// acceptable step
+				x = xnew;
+				J = getJacobian(xs);
+				g = J.transpose() * fnew;
+				found = (g.norm() <= eps);
+				mu = mu * max(1.0 / 3.0, 1 - pow(2 * rhoval - 1, 3));
+				nu = 2;
+				fx = fnew;
+
+				// put the result in the visible set for debugging
+				SearchResult* r = new SearchResult();
+				r->_objFuncVal = fnew;
+				r->_scene = x;
+				_viewer->addNewResult(r);
+
+				// debug data
+				DebugData data;
+				auto& samples = getGlobalSettings()->_samples;
+				data._f = r->_objFuncVal;
+				data._a = 1;
+				data._sampleId = samples[_id].size() + 1;
+				data._editName = "L-M DESCENT STEP";
+				data._accepted = true;
+				data._scene = x;
+				samples[_id].push_back(data);
+			}
+			else {
+				mu = mu * nu;
+				nu = 2 * nu;
+
+				// reset
+				vectorToExistingSnapshot(x, xs);
+			}
+		}
+	}
+
+	// found, stick in visible set
+	SearchResult* r = new SearchResult();
+	r->_objFuncVal = _f(&xs);
+	r->_scene = x;
+
+	// debug data
+	DebugData data;
+	auto& samples = getGlobalSettings()->_samples;
+	data._f = r->_objFuncVal;
+	data._a = 1;
+	data._sampleId = samples[_id].size() + 1;
+	data._editName = "L-M TERMINAL";
+	data._accepted = true;
+	data._scene = x;
+	samples[_id].push_back(data);
+
+	_viewer->addNewResult(r);
+
+	// after the first run, we start running from random locations
+	_randomInit = true;
 }
 
 void AttributeSearchThread::checkEdits()
@@ -724,6 +859,55 @@ void AttributeSearchThread::getNewColorScheme(Eigen::VectorXd & base, EditNumDev
   }
 }
 
+Eigen::VectorXd AttributeSearchThread::getDerivative(Snapshot & s)
+{
+	Eigen::VectorXd x = snapshotToVector(&s);
+	Eigen::VectorXd dx;
+	dx.resizeLike(x);
+	double fx = _f(&s);
+
+	// adjust each parameter in order
+	double h = 1e-3;
+
+	for (int i = 0; i < dx.size(); i++) {
+		// we're bounded by some physical restrictions here, however, they get
+		// partially addressed by the vector to snapshot function
+		if (x[i] >= 1) {
+			x[i] -= h;
+			vectorToExistingSnapshot(x, s);
+			double fxp = _f(&s);
+			dx[i] = (fx - fxp) / h;
+			x[i] += h;
+		}
+		else {
+			x[i] += h;
+			vectorToExistingSnapshot(x, s);
+			double fxp = _f(&s);
+			dx[i] = (fxp - fx) / h;
+			x[i] -= h;
+		}
+	}
+
+	return dx;
+}
+
+Eigen::MatrixXd AttributeSearchThread::getJacobian(Snapshot & s)
+{
+	// The jacobian is the matrix consisting of first order derivatives for
+	// each function being considered. At the moment, we just have one.
+
+	Eigen::VectorXd dx = getDerivative(s);
+
+	Eigen::MatrixXd J;
+
+	// right now J is basically a row vector, if more functions are added in the
+	// future, this will change
+	J.resize(1, dx.size());
+	J.row(0) = dx;
+
+	return J;
+}
+
 AttributeSearch::AttributeSearch(SearchResultsViewer * viewer) : _viewer(viewer), Thread("Attribute Search Dispatcher")
 {
   reinit();
@@ -774,8 +958,16 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
     for (const auto& kvp : _active) {
       if (kvp.second->getStatus() == A_LESS)
         sum += kvp.second->evaluateScene(s);
-      else if (kvp.second->getStatus() == A_MORE)
-        sum -= kvp.second->evaluateScene(s);
+			else if (kvp.second->getStatus() == A_MORE) {
+				if (getGlobalSettings()->_searchMode == LM_GRAD_DESCENT) {
+					// larger values = smaller function, LM expects things to be non-linear least squares,
+					// which are all positive functions
+					sum += (100 - kvp.second->evaluateScene(s));
+				}
+				else {
+					sum -= kvp.second->evaluateScene(s);
+				}
+			}
       else if (kvp.second->getStatus() == A_EQUAL)
         sum += pow(kvp.second->evaluateScene(s) - kvp.second->evaluateScene(_start), 2);
     }
@@ -791,7 +983,7 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
   // init all threads
   int i = 0;
   for (auto& t : _threads) {
-    t->setState(_start, _f);
+    t->setState(_start, _f, getGlobalSettings()->_searchMode);
 
     // set up diagnostics container
     samples[i] = vector<DebugData>();

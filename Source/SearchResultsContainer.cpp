@@ -13,6 +13,29 @@
 #include "AttributeSearch.h"
 #include "Clustering.h"
 
+//==============================================================================
+TopLevelSorter::TopLevelSorter(AttributeSorter* s) : _sorter(s) {
+
+}
+
+TopLevelSorter::~TopLevelSorter()
+{
+}
+
+int TopLevelSorter::compareElements(shared_ptr<TopLevelCluster> first, shared_ptr<TopLevelCluster> second)
+{
+	if (first == nullptr)
+		return -1;
+	else if (second == nullptr)
+		return 1;
+	else if (first == nullptr && second == nullptr)
+		return 0;
+
+	return _sorter->compareElements(first->getRepresentativeResult(), second->getRepresentativeResult());
+}
+
+//==============================================================================
+
 SearchResultsContainer::SearchResultsContainer()
 {
   _sampleId = 0;
@@ -100,6 +123,72 @@ void SearchResultsContainer::sort()
 void SearchResultsContainer::sort(AttributeSorter* s)
 {
   _unclusteredResults->sort(s);
+	
+	if (_clusters.size() == 0)
+		return;
+
+	// for columns, should be fairly easy, just reorder the columns
+	if (getGlobalSettings()->_clusterDisplay == COLUMNS) {
+		TopLevelSorter sorter(s);
+		_clusters.sort(sorter);
+	}
+	//else if (getGlobalSettings()->_clusterDisplay == GRID) {
+	//	// for grid, a bit more complicated
+	//	// we have to sort columns separately from rows
+	//	int numRows = getGlobalSettings()->_numSecondaryClusters;
+	//	int numCols = getGlobalSettings()->_numPrimaryClusters;
+
+	//	// we pick representative clusters for each column
+	//	Array<shared_ptr<TopLevelCluster> > colReps;
+	//	Array<int> colIndexes;
+
+	//	// TODO: Instead of using the clusters themselves, we should use a proxy
+	//	// that saves the old column id and the new column id somehow
+	//	// so that we can do the transfer later
+	//	// right now it uses the actual cluster id number, which if the grid has been
+	//	// sorted before, point to the original ordering instead of the new one
+
+	//	for (int i = 0; i < numCols; i++) {
+	//		float minScore = FLT_MAX;
+	//		shared_ptr<TopLevelCluster> best;
+	//		for (int j = 0; j < numRows; j++) {
+	//			// find the best top level cluster according to attribute score
+	//			int flatIdx = i + j * numCols;
+
+	//			if (_clusters[flatIdx] == nullptr)
+	//				continue;
+
+	//			if (_clusters[flatIdx]->getRepresentativeResult()->getSearchResult()->_objFuncVal < minScore) {
+	//				minScore = _clusters[flatIdx]->getRepresentativeResult()->getSearchResult()->_objFuncVal;
+	//				best = _clusters[flatIdx];
+	//			}
+	//		}
+	//		colReps.add(best);
+	//		colIndexes.add(best->getClusterId() % numCols);
+	//	}
+
+	//	// sort the columns
+	//	TopLevelSorter sorter(s);
+	//	colReps.sort(sorter);
+
+	//	auto oldOrder = _clusters;
+	//	_clusters.clear();
+	//	_clusters.resize(numCols * numRows);
+
+	//	// put columns in proper spot in array
+	//	for (int i = 0; i < numCols; i++) {
+	//		int oldCol = colIndexes[i];
+	//		int destCol = i;
+
+	//		// move
+	//		for (int j = 0; j < numRows; j++) {
+	//			int flatIdx = oldCol + j * numCols;
+	//			int newFlatIdx = destCol + j * numCols;
+	//			_clusters[newFlatIdx] = oldOrder[flatIdx];
+	//		}
+	//	}
+
+	//}
 
   // sort clusters
   for (auto& c : _clusters) {

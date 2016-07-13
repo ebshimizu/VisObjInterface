@@ -85,6 +85,9 @@ public:
 	// Clears clusters but doesn't remove elements from the results container
 	void clearClusters();
 
+	// Clears the history container
+	void clearHistory();
+
 private:
   Viewport* _viewer;
   Viewport* _historyViewer;

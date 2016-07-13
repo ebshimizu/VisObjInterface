@@ -50,6 +50,9 @@ Snapshot* vectorToSnapshot(Eigen::VectorXd v);
 // Serializes a vector to a CSV row
 String vectorToString(Eigen::VectorXd v);
 
+// updates the existing snapshot with the given vector
+void vectorToExistingSnapshot(Eigen::VectorXd source, Snapshot& dest);
+
 // Run with progress window to allow user to abort search early
 class AttributeSearchThread : public Thread
 {
@@ -57,7 +60,7 @@ public:
   AttributeSearchThread(String name, SearchResultsViewer* viewer);
   ~AttributeSearchThread();
 
-  void setState(Snapshot* start, attrObjFunc& f);
+  void setState(Snapshot* start, attrObjFunc& f, SearchMode m);
 
   void run() override;
 
@@ -75,6 +78,8 @@ private:
   vector<Edit*> _edits;
   attrObjFunc _f;
   double _T;
+	SearchMode _mode;	// set before launching to prevent issues when switching mid-run
+	bool _randomInit;	// For L-M descent, indicates if the starting position should be randomized
 
   // counter for how many times the search result got rejected from the collection.
   // fail too many times, search depth increases
@@ -87,6 +92,13 @@ private:
   // Starts up one search path. Run multiple times to get multiple results. Each run returns one result and puts
   // it in to the SearchResultsViewer object
   void runSearch();
+
+	// Runs the MCMC edit sampling search
+	void runMCMCEditSearch();
+
+	// Runs the Levenberg-Marquardt Method. Gradient descent, does not use the edits generated
+	// during setup. Intended as a reference.
+	void runLMGDSearch();
 
   // Runs a search for each edit in order (non-parallel at the moment)
   void checkEdits();
@@ -104,6 +116,13 @@ private:
   // This function will assume a certain number of dimensions to be present when editing the color.
   // it will also probably die if something it doesn't expect to happen happens
   void getNewColorScheme(Eigen::VectorXd& base, EditNumDevices type, normal_distribution<double>& dist, default_random_engine& rng);
+
+	// Returns the partial numeric derivative wrt each adjustable parameter
+	// Assumes we want the derivative for the current attribute objective function
+	Eigen::VectorXd getDerivative(Snapshot& s);
+
+	// Computes the jacobian matrix for the given configuration and current 
+	Eigen::MatrixXd getJacobian(Snapshot& s);
 };
 
 class AttributeSearch : public Thread

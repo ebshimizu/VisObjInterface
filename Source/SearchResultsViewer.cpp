@@ -148,7 +148,6 @@ void SearchResultsViewer::showNewResults()
 void SearchResultsViewer::clearContainer()
 {
   _results->clear();
-	_history->clearAllHistory();
 }
 
 bool SearchResultsViewer::isFull()
@@ -194,6 +193,11 @@ int SearchResultsViewer::numSavedClusters()
 void SearchResultsViewer::clearClusters()
 {
 	_results->clearClusters();
+}
+
+void SearchResultsViewer::clearHistory()
+{
+	_history->clearAllHistory();
 }
 
 bool SearchResultsViewer::addNewResult(SearchResult * r)

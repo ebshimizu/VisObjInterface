@@ -465,6 +465,7 @@ void MainContentComponent::openRig(String fname)
     _attrs->reload();
     // Also should delete history and clear any displayed clusters
 		_search->clearContainer();
+		_search->clearHistory();
     _showName = selected.getFileName();
     getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);
   }

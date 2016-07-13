@@ -369,7 +369,7 @@ GlobalSettings::GlobalSettings()
   _meanShiftBandwidth = 7;
   _grayscaleMode = false;
   _searchFailureLimit = 3;
-  _searchThreads = thread::hardware_concurrency() / 2;
+	_searchThreads = thread::hardware_concurrency() / 2;
   _autoRunTraceGraph = false;
   _standardMCMCIters = 5.0e3;
   _numPrimaryClusters = 5;
@@ -385,6 +385,8 @@ GlobalSettings::GlobalSettings()
   _primaryDivisiveThreshold = 7.5;
   _secondaryDivisiveThreshold = 5;
 	_clusterDisplay = GRID;
+	_searchMode = LM_GRAD_DESCENT;
+	_maxGradIters = 1e4;
 
   if (_searchThreads <= 0)
     _searchThreads = 1;
