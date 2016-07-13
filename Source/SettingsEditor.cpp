@@ -385,7 +385,7 @@ String SettingsButton::getButtonText() const
 SettingsEditor::SettingsEditor()
 {
   Array<PropertyComponent*> searchComponents;
-	searchComponents.add(new SettingsChoice("Search Mode", { "MCMC with Edits", "Levenberg-Marquardt" }));
+	searchComponents.add(new SettingsChoice("Search Mode", { "MCMC with Edits", "Levenberg-Marquardt", "Hybrid Explore" }));
   searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 25, 1));
   searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 10, 0.01));
   searchComponents.add(new SettingsSlider("Max Results", 1, 500, 1));

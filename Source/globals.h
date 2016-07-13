@@ -170,7 +170,8 @@ enum ClusterDisplayMode {
 
 enum SearchMode {
 	MCMC_EDIT,				// Markov-Chain Monte Carlo with Metropolis-Hastings criteria + edit system
-	LM_GRAD_DESCENT		// Levenberg-Marquardt Method
+	LM_GRAD_DESCENT,	// Levenberg-Marquardt Method
+	HYBRID_EXPLORE		// Hybrid explore/exploit method using both MCMC Edits and LM
 };
 
 // A container for various things that the entire application may want to access
@@ -261,6 +262,12 @@ public:
 
   // Used by attribute searches and results to track where the scene came from
   vector<Edit*> _edits;
+
+	// Potentially temporary. Contains the relative importance of each edit in _edits.
+	// Needs to be initialized by a call to computeEditWeights in an AttributeSearchThread
+	// contained by the globals for convenience at the moment. Future versions of this may
+	// request that each scene have weigts attached to it.
+	map<float, Edit*> _globalEditWeights;
 
   // deletes edits currently stored in the global cache
   void clearEdits();

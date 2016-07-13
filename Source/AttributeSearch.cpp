@@ -307,12 +307,32 @@ void AttributeSearchThread::run()
   }
 }
 
+void AttributeSearchThread::computeEditWeights()
+{
+}
+
 void AttributeSearchThread::runSearch()
 {
 	if (_mode == MCMC_EDIT)
 		runMCMCEditSearch();
 	else if (_mode == LM_GRAD_DESCENT)
 		runLMGDSearch();
+	else if (_mode == HYBRID_EXPLORE) {
+		// This search mode has multiple phases, and each thread can be on a different phase
+		// On thread creation, we should wait for further instructions
+		if (_status == IDLE)
+			wait(-1);
+
+		if (_status == EXPLORE) {
+
+		}
+		else if (_status == EXPLOIT) {
+
+		}
+		else if (_status == EDIT_WEIGHTS) {
+			computeEditWeights();
+		}
+	}
 }
 
 void AttributeSearchThread::runMCMCEditSearch()
@@ -515,15 +535,15 @@ void AttributeSearchThread::runLMGDSearch()
 				fx = fnew;
 
 				// put the result in the visible set for debugging
-				SearchResult* r = new SearchResult();
-				r->_objFuncVal = fnew;
-				r->_scene = x;
-				_viewer->addNewResult(r);
+				//SearchResult* r = new SearchResult();
+				//r->_objFuncVal = fnew;
+				//r->_scene = x;
+				//_viewer->addNewResult(r);
 
 				// debug data
 				DebugData data;
 				auto& samples = getGlobalSettings()->_samples;
-				data._f = r->_objFuncVal;
+				data._f = fnew;
 				data._a = 1;
 				data._sampleId = samples[_id].size() + 1;
 				data._editName = "L-M DESCENT STEP";
@@ -553,11 +573,10 @@ void AttributeSearchThread::runLMGDSearch()
 	data._a = 1;
 	data._sampleId = samples[_id].size() + 1;
 	data._editName = "L-M TERMINAL";
-	data._accepted = true;
 	data._scene = x;
 	samples[_id].push_back(data);
 
-	_viewer->addNewResult(r);
+	data._accepted = _viewer->addNewResult(r);
 
 	// after the first run, we start running from random locations
 	_randomInit = true;
@@ -979,6 +998,9 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
 
   auto& samples = getGlobalSettings()->_samples;
   samples.clear();
+	_mode = getGlobalSettings()->_searchMode;
+	_initialSceneRun = false;
+	_weightsComputed = false;
 
   // init all threads
   int i = 0;
@@ -1029,7 +1051,7 @@ void AttributeSearch::run()
   // idle until told to exit
   // or add other logic to control search path/execution
   while (1) {
-    wait(2000);
+    wait(100);
 
     if (threadShouldExit())
       return;
@@ -1058,6 +1080,22 @@ void AttributeSearch::run()
         getApplicationCommandManager()->invokeDirectly(command::GET_NEW_RESULTS, false);
       }
     }
+
+		// Hybrid dispatching
+		// basically here we just want to make sure we precompute everything we need
+		// before jumping in to the whole algorithm
+		// may want to move this outside the while loop in that case.
+		if (_mode == HYBRID_EXPLORE) {
+			if (!_weightsComputed) {
+				// find an idle thread to run the weight computation
+				for (auto& t : _threads) {
+					if (t->getState() == IDLE) {
+						t->setState(EDIT_WEIGHTS);
+						break;
+					}
+				}
+			}
+		}
   }
 }
 
