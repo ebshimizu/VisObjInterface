@@ -25,171 +25,175 @@ SettingsSlider::~SettingsSlider()
 
 void SettingsSlider::setValue(double newValue)
 {
-  if (_id == "Render Samples") {
-    ArnoldAnimationPatch* p = getAnimationPatch();
+	if (_id == "Render Samples") {
+		ArnoldAnimationPatch* p = getAnimationPatch();
 
-    if (p == nullptr)
-      return;
+		if (p == nullptr)
+			return;
 
-    getGlobalSettings()->_stageRenderSamples = (int)newValue;
-    p->setSamples(getGlobalSettings()->_stageRenderSamples);
-  }
-  else if (_id == "Thumbnail Render Samples")
-    getGlobalSettings()->_thumbnailRenderSamples = (int)newValue;
-  else if (_id == "Finite Difference Window")
-    getGlobalSettings()->_searchDerivDelta = newValue;
-  else if (_id == "Frame Width") {
-    getGlobalSettings()->_renderWidth = (int)newValue;
-    // Maintain aspect ratio
-    getGlobalSettings()->_renderHeight = (int)(newValue * (9.0 / 16.0));
-    _other->refresh();
-  }
-  else if (_id == "Frame Height") {
-    getGlobalSettings()->_renderHeight = (int)newValue;
-    // Maintain aspect ratio
-    getGlobalSettings()->_renderWidth = (int)(newValue * (16.0 / 9.0));
-    _other->refresh();
-  }
-  else if (_id == "Thumbnail Scale")
-    getGlobalSettings()->_thumbnailRenderScale = newValue;
-  else if (_id == "Initial Edit Depth")
-    getGlobalSettings()->_editDepth = (int)newValue;
-  else if (_id == "Cluster Distance Threshold")
-    getGlobalSettings()->_clusterDistThreshold = newValue;
-  else if (_id == "MCMC Step Size")
-    getGlobalSettings()->_editStepSize = newValue;
-  else if (_id == "MCMC Max Iterations")
-    getGlobalSettings()->_maxMCMCIters = (int)newValue;
-  else if (_id == "JND Threshold")
-    getGlobalSettings()->_jndThreshold = newValue;
-  else if (_id == "Thumbnails Per Row")
-    getGlobalSettings()->_clusterElemsPerRow = (int)newValue;
+		getGlobalSettings()->_stageRenderSamples = (int)newValue;
+		p->setSamples(getGlobalSettings()->_stageRenderSamples);
+	}
+	else if (_id == "Thumbnail Render Samples")
+		getGlobalSettings()->_thumbnailRenderSamples = (int)newValue;
+	else if (_id == "Finite Difference Window")
+		getGlobalSettings()->_searchDerivDelta = newValue;
+	else if (_id == "Frame Width") {
+		getGlobalSettings()->_renderWidth = (int)newValue;
+		// Maintain aspect ratio
+		getGlobalSettings()->_renderHeight = (int)(newValue * (9.0 / 16.0));
+		_other->refresh();
+	}
+	else if (_id == "Frame Height") {
+		getGlobalSettings()->_renderHeight = (int)newValue;
+		// Maintain aspect ratio
+		getGlobalSettings()->_renderWidth = (int)(newValue * (16.0 / 9.0));
+		_other->refresh();
+	}
+	else if (_id == "Thumbnail Scale")
+		getGlobalSettings()->_thumbnailRenderScale = newValue;
+	else if (_id == "Initial Edit Depth")
+		getGlobalSettings()->_editDepth = (int)newValue;
+	else if (_id == "Cluster Distance Threshold")
+		getGlobalSettings()->_clusterDistThreshold = newValue;
+	else if (_id == "MCMC Step Size")
+		getGlobalSettings()->_editStepSize = newValue;
+	else if (_id == "MCMC Max Iterations")
+		getGlobalSettings()->_maxMCMCIters = (int)newValue;
+	else if (_id == "JND Threshold")
+		getGlobalSettings()->_jndThreshold = newValue;
+	else if (_id == "Thumbnails Per Row")
+		getGlobalSettings()->_clusterElemsPerRow = (int)newValue;
 #ifdef USE_ARNOLD
-  else if (_id == "Diffuse Depth")
-    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_diffuse_depth", (int)newValue);
-  else if (_id == "Glossy Depth")
-    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_glossy_depth", (int)newValue);
-  else if (_id == "Reflection Depth")
-    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_reflection_depth", (int)newValue);
-  else if (_id == "Refraction Depth")
-    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_refraction_depth", (int)newValue);
-  else if (_id == "Volume Depth")
-    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_volume_depth", (int)newValue);
-  else if (_id == "Total Depth")
-    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_total_depth", (int)newValue);
-  else if (_id == "Diffuse Samples")
-    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_diffuse_samples", (int)newValue);
-  else if (_id == "Glossy Samples")
-    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_glossy_samples", (int)newValue);
-  else if (_id == "Refraction Samples")
-    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_refraction_samples", (int)newValue);
-  else if (_id == "Reflection Samples")
-    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_reflection_samples", (int)newValue);
-  else if (_id == "SSS Samples")
-    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_sss_samples", (int)newValue);
-  else if (_id == "Volume Samples")
-    getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_volume_samples", (int)newValue);
+	else if (_id == "Diffuse Depth")
+		getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_diffuse_depth", (int)newValue);
+	else if (_id == "Glossy Depth")
+		getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_glossy_depth", (int)newValue);
+	else if (_id == "Reflection Depth")
+		getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_reflection_depth", (int)newValue);
+	else if (_id == "Refraction Depth")
+		getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_refraction_depth", (int)newValue);
+	else if (_id == "Volume Depth")
+		getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_volume_depth", (int)newValue);
+	else if (_id == "Total Depth")
+		getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_total_depth", (int)newValue);
+	else if (_id == "Diffuse Samples")
+		getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_diffuse_samples", (int)newValue);
+	else if (_id == "Glossy Samples")
+		getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_glossy_samples", (int)newValue);
+	else if (_id == "Refraction Samples")
+		getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_refraction_samples", (int)newValue);
+	else if (_id == "Reflection Samples")
+		getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_reflection_samples", (int)newValue);
+	else if (_id == "SSS Samples")
+		getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_sss_samples", (int)newValue);
+	else if (_id == "Volume Samples")
+		getAnimationPatch()->getArnoldInterface()->setOptionParameter("GI_volume_samples", (int)newValue);
 #endif
-  else if (_id == "Max Results")
-    getGlobalSettings()->_maxReturnedScenes = (int)newValue;
-  else if (_id == "Temperature")
-    getGlobalSettings()->_T = newValue;
-  else if (_id == "Mean Shift Bandwidth")
-    getGlobalSettings()->_meanShiftBandwidth = newValue;
-  else if (_id == "Mean Shift Epsilon")
-    getGlobalSettings()->_meanShiftEps = newValue;
-  else if (_id == "Search Threads")
-    getGlobalSettings()->_searchThreads = (int)newValue;
-  else if (_id == "Number of Primary Clusters")
-    getGlobalSettings()->_numPrimaryClusters = (int)newValue;
-  else if (_id == "Number of Secondary Clusters")
-    getGlobalSettings()->_numSecondaryClusters = (int)newValue;
-  else if (_id == "Spectral Bandwidth")
-    getGlobalSettings()->_spectralBandwidth = newValue;
-  else if (_id == "Primary Divisive Threshold")
-    getGlobalSettings()->_primaryDivisiveThreshold = newValue;
-  else if (_id == "Secondary Divisive Threshold")
-    getGlobalSettings()->_secondaryDivisiveThreshold = newValue;
+	else if (_id == "Max Results")
+		getGlobalSettings()->_maxReturnedScenes = (int)newValue;
+	else if (_id == "Temperature")
+		getGlobalSettings()->_T = newValue;
+	else if (_id == "Mean Shift Bandwidth")
+		getGlobalSettings()->_meanShiftBandwidth = newValue;
+	else if (_id == "Mean Shift Epsilon")
+		getGlobalSettings()->_meanShiftEps = newValue;
+	else if (_id == "Search Threads")
+		getGlobalSettings()->_searchThreads = (int)newValue;
+	else if (_id == "Number of Primary Clusters")
+		getGlobalSettings()->_numPrimaryClusters = (int)newValue;
+	else if (_id == "Number of Secondary Clusters")
+		getGlobalSettings()->_numSecondaryClusters = (int)newValue;
+	else if (_id == "Spectral Bandwidth")
+		getGlobalSettings()->_spectralBandwidth = newValue;
+	else if (_id == "Primary Divisive Threshold")
+		getGlobalSettings()->_primaryDivisiveThreshold = newValue;
+	else if (_id == "Secondary Divisive Threshold")
+		getGlobalSettings()->_secondaryDivisiveThreshold = newValue;
+	else if (_id == "L-M Max Iterations")
+		getGlobalSettings()->_maxGradIters = (int) newValue;
 }
 
 double SettingsSlider::getValue() const
 {
-  if (_id == "Render Samples") {
-    ArnoldAnimationPatch* p = getAnimationPatch();
+	if (_id == "Render Samples") {
+		ArnoldAnimationPatch* p = getAnimationPatch();
 
-    if (p == nullptr)
-      return 0;
+		if (p == nullptr)
+			return 0;
 
-    return p->getSamples();
-  }
-  else if (_id == "Thumbnail Render Samples")
-    return getGlobalSettings()->_thumbnailRenderSamples;
-  else if (_id == "Finite Difference Window")
-    return getGlobalSettings()->_searchDerivDelta;
-  else if (_id == "Frame Width")
-    return getGlobalSettings()->_renderWidth;
-  else if (_id == "Frame Height")
-    return getGlobalSettings()->_renderHeight;
-  else if (_id == "Thumbnail Scale")
-    return getGlobalSettings()->_thumbnailRenderScale;
-  else if (_id == "Initial Edit Depth")
-    return getGlobalSettings()->_editDepth;
-  else if (_id == "Cluster Distance Threshold")
-    return getGlobalSettings()->_clusterDistThreshold;
-  else if (_id == "MCMC Step Size")
-    return getGlobalSettings()->_editStepSize;
-  else if (_id == "MCMC Max Iterations")
-    return getGlobalSettings()->_maxMCMCIters;
-  else if (_id == "JND Threshold")
-    return getGlobalSettings()->_jndThreshold;
-  else if (_id == "Thumbnails Per Row")
-    return getGlobalSettings()->_clusterElemsPerRow;
+		return p->getSamples();
+	}
+	else if (_id == "Thumbnail Render Samples")
+		return getGlobalSettings()->_thumbnailRenderSamples;
+	else if (_id == "Finite Difference Window")
+		return getGlobalSettings()->_searchDerivDelta;
+	else if (_id == "Frame Width")
+		return getGlobalSettings()->_renderWidth;
+	else if (_id == "Frame Height")
+		return getGlobalSettings()->_renderHeight;
+	else if (_id == "Thumbnail Scale")
+		return getGlobalSettings()->_thumbnailRenderScale;
+	else if (_id == "Initial Edit Depth")
+		return getGlobalSettings()->_editDepth;
+	else if (_id == "Cluster Distance Threshold")
+		return getGlobalSettings()->_clusterDistThreshold;
+	else if (_id == "MCMC Step Size")
+		return getGlobalSettings()->_editStepSize;
+	else if (_id == "MCMC Max Iterations")
+		return getGlobalSettings()->_maxMCMCIters;
+	else if (_id == "JND Threshold")
+		return getGlobalSettings()->_jndThreshold;
+	else if (_id == "Thumbnails Per Row")
+		return getGlobalSettings()->_clusterElemsPerRow;
 #ifdef USE_ARNOLD
-  else if (_id == "Diffuse Depth")
-    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_diffuse_depth");
-  else if (_id == "Glossy Depth")
-    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_glossy_depth");
-  else if (_id == "Reflection Depth")
-    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_reflection_depth");
-  else if (_id == "Refraction Depth")
-    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_refraction_depth");
-  else if (_id == "Volume Depth")
-    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_volume_depth");
-  else if (_id == "Total Depth")
-    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_total_depth");
-  else if (_id == "Diffuse Samples")
-    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_diffuse_samples");
-  else if (_id == "Glossy Samples")
-    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_glossy_samples");
-  else if (_id == "Refraction Samples")
-    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_refraction_samples");
-  else if (_id == "Reflection Samples")
-    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_reflection_samples");
-  else if (_id == "SSS Samples")
-    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_sss_samples");
-  else if (_id == "Volume Samples")
-    return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_volume_samples");
+	else if (_id == "Diffuse Depth")
+		return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_diffuse_depth");
+	else if (_id == "Glossy Depth")
+		return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_glossy_depth");
+	else if (_id == "Reflection Depth")
+		return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_reflection_depth");
+	else if (_id == "Refraction Depth")
+		return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_refraction_depth");
+	else if (_id == "Volume Depth")
+		return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_volume_depth");
+	else if (_id == "Total Depth")
+		return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_total_depth");
+	else if (_id == "Diffuse Samples")
+		return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_diffuse_samples");
+	else if (_id == "Glossy Samples")
+		return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_glossy_samples");
+	else if (_id == "Refraction Samples")
+		return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_refraction_samples");
+	else if (_id == "Reflection Samples")
+		return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_reflection_samples");
+	else if (_id == "SSS Samples")
+		return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_sss_samples");
+	else if (_id == "Volume Samples")
+		return getAnimationPatch()->getArnoldInterface()->getOptionParameter("GI_volume_samples");
 #endif
-  else if (_id == "Max Results")
-    return getGlobalSettings()->_maxReturnedScenes;
-  else if (_id == "Temperature")
-    return getGlobalSettings()->_T;
-  else if (_id == "Mean Shift Bandwidth")
-    return getGlobalSettings()->_meanShiftBandwidth;
-  else if (_id == "Mean Shift Epsilon")
-    return getGlobalSettings()->_meanShiftEps;
-  else if (_id == "Search Threads")
-    return getGlobalSettings()->_searchThreads;
-  else if (_id == "Number of Primary Clusters")
-    return getGlobalSettings()->_numPrimaryClusters;
-  else if (_id == "Number of Secondary Clusters")
-    return getGlobalSettings()->_numSecondaryClusters;
-  else if (_id == "Spectral Bandwidth")
-    return getGlobalSettings()->_spectralBandwidth;
-  else if (_id == "Primary Divisive Threshold")
-    return getGlobalSettings()->_primaryDivisiveThreshold;
-  else if (_id == "Secondary Divisive Threshold")
-    return getGlobalSettings()->_secondaryDivisiveThreshold;
+	else if (_id == "Max Results")
+		return getGlobalSettings()->_maxReturnedScenes;
+	else if (_id == "Temperature")
+		return getGlobalSettings()->_T;
+	else if (_id == "Mean Shift Bandwidth")
+		return getGlobalSettings()->_meanShiftBandwidth;
+	else if (_id == "Mean Shift Epsilon")
+		return getGlobalSettings()->_meanShiftEps;
+	else if (_id == "Search Threads")
+		return getGlobalSettings()->_searchThreads;
+	else if (_id == "Number of Primary Clusters")
+		return getGlobalSettings()->_numPrimaryClusters;
+	else if (_id == "Number of Secondary Clusters")
+		return getGlobalSettings()->_numSecondaryClusters;
+	else if (_id == "Spectral Bandwidth")
+		return getGlobalSettings()->_spectralBandwidth;
+	else if (_id == "Primary Divisive Threshold")
+		return getGlobalSettings()->_primaryDivisiveThreshold;
+	else if (_id == "Secondary Divisive Threshold")
+		return getGlobalSettings()->_secondaryDivisiveThreshold;
+	else if (_id == "L-M Max Iterations")
+		return getGlobalSettings()->_maxGradIters;
 
   return 0;
 }
@@ -387,6 +391,7 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Max Results", 1, 500, 1));
   searchComponents.add(new SettingsSlider("MCMC Step Size", 0, 0.25, 0.001));
   searchComponents.add(new SettingsSlider("MCMC Max Iterations", 1, 100, 1));
+	searchComponents.add(new SettingsSlider("L-M Max Iterations", 1, 1000, 1));
   //searchComponents.add(new SettingsSlider("Mean Shift Epsilon", 0, 0.01, 1e-6));
   searchComponents.add(new SettingsSlider("Temperature", 0, 25, 0.01));
   //searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1e-3, 1e-7));

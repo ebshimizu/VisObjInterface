@@ -24,6 +24,7 @@ SearchResultBlender::SearchResultBlender(SearchResult * s) : _target(s)
   _blender.setSliderStyle(Slider::LinearBar);
   _blender.setValue(0, dontSendNotification);
   _blender.addListener(this);
+	_blender.setChangeNotificationOnlyOnRelease(true);
   addAndMakeVisible(_blender);
 }
 

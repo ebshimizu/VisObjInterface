@@ -386,7 +386,7 @@ GlobalSettings::GlobalSettings()
   _secondaryDivisiveThreshold = 5;
 	_clusterDisplay = GRID;
 	_searchMode = LM_GRAD_DESCENT;
-	_maxGradIters = 1e4;
+	_maxGradIters = 200;
 
   if (_searchThreads <= 0)
     _searchThreads = 1;
