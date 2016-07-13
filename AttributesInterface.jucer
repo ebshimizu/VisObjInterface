@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="eoLPJP" name="AttributesInterface" projectType="guiapp" version="0.03"
               bundleIdentifier="com.research.adobe.AttributeInterface" includeBinaryInAppConfig="1"
-              jucerVersion="4.2.1" companyName="Adobe" companyWebsite="research.adobe.com"
+              jucerVersion="4.2.3" companyName="Adobe" companyWebsite="research.adobe.com"
               companyEmail="eshimizu@adobe.com">
   <MAINGROUP id="upFVKV" name="AttributesInterface">
     <GROUP id="{E33A23C0-94A8-8A6D-0624-83F1C8438329}" name="Source">
