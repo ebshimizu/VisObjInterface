@@ -54,6 +54,10 @@ public:
   // Pass in current function value to reduce calculation time if doing multiple derivative evals
   virtual Eigen::VectorXd numericDeriv(Snapshot* s, attrObjFunc f, double fx);
 
+	// Returns an estimate of the variance of the edit around the given scene.
+	// Approximates the importance of the edit
+	virtual double variance(Snapshot* s, attrObjFunc f, double radius, int n);
+
   string _name;
 
 private:

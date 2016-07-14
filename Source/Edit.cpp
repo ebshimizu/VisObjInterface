@@ -9,6 +9,7 @@
 */
 
 #include "Edit.h"
+#include "AttributeSearch.h"
 
 Edit::Edit(set<string> lockedParams) : _lockedParams(lockedParams)
 {
@@ -236,6 +237,27 @@ Eigen::VectorXd Edit::numericDeriv(Snapshot * s, attrObjFunc f, double fx)
   }
 
   return deriv;
+}
+
+double Edit::variance(Snapshot * s, attrObjFunc f, double radius, int n)
+{
+	// take n samples using step size radius
+	Eigen::VectorXd samples;
+	samples.resize(n);
+	Eigen::VectorXd start = snapshotToVector(s);
+
+	// do the edit n times, record value
+	for (int i = 0; i < n; i++) {
+		performEdit(s, radius);
+		samples[i] = f(s);
+		vectorToExistingSnapshot(start, *s); // loading from vector probably faster than reallocating a new one
+	}
+
+	// compute sample variance
+	double mean = samples.mean();
+	Eigen::VectorXd shifted = (samples - mean * Eigen::VectorXd::Ones(n));
+	shifted = shifted.cwiseProduct(shifted);
+	return shifted.sum() / n;
 }
 
 void Edit::applyParamEdit(Device * d, EditParam p, double delta)

@@ -259,8 +259,8 @@ String vectorToString(Eigen::VectorXd v)
 
 //=============================================================================
 
-AttributeSearchThread::AttributeSearchThread(String name, SearchResultsViewer* viewer) : Thread(name), _viewer(viewer),
-  _edits(vector<Edit*>())
+AttributeSearchThread::AttributeSearchThread(String name, SearchResultsViewer* viewer, map<string, int>& sharedData) :
+	Thread(name), _viewer(viewer), _edits(vector<Edit*>()), _sharedData(sharedData)
 {
   _original = nullptr;
 }
@@ -290,6 +290,7 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, SearchMo
   _f = f;
 	_mode = m;
 	_randomInit = false;
+	_status = IDLE;
 }
 
 void AttributeSearchThread::run()
@@ -309,6 +310,42 @@ void AttributeSearchThread::run()
 
 void AttributeSearchThread::computeEditWeights()
 {
+	// Here we take the starting scene and evaluate the variance of all available edits
+	// when performed on the starting scene. The idea is to measure how much each edit
+	// "matters" and use that to bias local searches towards meaningfuly different changes
+
+	// NOTE: Right now the weights are computed globally, as in for one particular scene
+	// in the future we may want to maintain separate weights for each scene
+
+	Eigen::VectorXd weights;
+	weights.resize(_edits.size());
+
+	for (int i = 0; i < _edits.size(); i++) {
+		weights[i] = _edits[i]->variance(_original, _f, getGlobalSettings()->_editStepSize * 3, 50);
+	}
+
+	// normalize to [0,1] and update weights
+	map<double, Edit*>& editWeights = getGlobalSettings()->_globalEditWeights;
+	double sum = weights.sum();
+	double total = 0;
+
+	for (int i = 0; i < _edits.size(); i++) {
+		total += weights[i] / sum;
+		editWeights[total] = _edits[i];
+	}
+
+	// reset to idle state after completion
+	// also update shared values to indicate completion
+	_sharedData["Edit Weight Status"] = 2;
+	_status = IDLE;
+}
+
+void AttributeSearchThread::setStartConfig(Snapshot * start)
+{
+	if (_original != nullptr)
+		delete _original;
+
+	_original = start;
 }
 
 void AttributeSearchThread::runSearch()
@@ -324,7 +361,7 @@ void AttributeSearchThread::runSearch()
 			wait(-1);
 
 		if (_status == EXPLORE) {
-
+			runLMGDSearch();
 		}
 		else if (_status == EXPLOIT) {
 
@@ -462,6 +499,7 @@ void AttributeSearchThread::runMCMCEditSearch()
 	}
 
 	samples[_id].push_back(data);
+	_status = IDLE;
 }
 
 void AttributeSearchThread::runLMGDSearch()
@@ -578,8 +616,7 @@ void AttributeSearchThread::runLMGDSearch()
 
 	data._accepted = _viewer->addNewResult(r);
 
-	// after the first run, we start running from random locations
-	_randomInit = true;
+	_status = IDLE;
 }
 
 void AttributeSearchThread::checkEdits()
@@ -956,7 +993,7 @@ void AttributeSearch::reinit()
   _threads.clear();
 
   for (int i = 0; i < getGlobalSettings()->_searchThreads; i++) {
-    _threads.add(new AttributeSearchThread("Attribute Searcher Worker " + String(i), _viewer));
+    _threads.add(new AttributeSearchThread("Attribute Searcher Worker " + String(i), _viewer, _sharedData));
   }
 }
 
@@ -999,8 +1036,10 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
   auto& samples = getGlobalSettings()->_samples;
   samples.clear();
 	_mode = getGlobalSettings()->_searchMode;
-	_initialSceneRun = false;
-	_weightsComputed = false;
+	_sharedData.clear();
+	_sharedData["Edit Weight Status"] = 0;
+	_sharedData["Initial Scene Run"] = 0;
+
 
   // init all threads
   int i = 0;
@@ -1086,13 +1125,33 @@ void AttributeSearch::run()
 		// before jumping in to the whole algorithm
 		// may want to move this outside the while loop in that case.
 		if (_mode == HYBRID_EXPLORE) {
-			if (!_weightsComputed) {
-				// find an idle thread to run the weight computation
-				for (auto& t : _threads) {
-					if (t->getState() == IDLE) {
+			// find an idle thread
+			for (auto& t : _threads) {
+				if (t->getState() == IDLE) {
+					// compute the weights
+					if (_sharedData["Edit Weight Status"] == 0) {
 						t->setState(EDIT_WEIGHTS);
-						break;
+						_sharedData["Edit Weight Status"] = 1;
 					}
+					// run LM on starting scene
+					else if (_sharedData["Initial Scene Run"] == 0) {
+						// initial scene already set
+						t->setState(EXPLORE);
+						_sharedData["Initial Scene Run"] = 1;
+					}
+					// run LM on random scene if weights not finished
+					else if (_sharedData["Initial Scene Run"] == 1 && _sharedData["Edit Weight Status"] == 1) {
+						t->useRandomInit(true);
+						t->setState(EXPLORE);
+					}
+					else {
+						// after all the initialization stuff, do things based off of ratios of completed scenes
+						// if (not explored enough)
+						//	t->setState(EXPLORE)
+						// if (not exploited enough)
+						//  t->setState(EXPLOIT)
+					}
+					t->notify();
 				}
 			}
 		}
@@ -1115,6 +1174,7 @@ void AttributeSearch::generateEdits(bool explore)
   // levels of the search. This is the function to change if we want to change
   // how the search goes through the lighting space.
   auto& edits = getGlobalSettings()->_edits;
+	getGlobalSettings()->_globalEditWeights.clear();
   edits.clear();
   _lockedParams.clear();
 

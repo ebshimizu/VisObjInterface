@@ -267,7 +267,7 @@ public:
 	// Needs to be initialized by a call to computeEditWeights in an AttributeSearchThread
 	// contained by the globals for convenience at the moment. Future versions of this may
 	// request that each scene have weigts attached to it.
-	map<float, Edit*> _globalEditWeights;
+	map<double, Edit*> _globalEditWeights;
 
   // deletes edits currently stored in the global cache
   void clearEdits();

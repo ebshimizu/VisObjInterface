@@ -64,7 +64,7 @@ void vectorToExistingSnapshot(Eigen::VectorXd source, Snapshot& dest);
 class AttributeSearchThread : public Thread
 {
 public:
-  AttributeSearchThread(String name, SearchResultsViewer* viewer);
+  AttributeSearchThread(String name, SearchResultsViewer* viewer, map<string, int>& sharedData);
   ~AttributeSearchThread();
 
   void setState(Snapshot* start, attrObjFunc& f, SearchMode m);
@@ -77,11 +77,17 @@ public:
 	ThreadState getState() { return _status; }
 
 	// Sets the thread state
-	void setState(ThreadStatus s) { _status = s; }
+	void setState(ThreadState s) { _status = s; }
 
 	// Uses the thread's set of edits and current objective function to compute the
 	// relative effectiveness of each edit
 	void computeEditWeights();
+
+	// Sets the starting lighting configuration
+	void setStartConfig(Snapshot* start);
+
+	// Sets the thread to use random initialization for LM searches
+	void useRandomInit(bool use) { _randomInit = use; }
 
   int _phase;
 
@@ -98,6 +104,9 @@ private:
 	SearchMode _mode;	// set before launching to prevent issues when switching mid-run
 	bool _randomInit;	// For L-M descent, indicates if the starting position should be randomized
 	ThreadState _status;
+
+	// Thread shared data, managed mostly by the dispatcher thread
+	map<string, int>& _sharedData;
 
   // counter for how many times the search result got rejected from the collection.
   // fail too many times, search depth increases
@@ -177,11 +186,7 @@ private:
   // component to dump results into
   SearchResultsViewer* _viewer;
 	SearchMode _mode;
-
-	// state variables
-	bool _initialSceneRun;
-	bool _weightsComputed;
-	
+	map<string, int> _sharedData;
 
   Array<AttributeSearchThread*> _threads;
   map<string, AttributeControllerBase*> _active;

@@ -369,7 +369,7 @@ GlobalSettings::GlobalSettings()
   _meanShiftBandwidth = 7;
   _grayscaleMode = false;
   _searchFailureLimit = 3;
-	_searchThreads = thread::hardware_concurrency() / 2;
+	_searchThreads = 1;  // thread::hardware_concurrency() / 2;
   _autoRunTraceGraph = false;
   _standardMCMCIters = 5.0e3;
   _numPrimaryClusters = 5;
