@@ -200,6 +200,16 @@ void SearchResultsViewer::clearHistory()
 	_history->clearAllHistory();
 }
 
+map<int, shared_ptr<SearchResultContainer>>& SearchResultsViewer::getTerminalScenes()
+{
+	return _results->getTerminalScenes();
+}
+
+map<int, int>& SearchResultsViewer::getLocalSampleCounts()
+{
+	return _results->getLocalSampleCounts();
+}
+
 bool SearchResultsViewer::addNewResult(SearchResult * r)
 {
   return _results->addNewResult(r);

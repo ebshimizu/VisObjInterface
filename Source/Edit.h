@@ -45,6 +45,9 @@ public:
   // Gets the next edit given all the prior edits that have happened.
   virtual Edit* getNextEdit(Snapshot* current, attrObjFunc f, vector<Edit*>& editHistory, vector<Edit*>& availableEdits);
 
+	// Gets the next edit based on specified weights
+	virtual Edit* getNextEdit(vector<Edit*>& editHistory, map<double, Edit*>& weights);
+
   // returns true if the edit can actually take effect
   virtual bool canDoEdit();
 

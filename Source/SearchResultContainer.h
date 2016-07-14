@@ -136,9 +136,6 @@ public:
 	// updates the mask used by the container
 	void updateMask();
 
-	// String->String pairs for displaying additional info in tooltips
-	map<String, String> _metadata;
-
 private:
   // Search result object from the attribute search
   SearchResult* _result;

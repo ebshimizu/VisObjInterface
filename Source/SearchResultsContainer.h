@@ -125,6 +125,9 @@ public:
 	// Resets the clusters. Used when the display mode changes.
 	void clearClusters();
 
+	map<int, shared_ptr<SearchResultContainer> >& getTerminalScenes() { return _terminalScenes; }
+	map<int, int>& getLocalSampleCounts() { return _localSampleCounts; }
+
 private:
   // All results contains every result in the container. It should only be deleted at the top
   // level of the container hierarchy, which looks like:
@@ -138,6 +141,13 @@ private:
   SearchResultList* _unclusteredResults;
   Array<shared_ptr<SearchResultContainer> > _newResults;
   Array<shared_ptr<TopLevelCluster> > _clusters;
+	
+	// Scenes that originated as a final step from the LM algorithm
+	map<int, shared_ptr<SearchResultContainer> > _terminalScenes;
+
+	// Count of how many local samples came from each terminal scene
+	map<int, int> _localSampleCounts;
+
 
   // Viewport for unclustered results
   Viewport* _unclusteredViewer;

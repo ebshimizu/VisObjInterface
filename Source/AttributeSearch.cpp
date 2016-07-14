@@ -345,7 +345,8 @@ void AttributeSearchThread::setStartConfig(Snapshot * start)
 	if (_original != nullptr)
 		delete _original;
 
-	_original = start;
+	_original = new Snapshot(*start);
+	_acceptedSamples = 0;
 }
 
 void AttributeSearchThread::runSearch()
@@ -364,7 +365,13 @@ void AttributeSearchThread::runSearch()
 			runLMGDSearch();
 		}
 		else if (_status == EXPLOIT) {
-
+			if (_acceptedSamples > 25) {
+				// stop
+				_status = IDLE;
+			}
+			else {
+				runMCMCExploitSearch();
+			}
 		}
 		else if (_status == EDIT_WEIGHTS) {
 			computeEditWeights();
@@ -478,6 +485,8 @@ void AttributeSearchThread::runMCMCEditSearch()
 	data._editName = "TERMINAL";
 	data._accepted = true;
 	data._scene = r->_scene;
+	
+	r->_extraData["Thread"] = String(_id);
 
 	// add if we did better
 	if (r->_objFuncVal < orig) {
@@ -492,6 +501,9 @@ void AttributeSearchThread::runMCMCEditSearch()
 				_maxDepth++;
 			}
 		}
+		else {
+			_acceptedSamples += 1;
+		}
 	}
 	else {
 		data._accepted = false;
@@ -499,7 +511,149 @@ void AttributeSearchThread::runMCMCEditSearch()
 	}
 
 	samples[_id].push_back(data);
-	_status = IDLE;
+}
+
+void AttributeSearchThread::runMCMCExploitSearch()
+{
+	// assign start scene, initialize result
+	// this search is a bit different. We need to bais the search so that it can actually get
+	// some meaningful samples around the original function location.
+	Snapshot* start = new Snapshot(*_original);
+	SearchResult* r = new SearchResult();
+	double fx = _f(start);
+	double orig = fx;
+
+	// RNG
+	unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
+	default_random_engine gen(seed1);
+	uniform_real_distribution<double> udist(0.0, 1.0);
+
+	// do the MCMC search
+	int depth = 0;
+	Edit* e = nullptr;
+
+	// magic number alert
+	int iters = getGlobalSettings()->_standardMCMC ? getGlobalSettings()->_standardMCMCIters : getGlobalSettings()->_maxMCMCIters;
+
+	// depth increases when scenes are rejected from the viewer
+	while (depth < _maxDepth) {
+		if (threadShouldExit()) {
+			delete r;
+			delete start;
+			return;
+		}
+
+		//  pick a next plausible edit
+		if (r->_editHistory.size() == 0)
+			e = _edits[0]->getNextEdit(r->_editHistory, getGlobalSettings()->_globalEditWeights);
+		else
+			e = e->getNextEdit(r->_editHistory, getGlobalSettings()->_globalEditWeights);
+
+		r->_editHistory.push_back(e);
+
+		// iterate a bit, do a little bit of searching
+		// at this point it's probably better to just do gradient descent, but for testing
+		// we'll simulate this by doing some mcmc iterations
+		Eigen::VectorXd minScene;
+		double minfx = fx;
+
+		// do the adjustment until acceptance
+		for (int i = 0; i < iters; i++) {
+			if (threadShouldExit()) {
+				delete r;
+				delete start;
+				return;
+			}
+
+			//  adjust the starting scene
+			Snapshot* sp = new Snapshot(*start);
+			e->performEdit(sp, getGlobalSettings()->_editStepSize);
+
+			// check for acceptance
+			double fxp = _f(sp);
+
+			// here is the main difference between this search and the normal edit search:
+			// we allow a much larger range of motion by loosening the temperature parameter
+			// for this section
+			double a = min(exp((1 / (_T * 0.25)) * (fx - fxp)), 1.0);
+
+			// accept if a >= 1 or with probability a
+			if (a >= 1 || udist(gen) < a) {
+				unsigned int sampleId = getGlobalSettings()->getSampleID();
+
+				// update x
+				delete start;
+				start = sp;
+				fx = fxp;
+
+				// update result
+				r->_objFuncVal = fx;
+
+				// diagnostics
+				if (!getGlobalSettings()->_standardMCMC) {
+					DebugData data;
+					auto& samples = getGlobalSettings()->_samples;
+					data._f = r->_objFuncVal;
+					data._a = a;
+					data._sampleId = samples[_id].size() + 1;
+					data._editName = e->_name;
+					data._accepted = true;
+					data._scene = snapshotToVector(sp);
+					samples[_id].push_back(data);
+				}
+
+				// break after acceptance
+				//break;
+			}
+			else {
+				delete sp;
+			}
+			//sleep(10);
+		}
+		depth++;
+	}
+
+	r->_scene = snapshotToVector(start);
+	delete start;
+
+	// diagnostics
+	DebugData data;
+	auto& samples = getGlobalSettings()->_samples;
+	data._f = r->_objFuncVal;
+	data._a = 1;
+	data._sampleId = samples[_id].size() + 1;
+	data._editName = "TERMINAL";
+	data._accepted = true;
+	data._scene = r->_scene;
+
+	r->_extraData["Thread"] = String(_id);
+	if (_mode == HYBRID_EXPLORE) {
+		r->_extraData["Local Sample"] = String(_parent);
+	}
+
+	// add if we did better
+	if (r->_objFuncVal < orig) {
+		// send scene to the results area. may chose to not use the scene
+		if (!_viewer->addNewResult(r)) {
+			// r has been deleted by _viewer here
+			_failures++;
+			data._accepted = false;
+
+			if (_failures > getGlobalSettings()->_searchFailureLimit) {
+				_failures = 0;
+				_maxDepth++;
+			}
+		}
+		else {
+			_acceptedSamples += 1;
+		}
+	}
+	else {
+		data._accepted = false;
+		delete r;
+	}
+
+	samples[_id].push_back(data);
 }
 
 void AttributeSearchThread::runLMGDSearch()
@@ -513,8 +667,12 @@ void AttributeSearchThread::runLMGDSearch()
 	Eigen::VectorXd x = snapshotToVector(&xs);
 
 	if (_randomInit) {
+		// RNG
+		default_random_engine gen(std::random_device{}());
+		uniform_real_distribution<double> udist(0.0, 1.0);
+
 		for (int i = 0; i < x.size(); i++) {
-			x[i] = (rand() % 10000) / 10000.0;
+			x[i] = udist(gen);
 		}
 		vectorToExistingSnapshot(x, xs);
 		x = snapshotToVector(&xs);
@@ -525,6 +683,7 @@ void AttributeSearchThread::runLMGDSearch()
 	double eps = 1e-3;
 	double tau = 1e-3;
 	double fx = _f(&xs);
+	double forig = fx;
 
 	Eigen::MatrixXd J = getJacobian(xs);
 	Eigen::MatrixXd H = J.transpose() * J;		// may need to replace with actual calculation of Hessian
@@ -599,24 +758,37 @@ void AttributeSearchThread::runLMGDSearch()
 		}
 	}
 
-	// found, stick in visible set
-	SearchResult* r = new SearchResult();
-	r->_objFuncVal = _f(&xs);
-	r->_scene = x;
+	// found, stick in visible set if actually better
 
 	// debug data
 	DebugData data;
 	auto& samples = getGlobalSettings()->_samples;
-	data._f = r->_objFuncVal;
+	data._f = fx;
 	data._a = 1;
 	data._sampleId = samples[_id].size() + 1;
 	data._editName = "L-M TERMINAL";
 	data._scene = x;
 	samples[_id].push_back(data);
 
-	data._accepted = _viewer->addNewResult(r);
+	if (fx < forig) {
+		SearchResult* r = new SearchResult();
+		r->_objFuncVal = _f(&xs);
+		r->_scene = x;
+		r->_extraData["LM Terminal"] = "True";
+		r->_extraData["Thread"] = String(_id);
+		// r->_extraData["Parent"]
+
+		data._accepted = _viewer->addNewResult(r);
+	}
+	else {
+		data._accepted = false;
+	}
 
 	_status = IDLE;
+
+	if (_mode == LM_GRAD_DESCENT) {
+		_randomInit = true;
+	}
 }
 
 void AttributeSearchThread::checkEdits()
@@ -1015,7 +1187,7 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
       if (kvp.second->getStatus() == A_LESS)
         sum += kvp.second->evaluateScene(s);
 			else if (kvp.second->getStatus() == A_MORE) {
-				if (getGlobalSettings()->_searchMode == LM_GRAD_DESCENT) {
+				if (getGlobalSettings()->_searchMode == LM_GRAD_DESCENT || getGlobalSettings()->_searchMode == HYBRID_EXPLORE) {
 					// larger values = smaller function, LM expects things to be non-linear least squares,
 					// which are all positive functions
 					sum += (100 - kvp.second->evaluateScene(s));
@@ -1146,10 +1318,39 @@ void AttributeSearch::run()
 					}
 					else {
 						// after all the initialization stuff, do things based off of ratios of completed scenes
-						// if (not explored enough)
-						//	t->setState(EXPLORE)
-						// if (not exploited enough)
-						//  t->setState(EXPLOIT)
+						// Generally, after each explore step the thread does an exploit step.
+						// however, we also want to explore the local area around the starting scene too.
+						auto& terminal = _viewer->getTerminalScenes();
+						auto& counts = _viewer->getLocalSampleCounts();
+
+						// TODO: Parameterize these magic numbers
+						if (counts.count(0) == 0) {
+							t->setStartConfig(_start);
+							t->setParent(0);
+							t->setState(EXPLOIT);
+							counts[0] = 0;
+							t->notify();
+							break;
+						}
+
+						bool terminalFound = false;
+						// find a terminal scene that doesnt have any local scenes
+						for (auto& kvp : terminal) {
+							if (counts.count(kvp.first) == 0) {
+								t->setState(EXPLOIT);
+								t->setParent(kvp.first);
+								t->setStartConfig(vectorToSnapshot(kvp.second->getSearchResult()->_scene));
+								terminalFound = true;
+								counts[kvp.first] = 0;
+								break;
+							}
+						}
+
+						if (!terminalFound) {
+							// otherwise run a default explore -> exploit loop
+							t->useRandomInit(true);
+							t->setState(EXPLORE);
+						}
 					}
 					t->notify();
 				}

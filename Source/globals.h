@@ -291,6 +291,9 @@ public:
 
   // Paired with a vector of cluster centers, indicates which cluster the result belongs to.
   unsigned long _cluster;
+
+	// Extra data that may be used by any part of program
+	map<String, String> _extraData;
 };
 
 // Gets the application command manager for this application.

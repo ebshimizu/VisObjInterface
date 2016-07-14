@@ -257,6 +257,16 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
     {
       lock_guard<mutex> lock(_resultsLock);
       _newResults.add(newResult);
+
+			// some results have some extra info we have to deal with here
+			if (r->_extraData.count("LM Terminal") > 0) {
+				_terminalScenes[_terminalScenes.size() + 1] = newResult;
+			}
+			if (r->_extraData.count("Local Sample") > 0) {
+				// Local sample has the parent terminal scene id as the value
+				_localSampleCounts[r->_extraData["Local Sample"].getIntValue()] += 1;
+			}
+
       Lumiverse::Logger::log(INFO, "Adding new result. In queue: " + String(_newResults.size()).toStdString());
     }
   }
@@ -292,6 +302,8 @@ void SearchResultsContainer::clear()
 {
   lock_guard<mutex> lock(_resultsLock);
 
+	_terminalScenes.clear();
+	_localSampleCounts.clear();
   _allResults.clear();
   _newResults.clear();
   _unclusteredResults->removeAllResults();
@@ -413,12 +425,12 @@ void SearchResultsContainer::cluster()
 			// calculate distance to center
 			auto ce = c->getContainer();
 			for (auto& e : c->getAllChildElements()) {
-				e->_metadata["Distance to Center"] = String(f(e.get(), ce.get()));
+				e->getSearchResult()->_extraData["Distance to Center"] = String(f(e.get(), ce.get()));
 			}
 			for (auto& e : c->getChildElements()) {
-				e->_metadata["Distance to Center"] = String(f(e.get(), ce.get()));
+				e->getSearchResult()->_extraData["Distance to Center"] = String(f(e.get(), ce.get()));
 			}
-			c->getRepresentativeResult()->_metadata["Distance to Center"] = String(f(c->getRepresentativeResult().get(), ce.get()));
+			c->getRepresentativeResult()->getSearchResult()->_extraData["Distance to Center"] = String(f(c->getRepresentativeResult().get(), ce.get()));
 		}
 
 		// calculate cluster stats
@@ -777,7 +789,7 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 		for (auto& r : c->getAllChildElements()) {
 			double dist = f(c->getContainer().get(), r.get());
 			avg += dist;
-			r->_metadata["Distance to Primary Center"] = String(dist);
+			r->getSearchResult()->_extraData["Distance to Primary Center"] = String(dist);
 		}
 		avg /= c->clusterSize();
 		statsFile << avg << "\n";
@@ -787,7 +799,7 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 	statsFile << "\nElement Stats\n";
 	statsFile << "ID\tDist. to Center\n";
 	for (auto& r : _allResults) {
-		statsFile << r->getSearchResult()->_sampleNo << "\t" << r->_metadata["Distance to Primary Center"];
+		statsFile << r->getSearchResult()->_sampleNo << "\t" << r->getSearchResult()->_extraData["Distance to Primary Center"];
 	}
 
 	statsFile.close();
@@ -1016,15 +1028,15 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 			id, c1id, c2id, d1[id], d2[id], dpp[id], c1d[id], c2d[id], csdf1, csdf2, c1sds, c2sds);
 		statsFile << fmt;
 
-		r->_metadata["Distance to Primary Center"] = String(d1[id]);
-		r->_metadata["Distance to Secondary Center"] = String(d2[id]);
-		r->_metadata["Primary Distance to Group Center"] = String(c1d[id]);
-		r->_metadata["Secondary Distance to Group Center"] = String(c2d[id]);
-		r->_metadata["Per-Pixel Distance to Group Center"] = String(ppf(r.get(), _clusters[cid]->getContainer().get()));
+		r->getSearchResult()->_extraData["Distance to Primary Center"] = String(d1[id]);
+		r->getSearchResult()->_extraData["Distance to Secondary Center"] = String(d2[id]);
+		r->getSearchResult()->_extraData["Primary Distance to Group Center"] = String(c1d[id]);
+		r->getSearchResult()->_extraData["Secondary Distance to Group Center"] = String(c2d[id]);
+		r->getSearchResult()->_extraData["Per-Pixel Distance to Group Center"] = String(ppf(r.get(), _clusters[cid]->getContainer().get()));
 
 		if (c1sds >= 2.0 || c2sds >= 2.0) {
 			// flag and move
-			r->_metadata["Outlier"] = "True";
+			r->getSearchResult()->_extraData["Outlier"] = "True";
 
 			// move element to different cluster based on per-pixel difference
 			// but only move if the element is not the only thing in its cluster

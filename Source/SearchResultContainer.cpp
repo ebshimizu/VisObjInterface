@@ -109,7 +109,7 @@ void SearchResultContainer::regenToolTip()
 
   tt = tt + "(" + String(-_result->_objFuncVal) + ")";
 
-	for (auto& m : _metadata) {
+	for (auto& m : _result->_extraData) {
 		tt = tt + "\n" + m.first + ": " + m.second;
 	}
 

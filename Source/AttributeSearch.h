@@ -89,6 +89,8 @@ public:
 	// Sets the thread to use random initialization for LM searches
 	void useRandomInit(bool use) { _randomInit = use; }
 
+	void setParent(int p) { _parent = p; }
+
   int _phase;
 
 private:
@@ -104,6 +106,12 @@ private:
 	SearchMode _mode;	// set before launching to prevent issues when switching mid-run
 	bool _randomInit;	// For L-M descent, indicates if the starting position should be randomized
 	ThreadState _status;
+
+	// Counter for determining when to stop the exploit phase
+	int _acceptedSamples;
+
+	// Parent terminal scene id, -1 for root (current scene)
+	int _parent;
 
 	// Thread shared data, managed mostly by the dispatcher thread
 	map<string, int>& _sharedData;
@@ -122,6 +130,9 @@ private:
 
 	// Runs the MCMC edit sampling search
 	void runMCMCEditSearch();
+
+	// Runs the MCMC edit sampling search with some 
+	void runMCMCExploitSearch();
 
 	// Runs the Levenberg-Marquardt Method. Gradient descent, does not use the edits generated
 	// during setup. Intended as a reference.

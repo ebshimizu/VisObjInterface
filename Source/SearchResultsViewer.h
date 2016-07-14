@@ -88,6 +88,9 @@ public:
 	// Clears the history container
 	void clearHistory();
 
+	map<int, shared_ptr<SearchResultContainer> >& getTerminalScenes();
+	map<int, int>& getLocalSampleCounts();
+
 private:
   Viewport* _viewer;
   Viewport* _historyViewer;
