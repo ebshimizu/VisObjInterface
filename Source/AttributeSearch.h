@@ -131,9 +131,6 @@ private:
 	// Runs the MCMC edit sampling search
 	void runMCMCEditSearch();
 
-	// Runs the MCMC edit sampling search with some 
-	void runMCMCExploitSearch();
-
 	// Runs the Levenberg-Marquardt Method. Gradient descent, does not use the edits generated
 	// during setup. Intended as a reference.
 	void runLMGDSearch();

@@ -370,7 +370,7 @@ void AttributeSearchThread::runSearch()
 				_status = IDLE;
 			}
 			else {
-				runMCMCExploitSearch();
+				runMCMCEditSearch();
 			}
 		}
 		else if (_status == EDIT_WEIGHTS) {
@@ -435,7 +435,17 @@ void AttributeSearchThread::runMCMCEditSearch()
 
 			// check for acceptance
 			double fxp = _f(sp);
-			double a = min(exp((1 / _T) * (fx - fxp)), 1.0);
+			double a;
+			
+			if (_mode == MCMC_EDIT) {
+				a = min(exp((1 / _T) * (fx - fxp)), 1.0);
+			}
+			else if (_mode == HYBRID_EXPLORE) {
+				// here is the main difference between this search and the normal edit search:
+				// we allow a much larger range of motion by loosening the temperature parameter
+				// for this section
+				a = min(exp((1 / (_T * 0.25)) * (fx - fxp)), 1.0);
+			}
 
 			// accept if a >= 1 or with probability a
 			if (a >= 1 || udist(gen) < a) {
@@ -487,149 +497,6 @@ void AttributeSearchThread::runMCMCEditSearch()
 	data._scene = r->_scene;
 	
 	r->_extraData["Thread"] = String(_id);
-
-	// add if we did better
-	if (r->_objFuncVal < orig) {
-		// send scene to the results area. may chose to not use the scene
-		if (!_viewer->addNewResult(r)) {
-			// r has been deleted by _viewer here
-			_failures++;
-			data._accepted = false;
-
-			if (_failures > getGlobalSettings()->_searchFailureLimit) {
-				_failures = 0;
-				_maxDepth++;
-			}
-		}
-		else {
-			_acceptedSamples += 1;
-		}
-	}
-	else {
-		data._accepted = false;
-		delete r;
-	}
-
-	samples[_id].push_back(data);
-}
-
-void AttributeSearchThread::runMCMCExploitSearch()
-{
-	// assign start scene, initialize result
-	// this search is a bit different. We need to bais the search so that it can actually get
-	// some meaningful samples around the original function location.
-	Snapshot* start = new Snapshot(*_original);
-	SearchResult* r = new SearchResult();
-	double fx = _f(start);
-	double orig = fx;
-
-	// RNG
-	unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
-	default_random_engine gen(seed1);
-	uniform_real_distribution<double> udist(0.0, 1.0);
-
-	// do the MCMC search
-	int depth = 0;
-	Edit* e = nullptr;
-
-	// magic number alert
-	int iters = getGlobalSettings()->_standardMCMC ? getGlobalSettings()->_standardMCMCIters : getGlobalSettings()->_maxMCMCIters;
-
-	// depth increases when scenes are rejected from the viewer
-	while (depth < _maxDepth) {
-		if (threadShouldExit()) {
-			delete r;
-			delete start;
-			return;
-		}
-
-		//  pick a next plausible edit
-		if (r->_editHistory.size() == 0)
-			e = _edits[0]->getNextEdit(r->_editHistory, getGlobalSettings()->_globalEditWeights);
-		else
-			e = e->getNextEdit(r->_editHistory, getGlobalSettings()->_globalEditWeights);
-
-		r->_editHistory.push_back(e);
-
-		// iterate a bit, do a little bit of searching
-		// at this point it's probably better to just do gradient descent, but for testing
-		// we'll simulate this by doing some mcmc iterations
-		Eigen::VectorXd minScene;
-		double minfx = fx;
-
-		// do the adjustment until acceptance
-		for (int i = 0; i < iters; i++) {
-			if (threadShouldExit()) {
-				delete r;
-				delete start;
-				return;
-			}
-
-			//  adjust the starting scene
-			Snapshot* sp = new Snapshot(*start);
-			e->performEdit(sp, getGlobalSettings()->_editStepSize);
-
-			// check for acceptance
-			double fxp = _f(sp);
-
-			// here is the main difference between this search and the normal edit search:
-			// we allow a much larger range of motion by loosening the temperature parameter
-			// for this section
-			double a = min(exp((1 / (_T * 0.25)) * (fx - fxp)), 1.0);
-
-			// accept if a >= 1 or with probability a
-			if (a >= 1 || udist(gen) < a) {
-				unsigned int sampleId = getGlobalSettings()->getSampleID();
-
-				// update x
-				delete start;
-				start = sp;
-				fx = fxp;
-
-				// update result
-				r->_objFuncVal = fx;
-
-				// diagnostics
-				if (!getGlobalSettings()->_standardMCMC) {
-					DebugData data;
-					auto& samples = getGlobalSettings()->_samples;
-					data._f = r->_objFuncVal;
-					data._a = a;
-					data._sampleId = samples[_id].size() + 1;
-					data._editName = e->_name;
-					data._accepted = true;
-					data._scene = snapshotToVector(sp);
-					samples[_id].push_back(data);
-				}
-
-				// break after acceptance
-				//break;
-			}
-			else {
-				delete sp;
-			}
-			//sleep(10);
-		}
-		depth++;
-	}
-
-	r->_scene = snapshotToVector(start);
-	delete start;
-
-	// diagnostics
-	DebugData data;
-	auto& samples = getGlobalSettings()->_samples;
-	data._f = r->_objFuncVal;
-	data._a = 1;
-	data._sampleId = samples[_id].size() + 1;
-	data._editName = "TERMINAL";
-	data._accepted = true;
-	data._scene = r->_scene;
-
-	r->_extraData["Thread"] = String(_id);
-	if (_mode == HYBRID_EXPLORE) {
-		r->_extraData["Local Sample"] = String(_parent);
-	}
 
 	// add if we did better
 	if (r->_objFuncVal < orig) {
