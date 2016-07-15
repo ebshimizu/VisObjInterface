@@ -409,9 +409,9 @@ void AttributeSearchThread::runMCMCEditSearch()
 
 		//  pick a next plausible edit
 		if (r->_editHistory.size() == 0)
-			e = _edits[0]->getNextEdit(start, _f, r->_editHistory, _edits);
+			e = _edits[0]->getNextEdit(r->_editHistory, getGlobalSettings()->_globalEditWeights);
 		else
-			e = e->getNextEdit(start, _f, r->_editHistory, _edits);
+			e = e->getNextEdit(r->_editHistory, getGlobalSettings()->_globalEditWeights);
 
 		r->_editHistory.push_back(e);
 
@@ -1255,6 +1255,11 @@ void AttributeSearch::run()
 {
   // run all threads
   // make sure to set the state properly before running/resuming
+	if (_mode == MCMC_EDIT) {
+		// compute edit weights first before starting
+		_threads[0]->computeEditWeights();
+	}
+
   for (auto& t : _threads) {
     t->startThread(1);
   }
