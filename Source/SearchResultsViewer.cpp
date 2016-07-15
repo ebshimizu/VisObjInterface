@@ -210,7 +210,12 @@ map<int, int>& SearchResultsViewer::getLocalSampleCounts()
 	return _results->getLocalSampleCounts();
 }
 
-bool SearchResultsViewer::addNewResult(SearchResult * r)
+shared_ptr<SearchResultContainer> SearchResultsViewer::getLastSample()
 {
-  return _results->addNewResult(r);
+	return _results->getLastSample();
+}
+
+bool SearchResultsViewer::addNewResult(SearchResult * r, bool force)
+{
+  return _results->addNewResult(r, force);
 }

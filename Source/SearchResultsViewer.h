@@ -50,7 +50,7 @@ public:
   HistoryPanel* getHistory() { return _history; }
 
   // adds a new search result to the display area. Thread safe.
-  bool addNewResult(SearchResult* r);
+  bool addNewResult(SearchResult* r, bool force = false);
 
   // tells the search result container to update itself
   void showNewResults();
@@ -90,6 +90,7 @@ public:
 
 	map<int, shared_ptr<SearchResultContainer> >& getTerminalScenes();
 	map<int, int>& getLocalSampleCounts();
+	shared_ptr<SearchResultContainer> getLastSample();
 
 private:
   Viewport* _viewer;

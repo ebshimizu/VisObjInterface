@@ -66,7 +66,9 @@ public:
   Array<shared_ptr<SearchResultContainer> > getResults();
 
   // Add a new search result to the display area. Is thread safe.
-  bool addNewResult(SearchResult* r);
+	// Setting force to true will automatically add the result to the container, disregarding
+	// similarity requirements, but respecting limit on number of elements in the container
+  bool addNewResult(SearchResult* r, bool force = false);
 
   // integrate new results and display
   void showNewResults();
@@ -127,6 +129,10 @@ public:
 
 	map<int, shared_ptr<SearchResultContainer> >& getTerminalScenes() { return _terminalScenes; }
 	map<int, int>& getLocalSampleCounts() { return _localSampleCounts; }
+
+	// Returns the sample at the end of _allResults. Fairly specific use case, see
+	// AttributeSearchThread::runHybridDebug
+	shared_ptr<SearchResultContainer> getLastSample();
 
 private:
   // All results contains every result in the container. It should only be deleted at the top

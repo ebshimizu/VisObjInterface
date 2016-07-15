@@ -205,7 +205,7 @@ Array<shared_ptr<SearchResultContainer> > SearchResultsContainer::getResults()
   return _allResults;
 }
 
-bool SearchResultsContainer::addNewResult(SearchResult * r)
+bool SearchResultsContainer::addNewResult(SearchResult * r, bool force)
 {
   {
     // limit number of total results
@@ -234,7 +234,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r)
     newResult->setImage(img);
 
     // new results get placed into the new results queue
-    {
+    if (!force) {
       lock_guard<mutex> lock(_resultsLock);
       for (auto& res : _allResults) {
         if (newResult->avgPixDist(res.get(), true) < getGlobalSettings()->_jndThreshold) {
@@ -1164,6 +1164,18 @@ void SearchResultsContainer::clearClusters()
 	updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
 	resized();
 	repaint();
+}
+
+shared_ptr<SearchResultContainer> SearchResultsContainer::getLastSample()
+{
+	lock_guard<mutex> lock(_resultsLock);
+
+	if (_newResults.size() != 0) {
+		return _newResults.getLast();
+	}
+	else {
+		return _allResults.getLast();
+	}
 }
 
 void SearchResultsContainer::writeMetadata(std::ofstream &statsFile, SearchMetadata &md)

@@ -171,7 +171,8 @@ enum ClusterDisplayMode {
 enum SearchMode {
 	MCMC_EDIT,				// Markov-Chain Monte Carlo with Metropolis-Hastings criteria + edit system
 	LM_GRAD_DESCENT,	// Levenberg-Marquardt Method
-	HYBRID_EXPLORE		// Hybrid explore/exploit method using both MCMC Edits and LM
+	HYBRID_EXPLORE,		// Hybrid explore/exploit method using both MCMC Edits and LM
+	HYBRID_DEBUG			// Single-threaded mode that investigates certain properties of the LM/MCMC methods. Not a real search.
 };
 
 // A container for various things that the entire application may want to access

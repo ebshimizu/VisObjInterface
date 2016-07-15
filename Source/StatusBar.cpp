@@ -49,7 +49,7 @@ void StatusBar::setStatusMessage(String msg, bool error)
   _error = error;
   _currentText = msg;
 
-  Lumiverse::Logger::log((error) ? ERR : INFO, msg.toStdString());
+  Lumiverse::Logger::log((error) ? ERR : LDEBUG, msg.toStdString());
   repaint();
 }
 

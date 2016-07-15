@@ -349,6 +349,69 @@ void AttributeSearchThread::setStartConfig(Snapshot * start)
 	_acceptedSamples = 0;
 }
 
+void AttributeSearchThread::runHybridDebug()
+{
+	setSessionName();
+	ofstream hybridLog;
+	hybridLog.open(getGlobalSettings()->_logRootDir + "/traces/" + getGlobalSettings()->_sessionName + "-debug.txt", ios::app);
+
+	// here we want to test whether or not local samples around a local optimum
+	// fall back to that local optimum value.
+
+	// first, compute edit weights
+	computeEditWeights();
+
+	// get descent scene, forcibly add scene to results container
+	runLMGDSearch(true);
+
+	// ok now we need to find that scene. It should be the most recently added
+	// to the terminal set
+	map<int, shared_ptr<SearchResultContainer> >& lmterminals = _viewer->getTerminalScenes();
+	shared_ptr<SearchResultContainer> target = lmterminals.rbegin()->second;
+
+	// update the starting config. ok to overwrite here, we'll randomize start scene after first run
+	Snapshot* newStart = vectorToSnapshot(target->getSearchResult()->_scene);
+
+	// Check the descent n times
+	// here n is 10 because magic numbers are great
+	for (int i = 0; i < 10; i++) {
+		if (threadShouldExit())
+			return;
+
+		setStartConfig(newStart); // creates duplicate
+
+		setParent(target->getSearchResult()->_sampleNo);
+
+		// Find a random scene around the target
+		runMCMCEditSearch(true);
+
+		// Retrieve scene. There's a special function for this
+		shared_ptr<SearchResultContainer> last = _viewer->getLastSample();
+		
+		// Run LMGD from the last sample's position
+		Snapshot* lastStart = vectorToSnapshot(target->getSearchResult()->_scene);
+		setStartConfig(lastStart);
+		delete lastStart;
+
+		useRandomInit(false);
+		runLMGDSearch(true);
+
+		// get the result
+		shared_ptr<SearchResultContainer> LMGDRedo = lmterminals.rbegin()->second;
+
+		// compare search from random sample to target
+		double dist = (target->getSearchResult()->_scene - LMGDRedo->getSearchResult()->_scene).norm();
+
+		// output
+		hybridLog << "Local Sample " << last->getSearchResult()->_sampleNo << " f(x) = " << last->getSearchResult()->_objFuncVal << "\n";
+		hybridLog << "Distance: " << dist << " (" << target->getSearchResult()->_sampleNo << "," << last->getSearchResult()->_sampleNo << ")\n";
+
+		// repeat
+	}
+
+	hybridLog.close();
+}
+
 void AttributeSearchThread::runSearch()
 {
 	if (_mode == MCMC_EDIT)
@@ -377,9 +440,12 @@ void AttributeSearchThread::runSearch()
 			computeEditWeights();
 		}
 	}
+	else if (_mode == HYBRID_DEBUG) {
+		runHybridDebug();
+	}
 }
 
-void AttributeSearchThread::runMCMCEditSearch()
+void AttributeSearchThread::runMCMCEditSearch(bool force)
 {
 	// assign start scene, initialize result
 	Snapshot* start = new Snapshot(*_original);
@@ -440,7 +506,7 @@ void AttributeSearchThread::runMCMCEditSearch()
 			if (_mode == MCMC_EDIT) {
 				a = min(exp((1 / _T) * (fx - fxp)), 1.0);
 			}
-			else if (_mode == HYBRID_EXPLORE) {
+			else if (_mode == HYBRID_EXPLORE || _mode == HYBRID_DEBUG) {
 				// here is the main difference between this search and the normal edit search:
 				// we allow a much larger range of motion by loosening the temperature parameter
 				// for this section
@@ -498,10 +564,15 @@ void AttributeSearchThread::runMCMCEditSearch()
 	
 	r->_extraData["Thread"] = String(_id);
 
+	if (_mode == HYBRID_EXPLORE || _mode == HYBRID_DEBUG) {
+		r->_extraData["Parent"] = String(_parent);
+	}
+
 	// add if we did better
-	if (r->_objFuncVal < orig) {
+	// hybrid method doesn't actually care just add it anyway
+	if (r->_objFuncVal < orig || _mode == HYBRID_EXPLORE || _mode == HYBRID_DEBUG) {
 		// send scene to the results area. may chose to not use the scene
-		if (!_viewer->addNewResult(r)) {
+		if (!_viewer->addNewResult(r, force)) {
 			// r has been deleted by _viewer here
 			_failures++;
 			data._accepted = false;
@@ -523,7 +594,7 @@ void AttributeSearchThread::runMCMCEditSearch()
 	samples[_id].push_back(data);
 }
 
-void AttributeSearchThread::runLMGDSearch()
+void AttributeSearchThread::runLMGDSearch(bool force)
 {
 	// Levenberg-Marquardt
 	// It's a bit questionable whether or not this formulation of the optimization problem
@@ -645,7 +716,7 @@ void AttributeSearchThread::runLMGDSearch()
 		r->_extraData["Thread"] = String(_id);
 		// r->_extraData["Parent"]
 
-		data._accepted = _viewer->addNewResult(r);
+		data._accepted = _viewer->addNewResult(r, force);
 	}
 	else {
 		data._accepted = false;
@@ -653,7 +724,7 @@ void AttributeSearchThread::runLMGDSearch()
 
 	_status = IDLE;
 
-	if (_mode == LM_GRAD_DESCENT) {
+	if (_mode == LM_GRAD_DESCENT || _mode == HYBRID_DEBUG) {
 		_randomInit = true;
 	}
 }
@@ -1054,7 +1125,9 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
       if (kvp.second->getStatus() == A_LESS)
         sum += kvp.second->evaluateScene(s);
 			else if (kvp.second->getStatus() == A_MORE) {
-				if (getGlobalSettings()->_searchMode == LM_GRAD_DESCENT || getGlobalSettings()->_searchMode == HYBRID_EXPLORE) {
+				if (getGlobalSettings()->_searchMode == LM_GRAD_DESCENT ||
+					  getGlobalSettings()->_searchMode == HYBRID_DEBUG ||
+					  getGlobalSettings()->_searchMode == HYBRID_EXPLORE) {
 					// larger values = smaller function, LM expects things to be non-linear least squares,
 					// which are all positive functions
 					sum += (100 - kvp.second->evaluateScene(s));
@@ -1127,9 +1200,15 @@ void AttributeSearch::run()
 		_threads[0]->computeEditWeights();
 	}
 
-  for (auto& t : _threads) {
-    t->startThread(1);
-  }
+	if (_mode == HYBRID_DEBUG) {
+		// Force single-threaded mode for debug. Much slow. Very debug.
+		_threads[0]->startThread(1);
+	}
+	else {
+		for (auto& t : _threads) {
+			t->startThread(1);
+		}
+	}
 
   // idle until told to exit
   // or add other logic to control search path/execution

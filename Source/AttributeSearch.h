@@ -91,6 +91,9 @@ public:
 
 	void setParent(int p) { _parent = p; }
 
+	// Special function for computing statistics about the hybrid search mode.
+	void runHybridDebug();
+
   int _phase;
 
 private:
@@ -129,11 +132,11 @@ private:
   void runSearch();
 
 	// Runs the MCMC edit sampling search
-	void runMCMCEditSearch();
+	void runMCMCEditSearch(bool force = false);
 
 	// Runs the Levenberg-Marquardt Method. Gradient descent, does not use the edits generated
 	// during setup. Intended as a reference.
-	void runLMGDSearch();
+	void runLMGDSearch(bool force = false);
 
   // Runs a search for each edit in order (non-parallel at the moment)
   void checkEdits();
