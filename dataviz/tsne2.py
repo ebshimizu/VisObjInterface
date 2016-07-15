@@ -36,7 +36,7 @@ with open(filename, 'rb') as csvfile:
 
 		if (row[4] == "START"):
 			startId = i
-		elif (row[4] == "TERMINAL"):
+		elif (row[4] == "TERMINAL" or row[4] == "L-M TERMINAL"):
 			if (row[5] == "1"):
 				selected.append(i)
 			traces.append(currentTrace)
@@ -126,3 +126,14 @@ layout = go.Layout(
 )
 
 py.plot(dict(data=graphData, layout=layout), filename=prefix + "-graph.html")
+
+# selected point only
+selPointsOnly = go.Scatter(
+	x = selX,
+	y = selY,
+	mode = 'markers',
+	name = 'Returned Results',
+	marker = dict(size=9, color=labels, showscale=True, colorscale=[[0, 'rgb(255,0,0)'], [1, 'rgb(0,0,255)']], colorbar = dict(xanchor="right")),
+)
+
+py.plot(dict(data=[selPointsOnly], layout=layout), filename=prefix + "selected-only-graph.html")
