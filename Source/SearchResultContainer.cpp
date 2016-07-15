@@ -96,16 +96,16 @@ void SearchResultContainer::regenToolTip()
 {
   String tt = "";
 
-	//bool first = true;
-  //for (const auto& t : _result->_editHistory) {
-  //  if (!first) {
-  //    tt = tt + " -> " + t->_name;
-  //  }
-  //  else {
-  //    tt = tt + t->_name;
-  //    first = false;
-  //  }
-  //}
+	bool first = true;
+  for (const auto& t : _result->_editHistory) {
+    if (!first) {
+      tt = tt + " -> " + t->_name;
+    }
+    else {
+      tt = tt + t->_name;
+      first = false;
+    }
+  }
 
   tt = tt + "(" + String(-_result->_objFuncVal) + ")";
 
