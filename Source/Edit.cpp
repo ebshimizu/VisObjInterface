@@ -503,7 +503,12 @@ void Edit::constructConsistencySets()
 	auto& devices = _affectedDevices.getDevices();
 	map<string, DeviceSet> systems;
 	for (auto& d : devices) {
-		systems[d->getMetadata("system")].add(d);
+    string system = d->getMetadata("system");
+    if (systems.count(system) == 0) {
+      systems[system] = DeviceSet();
+    }
+
+		systems[system] = systems[system].add(d);
 	}
 
 	// affected systems are expected to be consistent

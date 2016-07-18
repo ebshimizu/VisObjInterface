@@ -353,13 +353,13 @@ GlobalSettings::GlobalSettings()
   _editDepth = 3;
   _clusterDistThreshold = 0.30;
   _editStepSize = 0.1;
-  _maxMCMCIters = 10;
+  _maxMCMCIters = 20;
   _numDisplayClusters = 1;
-  _jndThreshold = 2.3;
+  _jndThreshold = 3;
   _standardMCMC = false;
   _currentSortMode = "Attribute Default";
   _clusterElemsPerRow = 6;
-  _maxReturnedScenes = 100;
+  _maxReturnedScenes = 500;
   _showThumbnailImg = false;
   _T = 1;
   _exportTraces = false;
@@ -369,7 +369,7 @@ GlobalSettings::GlobalSettings()
   _meanShiftBandwidth = 7;
   _grayscaleMode = false;
   _searchFailureLimit = 3;
-	_searchThreads = 1;  // thread::hardware_concurrency() / 2;
+	_searchThreads = thread::hardware_concurrency() / 2;
   _autoRunTraceGraph = false;
   _standardMCMCIters = 5.0e3;
   _numPrimaryClusters = 5;
@@ -385,7 +385,7 @@ GlobalSettings::GlobalSettings()
   _primaryDivisiveThreshold = 7.5;
   _secondaryDivisiveThreshold = 5;
 	_clusterDisplay = GRID;
-	_searchMode = LM_GRAD_DESCENT;
+	_searchMode = MCMC_EDIT;
 	_maxGradIters = 200;
 
   if (_searchThreads <= 0)

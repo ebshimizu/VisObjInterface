@@ -82,7 +82,7 @@ private:
 	// Note that areas do not necessarily have to be consistent.
 	// The string is an id corresponding to the representative device in the set.
 	// This is the device that sets the values for all other devices in the set
-	map<DeviceSet, string> _consistencySets;
+	vector<pair<DeviceSet, string> > _consistencySets;
 
   bool _joint;      // If true, adjusts all lights in the edit by the same delta
   bool _uniform;    // If true, sets all params in the edit to the same value

@@ -321,7 +321,11 @@ void AttributeSearchThread::computeEditWeights()
 	weights.resize(_edits.size());
 
 	for (int i = 0; i < _edits.size(); i++) {
-		weights[i] = _edits[i]->variance(_original, _f, getGlobalSettings()->_editStepSize * 3, 50);
+		double weight = _edits[i]->variance(_original, _f, getGlobalSettings()->_editStepSize * 3, 50);
+
+    // minimum weight, prevent conflicts and also enable all edits to possibly be chosen
+    weights[i] = (weight < 1e-3) ? 1e-3 : weight;
+
 	}
 
 	// normalize to [0,1] and update weights
@@ -1119,29 +1123,40 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
   _start = start;
 
   // objective function for combined set of active attributes.
-  _f = [this](Snapshot* s) {
-    double sum = 0;
-    for (const auto& kvp : _active) {
-      if (kvp.second->getStatus() == A_LESS)
-        sum += kvp.second->evaluateScene(s);
-			else if (kvp.second->getStatus() == A_MORE) {
-				if (getGlobalSettings()->_searchMode == LM_GRAD_DESCENT ||
-					  getGlobalSettings()->_searchMode == HYBRID_DEBUG ||
-					  getGlobalSettings()->_searchMode == HYBRID_EXPLORE) {
-					// larger values = smaller function, LM expects things to be non-linear least squares,
-					// which are all positive functions
-					sum += (100 - kvp.second->evaluateScene(s));
-				}
-				else {
-					sum -= kvp.second->evaluateScene(s);
-				}
-			}
-      else if (kvp.second->getStatus() == A_EQUAL)
-        sum += pow(kvp.second->evaluateScene(s) - kvp.second->evaluateScene(_start), 2);
-    }
+  if (getGlobalSettings()->_searchMode == MCMC_EDIT) {
+    _f = [this](Snapshot* s) {
+      double sum = 0;
+      for (const auto& kvp : _active) {
+        if (kvp.second->getStatus() == A_LESS)
+          sum += kvp.second->evaluateScene(s);
+        else if (kvp.second->getStatus() == A_MORE) {
+          sum -= kvp.second->evaluateScene(s);
+        }
+        else if (kvp.second->getStatus() == A_EQUAL)
+          sum += pow(kvp.second->evaluateScene(s) - kvp.second->evaluateScene(_start), 2);
+      }
 
-    return sum;
-  };
+      return sum;
+    };
+  }
+  else {
+    _f = [this](Snapshot* s) {
+      double sum = 0;
+      for (const auto& kvp : _active) {
+        if (kvp.second->getStatus() == A_LESS)
+          sum += kvp.second->evaluateScene(s);
+        else if (kvp.second->getStatus() == A_MORE) {
+          // larger values = smaller function, LM expects things to be non-linear least squares,
+          // which are all positive functions
+          sum += (100 - kvp.second->evaluateScene(s));
+        }
+        else if (kvp.second->getStatus() == A_EQUAL)
+          sum += pow(kvp.second->evaluateScene(s) - kvp.second->evaluateScene(_start), 2);
+      }
+
+      return sum;
+    };
+  }
 
   generateEdits(false);
 
@@ -1377,6 +1392,8 @@ void AttributeSearch::generateEdits(bool explore)
       // color edits are not final or even really implemented yet...
       // generateColorEdits(a);
     }
+
+    // edits for individual devices?
   }
   else {
     Edit* e = new Edit(_lockedParams);
@@ -1423,6 +1440,7 @@ void AttributeSearch::generateDefaultEdits(string select, int editType)
       e->initWithSystem(select, joint, uniform);
   };
 
+  // all parameters
   Edit* e = new Edit(_lockedParams);
   initfunc(e, false, false);
   e->setParams({ INTENSITY, RED, BLUE, GREEN });
@@ -1432,100 +1450,33 @@ void AttributeSearch::generateDefaultEdits(string select, int editType)
   else
     delete e;
 
-  if (_lockedParams.count("intensity") == 0) {
-    // Intensity
-    e = new Edit(_lockedParams);
-    initfunc(e, false, false);
-    e->setParams({ INTENSITY });
-    e->_name = select + "_intensity";
-    if (e->canDoEdit())
-      edits.push_back(e);
-    else
-      delete e;
+  // intensity/brightness only
+  e = new Edit(_lockedParams);
+  initfunc(e, false, false);
+  e->setParams({ INTENSITY });
+  e->_name = select + "_intensity";
+  //if (e->canDoEdit())
+  //  edits.push_back(e);
+  //else
+    delete e;
 
-    if (numDevices > 1) {
-      // Uniform intensity
-      e = new Edit(_lockedParams);
-      initfunc(e, false, true);
-      e->setParams({ INTENSITY });
-      e->_name = select + "_uniform_intensity";
-      if (e->canDoEdit())
-        edits.push_back(e);
-      else
-        delete e;
+  // hue only
+  e = new Edit(_lockedParams);
+  initfunc(e, false, false);
+  e->setParams({ HUE });
+  e->_name = select + "_hue";
+  if (e->canDoEdit())
+    edits.push_back(e);
+  else
+    delete e;
 
-      // Joint intensity
-      e = new Edit(_lockedParams);
-      initfunc(e, true, false);
-      e->setParams({ INTENSITY });
-      e->_name = select + "_joint_intensity";
-      if (e->canDoEdit())
-        edits.push_back(e);
-      else
-        delete e;
-    }
-  }
-
-  if (_lockedParams.count("color") == 0) {
-    // Hue
-    e = new Edit(_lockedParams);
-    initfunc(e, false, false);
-    e->setParams({ HUE });
-    e->_name = select + "_hue";
-    if (e->canDoEdit())
-      edits.push_back(e);
-    else
-      delete e;
-
-    // Color
-    e = new Edit(_lockedParams);
-    initfunc(e, false, false);
-    e->setParams({ RED, GREEN, BLUE });
-    e->_name = select + "_color";
-    if (e->canDoEdit())
-      edits.push_back(e);
-    else
-      delete e;
-
-    if (numDevices > 1) {
-      // Joint Hue
-      e = new Edit(_lockedParams);
-      initfunc(e, true, false);
-      e->setParams({ HUE });
-      e->_name = select + "_joint_hue";
-      if (e->canDoEdit())
-        edits.push_back(e);
-      else
-        delete e;
-
-      // Joint color
-      e = new Edit(_lockedParams);
-      initfunc(e, true, false);
-      e->setParams({ RED, GREEN, BLUE });
-      e->_name = select + "_joint_color";
-      if (e->canDoEdit())
-        edits.push_back(e);
-      else
-        delete e;
-    }
-  }
-
-  if (_lockedParams.count("polar") == 0 && _lockedParams.count("azimuth") == 0) {
-    // Position
-    e = new Edit(_lockedParams);
-    initfunc(e, false, false);
-    e->setParams({ POLAR, AZIMUTH });
-    e->_name = select + "_hue";
-    if (e->canDoEdit())
-      edits.push_back(e);
-    else
-      delete e;
-  }
-
-  //if (_lockedParams.count("penumbraAngle") == 0) {
-  // Softness
-  //  vector<EditConstraint> soft;
-  //  soft.push_back(EditConstraint(select, SOFT, D_ALL));
-  //  _edits[select + "_soft"] = soft;
-  //}
+  // sat only
+  e = new Edit(_lockedParams);
+  initfunc(e, false, false);
+  e->setParams({ SAT });
+  e->_name = select + "_sat";
+  if (e->canDoEdit())
+    edits.push_back(e);
+  else
+    delete e;
 }
