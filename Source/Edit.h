@@ -69,9 +69,20 @@ private:
   double getParam(Device* d, EditParam p);
   bool isParamLocked(Device* d, EditParam c);
 
-  set<string> _affectedAreas;
-  set<string> _affectedSystems;
+	// Constructs the consistency sets (see below)
+	void constructConsistencySets();
+
   set<EditParam> _affectedParams;
+
+	// After the initialization step, the edit takes a look at the affected devices
+	// and constructs these consistency sets. Consistency sets are sets of devices
+	// that must match intensity and color (for now, fine-grained control of these
+	// sets may come in the future). When one parameter changes, the other devices
+	// must match that parameter unless locked.
+	// Note that areas do not necessarily have to be consistent.
+	// The string is an id corresponding to the representative device in the set.
+	// This is the device that sets the values for all other devices in the set
+	map<DeviceSet, string> _consistencySets;
 
   bool _joint;      // If true, adjusts all lights in the edit by the same delta
   bool _uniform;    // If true, sets all params in the edit to the same value

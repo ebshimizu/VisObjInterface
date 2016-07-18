@@ -27,24 +27,14 @@ Edit::~Edit()
 
 void Edit::initWithArea(string area, bool joint, bool uniform)
 {
-  _affectedAreas.insert(area);
-  _affectedSystems.clear();
   string query = "$area=" + area;
-  _joint = joint;
-  _uniform = uniform;
-
-  _affectedDevices = getRig()->select(query);
+	initArbitrary(query, joint, uniform);
 }
 
 void Edit::initWithSystem(string system, bool joint, bool uniform)
 {
-  _affectedSystems.insert(system);
-  _affectedAreas.clear();
   string query = "$system=" + system;
-  _joint = joint;
-  _uniform = uniform;
-
-  _affectedDevices = getRig()->select(query);
+	initArbitrary(query, joint, uniform);
 }
 
 void Edit::initArbitrary(string query, bool joint, bool uniform)
@@ -52,6 +42,7 @@ void Edit::initArbitrary(string query, bool joint, bool uniform)
   _joint = joint;
   _uniform = uniform;
   _affectedDevices = getRig()->select(query);
+	constructConsistencySets();
 }
 
 void Edit::setParams(set<EditParam> affectedParams)
@@ -96,9 +87,24 @@ void Edit::performEdit(Snapshot * s, double stepSize)
     }
   }
   else {
-    for (const auto& d : devices) {
-      for (const auto& p : _affectedParams) {
-        applyParamEdit(sd[d->getId()], p);
+		// for most edits, we want to adjust the parameters as consistent systems
+    for (auto cs : _consistencySets) {
+			Device* rep = sd[cs.second];
+			set<Device*> devs = cs.first.getDevices();
+
+      for (auto& p : _affectedParams) {
+				double delta = _gdist(_gen);
+				applyParamEdit(rep, p, delta);
+
+				// enforce consistency
+				// admittedly this isnt the most efficient way, but it's logically what's happening
+				for (auto& d : devs) {
+					Device* snapshotDev = sd[d->getId()];
+					if (snapshotDev == rep)
+						continue;
+
+					setParam(snapshotDev, p, getParam(rep, p));
+				}
       }
     }
   }
@@ -488,4 +494,20 @@ bool Edit::isParamLocked(Device * d, EditParam c)
   default:
     return false;
   }
+}
+
+void Edit::constructConsistencySets()
+{
+	// Simple version to start
+	// look at all affected devices, group them by system.
+	auto& devices = _affectedDevices.getDevices();
+	map<string, DeviceSet> systems;
+	for (auto& d : devices) {
+		systems[d->getMetadata("system")].add(d);
+	}
+
+	// affected systems are expected to be consistent
+	for (auto s : systems) {
+		_consistencySets.push_back(pair<DeviceSet, string>(s.second, s.second.getIds()[0]));
+	}
 }
