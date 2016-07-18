@@ -387,6 +387,7 @@ GlobalSettings::GlobalSettings()
 	_clusterDisplay = GRID;
 	_searchMode = MCMC_EDIT;
 	_maxGradIters = 200;
+  _reduceRepeatEdits = true;
 
   if (_searchThreads <= 0)
     _searchThreads = 1;

@@ -321,11 +321,10 @@ void AttributeSearchThread::computeEditWeights()
 	weights.resize(_edits.size());
 
 	for (int i = 0; i < _edits.size(); i++) {
-		double weight = _edits[i]->variance(_original, _f, getGlobalSettings()->_editStepSize * 3, 50);
+		double weight = sqrt(_edits[i]->variance(_original, _f, getGlobalSettings()->_editStepSize * 3, 50));
 
     // minimum weight, prevent conflicts and also enable all edits to possibly be chosen
     weights[i] = (weight < 1e-3) ? 1e-3 : weight;
-
 	}
 
 	// normalize to [0,1] and update weights
@@ -478,10 +477,10 @@ void AttributeSearchThread::runMCMCEditSearch(bool force)
 		}
 
 		//  pick a next plausible edit
-		if (r->_editHistory.size() == 0)
-			e = _edits[0]->getNextEdit(r->_editHistory, getGlobalSettings()->_globalEditWeights);
-		else
-			e = e->getNextEdit(r->_editHistory, getGlobalSettings()->_globalEditWeights);
+    if (r->_editHistory.size() == 0)
+      e = _edits[0]->getNextEdit(r->_editHistory, getGlobalSettings()->_globalEditWeights, getGlobalSettings()->_reduceRepeatEdits);
+    else
+      e = e->getNextEdit(r->_editHistory, getGlobalSettings()->_globalEditWeights, getGlobalSettings()->_reduceRepeatEdits);
 
 		r->_editHistory.push_back(e);
 

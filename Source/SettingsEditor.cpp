@@ -229,6 +229,9 @@ void SettingsBoolButton::setState(bool newState)
       getGlobalSettings()->_useFGMask = newState;
     }
   }
+  else if (_id == "Reduce Repeat Edits") {
+    getGlobalSettings()->_reduceRepeatEdits = newState;
+  }
 
   refresh();
 }
@@ -243,9 +246,10 @@ bool SettingsBoolButton::getState() const
     return getGlobalSettings()->_grayscaleMode;
   else if (_id == "Generate Graph")
     return getGlobalSettings()->_autoRunTraceGraph;
-  else if (_id == "Use Mask") {
+  else if (_id == "Use Mask")
     return getGlobalSettings()->_useFGMask;
-  }
+  else if (_id == "Reduce Repeat Edits")
+    return getGlobalSettings()->_reduceRepeatEdits;
 
   return false;
 }
@@ -400,6 +404,7 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsBoolButton("Generate Graph"));
   searchComponents.add(new SettingsSlider("Search Threads", 1, thread::hardware_concurrency(), 1));
   searchComponents.add(new SettingsBoolButton("Use Mask"));
+  searchComponents.add(new SettingsBoolButton("Reduce Repeat Edits"));
   _settings.addSection("Search", searchComponents);
 
 

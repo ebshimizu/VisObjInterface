@@ -121,11 +121,43 @@ Edit * Edit::getNextEdit(Snapshot* current, attrObjFunc f, vector<Edit*>& editHi
   //return normWeights.lower_bound(_udist(_gen))->second;
 }
 
-Edit * Edit::getNextEdit(vector<Edit*>& editHistory, map<double, Edit*>& weights)
+Edit * Edit::getNextEdit(vector<Edit*>& editHistory, map<double, Edit*>& weights, bool useHistory)
 {
 	// weighted selection
-	// history unused at the moment, may be used in future
-	return weights.lower_bound(_udist(_gen))->second;
+  if (!useHistory || editHistory.size() == 0) {
+    return weights.lower_bound(_udist(_gen))->second;
+  }
+  else {
+    // decrease likelihood of edits being repeated.
+    // reconstruct original weights
+    map<Edit*, double> w;
+    double prev = 0;
+    for (auto it = weights.begin(); it != weights.end(); it++) {
+      w[it->second] = it->first - prev;
+      prev = it->first;
+    }
+
+    // decrease probability of selection each time edit is encountered in history
+    for (auto& e : editHistory) {
+      w[e] = w[e] / 2;
+      w[e] = (w[e] < 1e-3) ? 1e-3 : w[e];
+    }
+
+    // recompute weights
+    double sum;
+    for (auto& kvp : w) {
+      sum += kvp.second;
+    }
+
+    map<double, Edit*> reweights;
+    double total = 0;
+    for (auto& kvp : w) {
+      total += kvp.second / sum;
+      reweights[total] = kvp.first;
+    }
+
+    return reweights.lower_bound(_udist(_gen))->second;
+  }
 }
 
 bool Edit::canDoEdit()

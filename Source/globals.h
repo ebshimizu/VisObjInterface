@@ -224,6 +224,7 @@ public:
 	ClusterDisplayMode _clusterDisplay;			// Determines how clusters are layed out, primary and secondary clusters are still used
 	SearchMode _searchMode;				// Search method
 	int _maxGradIters;						// Maximum number of gradient descent iterations.
+  bool _reduceRepeatEdits;      // Reduce the probability of repeat edits during a search
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results
