@@ -402,3 +402,17 @@ Eigen::Vector3d HistogramAttribute::getAverageColor(Image i)
 
   return color / (i.getWidth() * i.getHeight());
 }
+
+double HistogramAttribute::getAverageHue(Image i)
+{
+  double hue = 0;
+
+  for (int y = 0; y < i.getHeight(); y++) {
+    for (int x = 0; x < i.getWidth(); x++) {
+      auto c = i.getPixelAt(x, y);
+      hue += c.getHue();
+    }
+  }
+
+  return hue / (i.getHeight() * i.getWidth());
+}

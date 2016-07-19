@@ -129,6 +129,7 @@ public:
 
   // Returns the average color of the specified image (in RGB)
   Eigen::Vector3d getAverageColor(Image i);
+  double getAverageHue(Image i);
 
   // Histogram3D getRGBHist();
   // Histogram3D getHSVHist();
