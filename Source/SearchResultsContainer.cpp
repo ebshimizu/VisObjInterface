@@ -132,68 +132,74 @@ void SearchResultsContainer::sort(AttributeSorter* s)
 		TopLevelSorter sorter(s);
 		_clusters.sort(sorter);
 	}
-	//else if (getGlobalSettings()->_clusterDisplay == GRID) {
-	//	// for grid, a bit more complicated
-	//	// we have to sort columns separately from rows
-	//	int numRows = getGlobalSettings()->_numSecondaryClusters;
-	//	int numCols = getGlobalSettings()->_numPrimaryClusters;
+	else if (getGlobalSettings()->_clusterDisplay == GRID) {
+		// for grid, a bit more complicated
+		// we have to sort columns separately from rows
+		int numRows = getGlobalSettings()->_numSecondaryClusters;
+		int numCols = getGlobalSettings()->_numPrimaryClusters;
 
-	//	// we pick representative clusters for each column
-	//	Array<shared_ptr<TopLevelCluster> > colReps;
-	//	Array<int> colIndexes;
+		// we pick representative clusters for each column
+		Array<shared_ptr<TopLevelCluster> > colReps;
 
-	//	// TODO: Instead of using the clusters themselves, we should use a proxy
-	//	// that saves the old column id and the new column id somehow
-	//	// so that we can do the transfer later
-	//	// right now it uses the actual cluster id number, which if the grid has been
-	//	// sorted before, point to the original ordering instead of the new one
+    // maps cluster id to column index
+		map<int, int> colIndexes;
 
-	//	for (int i = 0; i < numCols; i++) {
-	//		float minScore = FLT_MAX;
-	//		shared_ptr<TopLevelCluster> best;
-	//		for (int j = 0; j < numRows; j++) {
-	//			// find the best top level cluster according to attribute score
-	//			int flatIdx = i + j * numCols;
+		for (int i = 0; i < numCols; i++) {
+			float minScore = FLT_MAX;
+			shared_ptr<TopLevelCluster> best;
+			for (int j = 0; j < numRows; j++) {
+				// find the best top level cluster according to attribute score
+				int flatIdx = i + j * numCols;
 
-	//			if (_clusters[flatIdx] == nullptr)
-	//				continue;
+				if (!_clusters[flatIdx] || _clusters[flatIdx].get()->getRepresentativeResult() == nullptr)
+					continue;
 
-	//			if (_clusters[flatIdx]->getRepresentativeResult()->getSearchResult()->_objFuncVal < minScore) {
-	//				minScore = _clusters[flatIdx]->getRepresentativeResult()->getSearchResult()->_objFuncVal;
-	//				best = _clusters[flatIdx];
-	//			}
-	//		}
-	//		colReps.add(best);
-	//		colIndexes.add(best->getClusterId() % numCols);
-	//	}
+				if (_clusters[flatIdx]->getRepresentativeResult()->getSearchResult()->_objFuncVal < minScore) {
+					minScore = _clusters[flatIdx]->getRepresentativeResult()->getSearchResult()->_objFuncVal;
+					best = _clusters[flatIdx];
+				}
+			}
+			colReps.add(best);
+			colIndexes[best->getClusterId()] = i;   // Save column number
+		}
 
-	//	// sort the columns
-	//	TopLevelSorter sorter(s);
-	//	colReps.sort(sorter);
+		// sort the columns
+		TopLevelSorter sorter(s);
+		colReps.sort(sorter);
 
-	//	auto oldOrder = _clusters;
-	//	_clusters.clear();
-	//	_clusters.resize(numCols * numRows);
+    vector<shared_ptr<TopLevelCluster> > newOrder;
+		newOrder.resize(numCols * numRows);
 
-	//	// put columns in proper spot in array
-	//	for (int i = 0; i < numCols; i++) {
-	//		int oldCol = colIndexes[i];
-	//		int destCol = i;
+		// put columns in proper spot in array
+		for (int i = 0; i < numCols; i++) {
+			int oldCol = colIndexes[colReps[i]->getClusterId()];
+			int destCol = i;
 
-	//		// move
-	//		for (int j = 0; j < numRows; j++) {
-	//			int flatIdx = oldCol + j * numCols;
-	//			int newFlatIdx = destCol + j * numCols;
-	//			_clusters[newFlatIdx] = oldOrder[flatIdx];
-	//		}
-	//	}
+			// move
+			for (int j = 0; j < numRows; j++) {
+				int flatIdx = oldCol + j * numCols;
+				int newFlatIdx = destCol + j * numCols;
+				newOrder[newFlatIdx] = _clusters[flatIdx];
+			}
+		}
 
-	//}
+    // sort rows
+
+    // copy back to clusters
+    _clusters.clear();
+    for (auto c : newOrder) {
+      _clusters.add(c);
+    }
+	}
 
   // sort clusters
-  for (auto& c : _clusters) {
-    c->sort(s);
-    c->resized();
+  for (int i = 0; i < _clusters.size(); i++) {
+    if (_clusters[i] == nullptr) {
+      // we gotta fill in the blanks in the event of a missing cluster
+      _clusters[i] = shared_ptr<TopLevelCluster>(new TopLevelCluster());
+    }
+    _clusters[i]->sort(s);
+    _clusters[i]->resized();
   }
 
   resized();
