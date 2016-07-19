@@ -19,14 +19,6 @@
 
 class SearchResultsViewer;
 
-struct DeviceInfo {
-  DeviceInfo() { }
-  DeviceInfo(EditConstraint& c, string& id) : _c(c), _id(id) { }
-
-  EditConstraint _c;
-  string _id;
-};
-
 // Flag indicating thread status for the dispatch thread
 enum ThreadState {
 	IDLE,
@@ -141,19 +133,11 @@ private:
   // Runs a search for each edit in order (non-parallel at the moment)
   void checkEdits();
 
-  // Returns the number of features in the vector used for search
-  int getVecLength(vector<EditConstraint>& edit, Snapshot* s);
-
   // Filters the _results set down to a reasonable size;
   list<SearchResult*> filterSearchResults(list<SearchResult*>& results);
 
   // Assign each result to the closest center (L2 norm)
   void clusterResults(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers);
-
-  // takes the base color scheme and returns a new one following color theory rules specified by type
-  // This function will assume a certain number of dimensions to be present when editing the color.
-  // it will also probably die if something it doesn't expect to happen happens
-  void getNewColorScheme(Eigen::VectorXd& base, EditNumDevices type, normal_distribution<double>& dist, default_random_engine& rng);
 
 	// Returns the partial numeric derivative wrt each adjustable parameter
 	// Assumes we want the derivative for the current attribute objective function

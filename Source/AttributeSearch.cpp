@@ -846,23 +846,6 @@ void AttributeSearchThread::checkEdits()
   }
 }
 
-int AttributeSearchThread::getVecLength(vector<EditConstraint>& edit, Snapshot * s)
-{
-  int size = 0;
-  for (auto& c : edit) {
-    if (c._qty == D_ALL) {
-      size += getRig()->select(c._select).getDevices().size();
-    }
-    else if (c._qty == D_JOINT || c._qty == D_UNIFORM || c._qty == D_ANALOGOUS_COLOR ||
-      c._qty == D_COMPLEMENTARY_COLOR || c._qty == D_TRIADIC_COLOR ||
-      c._qty == D_TETRADIC_COLOR || c._qty == D_SPLIT_COMPLEMENTARY_COLOR) {
-      size += 1;
-    }
-  }
-
-  return size;
-}
-
 list<SearchResult*> AttributeSearchThread::filterSearchResults(list<SearchResult*>& results) {
   double eps = getGlobalSettings()->_jndThreshold;
   do {
@@ -916,114 +899,6 @@ void AttributeSearchThread::clusterResults(list<SearchResult*>& results, vector<
         r->_cluster = i;
         lowest = dist;
       }
-    }
-  }
-}
-
-void AttributeSearchThread::getNewColorScheme(Eigen::VectorXd & base, EditNumDevices type, normal_distribution<double>& dist, default_random_engine& rng)
-{
-  uniform_real_distribution<double> udist(0.0, 1.0);
-
-  // colors are arranged as [hsv]
-  if (type == D_COMPLEMENTARY_COLOR) {
-    // pick random element to be key 
-    int key = (udist(rng) < 0.5) ? 0 : 1;
-    int notKey = (key == 0) ? 1 : 0;
-
-    // Modify a color, adjust other
-    base[key * 3] += dist(rng);
-    base[notKey * 3] += fmodf(base[key * 3] + (180 + dist(rng)), 360);
-
-    // adjust hsv params for some variety
-    base[key * 3 + 1] += dist(rng) * 0.5;
-    base[key * 3 + 2] += dist(rng) * 0.5;
-    base[notKey * 3 + 1] += dist(rng) * 0.5;
-    base[notKey * 3 + 2] += dist(rng) * 0.5;
-  }
-  else if (type == D_TRIADIC_COLOR) {
-    vector<int> idx;
-    idx.push_back(0);
-    idx.push_back(1);
-    idx.push_back(2);
-
-    random_shuffle(idx.begin(), idx.end());
-
-    base[idx[0] * 3] += dist(rng);
-    base[idx[1] * 3] = fmodf(base[idx[0] * 3] + 120 + dist(rng), 360);
-    base[idx[2] * 3] = fmodf(base[idx[0] * 3] - 120 + dist(rng), 360);
-
-    // adjust hsv for some variety, if out of bounds gets clamped anyway
-    for (int i : idx) {
-      base[i * 3 + 1] += dist(rng) * 0.5;
-      base[i * 3 + 2] += dist(rng) * 0.5;
-    }
-  }
-  else if (type == D_SPLIT_COMPLEMENTARY_COLOR) {
-    vector<int> idx;
-    idx.push_back(0);
-    idx.push_back(1);
-    idx.push_back(2);
-
-    random_shuffle(idx.begin(), idx.end());
-
-    // pick complementary hue and adjust from there
-    double keyHue = fmodf(base[idx[0] * 3] + dist(rng), 360);
-    base[idx[0] * 3] = keyHue;
-
-    double compBaseHue = fmodf(keyHue + 180, 360);
-    base[idx[1] * 3] = fmodf(keyHue + 30, 360);
-    base[idx[2] * 3] = fmodf(keyHue - 30, 360);
-
-    // adjust hsv for some variety, if out of bounds gets clamped anyway
-    for (int i : idx) {
-      base[i * 3 + 1] += dist(rng) * 0.5;
-      base[i * 3 + 2] += dist(rng) * 0.5;
-    }
-  }
-  else if (type == D_ANALOGOUS_COLOR) {
-    vector<int> idx;
-    idx.push_back(0);
-    idx.push_back(1);
-    idx.push_back(2);
-
-    random_shuffle(idx.begin(), idx.end());
-
-    // pick base analogous hue and adjust from there
-    double keyHue = fmodf(base[idx[0] * 3] + dist(rng), 360);
-    base[idx[0] * 3] = keyHue;
-
-    float adist = dist(rng) * 20;
-    base[idx[1] * 3] = fmodf(keyHue + adist, 360);
-    base[idx[2] * 3] = fmodf(keyHue - adist, 360);
-
-    // adjust hsv for some variety, if out of bounds gets clamped anyway
-    for (int i : idx) {
-      base[i * 3 + 1] += dist(rng) * 0.5;
-      base[i * 3 + 2] += dist(rng) * 0.5;
-    }
-  }
-  else if (type == D_TETRADIC_COLOR) {
-    // square tetradic colors over here
-    vector<int> idx;
-    idx.push_back(0);
-    idx.push_back(1);
-    idx.push_back(2);
-    idx.push_back(3);
-
-    random_shuffle(idx.begin(), idx.end());
-
-    // pick base tetradic hue and adjust from there
-    double keyHue = fmodf(base[idx[0] * 3] + dist(rng), 360);
-    base[idx[0] * 3] = keyHue;
-
-    base[idx[1] * 3] = fmodf(keyHue + 90 + dist(rng) * 0.5, 360);
-    base[idx[2] * 3] = fmodf(keyHue + 180 + dist(rng) * 0.5, 360);
-    base[idx[3] * 3] = fmodf(keyHue + 270 + dist(rng) * 0.5, 360);
-
-    // adjust hsv for some variety, if out of bounds gets clamped anyway
-    for (int i : idx) {
-      base[i * 3 + 1] += dist(rng) * 0.5;
-      base[i * 3 + 2] += dist(rng) * 0.5;
     }
   }
 }

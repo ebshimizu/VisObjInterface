@@ -29,8 +29,6 @@ public:
 
   virtual void changeListenerCallback(ChangeBroadcaster* source) override;
 
-  virtual map<string, vector<EditConstraint> > getExploreEdits();
-
 private:
   // Target color for a single run of the attribute
   Colour _targetColor;
