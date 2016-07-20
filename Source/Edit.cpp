@@ -144,7 +144,7 @@ Edit * Edit::getNextEdit(vector<Edit*>& editHistory, map<double, Edit*>& weights
     }
 
     // recompute weights
-    double sum;
+    double sum = 0;
     for (auto& kvp : w) {
       sum += kvp.second;
     }

@@ -209,7 +209,7 @@ void GlobalSettings::loadDiagnosticData(string filename)
 
       // create scene vector
       sample._scene.resize(sceneVals.size());
-      for (int i = 0; i < sceneVals.size(); i++) {
+      for (i = 0; i < sceneVals.size(); i++) {
         sample._scene[i] = sceneVals[i];
       }
 
@@ -371,7 +371,7 @@ GlobalSettings::GlobalSettings()
   _searchFailureLimit = 3;
 	_searchThreads = thread::hardware_concurrency() / 2;
   _autoRunTraceGraph = false;
-  _standardMCMCIters = 5.0e3;
+  _standardMCMCIters = (int) 5e3;
   _numPrimaryClusters = 5;
   _primaryClusterMethod = DIVISIVE; // "K-Means";
   _primaryClusterMetric = DIRPPAVGLAB; // "Per-Pixel Average Lab Difference";
