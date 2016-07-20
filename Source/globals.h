@@ -49,6 +49,7 @@ enum command {
   UNDO = 0x4001,
   REDO = 0x4002,
   GET_FROM_ARNOLD = 0x4003,
+  CONSTRAINTS = 0x4004,
 
   // Explore
   SEARCH = 0x5000,

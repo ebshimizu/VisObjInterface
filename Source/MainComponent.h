@@ -15,6 +15,7 @@
 #include "AttributeControls.h"
 #include "SceneViewer.h"
 #include "SettingsEditor.h"
+#include "ConstraintEditor.h"
 
 //==============================================================================
 /*
@@ -97,6 +98,7 @@ private:
 
   // Opens the settings window
   void openSettings();
+  void openConstraints();
 
   // parameter locking
   void lockAllColor();
@@ -137,6 +139,7 @@ private:
   ScopedPointer<SceneViewer> _viewer;
 
   SafePointer<SettingsWindow> _settingsWindow;
+  SafePointer<ConstraintWindow> _constraintWindow;
 
   // Search object
   ScopedPointer<AttributeSearch> _searchWorker;

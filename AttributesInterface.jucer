@@ -22,6 +22,10 @@
           <FILE id="HH1hup" name="SpectralCluster.h" compile="0" resource="0"
                 file="Source/SpectralCluster.h"/>
         </GROUP>
+        <FILE id="YqBA28" name="ConstraintEditor.cpp" compile="1" resource="0"
+              file="Source/ConstraintEditor.cpp"/>
+        <FILE id="wQq1ad" name="ConstraintEditor.h" compile="0" resource="0"
+              file="Source/ConstraintEditor.h"/>
         <FILE id="cmHY0e" name="HistoryEntry.cpp" compile="1" resource="0"
               file="Source/HistoryEntry.cpp"/>
         <FILE id="EcgfET" name="HistoryEntry.h" compile="0" resource="0" file="Source/HistoryEntry.h"/>

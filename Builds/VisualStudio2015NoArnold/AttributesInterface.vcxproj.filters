@@ -388,6 +388,9 @@
     <ClCompile Include="..\..\Source\SpectralCluster.cpp">
       <Filter>AttributesInterface\Source\GUI\clustering</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\ConstraintEditor.cpp">
+      <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\HistoryEntry.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
@@ -2177,6 +2180,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\SpectralCluster.h">
       <Filter>AttributesInterface\Source\GUI\clustering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\ConstraintEditor.h">
+      <Filter>AttributesInterface\Source\GUI</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\HistoryEntry.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
