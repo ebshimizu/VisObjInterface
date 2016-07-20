@@ -24,6 +24,7 @@ using namespace Lumiverse::ShowControl;
 
 class MainWindow;
 class Edit;
+class ConsistencyConstraint;
 
 typedef pair<Eigen::VectorXd, unsigned int> mcmcSample;
 
@@ -97,25 +98,6 @@ enum EditParam {
   RED,
   GREEN,
   BLUE
-};
-
-enum ConstraintMode {
-  PAIRWISE_SUM,
-  REFERENCE,
-  AVERAGE
-};
-
-class SearchConstraint
-{
-public:
-  SearchConstraint(DeviceSet affected, ConstraintMode mode);
-  SearchConstraint(DeviceSet affected, string target);
-  ~SearchConstraint();
-
-private:
-  DeviceSet _affected;
-  set<EditParam> _params;
-  ConstraintMode _mode;
 };
 
 struct DebugData {
@@ -269,6 +251,15 @@ public:
 
   // Foregorund mask
   Image _fgMask;
+
+  // Consistency constraints
+  map<string, ConsistencyConstraint> _constraints;
+
+  // manipulating constraints
+  // Done mostly on file load, or maybe when constraints need to be reset.
+  // Creates the proper constraints to enfore default consistency settings
+  // which are: per-system within edit consistency
+  void generateDefaultConstraints();
 };
 
 // Results that eventually get returned to the UI layer

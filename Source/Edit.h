@@ -19,6 +19,28 @@ using namespace Lumiverse::ShowControl;
 
 enum EditParam;
 
+enum ConsistencyScope
+{
+  LOCAL,  // Within edit. Parameters in affected devices must be the same within an edit.
+  GLOBAL  // Within scene. Parameters in all relevent devices must be the same.
+};
+
+class ConsistencyConstraint
+{
+public:
+  ConsistencyConstraint(DeviceSet affected, ConsistencyScope scope, set<EditParam> params);
+  ConsistencyConstraint(string query, ConsistencyScope scope, set<EditParam> params);
+  ConsistencyConstraint(const ConsistencyConstraint& other);
+  ConsistencyConstraint();
+  ~ConsistencyConstraint();
+
+  bool contains(Device* d);
+
+  DeviceSet _affected;
+  set<EditParam> _params;
+  ConsistencyScope _scope;
+};
+
 // Objective function type to be passed to performEdit.
 typedef function<double(Snapshot*)> attrObjFunc;
 
@@ -76,13 +98,12 @@ private:
 
 	// After the initialization step, the edit takes a look at the affected devices
 	// and constructs these consistency sets. Consistency sets are sets of devices
-	// that must match intensity and color (for now, fine-grained control of these
-	// sets may come in the future). When one parameter changes, the other devices
+	// that must have the same parameter values. When one parameter changes, the other devices
 	// must match that parameter unless locked.
 	// Note that areas do not necessarily have to be consistent.
 	// The string is an id corresponding to the representative device in the set.
 	// This is the device that sets the values for all other devices in the set
-	vector<pair<DeviceSet, string> > _consistencySets;
+	vector<pair<ConsistencyConstraint, string> > _consistencySets;
 
   bool _joint;      // If true, adjusts all lights in the edit by the same delta
   bool _uniform;    // If true, sets all params in the edit to the same value

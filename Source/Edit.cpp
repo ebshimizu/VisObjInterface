@@ -11,6 +11,36 @@
 #include "Edit.h"
 #include "AttributeSearch.h"
 
+ConsistencyConstraint::ConsistencyConstraint(DeviceSet affected, ConsistencyScope scope, set<EditParam> params) :
+  _affected(affected), _scope(scope), _params(params)
+{
+}
+
+ConsistencyConstraint::ConsistencyConstraint(string query, ConsistencyScope scope, set<EditParam> params) :
+  _scope(scope), _params(params)
+{
+  _affected = getRig()->select(query);
+}
+
+ConsistencyConstraint::ConsistencyConstraint(const ConsistencyConstraint & other) :
+  _affected(other._affected), _scope(other._scope), _params(other._params)
+{
+}
+
+ConsistencyConstraint::ConsistencyConstraint()
+{
+}
+
+ConsistencyConstraint::~ConsistencyConstraint()
+{
+
+}
+
+bool ConsistencyConstraint::contains(Device * d)
+{
+  return _affected.contains(d->getId());
+}
+
 Edit::Edit(set<string> lockedParams) : _lockedParams(lockedParams)
 {
   _joint = false;
@@ -90,9 +120,9 @@ void Edit::performEdit(Snapshot * s, double stepSize)
 		// for most edits, we want to adjust the parameters as consistent systems
     for (auto cs : _consistencySets) {
 			Device* rep = sd[cs.second];
-			set<Device*> devs = cs.first.getDevices();
+			set<Device*> devs = cs.first._affected.getDevices();
 
-      for (auto& p : _affectedParams) {
+      for (auto& p : cs.first._params) {
 				double delta = _gdist(_gen);
 				applyParamEdit(rep, p, delta);
 
@@ -530,21 +560,76 @@ bool Edit::isParamLocked(Device * d, EditParam c)
 
 void Edit::constructConsistencySets()
 {
-	// Simple version to start
-	// look at all affected devices, group them by system.
-	auto& devices = _affectedDevices.getDevices();
-	map<string, DeviceSet> systems;
-	for (auto& d : devices) {
-    string system = d->getMetadata("system");
-    if (systems.count(system) == 0) {
-      systems[system] = DeviceSet();
+  // using the constraints in the global settings, construct the consistency sets
+  // for this edit
+  auto& editDevices = _affectedDevices.getDevices();
+  auto& constraints = getGlobalSettings()->_constraints;
+
+  // here's where we want to combine consistency sets and get a 
+  // nice compact list of things we actually need to change for the edit 
+  // to execute efficiently. 
+
+  // this structure tracks which sets of devices need their parameters to be consistent.
+  // If when adding to the relevant sets, a device belongs to two sets in the same
+  // parameter, both sets must be merged.
+  map<EditParam, Array<DeviceSet> > relevantSets;
+
+  for (auto& c : constraints) {
+    auto& cdevices = c.second._affected.getDevices();
+    
+    // merging is done on a parameter level
+    for (auto& p : c.second._params) {
+      // if the edit isn't looking at the parameter, skip
+      if (_affectedParams.count(p) == 0)
+        continue;
+
+      // construct the relevant set for this constraint
+      DeviceSet r;
+
+      // add all devices for global
+      if (c.second._scope == GLOBAL) {
+        r = r.add(c.second._affected);
+      }
+      // add devices in the edit for local
+      if (c.second._scope == LOCAL) {
+        for (auto& d : cdevices) {
+          if (_affectedDevices.contains(d->getId())) {
+            r = r.add(d);
+          }
+        }
+      }
+
+      // if the set is empty, just skip this next part
+      if (r.size() == 0)
+        continue;
+
+      // check which sets the param set needs to be merged with
+      auto& rdevices = r.getDevices();
+      vector<DeviceSet> mergeList;
+      for (auto& d : rdevices) {
+        for (int i = 0; i < relevantSets[p].size(); i++) {
+          if (relevantSets[p][i].contains(d->getId())) {
+            // remove from relevantSets and add to merge list
+            mergeList.push_back(relevantSets[p].remove(i));
+            break;
+          }
+        }
+      }
+
+      // merge the things that should be merged
+      for (int i = 0; i < mergeList.size(); i++) {
+        r = r.add(mergeList[i]);
+      }
+
+      relevantSets[p].add(r);
     }
+  }
 
-		systems[system] = systems[system].add(d);
-	}
-
-	// affected systems are expected to be consistent
-	for (auto s : systems) {
-		_consistencySets.push_back(pair<DeviceSet, string>(s.second, s.second.getIds()[0]));
-	}
+  // now that we have the constraints all nicely organized, time to create lower-level constraints
+  // out of them and assign them a representative device
+  for (auto& s : relevantSets) {
+    for (auto& ds : s.second) {
+      _consistencySets.push_back(pair<ConsistencyConstraint, string>(ConsistencyConstraint(ds, GLOBAL, { s.first }), ds.getIds()[0]));
+    }
+  }
 }

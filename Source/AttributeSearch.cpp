@@ -1316,9 +1316,9 @@ void AttributeSearch::generateDefaultEdits(string select, int editType)
 
   // all parameters
   Edit* e = new Edit(_lockedParams);
-  initfunc(e, false, false);
   e->setParams({ INTENSITY, RED, BLUE, GREEN });
   e->_name = select + "_all";
+  initfunc(e, false, false);
   if (e->canDoEdit())
     edits.push_back(e);
   else
@@ -1326,9 +1326,9 @@ void AttributeSearch::generateDefaultEdits(string select, int editType)
 
   // intensity/brightness only
   e = new Edit(_lockedParams);
-  initfunc(e, false, false);
   e->setParams({ INTENSITY });
   e->_name = select + "_intensity";
+  initfunc(e, false, false);
   //if (e->canDoEdit())
   //  edits.push_back(e);
   //else
@@ -1336,9 +1336,9 @@ void AttributeSearch::generateDefaultEdits(string select, int editType)
 
   // hue only
   e = new Edit(_lockedParams);
-  initfunc(e, false, false);
   e->setParams({ HUE });
   e->_name = select + "_hue";
+  initfunc(e, false, false);
   if (e->canDoEdit())
     edits.push_back(e);
   else
@@ -1346,9 +1346,9 @@ void AttributeSearch::generateDefaultEdits(string select, int editType)
 
   // sat only
   e = new Edit(_lockedParams);
-  initfunc(e, false, false);
   e->setParams({ SAT });
   e->_name = select + "_sat";
+  initfunc(e, false, false);
   if (e->canDoEdit())
     edits.push_back(e);
   else

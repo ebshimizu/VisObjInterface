@@ -274,6 +274,18 @@ void GlobalSettings::clearEdits()
   _edits.clear();
 }
 
+void GlobalSettings::generateDefaultConstraints()
+{
+  // create a constraint for each system
+  auto systems = getRig()->getMetadataValues("system");
+  auto& constraints = getGlobalSettings()->_constraints;
+
+  for (auto& s : systems) {
+    string query = "$system=" + s;
+    constraints[query] = ConsistencyConstraint(query, LOCAL, { INTENSITY, RED, GREEN, BLUE, HUE, SAT });
+  }
+}
+
 Rig* getRig() {
   if (_rig == nullptr) {
     _rig = new Rig();

@@ -467,6 +467,11 @@ void MainContentComponent::openRig(String fname)
 		_search->clearContainer();
 		_search->clearHistory();
     _showName = selected.getFileName();
+
+    // initialize consistency constraints
+    getGlobalSettings()->_constraints.clear();
+    getGlobalSettings()->generateDefaultConstraints();
+
     getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);
   }
   else {
