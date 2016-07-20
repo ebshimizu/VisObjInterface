@@ -184,10 +184,51 @@ void SearchResultsContainer::sort(AttributeSorter* s)
 		}
 
     // sort rows
+    // basically the same thing but now across rows
+    Array<shared_ptr<TopLevelCluster> > rowReps;
+    map<int, int> rowIndexes;
+
+    for (int i = 0; i < numRows; i++) {
+      float minScore = FLT_MAX;
+      shared_ptr<TopLevelCluster> best;
+      for (int j = 0; j < numCols; j++) {
+        // find the best top level cluster according to attribute score
+        int flatIdx = i * numCols + j;
+
+        if (!newOrder[flatIdx] || newOrder[flatIdx].get()->getRepresentativeResult() == nullptr)
+          continue;
+
+        if (newOrder[flatIdx]->getRepresentativeResult()->getSearchResult()->_objFuncVal < minScore) {
+          minScore = newOrder[flatIdx]->getRepresentativeResult()->getSearchResult()->_objFuncVal;
+          best = newOrder[flatIdx];
+        }
+      }
+      rowReps.add(best);
+      rowIndexes[best->getClusterId()] = i;   // Save row number
+    }
+
+    // sort the rows
+    rowReps.sort(sorter);
+
+    vector<shared_ptr<TopLevelCluster> > newRowOrder;
+    newRowOrder.resize(numCols * numRows);
+
+    // put rows in proper place
+    for (int i = 0; i < numRows; i++) {
+      int oldRow = rowIndexes[rowReps[i]->getClusterId()];
+      int destRow = i;
+
+      // move
+      for (int j = 0; j < numCols; j++) {
+        int flatIdx = oldRow * numCols + j;
+        int newFlatIdx = destRow * numCols + j;
+        newRowOrder[newFlatIdx] = newOrder[flatIdx];
+      }
+    }
 
     // copy back to clusters
     _clusters.clear();
-    for (auto c : newOrder) {
+    for (auto c : newRowOrder) {
       _clusters.add(c);
     }
 	}
