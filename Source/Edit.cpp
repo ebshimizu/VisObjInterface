@@ -117,7 +117,6 @@ void Edit::performEdit(Snapshot * s, double stepSize)
     }
   }
   else {
-		// for most edits, we want to adjust the parameters as consistent systems
     for (auto cs : _consistencySets) {
 			Device* rep = sd[cs.second];
 			set<Device*> devs = cs.first._affected.getDevices();
@@ -562,7 +561,6 @@ void Edit::constructConsistencySets()
 {
   // using the constraints in the global settings, construct the consistency sets
   // for this edit
-  auto& editDevices = _affectedDevices.getDevices();
   auto& constraints = getGlobalSettings()->_constraints;
 
   // here's where we want to combine consistency sets and get a 
@@ -573,6 +571,15 @@ void Edit::constructConsistencySets()
   // If when adding to the relevant sets, a device belongs to two sets in the same
   // parameter, both sets must be merged.
   map<EditParam, Array<DeviceSet> > relevantSets;
+
+  // all devices start in separate consistency sets for the affected parameters
+  auto& devices = _affectedDevices.getDevices();
+  for (auto& p : _affectedParams) {
+    for (auto& d : devices) {
+      DeviceSet newset;
+      relevantSets[p].add(newset.add(d));
+    }
+  }
 
   for (auto& c : constraints) {
     auto& cdevices = c.second._affected.getDevices();
@@ -607,11 +614,13 @@ void Edit::constructConsistencySets()
       auto& rdevices = r.getDevices();
       vector<DeviceSet> mergeList;
       for (auto& d : rdevices) {
-        for (int i = 0; i < relevantSets[p].size(); i++) {
+        for (int i = 0; i < relevantSets[p].size(); ) {
           if (relevantSets[p][i].contains(d->getId())) {
             // remove from relevantSets and add to merge list
             mergeList.push_back(relevantSets[p].remove(i));
-            break;
+          }
+          else {
+            i++;
           }
         }
       }
