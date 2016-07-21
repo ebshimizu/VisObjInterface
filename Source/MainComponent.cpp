@@ -64,6 +64,8 @@ MainContentComponent::~MainContentComponent()
 {
   if (_settingsWindow != nullptr)
     delete _settingsWindow;
+  if (_constraintWindow != nullptr)
+    delete _constraintWindow;
 
   _searchWorker->stop();
 
@@ -476,6 +478,9 @@ void MainContentComponent::openRig(String fname)
     _showName = selected.getFileName();
 
     // initialize consistency constraints
+    if (_constraintWindow != nullptr)
+      delete _constraintWindow;
+
     getGlobalSettings()->_constraints.clear();
     getGlobalSettings()->generateDefaultConstraints();
 

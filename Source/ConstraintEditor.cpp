@@ -100,7 +100,7 @@ ConstraintParameterSelector::ConstraintParameterSelector(string id, Button * b) 
 
   // set selected rows
   // a little right now weird since we're grouping all color restrictions as one constraint
-  auto& params = getGlobalSettings()->_constraints[_id]._params;
+  set<EditParam> params = getGlobalSettings()->_constraints[_id]._params;
   for (auto param : params) {
     if (param == INTENSITY)
       _list.selectRow(0, true, false);
@@ -155,6 +155,7 @@ void ConstraintParameterSelector::selectedRowsChanged(int lastRowSelected)
       paramStrings.push_back("Color");
     }
   }
+  getGlobalSettings()->_constraints[_id]._params = params;
   
   String text;
   bool first = true;
@@ -200,6 +201,21 @@ ConstraintEditor::ConstraintEditor() : _font(14.0)
   for (auto& c : getGlobalSettings()->_constraints) {
     _ids.add(c.first);
   }
+
+  addAndMakeVisible(_newConstraint);
+  addAndMakeVisible(_clearConstraints);
+  addAndMakeVisible(_resetConstraints);
+  _newConstraint.addListener(this);
+  _clearConstraints.addListener(this);
+  _resetConstraints.addListener(this);
+
+  _newConstraint.setName("New");
+  _clearConstraints.setName("Clear");
+  _resetConstraints.setName("Reset");
+
+  _newConstraint.setButtonText("New");
+  _clearConstraints.setButtonText("Clear");
+  _resetConstraints.setButtonText("Reset");
 }
 
 ConstraintEditor::~ConstraintEditor()
@@ -290,9 +306,66 @@ void ConstraintEditor::reload()
   _table.updateContent();
 }
 
+void ConstraintEditor::buttonClicked(Button * b)
+{
+  if (b->getName() == "New") {
+    AlertWindow w("New Constraint",
+      "",
+      AlertWindow::QuestionIcon);
+
+    w.addTextEditor("text", "", "Constraint Name");
+    w.addButton("Create", 1, KeyPress(KeyPress::returnKey, 0, 0));
+    w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+    if (w.runModalLoop() != 0) // is they picked 'ok'
+    {
+      // this is the text they entered..
+      String text = w.getTextEditorContents("text");
+
+      if (getGlobalSettings()->_constraints.count(text.toStdString()) > 0) {
+        // already exists
+        AlertWindow::showMessageBoxAsync(AlertWindow::InfoIcon,
+          "Constraint Already Exists",
+          "A constraint with this name already exists: " + text,
+          "OK");
+        return;
+      }
+
+      getGlobalSettings()->_constraints[text.toStdString()] = ConsistencyConstraint();
+      reload();
+    }
+  }
+  else if (b->getName() == "Clear") {
+    bool confirmDelete = AlertWindow::showOkCancelBox(AlertWindow::WarningIcon, "Delete All Constraints",
+      "Are you sure you want to delete all constraints?", "Yes", "No", nullptr);
+
+    if (confirmDelete) {
+      getGlobalSettings()->_constraints.clear();
+      reload();
+    }
+  }
+  else if (b->getName() == "Reset") {
+    bool confirmDelete = AlertWindow::showOkCancelBox(AlertWindow::WarningIcon, "Reset All Constraints",
+      "Are you sure you want to delete all constraints and replace them with the default constraints?",
+      "Yes", "No", nullptr);
+
+    if (confirmDelete) {
+      getGlobalSettings()->_constraints.clear();
+      getGlobalSettings()->generateDefaultConstraints();
+      reload();
+    }
+  }
+}
+
 void ConstraintEditor::resized()
 {
-  _table.setBoundsInset(BorderSize<int>(8));
+  auto lbounds = getLocalBounds();
+  auto top = lbounds.removeFromTop(26);
+  _newConstraint.setBounds(top.removeFromLeft(80).reduced(2));
+  _clearConstraints.setBounds(top.removeFromLeft(80).reduced(2));
+  _resetConstraints.setBounds(top.removeFromLeft(80).reduced(2));
+
+  _table.setBounds(lbounds.reduced(4));
 }
 
 ConstraintWindow::ConstraintWindow() :

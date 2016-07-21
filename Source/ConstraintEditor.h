@@ -51,7 +51,7 @@ private:
   Button* _b;
 };
 
-class ConstraintEditor : public Component, public TableListBoxModel
+class ConstraintEditor : public Component, public TableListBoxModel, public ButtonListener
 {
 public:
   ConstraintEditor();
@@ -63,6 +63,7 @@ public:
   void sortOrderChanged(int newSortColumnId, bool isForwards) override;
   Component* refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, Component* existingComponentToUpdate) override;
   void reload();
+  void buttonClicked(Button* b) override;
 
   void resized() override;
 
@@ -132,6 +133,9 @@ public:
 private:
   TableListBox _table;
   Font _font;
+  TextButton _newConstraint;
+  TextButton _resetConstraints;
+  TextButton _clearConstraints;
 
   StringArray _ids;
 };
