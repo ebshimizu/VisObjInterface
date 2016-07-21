@@ -13,6 +13,43 @@
 
 #include "globals.h"
 
+class ConstraintDeviceSelector : public Component, public ListBoxModel
+{
+public:
+  ConstraintDeviceSelector(string id, Button* b);
+  ~ConstraintDeviceSelector();
+
+  virtual int getNumRows() override;
+  virtual void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override;
+  virtual void selectedRowsChanged(int lastRowSelected) override;
+  virtual void resized() override;
+  int getListHeight();
+
+private:
+  string _id;
+  ListBox _list;
+  StringArray _deviceIds;
+  Button* _b;
+};
+
+class ConstraintParameterSelector : public Component, public ListBoxModel
+{
+public:
+  ConstraintParameterSelector(string id, Button* b);
+  ~ConstraintParameterSelector();
+
+  virtual int getNumRows() override;
+  virtual void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override;
+  virtual void selectedRowsChanged(int lastRowSelected) override;
+  virtual void resized() override;
+  int getListHeight();
+
+private:
+  string _id;
+  ListBox _list;
+  Button* _b;
+};
+
 class ConstraintEditor : public Component, public TableListBoxModel
 {
 public:
@@ -40,7 +77,38 @@ public:
   private:
     ComboBox _box;
     string _id;
+  };
 
+  class ConstraintDevicesComponent : public Component, private ButtonListener
+  {
+  public:
+    ConstraintDevicesComponent();
+    ~ConstraintDevicesComponent();
+
+    void resized() override;
+    void setTargetConstraint(string id);
+    void buttonClicked(Button* b) override;
+    void updateButtonText();
+
+  private:
+    string _id;
+    TextButton _button;
+  };
+
+  class ConstraintParamsComponent : public Component, private ButtonListener
+  {
+  public:
+    ConstraintParamsComponent();
+    ~ConstraintParamsComponent();
+
+    void resized() override;
+    void setTargetConstraint(string id);
+    void buttonClicked(Button* b) override;
+    void updateButtonText();
+
+  private:
+    string _id;
+    TextButton _button;
   };
 
 private:

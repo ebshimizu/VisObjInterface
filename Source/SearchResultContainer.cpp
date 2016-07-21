@@ -119,7 +119,7 @@ void SearchResultContainer::regenToolTip()
 void SearchResultContainer::paint (Graphics& g)
 {
   if (_isHovered) {
-    g.fillAll(Colours::yellow);
+    g.fillAll(Colours::lightyellow);
   }
   else {
     g.fillAll(Colour(0xff333333));
