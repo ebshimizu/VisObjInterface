@@ -208,6 +208,11 @@ ConstraintEditor::~ConstraintEditor()
 
 int ConstraintEditor::getNumRows()
 {
+  _ids.clear();
+  for (auto& c : getGlobalSettings()->_constraints) {
+    _ids.add(c.first);
+  }
+
   return getGlobalSettings()->_constraints.size();
 }
 
@@ -266,9 +271,23 @@ Component * ConstraintEditor::refreshComponentForCell(int rowNumber, int columnI
     deviceSelect->setTargetConstraint(_ids[rowNumber].toStdString());
     return deviceSelect;
   }
+  else if (columnId == 5) {
+    ConstraintDeleteComponent* deleteButton = static_cast<ConstraintDeleteComponent*>(existingComponentToUpdate);
+
+    if (deleteButton == nullptr)
+      deleteButton = new ConstraintDeleteComponent(this);
+
+    deleteButton->setTargetConstraint(_ids[rowNumber].toStdString());
+    return deleteButton;
+  }
   else {
     return nullptr;
   }
+}
+
+void ConstraintEditor::reload()
+{
+  _table.updateContent();
 }
 
 void ConstraintEditor::resized()
@@ -434,4 +453,38 @@ void ConstraintEditor::ConstraintParamsComponent::updateButtonText()
   }
 
   _button.setButtonText(text);
+}
+
+ConstraintEditor::ConstraintDeleteComponent::ConstraintDeleteComponent(ConstraintEditor* parent) :
+  _button("Delete", false), _parent(parent)
+{
+  addAndMakeVisible(_button);
+  _button.setButtonText("Delete");
+  _button.setColor(Colours::red);
+  _button.addListener(this);
+}
+
+ConstraintEditor::ConstraintDeleteComponent::~ConstraintDeleteComponent()
+{
+}
+
+void ConstraintEditor::ConstraintDeleteComponent::resized()
+{
+  _button.setBoundsInset(BorderSize<int>(2));
+}
+
+void ConstraintEditor::ConstraintDeleteComponent::setTargetConstraint(string id)
+{
+  _id = id;
+}
+
+void ConstraintEditor::ConstraintDeleteComponent::buttonClicked(Button * b)
+{
+  bool confirmDelete = AlertWindow::showOkCancelBox(AlertWindow::WarningIcon, "Delete Constraint: " + _id,
+    "Are you sure you want to delete this constraint?", "Yes", "No", nullptr);
+
+  if (confirmDelete) {
+    getGlobalSettings()->_constraints.erase(_id);
+    _parent->reload();
+  }
 }

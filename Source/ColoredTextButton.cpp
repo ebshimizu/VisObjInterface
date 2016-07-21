@@ -12,9 +12,11 @@
 #include "ColoredTextButton.h"
 
 //==============================================================================
-ColoredTextButton::ColoredTextButton(String name) : TextButton(name)
+ColoredTextButton::ColoredTextButton(String name, bool useColorNameAsText) : TextButton(name),
+  _useColorNameAsText(useColorNameAsText)
 {
-	setButtonText(_buttonColor.toDisplayString(false));
+  if (_useColorNameAsText)
+    setButtonText(_buttonColor.toDisplayString(false));
 }
 
 ColoredTextButton::~ColoredTextButton()
@@ -35,5 +37,7 @@ void ColoredTextButton::paint (Graphics& g)
 void ColoredTextButton::setColor(Colour newColor)
 {
 	_buttonColor = newColor;
-	setButtonText(_buttonColor.toDisplayString(false));
+
+  if (_useColorNameAsText)
+    setButtonText(_buttonColor.toDisplayString(false));
 }

@@ -12,6 +12,7 @@
 #define CONSTRAINTEDITOR_H_INCLUDED
 
 #include "globals.h"
+#include "ColoredTextButton.h"
 
 class ConstraintDeviceSelector : public Component, public ListBoxModel
 {
@@ -61,7 +62,8 @@ public:
   void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override;
   void sortOrderChanged(int newSortColumnId, bool isForwards) override;
   Component* refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, Component* existingComponentToUpdate) override;
-  
+  void reload();
+
   void resized() override;
 
   class ConstraintScopeComponent : public Component, private ComboBoxListener
@@ -109,6 +111,22 @@ public:
   private:
     string _id;
     TextButton _button;
+  };
+
+  class ConstraintDeleteComponent : public Component, private ButtonListener
+  {
+  public:
+    ConstraintDeleteComponent(ConstraintEditor* parent);
+    ~ConstraintDeleteComponent();
+
+    void resized() override;
+    void setTargetConstraint(string id);
+    void buttonClicked(Button* b) override;
+    
+  private:
+    string _id;
+    ColoredTextButton _button;
+    ConstraintEditor* _parent;
   };
 
 private:

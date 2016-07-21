@@ -19,7 +19,7 @@
 class ColoredTextButton    : public TextButton 
 {
 public:
-	ColoredTextButton(String name);
+	ColoredTextButton(String name, bool useColorNameAsText = true);
 	~ColoredTextButton();
 
 	void paint (Graphics&) override;
@@ -27,6 +27,7 @@ public:
 
 private:
 	Colour _buttonColor;
+  bool _useColorNameAsText;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ColoredTextButton)
 };
