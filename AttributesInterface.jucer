@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="eoLPJP" name="AttributesInterface" projectType="guiapp" version="0.04"
+<JUCERPROJECT id="eoLPJP" name="AttributesInterface" projectType="guiapp" version="0.05"
               bundleIdentifier="com.research.adobe.AttributeInterface" includeBinaryInAppConfig="1"
               jucerVersion="4.2.3" companyName="Adobe" companyWebsite="research.adobe.com"
               companyEmail="eshimizu@adobe.com">
