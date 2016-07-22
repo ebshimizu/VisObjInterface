@@ -46,8 +46,7 @@ Edit::Edit(set<string> lockedParams) : _lockedParams(lockedParams)
   _joint = false;
   _uniform = false;
 
-  unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
-  _gen = default_random_engine(seed1);
+  _gen = default_random_engine(std::random_device{}());
   _udist = uniform_real_distribution<double>(0.0, 1.0);
 }
 
@@ -139,15 +138,11 @@ void Edit::performEdit(Snapshot * s, double stepSize)
   }
 }
 
-Edit * Edit::getNextEdit(Snapshot* current, attrObjFunc f, vector<Edit*>& editHistory, vector<Edit*>& availableEdits)
+Edit * Edit::getNextEdit(Snapshot* /* current */, attrObjFunc f, vector<Edit*>& /* editHistory */, vector<Edit*>& availableEdits)
 {
-  // TODO: DO BETTER THAN RANDOM
-  // for now just pick a random edit until the entire search flow is working right
+  // select a random edit
   int idx = (int) (_udist(_gen) * availableEdits.size());
   return availableEdits[idx];
-
-  //// pick an edit
-  //return normWeights.lower_bound(_udist(_gen))->second;
 }
 
 Edit * Edit::getNextEdit(vector<Edit*>& editHistory, map<double, Edit*>& weights, bool useHistory)
@@ -322,13 +317,13 @@ void Edit::applyParamEdit(Device * d, EditParam p, double delta)
     case INTENSITY:
     {
       double val = d->getIntensity()->asPercent();
-      d->getIntensity()->setValAsPercent(delta + val);
+      d->getIntensity()->setValAsPercent((float) (delta + val));
       return;
     }
     case HUE:
     {
       Eigen::Vector3d hsv = d->getColor()->getHSV();
-      d->getColor()->setHSV(hsv[0] + (delta * 360), hsv[1], hsv[2]);
+      d->getColor()->setHSV(hsv[0] + (delta * 360.0), hsv[1], hsv[2]);
       return;
     }
     case SAT:
@@ -366,7 +361,7 @@ void Edit::applyParamEdit(Device * d, EditParam p, double delta)
       if (d->paramExists("polar")) {
         LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("polar");
         double val = o->asPercent();
-        o->setValAsPercent(val + delta);
+        o->setValAsPercent((float) (val + delta));
       }
       return;
     }
@@ -375,7 +370,7 @@ void Edit::applyParamEdit(Device * d, EditParam p, double delta)
       if (d->paramExists("azimuth")) {
         LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("azimuth");
         double val = o->asPercent();
-        o->setValAsPercent(val + delta);
+        o->setValAsPercent((float) (val + delta));
       }
       return;
     }
@@ -384,7 +379,7 @@ void Edit::applyParamEdit(Device * d, EditParam p, double delta)
       if (d->paramExists("penumbraAngle")) {
         LumiverseFloat* s = d->getParam<LumiverseFloat>("penumbraAngle");
         double val = s->asPercent();
-        s->setValAsPercent(val + delta);
+        s->setValAsPercent((float) (val + delta));
       }
       return;
     }
@@ -401,7 +396,7 @@ void Edit::setParam(Device * d, EditParam p, double val)
   switch (p) {
     case INTENSITY:
     {
-      d->getIntensity()->setValAsPercent(val);
+      d->getIntensity()->setValAsPercent((float) val);
       return;
     }
     case HUE:
@@ -441,7 +436,7 @@ void Edit::setParam(Device * d, EditParam p, double val)
     {
       if (d->paramExists("polar")) {
         LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("polar");
-        o->setValAsPercent(val);
+        o->setValAsPercent((float) val);
       }
       return;
     }
@@ -449,7 +444,7 @@ void Edit::setParam(Device * d, EditParam p, double val)
     {
       if (d->paramExists("azimuth")) {
         LumiverseOrientation* o = (LumiverseOrientation*)d->getParam("azimuth");
-        o->setValAsPercent(val);
+        o->setValAsPercent((float) val);
       }
       return;
     }
@@ -457,7 +452,7 @@ void Edit::setParam(Device * d, EditParam p, double val)
     {
       if (d->paramExists("penumbraAngle")) {
         LumiverseFloat* s = d->getParam<LumiverseFloat>("penumbraAngle");
-        s->setValAsPercent(val);
+        s->setValAsPercent((float) val);
       }
       return;
     }

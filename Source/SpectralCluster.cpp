@@ -26,7 +26,7 @@ SpectralCluster::~SpectralCluster()
 {
 }
 
-Array<shared_ptr<TopLevelCluster> > SpectralCluster::cluster(Array<shared_ptr<SearchResultContainer> >& points, int maxK, double bandwidth)
+Array<shared_ptr<TopLevelCluster> > SpectralCluster::cluster(Array<shared_ptr<SearchResultContainer> >& points, int /* maxK */, double bandwidth)
 {
   // DEBUG: OUTPUT TO FILE TO SEE MATRICES
   ofstream debugFile("debug.log", ios::trunc);
@@ -69,7 +69,8 @@ Array<shared_ptr<TopLevelCluster> > SpectralCluster::cluster(Array<shared_ptr<Se
   for (int i = 0; i < eigenvals.size(); i++) {
     sortedEigenvals.add(pair<int, double>(i, eigenvals[i].real()));
   }
-  sortedEigenvals.sort(EigenvalueSorter());
+  auto sorter = EigenvalueSorter();
+  sortedEigenvals.sort(sorter);
 
   // now we gotta try to figure out how many clusters we have.
   // Up to a specified max, we'll use the eigengap heuristic to determine k

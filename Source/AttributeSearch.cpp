@@ -222,19 +222,19 @@ void vectorToExistingSnapshot(Eigen::VectorXd source, Snapshot& dest)
 
 	for (const auto& d : devices) {
 		int base = idx * numFeats;
-		d.second->getParam<LumiverseFloat>("intensity")->setValAsPercent(source[base]);
+		d.second->getParam<LumiverseFloat>("intensity")->setValAsPercent((float) source[base]);
 
 		if (d.second->paramExists("polar"))
-			d.second->getParam<LumiverseOrientation>("polar")->setValAsPercent(source[base + 1]);
+			d.second->getParam<LumiverseOrientation>("polar")->setValAsPercent((float) source[base + 1]);
 		if (d.second->paramExists("azimuth"))
-			d.second->getParam<LumiverseOrientation>("azimuth")->setValAsPercent(source[base + 2]);
+			d.second->getParam<LumiverseOrientation>("azimuth")->setValAsPercent((float) source[base + 2]);
 
 		d.second->getParam<LumiverseColor>("color")->setColorChannel("Red", source[base + 3]);
 		d.second->getParam<LumiverseColor>("color")->setColorChannel("Green", source[base + 4]);
 		d.second->getParam<LumiverseColor>("color")->setColorChannel("Blue", source[base + 5]);
 
 		if (d.second->paramExists("penumbraAngle"))
-			d.second->getParam<LumiverseFloat>("penumbraAngle")->setValAsPercent(source[base + 6]);
+			d.second->getParam<LumiverseFloat>("penumbraAngle")->setValAsPercent((float) source[base + 6]);
 
 		idx++;
 	}
@@ -457,8 +457,7 @@ void AttributeSearchThread::runMCMCEditSearch(bool force)
 	double orig = fx;
 
 	// RNG
-	unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
-	default_random_engine gen(seed1);
+	default_random_engine gen(std::random_device{}());
 	uniform_real_distribution<double> udist(0.0, 1.0);
 
 	// do the MCMC search
@@ -488,7 +487,6 @@ void AttributeSearchThread::runMCMCEditSearch(bool force)
 		// at this point it's probably better to just do gradient descent, but for testing
 		// we'll simulate this by doing some mcmc iterations
 		Eigen::VectorXd minScene;
-		double minfx = fx;
 
 		// do the adjustment until acceptance
 		for (int i = 0; i < iters; i++) {
@@ -504,7 +502,7 @@ void AttributeSearchThread::runMCMCEditSearch(bool force)
 
 			// check for acceptance
 			double fxp = _f(sp);
-			double a;
+			double a = 0;
 			
 			if (_mode == MCMC_EDIT) {
 				a = min(exp((1 / _T) * (fx - fxp)), 1.0);
@@ -518,8 +516,6 @@ void AttributeSearchThread::runMCMCEditSearch(bool force)
 
 			// accept if a >= 1 or with probability a
 			if (a >= 1 || udist(gen) < a) {
-				unsigned int sampleId = getGlobalSettings()->getSampleID();
-
 				// update x
 				delete start;
 				start = sp;
@@ -534,7 +530,7 @@ void AttributeSearchThread::runMCMCEditSearch(bool force)
 					auto& samples = getGlobalSettings()->_samples;
 					data._f = r->_objFuncVal;
 					data._a = a;
-					data._sampleId = samples[_id].size() + 1;
+					data._sampleId = (unsigned int) samples[_id].size() + 1;
 					data._editName = e->_name;
 					data._accepted = true;
 					data._scene = snapshotToVector(sp);
@@ -560,7 +556,7 @@ void AttributeSearchThread::runMCMCEditSearch(bool force)
 	auto& samples = getGlobalSettings()->_samples;
 	data._f = r->_objFuncVal;
 	data._a = 1;
-	data._sampleId = samples[_id].size() + 1;
+	data._sampleId = (unsigned int) samples[_id].size() + 1;
 	data._editName = "TERMINAL";
 	data._accepted = true;
 	data._scene = r->_scene;
@@ -604,7 +600,7 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 	// actually fits the non-linear least squares method, however
 	// we're just gonna do it and see what happens.
 
-	Snapshot xs = Snapshot(*_original);
+	Snapshot xs(*_original);
 	Eigen::VectorXd x = snapshotToVector(&xs);
 
 	if (_randomInit) {
@@ -652,7 +648,7 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 			
 			// fix constraints, bounded at 1 and 0
 			for (int i = 0; i < x.size(); i++) {
-				xnew[i] = clamp(xnew[i], 0, 1);
+				xnew[i] = clamp((float) xnew[i], 0, 1);
 			}
 
 			vectorToExistingSnapshot(xnew, xs);
@@ -683,7 +679,7 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 				auto& samples = getGlobalSettings()->_samples;
 				data._f = fnew;
 				data._a = 1;
-				data._sampleId = samples[_id].size() + 1;
+				data._sampleId = (unsigned int) samples[_id].size() + 1;
 				data._editName = "L-M DESCENT STEP";
 				data._accepted = true;
 				data._scene = x;
@@ -706,7 +702,7 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 	auto& samples = getGlobalSettings()->_samples;
 	data._f = fx;
 	data._a = 1;
-	data._sampleId = samples[_id].size() + 1;
+	data._sampleId = (unsigned int) samples[_id].size() + 1;
 	data._editName = "L-M TERMINAL";
 	data._scene = x;
 	samples[_id].push_back(data);
@@ -735,8 +731,7 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 void AttributeSearchThread::checkEdits()
 {
   // RNG
-  unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
-  default_random_engine gen(seed1);
+  default_random_engine gen(std::random_device{}());
   uniform_real_distribution<double> udist(0.0, 1.0);
 
   for (auto e : _edits) {
@@ -762,7 +757,6 @@ void AttributeSearchThread::checkEdits()
     // at this point it's probably better to just do gradient descent, but for testing
     // we'll simulate this by doing some mcmc iterations
     Eigen::VectorXd minScene;
-    double minfx = fx;
 
     // do the adjustment until acceptance
     for (int i = 0; i < iters; i++) {
@@ -782,8 +776,6 @@ void AttributeSearchThread::checkEdits()
 
       // accept if a >= 1 or with probability a
       if (a >= 1 || udist(gen) < a) {
-        unsigned int sampleId = getGlobalSettings()->getSampleID();
-
         // update x
         delete start;
         start = sp;
@@ -798,7 +790,7 @@ void AttributeSearchThread::checkEdits()
           auto& samples = getGlobalSettings()->_samples;
           data._f = r->_objFuncVal;
           data._a = a;
-          data._sampleId = samples[_id].size() + 1;
+          data._sampleId = (unsigned int) samples[_id].size() + 1;
           data._editName = e->_name;
           data._accepted = true;
           data._scene = snapshotToVector(sp);
@@ -818,7 +810,7 @@ void AttributeSearchThread::checkEdits()
     auto& samples = getGlobalSettings()->_samples;
     data._f = r->_objFuncVal;
     data._a = 1;
-    data._sampleId = samples[_id].size() + 1;
+    data._sampleId = (unsigned int) samples[_id].size() + 1;
     data._editName = "TERMINAL";
     data._accepted = true;
     data._scene = r->_scene;
@@ -1056,7 +1048,7 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
   DebugData data;
   data._f = _f(start);
   data._a = 1;
-  data._sampleId = samples[-1].size() + 1;
+  data._sampleId = (unsigned int) samples[-1].size() + 1;
   data._editName = "START";
   data._accepted = true;
   data._scene = snapshotToVector(start);
@@ -1209,7 +1201,7 @@ void AttributeSearch::stop()
   stopThread(5000);
 }
 
-void AttributeSearch::generateEdits(bool explore)
+void AttributeSearch::generateEdits(bool /* explore */)
 {
   // here we dynamically create all of the edits used by the search algorithm for all
   // levels of the search. This is the function to change if we want to change
@@ -1300,7 +1292,6 @@ void AttributeSearch::generateDefaultEdits(string select, int editType)
     query = "$system=" + select;
 
   auto devices = getRig()->select(query).getDevices();
-  int numDevices = devices.size();
 
   auto& edits = getGlobalSettings()->_edits;
 

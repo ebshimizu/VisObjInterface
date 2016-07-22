@@ -49,7 +49,7 @@ void SearchResultBlender::resized()
 
 void SearchResultBlender::sliderValueChanged(Slider * s)
 {
-  float a = s->getValue();
+  float a = (float) s->getValue();
 
   // lerp values
   Eigen::VectorXd interp = (1 - a) * _base + a * _target->_scene;
@@ -253,7 +253,7 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
     // popup window to allow blending of current scene with search scene
     SearchResultBlender* popupComponent = new SearchResultBlender(_result);
     popupComponent->setSize(300, 45);
-    CallOutBox& cb = CallOutBox::launchAsynchronously(popupComponent, getScreenBounds(), nullptr);
+    CallOutBox::launchAsynchronously(popupComponent, getScreenBounds(), nullptr);
   }
   else if (event.mods.isLeftButtonDown()) {
     if (isClusterCenter()) {
@@ -262,12 +262,12 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
       vp->setViewedComponent(_clusterContents, false);
       vp->setSize(_clusterContents->getWidth() + vp->getScrollBarThickness(), min(300, _clusterContents->getHeight()));
 
-      CallOutBox& cb = CallOutBox::launchAsynchronously(vp, getScreenBounds(), nullptr);
+      CallOutBox::launchAsynchronously(vp, getScreenBounds(), nullptr);
     }
   }
 }
 
-void SearchResultContainer::mouseEnter(const MouseEvent & event)
+void SearchResultContainer::mouseEnter(const MouseEvent & /* event */)
 {
   _isHovered = true;
   getGlobalSettings()->_showThumbnailImg = true;
@@ -278,7 +278,7 @@ void SearchResultContainer::mouseEnter(const MouseEvent & event)
   getParentComponent()->repaint();
 }
 
-void SearchResultContainer::mouseExit(const MouseEvent & event)
+void SearchResultContainer::mouseExit(const MouseEvent & /* event */)
 {
   _isHovered = false;
   getGlobalSettings()->_showThumbnailImg = false;
@@ -487,7 +487,7 @@ double SearchResultContainer::pctPixDist(SearchResultContainer * y, bool overrid
   dists.sort();
 
   // pick point around 90% mark
-  int pct = .9 * dists.size();
+  int pct = (int) (.9 * dists.size());
 
   return dists[pct];
 }
@@ -519,7 +519,7 @@ double SearchResultContainer::l2paramDist(SearchResultContainer * y)
     sum += (xc - yc).norm();
   }
 
-  int count = xdevices.size();
+  int count = (int) xdevices.size();
 
   delete ys;
   delete xs;
@@ -569,7 +569,7 @@ double SearchResultContainer::l2paramDistSoftmax(SearchResultContainer * y)
   }
 
   // softmax normalization
-  for (int i = 0; i < xparams.size(); i++) {
+  for (i = 0; i < xparams.size(); i++) {
     xparams[i] = pow(xparams[i], xparams.size());
     yparams[i] = pow(yparams[i], yparams.size());
   }

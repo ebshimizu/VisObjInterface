@@ -145,7 +145,7 @@ void SearchResultsContainer::sort(AttributeSorter* s)
 		map<int, int> colIndexes;
 
 		for (int i = 0; i < numCols; i++) {
-			float minScore = FLT_MAX;
+			double minScore = DBL_MAX;
 			shared_ptr<TopLevelCluster> best;
 			for (int j = 0; j < numRows; j++) {
 				// find the best top level cluster according to attribute score
@@ -189,7 +189,7 @@ void SearchResultsContainer::sort(AttributeSorter* s)
     map<int, int> rowIndexes;
 
     for (int i = 0; i < numRows; i++) {
-      float minScore = FLT_MAX;
+      double minScore = DBL_MAX;
       shared_ptr<TopLevelCluster> best;
       for (int j = 0; j < numCols; j++) {
         // find the best top level cluster according to attribute score
@@ -307,7 +307,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r, bool force)
 
 			// some results have some extra info we have to deal with here
 			if (r->_extraData.count("LM Terminal") > 0) {
-				_terminalScenes[_terminalScenes.size() + 1] = newResult;
+				_terminalScenes[(int)_terminalScenes.size() + 1] = newResult;
 			}
 			if (r->_extraData.count("Local Sample") > 0) {
 				// Local sample has the parent terminal scene id as the value
@@ -630,7 +630,7 @@ void SearchResultsContainer::loadResults(string filename)
       
       // put vector into the scene, generate image and container
       r->_scene.resize(sceneVals.size());
-      for (int i = 0; i < sceneVals.size(); i++) {
+      for (i = 0; i < sceneVals.size(); i++) {
         r->_scene[i] = sceneVals[i];
       }
 
@@ -1302,8 +1302,8 @@ void SearchResultsContainer::ppsd(String prefix)
 	for (int i = 0; i < var.size(); i++) {
 		int x = i % 64;
 		int y = i / 64;
-		uint8 varpx = (var[i] / maxVar) * 255;
-		uint8 sdpx = (sqrt(var[i]) / sqrt(maxVar)) * 255;
+		uint8 varpx = (uint8) ((var[i] / maxVar) * 255);
+		uint8 sdpx = (uint8) ((sqrt(var[i]) / sqrt(maxVar)) * 255);
 		varOut.setPixelAt(x, y, Colour(varpx, varpx, varpx));
 		sdOut.setPixelAt(x, y, Colour(sdpx, sdpx, sdpx));
 	}

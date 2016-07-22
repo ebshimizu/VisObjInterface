@@ -43,7 +43,7 @@ double TestAttribute::evaluateScene(Snapshot* s)
   Eigen::Vector2d warmest(78.3575, 62.0396);  // CHab from LCHab space, D65 ref white
   
   double err = 0;
-  int numDevices = s->getDevices().size();
+  int numDevices = (int) s->getDevices().size();
   for (auto& d : s->getDevices()) {
     auto color = d->getColor();
     if (color == nullptr)

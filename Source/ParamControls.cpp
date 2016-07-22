@@ -68,7 +68,7 @@ void FloatPropertySlider::mouseDown(const MouseEvent & event)
 void FloatPropertySlider::setValue(double newValue)
 {
   if (_param == "intensity") {
-    getRig()->getDevice(_id)->getParam<LumiverseFloat>(_param)->setValAsPercent(newValue / 100.0);
+    getRig()->getDevice(_id)->getParam<LumiverseFloat>(_param)->setValAsPercent((float) newValue / 100.0f);
   }
   else {
     getRig()->getDevice(_id)->setParam(_param, (float)newValue);
@@ -157,14 +157,14 @@ double OrientationPropertySlider::getValue() const
   return val->getVal();
 }
 
-void OrientationPropertySlider::sliderDragStarted(Slider * s)
+void OrientationPropertySlider::sliderDragStarted(Slider * /* s */)
 {
   stringstream ss;
   ss << _id << ":" << _param << " change start at " << getValue();
   getRecorder()->log(ACTION, ss.str());
 }
 
-void OrientationPropertySlider::sliderDragEnded(Slider * s)
+void OrientationPropertySlider::sliderDragEnded(Slider * /* s */)
 {
   stringstream ss;
   ss << _id << ":" << _param << " value changed to " << getValue();
@@ -186,7 +186,7 @@ ColorPropertyPicker::ColorPropertyPicker(string id, string param, LumiverseColor
 	c[2] = _val->getColorChannel("Blue");
 	c *= 255;
 
-	_button->setColor(Colour(c[0], c[1], c[2]));
+	_button->setColor(Colour((uint8) c[0], (uint8) c[1], (uint8) c[2]));
 }
 
 ColorPropertyPicker::~ColorPropertyPicker()
@@ -247,7 +247,7 @@ void ColorPropertyPicker::changeListenerCallback(ChangeBroadcaster * source)
   }
 }
 
-void ColorPropertyPicker::buttonClicked(Button* b)
+void ColorPropertyPicker::buttonClicked(Button* /* b */)
 {
   Eigen::Vector3d c;
   c[0] = _val->getColorChannel("Red");
@@ -271,7 +271,7 @@ void ColorPropertyPicker::refresh()
 	c[2] = _val->getColorChannel("Blue");
 	c *= 255;
 
-	_button->setColor(Colour(c[0], c[1], c[2]));
+	_button->setColor(Colour((uint8) c[0], (uint8) c[1], (uint8) c[2]));
 
 	_button->repaint();
 }

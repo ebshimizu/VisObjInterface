@@ -24,9 +24,9 @@ ConstraintDeviceSelector::ConstraintDeviceSelector(string id, Button* b) : _id(i
   _list.setClickingTogglesRowSelection(true);
 
   // set selected rows
-  auto& selectedIds = getGlobalSettings()->_constraints[_id]._affected.getIds();
-  for (auto id : selectedIds) {
-    _list.selectRow(_deviceIds.indexOf(String(id)), false, false);
+  auto selectedIds = getGlobalSettings()->_constraints[_id]._affected.getIds();
+  for (auto s : selectedIds) {
+    _list.selectRow(_deviceIds.indexOf(String(s)), false, false);
   }
 }
 
@@ -51,7 +51,7 @@ void ConstraintDeviceSelector::paintListBoxItem(int rowNumber, Graphics & g, int
   g.drawText(_deviceIds[rowNumber], 2, 0, width - 4, height, Justification::centredLeft, true);
 }
 
-void ConstraintDeviceSelector::selectedRowsChanged(int lastRowSelected)
+void ConstraintDeviceSelector::selectedRowsChanged(int /* lastRowSelected */)
 {
   // check selected things, update device set for relevant constraint
   DeviceSet selected;
@@ -138,7 +138,7 @@ void ConstraintParameterSelector::paintListBoxItem(int rowNumber, Graphics & g, 
   g.drawText(text, 2, 0, width - 4, height, Justification::centredLeft, true);
 }
 
-void ConstraintParameterSelector::selectedRowsChanged(int lastRowSelected)
+void ConstraintParameterSelector::selectedRowsChanged(int /* lastRowSelected */)
 {
   set<EditParam> params;
   vector<String> paramStrings;
@@ -229,10 +229,10 @@ int ConstraintEditor::getNumRows()
     _ids.add(c.first);
   }
 
-  return getGlobalSettings()->_constraints.size();
+  return (int) getGlobalSettings()->_constraints.size();
 }
 
-void ConstraintEditor::paintRowBackground(Graphics & g, int rowNumber, int width, int height, bool rowIsSelected)
+void ConstraintEditor::paintRowBackground(Graphics & g, int rowNumber, int /* width */, int /* height */, bool rowIsSelected)
 {
   if (rowIsSelected)
     g.fillAll(Colours::lightblue);
@@ -240,7 +240,7 @@ void ConstraintEditor::paintRowBackground(Graphics & g, int rowNumber, int width
     g.fillAll(Colour(0xffeeeeee));
 }
 
-void ConstraintEditor::paintCell(Graphics & g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
+void ConstraintEditor::paintCell(Graphics & g, int rowNumber, int columnId, int width, int height, bool /* rowIsSelected */)
 {
   g.setColour(Colours::black);
   g.setFont(_font);
@@ -254,11 +254,11 @@ void ConstraintEditor::paintCell(Graphics & g, int rowNumber, int columnId, int 
   g.fillRect(width - 1, 0, 1, height);
 }
 
-void ConstraintEditor::sortOrderChanged(int newSortColumnId, bool isForwards)
+void ConstraintEditor::sortOrderChanged(int /* newSortColumnId */, bool /* isForwards */)
 {
 }
 
-Component * ConstraintEditor::refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, Component * existingComponentToUpdate)
+Component * ConstraintEditor::refreshComponentForCell(int rowNumber, int columnId, bool /* isRowSelected */, Component * existingComponentToUpdate)
 {
   if (columnId == 2) {
     ConstraintScopeComponent* scopeBox = static_cast<ConstraintScopeComponent*>(existingComponentToUpdate);
@@ -439,7 +439,7 @@ void ConstraintEditor::ConstraintDevicesComponent::setTargetConstraint(string id
   updateButtonText();
 }
 
-void ConstraintEditor::ConstraintDevicesComponent::buttonClicked(Button * b)
+void ConstraintEditor::ConstraintDevicesComponent::buttonClicked(Button * /* b */)
 {
   Viewport* vp = new Viewport();
   ConstraintDeviceSelector* cds = new ConstraintDeviceSelector(_id, &_button);
@@ -447,7 +447,7 @@ void ConstraintEditor::ConstraintDevicesComponent::buttonClicked(Button * b)
   vp->setViewedComponent(cds, true);
   vp->setSize(cds->getWidth(), cds->getHeight());
 
-  CallOutBox& cb = CallOutBox::launchAsynchronously(vp, getScreenBounds(), nullptr);
+  CallOutBox::launchAsynchronously(vp, getScreenBounds(), nullptr);
 }
 
 void ConstraintEditor::ConstraintDevicesComponent::updateButtonText()
@@ -490,7 +490,7 @@ void ConstraintEditor::ConstraintParamsComponent::setTargetConstraint(string id)
   updateButtonText();
 }
 
-void ConstraintEditor::ConstraintParamsComponent::buttonClicked(Button * b)
+void ConstraintEditor::ConstraintParamsComponent::buttonClicked(Button * /* b */)
 {
   Viewport* vp = new Viewport();
   ConstraintParameterSelector* cds = new ConstraintParameterSelector(_id, &_button);
@@ -498,7 +498,7 @@ void ConstraintEditor::ConstraintParamsComponent::buttonClicked(Button * b)
   vp->setViewedComponent(cds, true);
   vp->setSize(cds->getWidth(), cds->getHeight());
 
-  CallOutBox& cb = CallOutBox::launchAsynchronously(vp, getScreenBounds(), nullptr);
+  CallOutBox::launchAsynchronously(vp, getScreenBounds(), nullptr);
 }
 
 void ConstraintEditor::ConstraintParamsComponent::updateButtonText()
@@ -551,7 +551,7 @@ void ConstraintEditor::ConstraintDeleteComponent::setTargetConstraint(string id)
   _id = id;
 }
 
-void ConstraintEditor::ConstraintDeleteComponent::buttonClicked(Button * b)
+void ConstraintEditor::ConstraintDeleteComponent::buttonClicked(Button * /* b */)
 {
   bool confirmDelete = AlertWindow::showOkCancelBox(AlertWindow::WarningIcon, "Delete Constraint: " + _id,
     "Are you sure you want to delete this constraint?", "Yes", "No", nullptr);

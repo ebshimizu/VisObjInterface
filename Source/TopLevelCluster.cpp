@@ -35,7 +35,7 @@ void TopLevelCluster::resized()
 
 	if (getGlobalSettings()->_clusterDisplay == COLUMNS) {
 		if (_rep != nullptr) {
-			_rep->setBounds(lbounds.removeFromTop(lbounds.getHeight() * 0.33));
+			_rep->setBounds(lbounds.removeFromTop((int) (lbounds.getHeight() * 0.33)));
 		}
 
 		_contents->setWidth(lbounds.getWidth() - _viewer->getScrollBarThickness());
@@ -49,12 +49,12 @@ void TopLevelCluster::resized()
 	}
 }
 
-void TopLevelCluster::paint(Graphics & g)
+void TopLevelCluster::paint(Graphics & /* g */)
 {
   // borders likely need to be drawn eventually
 }
 
-void TopLevelCluster::mouseDown(const MouseEvent & event)
+void TopLevelCluster::mouseDown(const MouseEvent & /* event */)
 {
 }
 
@@ -251,8 +251,8 @@ void TopLevelCluster::calculateStats(function<double(SearchResultContainer*, Sea
   _distMatrix.setZero();
 
   double max = 0;
-  int x; 
-  int y;
+  int x = 0; 
+  int y = 0;
   for (int i = 0; i < elems.size(); i++) {
     _distMatrix(i, i) = 0;
     for (int j = i + 1; j < elems.size(); j++) {

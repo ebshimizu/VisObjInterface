@@ -12,8 +12,8 @@
 
 OrangeBlueAttribute::OrangeBlueAttribute(int w, int h) : HistogramAttribute("Orange Blue", w, h)
 {
-  _targetBlue = 177 / 360.0;
-  _targetOrange = 32 / 360.0;
+  _targetBlue = 177 / 360.0f;
+  _targetOrange = 32 / 360.0f;
 }
 
 OrangeBlueAttribute::~OrangeBlueAttribute()
@@ -40,23 +40,23 @@ double OrangeBlueAttribute::evaluateScene(Snapshot * s)
       Colour c = i.getPixelAt(x, y);
       Eigen::Vector3d rgbpx(c.getRed() / 255.0, c.getGreen() / 255.0, c.getBlue() / 255.0);
 
-      float blueDist = (targetBlue - rgbpx).norm();
-      float orangeDist = (targetOrange - rgbpx).norm();
+      float blueDist = (float) (targetBlue - rgbpx).norm();
+      float orangeDist = (float) (targetOrange - rgbpx).norm();
 
       if (blueDist < orangeDist) {
-        double s = (sqrt(3) - blueDist) / sqrt(3);
+        double sd = (sqrt(3) - blueDist) / sqrt(3);
 
-        if (s > 0.9)
+        if (sd > 0.9)
           reallyBlue++;
-        if (s > 0.61)
+        if (sd > 0.61)
           blue++;
       }
       else {
-        double s = (sqrt(3) - orangeDist) / sqrt(3);
+        double sd = (sqrt(3) - orangeDist) / sqrt(3);
 
-        if (s > 0.9)
+        if (sd > 0.9)
           reallyOrange++;
-        if (s > 0.65)
+        if (sd > 0.65)
           orange++;
       }
     }

@@ -300,6 +300,8 @@ int SettingsChoice::getIndex() const
 		SearchMode mode = getGlobalSettings()->_searchMode;
 		return (int)mode;
 	}
+
+  return 0;
 }
 
 void SettingsChoice::setIndex(int newIndex)

@@ -48,13 +48,12 @@ double TintAttribute::evaluateScene(Snapshot * s)
 
   //Eigen::Vector3d color = getAverageColor(i);
   double targetHue = _targetColor.getHue();
-
   double err = 0;
 
   for (int y = 0; y < i.getHeight(); y++) {
     for (int x = 0; x < i.getWidth(); x++) {
       auto c = i.getPixelAt(x, y);
-      err += min(abs(c.getHue() - _targetColor.getHue()), abs(c.getHue() + 1 - _targetColor.getHue()));
+      err += min(abs(c.getHue() - targetHue), abs(c.getHue() + 1 - targetHue));
     }
   }
 

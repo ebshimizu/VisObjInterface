@@ -32,10 +32,10 @@ Array<shared_ptr<TopLevelCluster> >KMeans::cluster(int k, Array<shared_ptr<Searc
   if (init == RND_PART)
     centers = rndpart(k, points);
 
-  return cluster(k, points, centers);
+  return cluster(points, centers);
 }
 
-Array<shared_ptr<TopLevelCluster>> KMeans::cluster(int k, Array<shared_ptr<SearchResultContainer>>& points, Array<shared_ptr<TopLevelCluster>>& centers)
+Array<shared_ptr<TopLevelCluster> > KMeans::cluster(Array<shared_ptr<SearchResultContainer>>& points, Array<shared_ptr<TopLevelCluster>>& centers)
 {
   // assign each point to closest center
   // stop when no changes happen
@@ -48,7 +48,7 @@ Array<shared_ptr<TopLevelCluster>> KMeans::cluster(int k, Array<shared_ptr<Searc
       int closest = closestCenter(p, centers);
 
       // assign center, mark if change
-      if (closest != p->getSearchResult()->_cluster)
+      if ((unsigned long) closest != p->getSearchResult()->_cluster)
       {
         noChangeHappened = false;
         p->getSearchResult()->_cluster = closest;
@@ -163,7 +163,7 @@ Array<shared_ptr<TopLevelCluster>> KMeans::divisive(int maxK, Array<shared_ptr<S
     }
 
     // cluster with kmeans
-    centers = cluster(centers.size(), points, centers);
+    centers = cluster(points, centers);
 
     // repeat
   }
@@ -253,7 +253,7 @@ Array<shared_ptr<TopLevelCluster>> KMeans::divisive(double t, Array<shared_ptr<S
     }
 
     // cluster with kmeans
-    centers = cluster(centers.size(), points, centers);
+    centers = cluster(points, centers);
 
     // repeat
   }
@@ -312,9 +312,9 @@ Array<shared_ptr<TopLevelCluster> > KMeans::rndpart(int k, Array<shared_ptr<Sear
   for (int i = 0; i < k; i++) {
     Eigen::VectorXd avg;
     Eigen::VectorXd sceneAvg;
-    int count = 0;
+    unsigned long count = 0;
     for (auto& p : points) {
-      if (p->getSearchResult()->_cluster == i) {
+      if (p->getSearchResult()->_cluster == (unsigned long) i) {
         avg += p->getFeatures();
         sceneAvg += p->getSearchResult()->_scene;
         count++;

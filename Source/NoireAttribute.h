@@ -21,17 +21,7 @@ public:
 
   virtual double evaluateScene(Snapshot* s) override;
 
-  virtual void preProcess() override;
-
 private:
-  double getAreaIntens(Snapshot* s, string area, string angle);
-  double getRelativeAreaIntens(string area, string angle);
-  double getAreaWeightTotal(string area, string angle);
-  double getAreaCrossPenalty(Snapshot* s, string area);
-
-  unordered_map<string, DeviceSet> _cache;
-  set<string> _areas;
-  unordered_map<string, float> _weights;
 };
 
 #endif  // NOIREATTRIBUTE_H_INCLUDED

@@ -63,7 +63,7 @@ Array<shared_ptr<TopLevelCluster> > meanShiftClustering(Array<shared_ptr<SearchR
   }
 
   // add elements to the proper center
-  for (int i = 0; i < features.size(); i++) {
+  for (i = 0; i < features.size(); i++) {
     // find closest center
     double minDist = DBL_MAX;
     int minIdx = 0;

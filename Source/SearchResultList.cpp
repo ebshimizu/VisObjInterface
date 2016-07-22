@@ -85,7 +85,7 @@ void SearchResultList::resized()
   // column layout
   auto lbounds = getLocalBounds();
   int elemWidth = lbounds.getWidth() / _cols;
-  int elemHeight = elemWidth * _heightRatio;
+  int elemHeight = (int)(elemWidth * _heightRatio);
 
   // place elements into rows
   Rectangle<int> row;
@@ -98,7 +98,7 @@ void SearchResultList::resized()
   }
 }
 
-void SearchResultList::paint(Graphics & g)
+void SearchResultList::paint(Graphics & /* g */)
 {
 }
 

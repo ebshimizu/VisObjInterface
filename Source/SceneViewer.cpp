@@ -228,7 +228,7 @@ Point<float> SceneViewer::getRelativeImageCoords(const Point<float>& pt)
   // determine the image location
   float scaleX = (float)lbounds.getWidth() / _currentRender.getWidth();
   float scaleY = (float)lbounds.getHeight() / _currentRender.getHeight();
-  float scale;
+  float scale = 0;
 
   // test xscaling
   if (_currentRender.getHeight() * scaleX <= lbounds.getHeight()) {
@@ -240,8 +240,8 @@ Point<float> SceneViewer::getRelativeImageCoords(const Point<float>& pt)
 
   float imgWidth = _currentRender.getWidth()  * scale;
   float imgHeight = _currentRender.getHeight() * scale;
-  float ptHeightAdjust = abs((imgHeight - lbounds.getHeight()) / 2.0);
-  float ptWidthAdjust = abs((imgWidth - lbounds.getWidth()) / 2.0);
+  float ptHeightAdjust = (float) abs((imgHeight - lbounds.getHeight()) / 2.0);
+  float ptWidthAdjust = (float) abs((imgWidth - lbounds.getWidth()) / 2.0);
   
   float x = clamp((pt.x - ptWidthAdjust) / imgWidth, 0, 1);
   float y = clamp((pt.y - ptHeightAdjust) / imgHeight, 0, 1);
@@ -255,7 +255,7 @@ Point<float> SceneViewer::getWorldImageCoords(const Point<float>& pt)
   // determine the image location
   float scaleX = (float)lbounds.getWidth() / _currentRender.getWidth();
   float scaleY = (float)lbounds.getHeight() / _currentRender.getHeight();
-  float scale;
+  float scale = 0;
 
   // test xscaling
   if (_currentRender.getHeight() * scaleX <= lbounds.getHeight()) {
@@ -267,8 +267,8 @@ Point<float> SceneViewer::getWorldImageCoords(const Point<float>& pt)
 
   float imgWidth = _currentRender.getWidth()  * scale;
   float imgHeight = _currentRender.getHeight() * scale;
-  float ptHeightAdjust = abs((imgHeight - lbounds.getHeight()) / 2.0);
-  float ptWidthAdjust = abs((imgWidth - lbounds.getWidth()) / 2.0);
+  float ptHeightAdjust = (float) abs((imgHeight - lbounds.getHeight()) / 2.0);
+  float ptWidthAdjust = (float) abs((imgWidth - lbounds.getWidth()) / 2.0);
 
   float x = pt.x * imgWidth + ptWidthAdjust;
   float y = pt.y * imgHeight + ptHeightAdjust;

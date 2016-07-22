@@ -26,7 +26,7 @@ HistoryPanel::~HistoryPanel()
   }
 }
 
-void HistoryPanel::paint (Graphics& g)
+void HistoryPanel::paint (Graphics& /* g */)
 {
 
 }
@@ -38,7 +38,7 @@ void HistoryPanel::resized()
   // images will scale to fit properly though
   // it also sets its own height.
   auto lbounds = getLocalBounds();
-  int elemHeight = lbounds.getWidth() * (9.0 / 16.0);
+  int elemHeight = (int) (lbounds.getWidth() * (9.0 / 16.0));
 
   for (auto h : _history) {
     h->setBounds(lbounds.removeFromBottom(elemHeight).reduced(2));

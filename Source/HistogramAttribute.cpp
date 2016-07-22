@@ -196,7 +196,7 @@ double Histogram1D::stdev()
 
 double Histogram1D::percentile(float pct)
 {
-  float target = pct / 100.0;
+  float target = pct / 100.0f;
 
   // defined as the first value such that n% of all values are <= than that value
   unsigned int total = 0;
@@ -217,10 +217,10 @@ double Histogram1D::percentile(float pct)
 double Histogram1D::percentGreaterThan(float pct)
 {
   pct /= 100.0;
-  unsigned int firstBin = pct * _numBins;
+  unsigned int firstBin = (unsigned int) (pct * _numBins);
   unsigned int total = 0;
 
-  for (unsigned int i = firstBin; i < _numBins; i++) {
+  for (int i = firstBin; i < _numBins; i++) {
     total += _histData[i];
   }
 
@@ -249,7 +249,7 @@ Histogram3D::Histogram3D(const Histogram3D & other) :
   }
 }
 
-Histogram3D::Histogram3D(hist3DData data, unsigned int count, int numBins)
+Histogram3D::Histogram3D(hist3DData /* data */, unsigned int count, int numBins)
   : _count(count), _numBins(numBins + 1)
 {
 }

@@ -27,8 +27,8 @@ void SearchResultsRenderer::run() {
 
   // Set render options
   auto p = getAnimationPatch();
-  int width = getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale;
-  int height = getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale;
+  int width = (int) (getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale);
+  int height = (int) (getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
   p->setDims(width, height);
   p->setSamples(getGlobalSettings()->_thumbnailRenderSamples);
 

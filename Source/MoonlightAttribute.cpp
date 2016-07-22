@@ -32,7 +32,7 @@ double MoonlightAttribute::evaluateScene(Snapshot * s)
   if (!getGlobalSettings()->_useFGMask && (_foreground.getWidth() == 0 || _foreground.getHeight() == 0))
     return 0;
 
-  Image i = generateImage(s);
+  Image img = generateImage(s);
 
   double fgScore = 0;
   double bgScore = 0;
@@ -40,10 +40,10 @@ double MoonlightAttribute::evaluateScene(Snapshot * s)
   int bgCount = 0;
 
   Rectangle<int> fgPixelBounds;
-  fgPixelBounds.setWidth(_foreground.getWidth() * _canonicalWidth);
-  fgPixelBounds.setHeight(_foreground.getHeight() * _canonicalHeight);
-  fgPixelBounds.setX(_foreground.getX() * _canonicalWidth);
-  fgPixelBounds.setY(_foreground.getY() * _canonicalHeight);
+  fgPixelBounds.setWidth((int) (_foreground.getWidth() * _canonicalWidth));
+  fgPixelBounds.setHeight((int) (_foreground.getHeight() * _canonicalHeight));
+  fgPixelBounds.setX((int) (_foreground.getX() * _canonicalWidth));
+  fgPixelBounds.setY((int) (_foreground.getY() * _canonicalHeight));
 
   // target colors
   Eigen::Vector3d targetFg(121 / 255.0, 173 / 255.0, 166 / 255.0);
@@ -55,7 +55,7 @@ double MoonlightAttribute::evaluateScene(Snapshot * s)
 
   for (int y = 0; y < _canonicalHeight; y++) {
 		for (int x = 0; x < _canonicalWidth; x++) {
-			Colour px = i.getPixelAt(x, y);
+			Colour px = img.getPixelAt(x, y);
 			Colour nrm = _fullWhite.getPixelAt(x, y);
 
 			Eigen::Vector3d rgbnrm(nrm.getRed() / 255.0, nrm.getGreen() / 255.0, nrm.getBlue() / 255.0);
@@ -72,7 +72,7 @@ double MoonlightAttribute::evaluateScene(Snapshot * s)
 
 			if (getGlobalSettings()->_useFGMask) {
 				if (_mask.getPixelAt(x, y).getBrightness() > 0.5) {
-					float score = (sqrt(3) - (targetFg - rgbpx).norm()) / sqrt(3);
+					float score = (float) ((sqrt(3) - (targetFg - rgbpx).norm()) / sqrt(3));
 
 					if (score >= 0.85)
 						fgAccurate++;
@@ -81,7 +81,7 @@ double MoonlightAttribute::evaluateScene(Snapshot * s)
 					fgCount++;
 				}
 				else {
-					float score = (sqrt(3) - (targetBg - rgbpx).norm()) / sqrt(3);
+					float score = (float) ((sqrt(3) - (targetBg - rgbpx).norm()) / sqrt(3));
 					bgScore += score * score;
 
 					if (score >= 0.85)
@@ -98,7 +98,7 @@ double MoonlightAttribute::evaluateScene(Snapshot * s)
 					//float sat = max(0.25f, 1 - px.getSaturation());
 
 					//fgScore += pow(0.5 - hueDist, 2) * 2 * px.getBrightness() * sat;
-					float score = (sqrt(3) - (targetFg - rgbpx).norm()) / sqrt(3);
+					float score = (float) ((sqrt(3) - (targetFg - rgbpx).norm()) / sqrt(3));
 
 					if (score >= 0.85)
 						fgAccurate++;
@@ -113,7 +113,7 @@ double MoonlightAttribute::evaluateScene(Snapshot * s)
 					//float bri = max(0.25f, 1 - px.getBrightness());
 
 					//bgScore += pow(0.5 - hueDist, 2) * 2 * bri * px.getSaturation();
-					float score = (sqrt(3) - (targetBg - rgbpx).norm()) / sqrt(3);
+					float score = (float) ((sqrt(3) - (targetBg - rgbpx).norm()) / sqrt(3));
 					bgScore += score * score;
 
 					if (score >= 0.85)
@@ -222,5 +222,5 @@ Eigen::Vector3d MoonlightAttribute::getAvgColor(string sys, Snapshot * s)
   for (auto& d : devices) {
     avg += r[d->getId()]->getColor()->getHSV();
   }
-  return avg / devices.size();
+  return avg / (double) devices.size();
 }

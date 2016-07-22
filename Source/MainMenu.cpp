@@ -29,7 +29,7 @@ StringArray MainMenu::getMenuBarNames() {
   return StringArray(names);
 }
 
-PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& menuName) {
+PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& /* menuName */) {
   ApplicationCommandManager* cm = getApplicationCommandManager();
 
   PopupMenu menu;
@@ -80,7 +80,7 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& menuNam
   return menu;
 }
 
-void MainMenu::menuItemSelected(int menuItemID, int topLevelMenuIndex)
+void MainMenu::menuItemSelected(int /* menuItemID */, int /* topLevelMenuIndex */)
 {
   // Custom item handling, if needed.
 }
