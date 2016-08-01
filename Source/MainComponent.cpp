@@ -483,6 +483,7 @@ void MainContentComponent::openRig(String fname)
 
     getGlobalSettings()->_constraints.clear();
     getGlobalSettings()->generateDefaultConstraints();
+    getGlobalSettings()->_showThumbnailImg = false;
 
     getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);
   }
