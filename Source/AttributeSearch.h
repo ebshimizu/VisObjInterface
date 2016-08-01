@@ -73,7 +73,7 @@ public:
 
 	// Uses the thread's set of edits and current objective function to compute the
 	// relative effectiveness of each edit
-	void computeEditWeights();
+	void computeEditWeights(bool showStatusMessages = true);
 
 	// Sets the starting lighting configuration
 	void setStartConfig(Snapshot* start);

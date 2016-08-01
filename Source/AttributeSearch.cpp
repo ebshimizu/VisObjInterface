@@ -308,7 +308,7 @@ void AttributeSearchThread::run()
   }
 }
 
-void AttributeSearchThread::computeEditWeights()
+void AttributeSearchThread::computeEditWeights(bool showStatusMessages)
 {
 	// Here we take the starting scene and evaluate the variance of all available edits
 	// when performed on the starting scene. The idea is to measure how much each edit
@@ -321,11 +321,25 @@ void AttributeSearchThread::computeEditWeights()
 	weights.resize(_edits.size());
 
 	for (int i = 0; i < _edits.size(); i++) {
+    {
+      MessageManagerLock mmlock(this);
+      if (mmlock.lockWasGained()) {
+        getStatusBar()->setStatusMessage("Precomputing Edit Weights... (" + String(i + 1) + "/" + String(_edits.size()) + ")");
+      }
+    }
+
 		double weight = sqrt(_edits[i]->variance(_original, _f, getGlobalSettings()->_editStepSize * 3, 50));
 
     // minimum weight, prevent conflicts and also enable all edits to possibly be chosen
     weights[i] = (weight < 1e-3) ? 1e-3 : weight;
 	}
+
+  {
+    MessageManagerLock mmlock(this);
+    if (mmlock.lockWasGained()) {
+      getStatusBar()->setStatusMessage("Precomputing Edit Weights... (" + String(_edits.size()) + "/" + String(_edits.size()) + ")");
+    }
+  }
 
 	// normalize to [0,1] and update weights
 	map<double, Edit*>& editWeights = getGlobalSettings()->_globalEditWeights;
@@ -1074,12 +1088,37 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
 
 void AttributeSearch::run()
 {
+  {
+    MessageManagerLock mmlock(this);
+    if (mmlock.lockWasGained()) {
+      getStatusBar()->setStatusMessage("Started Attribute Search.");
+    }
+  }
+  getRecorder()->log(SYSTEM, "Started Attribute Search.");
+
   // run all threads
   // make sure to set the state properly before running/resuming
 	if (_mode == MCMC_EDIT) {
 		// compute edit weights first before starting
+    {
+      MessageManagerLock mmlock(this);
+      if (mmlock.lockWasGained()) {
+        getStatusBar()->setStatusMessage("Precomputing Edit Weights...");
+      }
+    }
+    getRecorder()->log(SYSTEM, "MCMC with Edits Precompute Start");
+
 		_threads[0]->computeEditWeights();
 	}
+
+  getRecorder()->log(SYSTEM, "Precompute Complete.");
+
+  {
+    MessageManagerLock mmlock(this);
+    if (mmlock.lockWasGained()) {
+      getStatusBar()->setStatusMessage("Running Attribute Search...");
+    }
+  }
 
 	if (_mode == HYBRID_DEBUG) {
 		// Force single-threaded mode for debug. Much slow. Very debug.

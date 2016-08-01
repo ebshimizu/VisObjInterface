@@ -325,7 +325,7 @@ void SearchResultsContainer::showNewResults()
   {
     lock_guard<mutex> lock(_resultsLock);
 
-    getStatusBar()->setStatusMessage("Adding " + String(_newResults.size()) + " results...");
+    //getStatusBar()->setStatusMessage("Adding " + String(_newResults.size()) + " results...");
 
     if (_newResults.size() == 0)
       return;
@@ -574,6 +574,8 @@ void SearchResultsContainer::cluster()
   updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
   resized();
   repaint();
+
+  getStatusBar()->setStatusMessage("Clustering Complete.");
 }
 
 void SearchResultsContainer::saveResults(string filename)
