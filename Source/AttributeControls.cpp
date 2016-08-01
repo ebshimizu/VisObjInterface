@@ -22,6 +22,8 @@ DeviceSelector::DeviceSelector(vector<string> initialSelectedIds, function<void(
     _deviceIds.add(s);
   }
 
+  _deviceIds.sort(false);
+
   addAndMakeVisible(_list);
   _list.setModel(this);
   _list.setMultipleSelectionEnabled(true);
@@ -191,9 +193,13 @@ AttributeControls::AttributeControls()
   _sortButton->addListener(this);
   addAndMakeVisible(_sortButton);
 
-  _setKeyButton = new TextButton("Set Key Lights", "Sets Key Lights used for Clustering");
+  _setKeyButton = new TextButton("Key Lights", "Sets Key Lights used for Clustering");
   _setKeyButton->addListener(this);
   addAndMakeVisible(_setKeyButton);
+
+  _clusterButton = new TextButton("Cluster", "Clusters the currently returned search results");
+  _clusterButton->addListener(this);
+  addAndMakeVisible(_clusterButton);
 
   // Add the sort methods to the combo box
   _sort = new ComboBox("sort mode");
@@ -218,6 +224,7 @@ AttributeControls::~AttributeControls()
   delete _sort;
   delete _sortButton;
   delete _setKeyButton;
+  delete _clusterButton;
 }
 
 void AttributeControls::paint (Graphics& g)
@@ -226,9 +233,9 @@ void AttributeControls::paint (Graphics& g)
   auto lbounds = getLocalBounds();
   lbounds.removeFromBottom(30);
   auto botRow2 = lbounds.removeFromBottom(30);
-  botRow2.removeFromRight(160);
 
   g.setColour(Colours::white);
+  g.drawFittedText("Sort Mode: ", botRow2.removeFromLeft(80).reduced(5), Justification::right, 1);
 }
 
 void AttributeControls::resized()
@@ -238,10 +245,12 @@ void AttributeControls::resized()
   auto botBounds = lbounds.removeFromBottom(30);
   _search->setBounds(botBounds.removeFromRight(80).reduced(5));
   _sortButton->setBounds(botBounds.removeFromRight(80).reduced(5));
-  _sort->setBounds(botBounds.reduced(5));
+  _clusterButton->setBounds(botBounds.removeFromRight(80).reduced(5));
+  _setKeyButton->setBounds(botBounds.removeFromRight(80).reduced(5));
 
   auto botRow2 = lbounds.removeFromBottom(30);
-  _setKeyButton->setBounds(botRow2.removeFromRight(80).reduced(5));
+  botRow2.removeFromLeft(80);
+  _sort->setBounds(botRow2.reduced(5));
 
   _componentView->setBounds(lbounds);
   _container->setWidth(_componentView->getMaximumVisibleWidth());
@@ -289,6 +298,9 @@ void AttributeControls::buttonClicked(Button * b)
     vp->setSize(cds->getWidth(), cds->getHeight());
 
     CallOutBox::launchAsynchronously(vp, _setKeyButton->getScreenBounds(), nullptr);
+  }
+  else if (b->getName() == "Cluster") {
+    getApplicationCommandManager()->invokeDirectly(RECLUSTER, true);
   }
 }
 

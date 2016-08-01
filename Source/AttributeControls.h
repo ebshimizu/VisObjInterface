@@ -89,6 +89,7 @@ private:
   TextButton* _search;
   TextButton* _sortButton;
   TextButton* _setKeyButton;
+  TextButton* _clusterButton;
   ComboBox* _sort;
   Slider* _numClusters;
 
