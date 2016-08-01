@@ -152,6 +152,7 @@
     <ClCompile Include="..\..\Source\HistogramAttribute.cpp"/>
     <ClCompile Include="..\..\Source\HistogramBrightness.cpp"/>
     <ClCompile Include="..\..\Source\HistogramContrast.cpp"/>
+    <ClCompile Include="..\..\Source\ImageAttribute.cpp"/>
     <ClCompile Include="..\..\Source\LowKeyAttribute.cpp"/>
     <ClCompile Include="..\..\Source\MoonlightAttribute.cpp"/>
     <ClCompile Include="..\..\Source\NoireAttribute.cpp"/>
@@ -1730,6 +1731,7 @@
     <ClInclude Include="..\..\Source\HistogramAttribute.h"/>
     <ClInclude Include="..\..\Source\HistogramBrightness.h"/>
     <ClInclude Include="..\..\Source\HistogramContrast.h"/>
+    <ClInclude Include="..\..\Source\ImageAttribute.h"/>
     <ClInclude Include="..\..\Source\LowKeyAttribute.h"/>
     <ClInclude Include="..\..\Source\MoonlightAttribute.h"/>
     <ClInclude Include="..\..\Source\NoireAttribute.h"/>

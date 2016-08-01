@@ -234,29 +234,69 @@ double Histogram1D::percentLessThan(float pct)
 
 // ============================================================================
 
-Histogram3D::Histogram3D(int numBins) : _numBins(numBins + 1)
+Histogram3D::Histogram3D(int n) :
+  _x(n), _y(n), _z(n), _xmin(0), _xmax(1), _ymin(0), _ymax(1), _zmin(0), _zmax(0)
 {
   _count = 0;
-  _histData = new unsigned int[_numBins * _numBins * _numBins]();
+  _histData = new unsigned int[_x * _y * _z]();
+}
+
+Histogram3D::Histogram3D(int x, int y, int z) :
+  _x(x), _y(y), _z(z), _xmin(0), _xmax(1), _ymin(0), _ymax(1), _zmin(0), _zmax(0)
+{
+  _count = 0;
+  _histData = new unsigned int[_x * _y * _z]();
+}
+
+Histogram3D::Histogram3D(int x, int y, int z, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax) :
+  _x(x), _y(y), _z(z), _xmin(xmin), _xmax(xmax), _ymin(ymin), _ymax(ymax), _zmin(zmin), _zmax(zmax)
+{
+  _count = 0;
+  _histData = new unsigned int[_x * _y * _z]();
 }
 
 Histogram3D::Histogram3D(const Histogram3D & other) :
-  _numBins(other._numBins), _count(other._count)
+  _x(other._x), _y(other._y), _z(other._z), _xmin(other._xmin), _xmax(other._xmax),
+  _ymin(other._ymin), _ymax(other._ymax), _zmin(other._zmin), _zmax(other._zmax)
 {
-  _histData = new unsigned int[_numBins * _numBins * _numBins]();
-  for (int i = 0; i < _numBins * _numBins * _numBins; i++) {
-    _histData[i] = other._histData[i];
-  }
-}
-
-Histogram3D::Histogram3D(hist3DData /* data */, unsigned int count, int numBins)
-  : _count(count), _numBins(numBins + 1)
-{
+  _count = other._count;
+  _histData = new unsigned int[_x * _y * _z];
+  memcpy(_histData, other._histData, _x * _y * _z);
 }
 
 Histogram3D::~Histogram3D()
 {
-  delete _histData;
+  delete[] _histData;
+}
+
+void Histogram3D::addValToBin(double x, double y, double z)
+{
+  // scale x, y, z to proper values and find what bin they're in
+  int xbin = (int) clamp(((_xmin + x) / (_xmax - _xmin)) * _x, 0, _x - 1);
+  int ybin = (int) clamp(((_ymin + y) / (_ymax - _ymin)) * _y, 0, _y - 1);
+  int zbin = (int) clamp(((_zmin + z) / (_zmax - _zmin)) * _z, 0, _z - 1);
+
+  addToBin(1, xbin, ybin, zbin);
+}
+
+void Histogram3D::addToBin(int amt, int x, int y, int z)
+{
+  _histData[getIndex(x, y, z)] += amt;
+}
+
+void Histogram3D::removeFromBin(int amt, int x, int y, int z)
+{
+  _histData[getIndex(x, y, z)] -= amt;
+}
+
+unsigned int Histogram3D::getBin(int x, int y, int z)
+{
+  return _histData[getIndex(x, y, z)];
+}
+
+int Histogram3D::getIndex(int x, int y, int z)
+{
+  return x + y * _x + z * _x * _y;
 }
 
 // ============================================================================

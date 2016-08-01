@@ -71,6 +71,10 @@
                 file="Source/HistogramContrast.cpp"/>
           <FILE id="LVHV0U" name="HistogramContrast.h" compile="0" resource="0"
                 file="Source/HistogramContrast.h"/>
+          <FILE id="cTLIIE" name="ImageAttribute.cpp" compile="1" resource="0"
+                file="Source/ImageAttribute.cpp"/>
+          <FILE id="cGXsaL" name="ImageAttribute.h" compile="0" resource="0"
+                file="Source/ImageAttribute.h"/>
           <FILE id="xrUn5N" name="LowKeyAttribute.cpp" compile="1" resource="0"
                 file="Source/LowKeyAttribute.cpp"/>
           <FILE id="jHjxwt" name="LowKeyAttribute.h" compile="0" resource="0"

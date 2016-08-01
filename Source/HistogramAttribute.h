@@ -74,33 +74,34 @@ private:
 typedef unsigned int* hist3DData;
 
 // A histogram for color attributes
+// typically treats bins as values from 0-1, however a custom range may be specified
+// Unlike Histogram1D (which is a bit weird) this histogram class's bins are [low, high) with
+// values out of range clamped to closest bin
 class Histogram3D {
 public:
-  Histogram3D(int numBins);
+  Histogram3D(int n);
+  Histogram3D(int x, int y, int z);
+  Histogram3D(int x, int y, int z, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax);
   Histogram3D(const Histogram3D& other);
-  // copies the data contained.
-  Histogram3D(hist3DData data, unsigned int count, int numBins);
   ~Histogram3D();
 
   void addValToBin(double x, double y, double z);
-  void addValToBin(Eigen::Vector3d val);
-
   void addToBin(int amt, int x, int y, int z);
   void removeFromBin(int amt, int x, int y, int z);
 
   unsigned int getBin(int x, int y, int z);
 
-  Histogram1D get1Dhist(int axis);
-
-  double weightedAvg();
-
-  Histogram3D consolidate(int targetNumBins);
-
 private:
+  inline int getIndex(int x, int y, int z);
+
   hist3DData _histData;
 
   unsigned int _count;
-  int _numBins;
+  int _x;
+  int _y;
+  int _z;
+
+  double _xmin, _xmax, _ymin, _ymax, _zmin, _zmax;
 };
 
 // This is the base class for attribute which use histograms created in the pixel
@@ -130,6 +131,14 @@ public:
   // Returns the average color of the specified image (in RGB)
   Eigen::Vector3d getAverageColor(Image i);
   double getAverageHue(Image i);
+
+  // Returns a n x n x n histogram of Lab pixel values
+  // Lab histogram has L on x, a on y, and b on z
+  Histogram3D getLabHist(int n);
+  
+  // Returns a x x y x z histogram of Lab pixel values
+  // Lab histogram has L on x, a on y, and b on z
+  Histogram3D getLabHist(int x, int y, int z);
 
   // Histogram3D getRGBHist();
   // Histogram3D getHSVHist();
