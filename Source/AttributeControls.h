@@ -14,6 +14,24 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "AttributeControllerBase.h"
 
+class DeviceSelector : public Component, public ListBoxModel
+{
+public:
+  DeviceSelector(vector<string> initialSelectedIds, function<void(vector<string>)> update);
+  ~DeviceSelector();
+
+  virtual int getNumRows() override;
+  virtual void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override;
+  virtual void selectedRowsChanged(int lastRowSelected) override;
+  virtual void resized() override;
+  int getListHeight();
+
+private:
+  ListBox _list;
+  StringArray _deviceIds;
+  function<void(vector<string>)> _updateFunc;
+};
+
 class AttributeControlsList : public Component
 {
 public:
@@ -70,9 +88,8 @@ private:
   
   TextButton* _search;
   TextButton* _sortButton;
-  TextButton* _cleanUpButton;
+  TextButton* _setKeyButton;
   ComboBox* _sort;
-  Slider* _cleanUpScenes;
   Slider* _numClusters;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AttributeControls)

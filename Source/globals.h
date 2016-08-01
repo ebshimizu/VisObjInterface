@@ -129,7 +129,8 @@ enum DistanceMetric {
   L2SOFTMAXPARAM,   // Softmax Parameter L2 Norm
   ATTRDIST,         // Attribute Function Distance
 	DIRPPAVGLAB,			// Directed Per-Pixel Average Lab Difference
-	DIRPPAVG					// Per-Pixel Average Gradient Direction Difference
+	DIRPPAVG,					// Per-Pixel Average Gradient Direction Difference
+  KEYPARAM          // User selected Key light parameter L2 norm
 };
 
 enum FocusArea {
@@ -261,6 +262,10 @@ public:
   // Creates the proper constraints to enfore default consistency settings
   // which are: per-system within edit consistency
   void generateDefaultConstraints();
+
+  // Device IDs selected as the key lights for clustering.
+  // All other lights are treated as secondary lights
+  vector<string> _keyIds;
 };
 
 // Results that eventually get returned to the UI layer

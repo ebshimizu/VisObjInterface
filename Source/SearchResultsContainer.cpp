@@ -410,6 +410,15 @@ void SearchResultsContainer::cluster()
 {
   lock_guard<mutex> lock(_resultsLock);
 
+  // if the distance metric expects at least one light to be selected as key light, make sure that
+  // is true first, otherwise abort now
+  if (getGlobalSettings()->_primaryClusterMetric == KEYPARAM || getGlobalSettings()->_secondaryClusterMetric) {
+    if (getGlobalSettings()->_keyIds.size() == 0) {
+      getStatusBar()->setStatusMessage("Clustering Failed! Must designate at least one light as the key light.", true);
+      return;
+    }
+  }
+
 	// remove cluster children
 	for (auto& c : _clusters) {
 		removeChildComponent(getIndexOfChildComponent(c.get()));

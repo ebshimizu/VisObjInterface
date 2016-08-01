@@ -13,6 +13,70 @@
 #include "AttributeControllers.h"
 #include "MainComponent.h"
 
+DeviceSelector::DeviceSelector(vector<string> initialSelectedIds, function<void(vector<string>)> update) :
+  _updateFunc(update)
+{
+  auto deviceIds = getRig()->getAllDevices().getIds();
+
+  for (auto& s : deviceIds) {
+    _deviceIds.add(s);
+  }
+
+  addAndMakeVisible(_list);
+  _list.setModel(this);
+  _list.setMultipleSelectionEnabled(true);
+  _list.setClickingTogglesRowSelection(true);
+
+  // set selected rows
+  for (auto s : initialSelectedIds) {
+    _list.selectRow(_deviceIds.indexOf(String(s)), false, false);
+  }
+}
+
+DeviceSelector::~DeviceSelector()
+{
+}
+
+int DeviceSelector::getNumRows()
+{
+  return _deviceIds.size();
+}
+
+void DeviceSelector::paintListBoxItem(int rowNumber, Graphics & g, int width, int height, bool rowIsSelected)
+{
+  if (rowIsSelected)
+    g.fillAll(Colours::lightblue);
+  else
+    g.fillAll(Colour(0xffa3a3a3));
+
+  g.setColour(Colours::black);
+  g.setFont(14);
+  g.drawText(_deviceIds[rowNumber], 2, 0, width - 4, height, Justification::centredLeft, true);
+}
+
+void DeviceSelector::selectedRowsChanged(int /* lastRowSelected */)
+{
+  vector<string> selectedIds;
+  int selectedRows = _list.getNumSelectedRows();
+
+  for (int i = 0; i < selectedRows; i++) {
+    selectedIds.push_back(_deviceIds[_list.getSelectedRow(i)].toStdString());
+  }
+
+  _updateFunc(selectedIds);
+}
+
+void DeviceSelector::resized()
+{
+  _list.setBounds(getLocalBounds());
+}
+
+int DeviceSelector::getListHeight()
+{
+  // returns the total height of the list
+  return _list.getRowHeight() * getNumRows();
+}
+
 AttributeControlsList::AttributeControlsList()
 {
 
@@ -127,15 +191,9 @@ AttributeControls::AttributeControls()
   _sortButton->addListener(this);
   addAndMakeVisible(_sortButton);
 
-  _cleanUpButton = new TextButton("Clean Up", "Remove duplicate results and resume search");
-  _cleanUpButton->addListener(this);
-  addAndMakeVisible(_cleanUpButton);
-
-  _cleanUpScenes = new Slider(Slider::SliderStyle::IncDecButtons, Slider::TextEntryBoxPosition::TextBoxLeft);
-  _cleanUpScenes->setName("Clean Up Scenes");
-  _cleanUpScenes->setRange(1, 500, 1);
-  _cleanUpScenes->setValue(10, dontSendNotification);
-  addAndMakeVisible(_cleanUpScenes);
+  _setKeyButton = new TextButton("Set Key Lights", "Sets Key Lights used for Clustering");
+  _setKeyButton->addListener(this);
+  addAndMakeVisible(_setKeyButton);
 
   // Add the sort methods to the combo box
   _sort = new ComboBox("sort mode");
@@ -159,8 +217,7 @@ AttributeControls::~AttributeControls()
   delete _search;
   delete _sort;
   delete _sortButton;
-  delete _cleanUpButton;
-  delete _cleanUpScenes;
+  delete _setKeyButton;
 }
 
 void AttributeControls::paint (Graphics& g)
@@ -172,7 +229,6 @@ void AttributeControls::paint (Graphics& g)
   botRow2.removeFromRight(160);
 
   g.setColour(Colours::white);
-  g.drawFittedText("Scenes After Clean Up", botRow2.reduced(5), Justification::centredRight, 1);
 }
 
 void AttributeControls::resized()
@@ -185,8 +241,7 @@ void AttributeControls::resized()
   _sort->setBounds(botBounds.reduced(5));
 
   auto botRow2 = lbounds.removeFromBottom(30);
-  _cleanUpButton->setBounds(botRow2.removeFromRight(80).reduced(5));
-  _cleanUpScenes->setBounds(botRow2.removeFromRight(80).reduced(5));
+  _setKeyButton->setBounds(botRow2.removeFromRight(80).reduced(5));
 
   _componentView->setBounds(lbounds);
   _container->setWidth(_componentView->getMaximumVisibleWidth());
@@ -222,15 +277,18 @@ void AttributeControls::buttonClicked(Button * b)
       mc->sortCluster();
     }
   }
-  else if (b->getName() == "Clean Up") {
-    int numResults = (int)_cleanUpScenes->getValue();
+  else if (b->getName() == "Set Key Lights") {
+    function<void(vector<string>)> update = [](vector<string> selected) {
+      getGlobalSettings()->_keyIds = selected;
+    };
 
-    // do the clean up
-    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+    Viewport* vp = new Viewport();
+    DeviceSelector* cds = new DeviceSelector(getGlobalSettings()->_keyIds, update);
+    cds->setSize(200, min(cds->getListHeight(), 300));
+    vp->setViewedComponent(cds, true);
+    vp->setSize(cds->getWidth(), cds->getHeight());
 
-    if (mc != nullptr) {
-      mc->cleanUpResults(numResults);
-    }
+    CallOutBox::launchAsynchronously(vp, _setKeyButton->getScreenBounds(), nullptr);
   }
 }
 

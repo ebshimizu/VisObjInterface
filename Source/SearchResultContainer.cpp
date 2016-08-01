@@ -370,6 +370,8 @@ double SearchResultContainer::dist(SearchResultContainer * y, DistanceMetric met
 		return directedAvgPixDist(y, overrideMask, invert);
 	case DIRPPAVG:
 		return directedOnlyAvgPixDist(y, overrideMask, invert);
+  case KEYPARAM:
+    return l2SelectedParamDist(y);
   default:
     return avgPixDist(y, overrideMask, invert);
   }
@@ -674,6 +676,41 @@ double SearchResultContainer::directedOnlyAvgPixDist(SearchResultContainer * y, 
 	}
 
 	return sum / count;
+}
+
+double SearchResultContainer::l2SelectedParamDist(SearchResultContainer * y)
+{
+  vector<string> keys = getGlobalSettings()->_keyIds;
+  Snapshot* xs = vectorToSnapshot(_result->_scene);
+  Snapshot* ys = vectorToSnapshot(y->getSearchResult()->_scene);
+
+  auto& xdevices = xs->getRigData();
+  auto& ydevices = ys->getRigData();
+
+  // select the key lights
+  // vector format: intensity-adjusted RGB (3 channels)
+  Eigen::VectorXd xfeats, yfeats;
+  xfeats.resize(keys.size() * 3);
+  yfeats.resizeLike(xfeats);
+
+  for (int i = 0; i < keys.size(); i++) {
+    string key = keys[i];
+    auto xrgb = xdevices[key]->getColor()->getRGB() * xdevices[key]->getIntensity()->asPercent();
+    auto yrgb = ydevices[key]->getColor()->getRGB() * ydevices[key]->getIntensity()->asPercent();
+
+    xfeats[i * 3] = xrgb[0];
+    xfeats[i * 3 + 1] = xrgb[1];
+    xfeats[i * 3 + 2] = xrgb[2];
+
+    yfeats[i * 3] = yrgb[0];
+    yfeats[i * 3 + 1] = yrgb[1];
+    yfeats[i * 3 + 2] = yrgb[2];
+  }
+
+  delete xs;
+  delete ys;
+
+  return (xfeats - yfeats).norm();
 }
 
 void SearchResultContainer::sort(AttributeSorter * s)

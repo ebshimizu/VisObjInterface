@@ -77,7 +77,7 @@ Array<shared_ptr<TopLevelCluster> > KMeans::cluster(Array<shared_ptr<SearchResul
 
     for (auto& c : centers) {
       c->getContainer()->setFeatures(feats[c->getClusterId()] / counts[c->getClusterId()]);
-      c->getContainer()->getSearchResult()->_scene /= counts[c->getClusterId()];
+      c->getContainer()->getSearchResult()->_scene = scenes[c->getClusterId()] / counts[c->getClusterId()];
     }
   }
 

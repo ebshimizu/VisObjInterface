@@ -130,6 +130,9 @@ public:
 	// Gradient direction average per-pixel difference
 	double directedOnlyAvgPixDist(SearchResultContainer* y, bool overrideMask = false, bool invert = false);
 
+  // L2 norm of selected lighting parameters (selected list found in globals)
+  double l2SelectedParamDist(SearchResultContainer* y);
+
   // sort cluster, if it exists.
   void sort(AttributeSorter* s);
 
