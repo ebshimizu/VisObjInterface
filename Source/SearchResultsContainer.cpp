@@ -412,7 +412,7 @@ void SearchResultsContainer::cluster()
 
   // if the distance metric expects at least one light to be selected as key light, make sure that
   // is true first, otherwise abort now
-  if (getGlobalSettings()->_primaryClusterMetric == KEYPARAM || getGlobalSettings()->_secondaryClusterMetric) {
+  if (getGlobalSettings()->_primaryClusterMetric == KEYPARAM || getGlobalSettings()->_secondaryClusterMetric == KEYPARAM) {
     if (getGlobalSettings()->_keyIds.size() == 0) {
       getStatusBar()->setStatusMessage("Clustering Failed! Must designate at least one light as the key light.", true);
       return;
