@@ -304,6 +304,31 @@ double Edit::variance(Snapshot * s, attrObjFunc f, double radius, int n)
 	return shifted.sum() / n;
 }
 
+bool Edit::isEqual(Edit & other)
+{
+  // edits are equal if they affect the same devices and the same parameters
+  // check params first
+  set<EditParam> otherParams = set<EditParam>(other._affectedParams);
+
+  if (otherParams.size() != _affectedParams.size())
+    return false;
+
+  for (auto p : _affectedParams) {
+    otherParams.erase(p);
+  }
+
+  if (otherParams.size() != 0)
+    return false;
+
+  // check devices
+  if (_affectedDevices.hasSameIds(other._affectedDevices)) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
 void Edit::applyParamEdit(Device * d, EditParam p, double delta)
 {
   if (isParamLocked(d, p))

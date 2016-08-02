@@ -178,6 +178,8 @@ public:
   void generateDefaultEdits(string select, int editType);
 
 private:
+  bool isDuplicateEdit(Edit* e);
+
   // component to dump results into
   SearchResultsViewer* _viewer;
 	SearchMode _mode;

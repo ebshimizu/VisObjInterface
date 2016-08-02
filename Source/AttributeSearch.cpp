@@ -1305,14 +1305,14 @@ void AttributeSearch::generateEdits(bool /* explore */)
       e->setParams({ INTENSITY, HUE, SAT, VALUE });
       e->_name = id;
       e->initArbitrary(id, false, false);
-      if (e->canDoEdit())
+      if (e->canDoEdit() && !isDuplicateEdit(e))
         getGlobalSettings()->_edits.push_back(e);
       else
         delete e;
     }
 
     // pivot edits (all lights except specified system)
-
+    // not sure if necessary
   }
   else {
     Edit* e = new Edit(_lockedParams);
@@ -1360,10 +1360,10 @@ void AttributeSearch::generateDefaultEdits(string select, int editType)
 
   // all parameters
   Edit* e = new Edit(_lockedParams);
-  e->setParams({ INTENSITY, RED, BLUE, GREEN });
+  e->setParams({ INTENSITY, HUE, SAT, VALUE });
   e->_name = select + "_all";
   initfunc(e, false, false);
-  if (e->canDoEdit())
+  if (e->canDoEdit() && !isDuplicateEdit(e))
     edits.push_back(e);
   else
     delete e;
@@ -1383,7 +1383,7 @@ void AttributeSearch::generateDefaultEdits(string select, int editType)
   e->setParams({ HUE });
   e->_name = select + "_hue";
   initfunc(e, false, false);
-  if (e->canDoEdit())
+  if (e->canDoEdit() && !isDuplicateEdit(e))
     edits.push_back(e);
   else
     delete e;
@@ -1393,8 +1393,18 @@ void AttributeSearch::generateDefaultEdits(string select, int editType)
   e->setParams({ SAT });
   e->_name = select + "_sat";
   initfunc(e, false, false);
-  if (e->canDoEdit())
+  if (e->canDoEdit() && !isDuplicateEdit(e))
     edits.push_back(e);
   else
     delete e;
+}
+
+bool AttributeSearch::isDuplicateEdit(Edit * e)
+{
+  for (auto ed : getGlobalSettings()->_edits) {
+    if (ed->isEqual(*e))
+      return true;
+  }
+
+  return false;
 }

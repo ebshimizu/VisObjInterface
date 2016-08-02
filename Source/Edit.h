@@ -85,6 +85,10 @@ public:
 
   string _name;
 
+  // Checks for edit equality.
+  // If you are comparing subclasses, you will want to override this.
+  virtual bool isEqual(Edit& other);
+
 private:
   void applyParamEdit(Device* d, EditParam p, double delta = NAN);
   void setParam(Device* d, EditParam p, double val);
