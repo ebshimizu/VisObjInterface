@@ -13,7 +13,22 @@
 
 #include "HistogramAttribute.h"
 
+class ImageAttribute : public HistogramAttribute
+{
+public:
+  ImageAttribute(string name, string filepath, int n = 10);
+  ImageAttribute(string name, Image img, int n = 10);
+  ~ImageAttribute();
 
+  virtual double evaluateScene(Snapshot* s);
+
+  virtual void preProcess();
+  
+private:
+  int _n;
+  Histogram3D _sourceHist;
+  Image _sourceImg;
+};
 
 
 #endif  // IMAGEATTRIBUTE_H_INCLUDED

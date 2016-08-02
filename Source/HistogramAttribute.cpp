@@ -260,8 +260,29 @@ Histogram3D::Histogram3D(const Histogram3D & other) :
   _ymin(other._ymin), _ymax(other._ymax), _zmin(other._zmin), _zmax(other._zmax)
 {
   _count = other._count;
-  _histData = new unsigned int[_x * _y * _z];
-  memcpy(_histData, other._histData, _x * _y * _z);
+  _histData = new unsigned int[_x * _y * _z]();
+  
+  memcpy(_histData, other._histData, sizeof(unsigned int) * _x * _y * _z);
+}
+
+Histogram3D & Histogram3D::operator=(const Histogram3D & other)
+{
+  _x = other._x;
+  _y = other._y;
+  _z = other._z;
+  _xmin = other._xmin;
+  _xmax = other._xmax;
+  _ymin = other._ymin;
+  _ymax = other._ymax;
+  _zmin = other._zmin;
+  _zmax = other._zmax;
+  _count = other._count;
+
+  delete[] _histData;
+  _histData = new unsigned int[_x * _y * _z]();
+
+  memcpy(_histData, other._histData, sizeof(unsigned int) * _x * _y * _z);
+  return *this;
 }
 
 Histogram3D::~Histogram3D()
@@ -272,9 +293,9 @@ Histogram3D::~Histogram3D()
 void Histogram3D::addValToBin(double x, double y, double z)
 {
   // scale x, y, z to proper values and find what bin they're in
-  int xbin = (int) clamp(((_xmin + x) / (_xmax - _xmin)) * _x, 0, _x - 1);
-  int ybin = (int) clamp(((_ymin + y) / (_ymax - _ymin)) * _y, 0, _y - 1);
-  int zbin = (int) clamp(((_zmin + z) / (_zmax - _zmin)) * _z, 0, _z - 1);
+  int xbin = (int) clamp(((x - _xmin) / (_xmax - _xmin)) * _x, 0, _x - 1);
+  int ybin = (int) clamp(((y - _ymin) / (_ymax - _ymin)) * _y, 0, _y - 1);
+  int zbin = (int) clamp(((z - _zmin) / (_zmax - _zmin)) * _z, 0, _z - 1);
 
   addToBin(1, xbin, ybin, zbin);
 }
@@ -292,6 +313,47 @@ void Histogram3D::removeFromBin(int amt, int x, int y, int z)
 unsigned int Histogram3D::getBin(int x, int y, int z)
 {
   return _histData[getIndex(x, y, z)];
+}
+
+string Histogram3D::toString()
+{
+  stringstream ss;
+
+  for (int z = 0; z < _z; z++) {
+    ss << "z = " << z << "\n";
+    for (int y = 0; y < _y; y++) {
+      bool first = true;
+      for (int x = 0; x < _x; x++) {
+        if (!first) {
+          ss << "\t" << _histData[getIndex(x, y, z)];
+        }
+        else {
+          ss << _histData[getIndex(x, y, z)];
+          first = false;
+        }
+      }
+      ss << "\n";
+    }
+    ss << "\n";
+  }
+
+  return ss.str();
+}
+
+double Histogram3D::L2dist(Histogram3D & other)
+{
+  if (other._x != _x || other._y != _y || other._z != _z) {
+    // invalid dimensions
+    Lumiverse::Logger::log(ERR, "Invalid dimensions provided for histogram difference.");
+    return -1;
+  }
+
+  double err = 0;
+  for (int i = 0; i < _x * _y * _z; i++) {
+    err += pow((double)_histData[i] - (double)other._histData[i], 2.0);
+  }
+
+  return sqrt(err);
 }
 
 int Histogram3D::getIndex(int x, int y, int z)
@@ -455,4 +517,31 @@ double HistogramAttribute::getAverageHue(Image i)
   }
 
   return hue / (i.getHeight() * i.getWidth());
+}
+
+Histogram3D HistogramAttribute::getLabHist(Image& canonical, int n)
+{
+  return getLabHist(canonical, n, n, n);
+}
+
+Histogram3D HistogramAttribute::getLabHist(Image& canonical, int x, int y, int z)
+{
+  Histogram3D lab(x, y, z, 0, 100, -100, 100, -100, 100);
+
+  for (int y = 0; y < canonical.getHeight(); y++) {
+    for (int x = 0; x < canonical.getWidth(); x++) {
+      auto color = canonical.getPixelAt(x, y);
+      Eigen::Vector3d labColor = RGBtoLab(color.getRed() / 255.0, color.getGreen() / 255.0, color.getBlue() / 255.0);
+
+      lab.addValToBin(labColor[0], labColor[1], labColor[2]);
+    }
+  }
+
+  return lab;
+}
+
+Eigen::Vector3d HistogramAttribute::RGBtoLab(double r, double g, double b)
+{
+  Eigen::Vector3d xyz = ColorUtils::convRGBtoXYZ(r, g, b, sRGB);
+  return ColorUtils::convXYZtoLab(xyz, refWhites[D65] / 100.0);
 }

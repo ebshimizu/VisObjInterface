@@ -83,6 +83,7 @@ public:
   Histogram3D(int x, int y, int z);
   Histogram3D(int x, int y, int z, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax);
   Histogram3D(const Histogram3D& other);
+  Histogram3D& operator=(const Histogram3D& other);
   ~Histogram3D();
 
   void addValToBin(double x, double y, double z);
@@ -90,6 +91,15 @@ public:
   void removeFromBin(int amt, int x, int y, int z);
 
   unsigned int getBin(int x, int y, int z);
+
+  string toString();
+
+  // Returns the distance between this histogram and a different histogram
+  // Histograms must have the same number of bins with the same dimensions
+  double L2dist(Histogram3D& other);
+
+  // Earth Mover's distance for a different histogram
+  double emd(Histogram3D& other);
 
 private:
   inline int getIndex(int x, int y, int z);
@@ -134,16 +144,18 @@ public:
 
   // Returns a n x n x n histogram of Lab pixel values
   // Lab histogram has L on x, a on y, and b on z
-  Histogram3D getLabHist(int n);
+  Histogram3D getLabHist(Image& canonical, int n);
   
   // Returns a x x y x z histogram of Lab pixel values
   // Lab histogram has L on x, a on y, and b on z
-  Histogram3D getLabHist(int x, int y, int z);
+  Histogram3D getLabHist(Image& canonical, int x, int y, int z);
 
   // Histogram3D getRGBHist();
   // Histogram3D getHSVHist();
 
 protected:
+  Eigen::Vector3d RGBtoLab(double r, double g, double b);
+
   // size of the canonical image for the given attributre
   int _canonicalHeight;
   int _canonicalWidth;

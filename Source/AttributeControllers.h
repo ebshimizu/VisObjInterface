@@ -25,5 +25,6 @@
 #include "HistogramContrast.h"
 #include "OrangeBlueAttribute.h"
 #include "MoonlightAttribute.h"
+#include "ImageAttribute.h"
 
 #endif  // ATTRIBUTECONTROLLERS_H_INCLUDED

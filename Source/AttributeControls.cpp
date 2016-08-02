@@ -286,7 +286,7 @@ void AttributeControls::buttonClicked(Button * b)
       mc->sortCluster();
     }
   }
-  else if (b->getName() == "Set Key Lights") {
+  else if (b->getName() == "Key Lights") {
     function<void(vector<string>)> update = [](vector<string> selected) {
       getGlobalSettings()->_keyIds = selected;
     };
@@ -336,6 +336,10 @@ void AttributeControls::initAttributes()
 
   // moonlight
   _container->addAttributeController(new MoonlightAttribute(100, 100));
+
+  // Test image
+  _container->addAttributeController(new ImageAttribute("IMAGE TEST",
+    "C:/Users/eshimizu/Dropbox/Documents/research/attributes_project/scenes/refs/jpmenagerie-superJumbo.png"));
 
   //_container->addAttributeController(new BacklitAttribute());
   //_container->addAttributeController(new SoftAttribute());
