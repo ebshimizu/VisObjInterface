@@ -1280,6 +1280,7 @@ void AttributeSearch::generateEdits(bool /* explore */)
   // It is up to the user to decide how to split lights into groups and systems.
   set<string> systems = getRig()->getMetadataValues("system");
   set<string> areas = getRig()->getMetadataValues("area");
+  vector<string> deviceIds = getRig()->getAllDevices().getIds();
 
   if (!getGlobalSettings()->_standardMCMC) {
     // Create all devices edit types
@@ -1298,7 +1299,20 @@ void AttributeSearch::generateEdits(bool /* explore */)
       // generateColorEdits(a);
     }
 
-    // edits for individual devices?
+    // edits for individual devices
+    for (auto& id : deviceIds) {
+      Edit* e = new Edit(_lockedParams);
+      e->setParams({ INTENSITY, HUE, SAT, VALUE });
+      e->_name = id;
+      e->initArbitrary(id, false, false);
+      if (e->canDoEdit())
+        getGlobalSettings()->_edits.push_back(e);
+      else
+        delete e;
+    }
+
+    // pivot edits (all lights except specified system)
+
   }
   else {
     Edit* e = new Edit(_lockedParams);
