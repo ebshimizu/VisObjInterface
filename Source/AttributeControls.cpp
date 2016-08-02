@@ -337,9 +337,16 @@ void AttributeControls::initAttributes()
   // moonlight
   _container->addAttributeController(new MoonlightAttribute(100, 100));
 
-  // Test image
-  _container->addAttributeController(new ImageAttribute("IMAGE TEST",
-    "C:/Users/eshimizu/Dropbox/Documents/research/attributes_project/scenes/refs/jpmenagerie-superJumbo.png"));
+  // Image similarity
+  // load from local folder
+  File imageDir = File::getCurrentWorkingDirectory().getChildFile("image_attributes");
+  Array<File> imagesToLoad;
+  int numImage = imageDir.findChildFiles(imagesToLoad, 2, false, "*.png");
+
+  for (int i = 0; i < numImage; i++) {
+    String name = imagesToLoad[i].getFileNameWithoutExtension();
+    _container->addAttributeController(new ImageAttribute(name.toStdString(), imagesToLoad[i].getFullPathName().toStdString()));
+  }
 
   //_container->addAttributeController(new BacklitAttribute());
   //_container->addAttributeController(new SoftAttribute());
