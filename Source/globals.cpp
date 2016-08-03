@@ -239,26 +239,32 @@ unsigned int GlobalSettings::getSampleID()
   return ret;
 }
 
-Image GlobalSettings::getCachedImage(Snapshot* s, int w, int h, int samples)
+void GlobalSettings::updateCache()
 {
-  if (_cacheUpdated && _renderCache.getWidth() == w && _renderCache.getHeight() == h)
-    return _renderCache;
+  ArnoldAnimationPatch* p = getAnimationPatch();
 
-  auto devices = s->getDevices();
-  auto p = getAnimationPatch();
+  if (p == nullptr) {
+    getRecorder()->log(RENDER, "Render failed. Could not find ArnoldAnimationPatch.");
+    return;
+  }
 
-  if (p == nullptr)
-    return Image();
+  // Get the image dimensions
+  int width = getGlobalSettings()->_renderWidth;
+  int height = getGlobalSettings()->_renderHeight;
+  p->setDims(width, height);
+  p->setSamples(getGlobalSettings()->_stageRenderSamples);
 
-  // render at 2x res, downsample to canonical resolution
-  uint8* bufptr = Image::BitmapData(_renderCache, Image::BitmapData::readWrite).getPixelPointer(0, 0);
-  p->setDims(w, h);
-  p->setSamples(samples);
+  Image cache = Image(Image::ARGB, width, height, true);
+  uint8* bufptr = Image::BitmapData(cache, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+  p->renderSingleFrameToBuffer(getRig()->getDeviceRaw(), bufptr, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
 
-  getAnimationPatch()->renderSingleFrameToBuffer(devices, bufptr, w, h);
+  setCache(cache);
+}
 
+void GlobalSettings::setCache(Image img)
+{
+  _renderCache = img;
   _cacheUpdated = true;
-  return _renderCache;
 }
 
 void GlobalSettings::invalidateCache()

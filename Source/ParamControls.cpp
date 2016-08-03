@@ -73,6 +73,8 @@ void FloatPropertySlider::setValue(double newValue)
   else {
     getRig()->getDevice(_id)->setParam(_param, (float)newValue);
   }
+
+  getGlobalSettings()->invalidateCache();
   getApplicationCommandManager()->invokeDirectly(command::REFRESH_ATTR, true);
 }
 
@@ -148,6 +150,7 @@ void OrientationPropertySlider::mouseDown(const MouseEvent & event)
 void OrientationPropertySlider::setValue(double newValue)
 {
   getRig()->getDevice(_id)->setParam(_param, (float)newValue);
+  getGlobalSettings()->invalidateCache();
   getApplicationCommandManager()->invokeDirectly(command::REFRESH_ATTR, true);
 }
 
@@ -237,6 +240,8 @@ void ColorPropertyPicker::changeListenerCallback(ChangeBroadcaster * source)
     ss << _id << ":" << _param << " value changed to " << _val->asString();
     getStatusBar()->setStatusMessage(ss.str());
     getRecorder()->log(ACTION, ss.str());
+
+    getGlobalSettings()->invalidateCache();
 
     MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 

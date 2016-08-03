@@ -53,9 +53,14 @@ void AttributeControllerBase::paint (Graphics& g)
   g.setColour(Colours::white);
   g.drawFittedText(_name, top, Justification::left, 1);
 
-  // TODO: Repaint should pull image from some sort of global cache
+  if (!getGlobalSettings()->_cacheUpdated) {
+    getGlobalSettings()->updateCache();
+  }
+
+  Image img = getGlobalSettings()->_renderCache.rescaled(_canonicalWidth, _canonicalHeight);
+
   Snapshot* s = new Snapshot(getRig());
-  double attrVal = evaluateScene(s, generateImage(s));
+  double attrVal = evaluateScene(s, img);
   delete s;
   
   g.drawFittedText(String(attrVal), top, Justification::right, 1);

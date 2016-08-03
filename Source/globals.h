@@ -230,7 +230,8 @@ public:
 
   // Caches rendered images for attributes that need it.
   // not intended for other uses besides attributes
-  Image getCachedImage(Snapshot* s, int w, int h, int samples);
+  void updateCache();
+  void setCache(Image img);
   void invalidateCache();
 
   Image _renderCache;
