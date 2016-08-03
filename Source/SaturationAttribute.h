@@ -22,10 +22,11 @@
 class SaturationAttribute : public HistogramAttribute
 {
 public:
+  SaturationAttribute(int numBins);
   SaturationAttribute(int numBins, int w, int h);
   ~SaturationAttribute();
 
-  virtual double evaluateScene(Snapshot* s) override;
+  virtual double evaluateScene(Snapshot* s, Image& img) override;
 
   // virtual void preProcess() override;
 

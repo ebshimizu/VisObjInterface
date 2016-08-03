@@ -1001,37 +1001,42 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
 
   _active = active;
   _start = start;
+  Image startImg = _active.begin()->second->generateImage(_start);
 
   // objective function for combined set of active attributes.
   if (getGlobalSettings()->_searchMode == MCMC_EDIT) {
-    _f = [this](Snapshot* s) {
+    _f = [this, &startImg](Snapshot* s) {
+      // for multiple attributes, we generate the image here first
+      Image img = _active.begin()->second->generateImage(s);
       double sum = 0;
       for (const auto& kvp : _active) {
         if (kvp.second->getStatus() == A_LESS)
-          sum += kvp.second->evaluateScene(s);
+          sum += kvp.second->evaluateScene(s, img);
         else if (kvp.second->getStatus() == A_MORE) {
-          sum -= kvp.second->evaluateScene(s);
+          sum -= kvp.second->evaluateScene(s, img);
         }
-        else if (kvp.second->getStatus() == A_EQUAL)
-          sum += pow(kvp.second->evaluateScene(s) - kvp.second->evaluateScene(_start), 2);
+        else if (kvp.second->getStatus() == A_EQUAL) {
+          sum += pow(kvp.second->evaluateScene(s, img) - kvp.second->evaluateScene(_start, startImg), 2);
+        }
       }
 
       return sum;
     };
   }
   else {
-    _f = [this](Snapshot* s) {
+    _f = [this, &startImg](Snapshot* s) {
+      Image img = _active.begin()->second->generateImage(s);
       double sum = 0;
       for (const auto& kvp : _active) {
         if (kvp.second->getStatus() == A_LESS)
-          sum += kvp.second->evaluateScene(s);
+          sum += kvp.second->evaluateScene(s, img);
         else if (kvp.second->getStatus() == A_MORE) {
           // larger values = smaller function, LM expects things to be non-linear least squares,
           // which are all positive functions
-          sum += (100 - kvp.second->evaluateScene(s));
+          sum += (100 - kvp.second->evaluateScene(s, img));
         }
         else if (kvp.second->getStatus() == A_EQUAL)
-          sum += pow(kvp.second->evaluateScene(s) - kvp.second->evaluateScene(_start), 2);
+          sum += pow(kvp.second->evaluateScene(s, img) - kvp.second->evaluateScene(_start, startImg), 2);
       }
 
       return sum;

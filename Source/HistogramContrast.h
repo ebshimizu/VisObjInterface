@@ -16,10 +16,11 @@
 class HistogramContrast : public HistogramAttribute
 {
 public:
+  HistogramContrast(string name, int numBins);
   HistogramContrast(string name, int numBins, int w, int h);
   ~HistogramContrast();
 
-  virtual double evaluateScene(Snapshot* s) override;
+  virtual double evaluateScene(Snapshot* s, Image& img) override;
 
 private:
   int _numBins;

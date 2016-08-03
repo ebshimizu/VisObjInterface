@@ -24,7 +24,7 @@ LowKeyAttribute::~LowKeyAttribute()
 {
 }
 
-double LowKeyAttribute::evaluateScene(Snapshot * s)
+double LowKeyAttribute::evaluateScene(Snapshot * s, Image& /* img */)
 {
   auto& rigData = s->getRigData();
 

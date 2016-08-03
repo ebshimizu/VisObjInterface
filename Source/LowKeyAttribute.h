@@ -26,7 +26,7 @@ public:
   LowKeyAttribute(string area);
   ~LowKeyAttribute();
 
-  virtual double evaluateScene(Snapshot* s) override;
+  virtual double evaluateScene(Snapshot* s, Image& img) override;
   virtual void preProcess() override;
 
 private:

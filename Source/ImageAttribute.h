@@ -34,7 +34,7 @@ public:
   ImageAttribute(string name, Image img, int n = 10);
   ~ImageAttribute();
 
-  virtual double evaluateScene(Snapshot* s);
+  virtual double evaluateScene(Snapshot* s, Image& img);
   virtual void preProcess();
 
   virtual void resized() override;

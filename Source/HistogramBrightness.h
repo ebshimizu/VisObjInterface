@@ -18,10 +18,11 @@
 class HistogramBrightness : public HistogramAttribute
 {
 public:
+  HistogramBrightness(string name, int numBins);
   HistogramBrightness(string name, int numBins, int w, int h);
   ~HistogramBrightness();
 
-  virtual double evaluateScene(Snapshot* s) override;
+  virtual double evaluateScene(Snapshot* s, Image& img) override;
 
 private:
   int _numBins;

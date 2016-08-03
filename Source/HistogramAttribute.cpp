@@ -414,51 +414,17 @@ int Histogram3D::getIndex(int x, int y, int z)
 
 // ============================================================================
 
+HistogramAttribute::HistogramAttribute(string name) : AttributeControllerBase(name)
+{
+}
+
 HistogramAttribute::HistogramAttribute(string name, int w, int h) :
-  _canonicalWidth(w), _canonicalHeight(h), AttributeControllerBase(name)
+  AttributeControllerBase(name, w, h)
 {
 }
 
 HistogramAttribute::~HistogramAttribute()
 {
-}
-
-Image HistogramAttribute::generateImage(Snapshot* s)
-{
-  auto devices = s->getDevices();
-  auto p = getAnimationPatch();
-
-  if (p == nullptr) {
-    return Image(Image::ARGB, _canonicalWidth, _canonicalHeight, true);
-  }
-
-  // with caching we can render at full and then scale down
-  Image highRes = Image(Image::ARGB, _canonicalWidth * 2, _canonicalHeight * 2, true);
-  Image canonical;
-  uint8* bufptr = Image::BitmapData(highRes, Image::BitmapData::readWrite).getPixelPointer(0,0);
-  p->setDims(_canonicalWidth * 2, _canonicalHeight * 2);
-  p->setSamples(getGlobalSettings()->_thumbnailRenderSamples);
-
-  getAnimationPatch()->renderSingleFrameToBuffer(devices, bufptr, _canonicalWidth * 2, _canonicalHeight * 2);
-
-  // if the focus region has a non-zero width, pull out the proper section of the image
-  auto rect = getGlobalSettings()->_focusBounds;
-  if (rect.getWidth() > 0) {
-    // pull subsection
-    auto topLeft = rect.getTopLeft();
-    auto botRight = rect.getBottomRight();
-    Image clipped = highRes.getClippedImage(Rectangle<int>::leftTopRightBottom(
-      (int)(topLeft.x * _canonicalWidth * 2), (int)(topLeft.y * _canonicalHeight * 2),
-      (int)(botRight.x * _canonicalWidth * 2), (int)(botRight.y * _canonicalHeight * 2)
-    ));
-
-    canonical = clipped.rescaled(_canonicalWidth, _canonicalHeight);
-  }
-  else {
-    canonical = highRes.rescaled(_canonicalWidth, _canonicalHeight);
-  }
-
-  return canonical;
 }
 
 Histogram1D HistogramAttribute::getGrayscaleHist(Image& canonical, int numBins)
@@ -579,9 +545,9 @@ Histogram3D HistogramAttribute::getLabHist(Image& canonical, int x, int y, int z
 {
   Histogram3D lab(x, y, z, 0, 100, -100, 100, -100, 100);
 
-  for (int y = 0; y < canonical.getHeight(); y++) {
-    for (int x = 0; x < canonical.getWidth(); x++) {
-      auto color = canonical.getPixelAt(x, y);
+  for (int y2 = 0; y2 < canonical.getHeight(); y2++) {
+    for (int x2 = 0; x2 < canonical.getWidth(); x2++) {
+      auto color = canonical.getPixelAt(x2, y2);
       Eigen::Vector3d labColor = RGBtoLab(color.getRed() / 255.0, color.getGreen() / 255.0, color.getBlue() / 255.0);
 
       lab.addValToBin(labColor[0], labColor[1], labColor[2]);

@@ -35,7 +35,7 @@ double TestAttribute::duvPenalty(double duv)
   return pow((0 - duv * 1000), 2);
 }
 
-double TestAttribute::evaluateScene(Snapshot* s)
+double TestAttribute::evaluateScene(Snapshot* s, Image& /* img */)
 {
   // Since CCT has a singularity built in to its calculations we're going
   // to just define a "warmest" hue and measure how far away each color is

@@ -317,25 +317,25 @@ map<string, AttributeControllerBase*> AttributeControls::getActiveAttributes()
 void AttributeControls::initAttributes()
 {
   // Add saturation
-  _container->addAttributeController(new SaturationAttribute(50, 100, 100));
+  _container->addAttributeController(new SaturationAttribute(50));
 
   // Tint
-  _container->addAttributeController(new TintAttribute(100, 100));
+  _container->addAttributeController(new TintAttribute());
 
   // noire
   _container->addAttributeController(new NoireAttribute());
 
   // Histogram brightness
-  _container->addAttributeController(new HistogramBrightness("Brightness", 50, 100, 100));
+  _container->addAttributeController(new HistogramBrightness("Brightness", 50));
 
   // Histogram contrast
-  _container->addAttributeController(new HistogramContrast("Contrast", 255, 100, 100));
+  _container->addAttributeController(new HistogramContrast("Contrast", 255));
 
   // Orange Blue
-  _container->addAttributeController(new OrangeBlueAttribute(100, 100));
+  _container->addAttributeController(new OrangeBlueAttribute());
 
   // moonlight
-  _container->addAttributeController(new MoonlightAttribute(100, 100));
+  _container->addAttributeController(new MoonlightAttribute());
 
   // Image similarity
   // load from local folder

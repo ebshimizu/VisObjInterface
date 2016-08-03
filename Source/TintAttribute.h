@@ -17,13 +17,14 @@
 class TintAttribute : public HistogramAttribute, public ChangeListener
 {
 public:
+  TintAttribute();
   TintAttribute(int w, int h);
   ~TintAttribute();
 
   virtual void paint(Graphics& g) override;
   virtual void resized() override;
 
-  virtual double evaluateScene(Snapshot* s) override;
+  virtual double evaluateScene(Snapshot* s, Image& img) override;
 
   virtual void mouseDown(const MouseEvent& e) override;
 

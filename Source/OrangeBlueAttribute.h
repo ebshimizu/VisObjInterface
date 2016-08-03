@@ -16,10 +16,11 @@
 class OrangeBlueAttribute : public HistogramAttribute
 {
 public:
+  OrangeBlueAttribute();
   OrangeBlueAttribute(int w, int h);
   ~OrangeBlueAttribute();
 
-  virtual double evaluateScene(Snapshot* s) override;
+  virtual double evaluateScene(Snapshot* s, Image& img) override;
 
 private:
   // Returns if x or y is closer to the specified Hue Range

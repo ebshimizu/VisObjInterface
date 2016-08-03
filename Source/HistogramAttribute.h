@@ -128,11 +128,9 @@ private:
 class HistogramAttribute : public AttributeControllerBase
 {
 public:
+  HistogramAttribute(string name);
   HistogramAttribute(string name, int w, int h);
   ~HistogramAttribute();
-
-  // popualtes the image field of the histogram attribute
-  Image generateImage(Snapshot* s);
 
   // Generates a histogram based on the brightness of the image
   Histogram1D getGrayscaleHist(Image& canonical, int numBins);
@@ -163,10 +161,6 @@ public:
 
 protected:
   Eigen::Vector3d RGBtoLab(double r, double g, double b);
-
-  // size of the canonical image for the given attributre
-  int _canonicalHeight;
-  int _canonicalWidth;
 };
 
 

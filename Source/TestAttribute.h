@@ -25,7 +25,7 @@ public:
   ~TestAttribute();
 
 protected: 
-  virtual double evaluateScene(Snapshot* s) override;
+  virtual double evaluateScene(Snapshot* s, Image& img) override;
 
 private:
   double cctPenalty(double cct);

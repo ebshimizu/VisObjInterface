@@ -16,10 +16,11 @@
 class MoonlightAttribute : public HistogramAttribute
 {
 public:
+  MoonlightAttribute();
   MoonlightAttribute(int w, int h);
   ~MoonlightAttribute();
 
-  double evaluateScene(Snapshot* s) override;
+  double evaluateScene(Snapshot* s, Image& img) override;
 
   void preProcess() override;
 

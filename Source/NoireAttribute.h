@@ -19,7 +19,7 @@ public:
   NoireAttribute();
   ~NoireAttribute();
 
-  virtual double evaluateScene(Snapshot* s) override;
+  virtual double evaluateScene(Snapshot* s, Image& img) override;
 
 private:
 };

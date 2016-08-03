@@ -20,7 +20,7 @@
 class AttributeControllerBase : public Component, public Button::Listener
 {
 public:
-  AttributeControllerBase(String name);
+  AttributeControllerBase(String name, int w = 100, int h = 100);
   ~AttributeControllerBase();
 
   virtual void paint (Graphics&);
@@ -33,7 +33,7 @@ public:
 
   // This function is implemented by every subclass.
   // The return value should be the strenght of the attribute in ths scene.
-	virtual double evaluateScene(Snapshot* s) = 0;
+	virtual double evaluateScene(Snapshot* s, Image& i) = 0;
 
   // An optional pre-processing step is available for each attribute to perform
   // when the application starts.
@@ -43,6 +43,9 @@ public:
   // allows the search to proceed more quickly though the relevant spaces
   set<EditParam> _autoLockParams;
 
+  // popualtes the image field of the histogram attribute
+  Image generateImage(Snapshot* s);
+
   // for integration of non-semantic attributes into the system
   virtual bool isNonSemantic() { return false; }
   virtual list<Snapshot*> nonSemanticSearch() { return list<Snapshot*>(); }
@@ -50,6 +53,10 @@ public:
 protected:
 	// Attribute name
 	String _name;
+
+  // size of the canonical image for the given attributre
+  int _canonicalHeight;
+  int _canonicalWidth;
 
 private:
 	// Buttons and controls

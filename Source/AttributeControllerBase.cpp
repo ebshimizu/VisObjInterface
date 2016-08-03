@@ -12,7 +12,8 @@
 #include "AttributeControllerBase.h"
 
 //==============================================================================
-AttributeControllerBase::AttributeControllerBase(String name) : _name(name)
+AttributeControllerBase::AttributeControllerBase(String name, int w, int h) : _name(name),
+  _canonicalHeight(w), _canonicalWidth(h)
 {
   // set juce component name
   setName(_name);
@@ -52,9 +53,11 @@ void AttributeControllerBase::paint (Graphics& g)
   g.setColour(Colours::white);
   g.drawFittedText(_name, top, Justification::left, 1);
 
+  // TODO: Repaint should pull image from some sort of global cache
   Snapshot* s = new Snapshot(getRig());
-  double attrVal = evaluateScene(s);
+  double attrVal = evaluateScene(s, generateImage(s));
   delete s;
+  
   g.drawFittedText(String(attrVal), top, Justification::right, 1);
 }
 
@@ -105,4 +108,42 @@ void AttributeControllerBase::buttonClicked(Button * b)
   if (buttonName == "Explore") {
     _status = A_EXPLORE;
   }
+}
+
+Image AttributeControllerBase::generateImage(Snapshot * s)
+{
+  auto devices = s->getDevices();
+  auto p = getAnimationPatch();
+
+  if (p == nullptr) {
+    return Image(Image::ARGB, _canonicalWidth, _canonicalHeight, true);
+  }
+
+  // with caching we can render at full and then scale down
+  Image highRes = Image(Image::ARGB, _canonicalWidth * 2, _canonicalHeight * 2, true);
+  Image canonical;
+  uint8* bufptr = Image::BitmapData(highRes, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+  p->setDims(_canonicalWidth * 2, _canonicalHeight * 2);
+  p->setSamples(getGlobalSettings()->_thumbnailRenderSamples);
+
+  getAnimationPatch()->renderSingleFrameToBuffer(devices, bufptr, _canonicalWidth * 2, _canonicalHeight * 2);
+
+  // if the focus region has a non-zero width, pull out the proper section of the image
+  auto rect = getGlobalSettings()->_focusBounds;
+  if (rect.getWidth() > 0) {
+    // pull subsection
+    auto topLeft = rect.getTopLeft();
+    auto botRight = rect.getBottomRight();
+    Image clipped = highRes.getClippedImage(Rectangle<int>::leftTopRightBottom(
+      (int)(topLeft.x * _canonicalWidth * 2), (int)(topLeft.y * _canonicalHeight * 2),
+      (int)(botRight.x * _canonicalWidth * 2), (int)(botRight.y * _canonicalHeight * 2)
+    ));
+
+    canonical = clipped.rescaled(_canonicalWidth, _canonicalHeight);
+  }
+  else {
+    canonical = highRes.rescaled(_canonicalWidth, _canonicalHeight);
+  }
+
+  return canonical;
 }
