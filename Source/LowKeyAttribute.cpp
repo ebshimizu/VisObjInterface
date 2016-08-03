@@ -12,10 +12,12 @@
 
 LowKeyAttribute::LowKeyAttribute(string area) : _area(area), AttributeControllerBase("Low Key: " + area)
 {
-  _autoLockParams.insert("polar");
-  _autoLockParams.insert("azimuth");
-  _autoLockParams.insert("color");
-  _autoLockParams.insert("penumbraAngle");
+  _autoLockParams.insert(HUE);
+  _autoLockParams.insert(SAT);
+  _autoLockParams.insert(VALUE);
+  _autoLockParams.insert(POLAR);
+  _autoLockParams.insert(AZIMUTH);
+  _autoLockParams.insert(SOFT);
 }
 
 LowKeyAttribute::~LowKeyAttribute()

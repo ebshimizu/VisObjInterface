@@ -52,7 +52,7 @@ lights should be edited in relation to others.
 class Edit
 {
 public:
-  Edit(set<string> lockedParams);
+  Edit(set<EditParam> lockedParams);
   ~Edit();
 
   void initWithArea(string area, bool joint, bool uniform);
@@ -118,7 +118,7 @@ private:
   uniform_real_distribution<double> _udist;
   normal_distribution<double> _gdist;
 
-  set<string> _lockedParams;
+  set<EditParam> _lockedParams;
 };
 
 

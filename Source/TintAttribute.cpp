@@ -13,10 +13,10 @@
 TintAttribute::TintAttribute(int w, int h) : HistogramAttribute("Tint", w, h)
 {
   _targetColor = Colour(255, 255, 255);
-  _autoLockParams.insert("intensity");
-  _autoLockParams.insert("azimuth");
-  _autoLockParams.insert("polar");
-  _autoLockParams.insert("penumbraAngle");
+  _autoLockParams.insert(INTENSITY);
+  _autoLockParams.insert(POLAR);
+  _autoLockParams.insert(AZIMUTH);
+  _autoLockParams.insert(SOFT);
 }
 
 TintAttribute::~TintAttribute()

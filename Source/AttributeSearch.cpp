@@ -1252,7 +1252,7 @@ void AttributeSearch::generateEdits(bool /* explore */)
 
   // in order for a parameter to be autolocked, it must be present in the autolock list
   // for all active attributes
-  map<string, int> lockedParams;
+  map<EditParam, int> lockedParams;
   for (auto& a : _active) {
     for (auto& p : a.second->_autoLockParams) {
       if (lockedParams.count(p) == 0) {

@@ -12,10 +12,12 @@
 
 NoireAttribute::NoireAttribute() : HistogramAttribute("Noir", 50, 50)
 {
-  _autoLockParams.insert("polar");
-  _autoLockParams.insert("azimuth");
-  _autoLockParams.insert("penumbraAngle");
-  _autoLockParams.insert("color"); // temporary lock for color?
+  _autoLockParams.insert(HUE);
+  _autoLockParams.insert(SAT);
+  _autoLockParams.insert(VALUE);
+  _autoLockParams.insert(POLAR);
+  _autoLockParams.insert(AZIMUTH);
+  _autoLockParams.insert(SOFT);
 }
 
 NoireAttribute::~NoireAttribute()

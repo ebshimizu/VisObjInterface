@@ -189,7 +189,7 @@ private:
   map<string, AttributeControllerBase*> _active;
   attrObjFunc _f;
   Snapshot* _start;
-  set<string> _lockedParams;
+  set<EditParam> _lockedParams;
 };
 
 

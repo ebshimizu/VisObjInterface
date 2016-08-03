@@ -13,6 +13,8 @@
 SaturationAttribute::SaturationAttribute(int numBins, int w, int h) :
   _numBins(numBins), HistogramAttribute("Saturation", w, h)
 {
+  _autoLockParams.insert(HUE);
+  _autoLockParams.insert(INTENSITY);
 }
 
 SaturationAttribute::~SaturationAttribute()

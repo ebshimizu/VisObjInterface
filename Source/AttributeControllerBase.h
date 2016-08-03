@@ -41,7 +41,7 @@ public:
 
   // Set of parameters that automatically get locked for the evaluation of this attribute
   // allows the search to proceed more quickly though the relevant spaces
-  set<string> _autoLockParams;
+  set<EditParam> _autoLockParams;
 
   // for integration of non-semantic attributes into the system
   virtual bool isNonSemantic() { return false; }

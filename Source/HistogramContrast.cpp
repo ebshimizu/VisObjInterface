@@ -13,10 +13,12 @@
 HistogramContrast::HistogramContrast(string name, int numBins, int w, int h) :
   _numBins(numBins), HistogramAttribute(name, w, h)
 {
-  _autoLockParams.insert("color");
-  _autoLockParams.insert("penumbraAngle");
-  _autoLockParams.insert("polar");
-  _autoLockParams.insert("azimuth");
+  _autoLockParams.insert(HUE);
+  _autoLockParams.insert(SAT);
+  _autoLockParams.insert(VALUE);
+  _autoLockParams.insert(POLAR);
+  _autoLockParams.insert(AZIMUTH);
+  _autoLockParams.insert(SOFT);
 }
 
 HistogramContrast::~HistogramContrast()

@@ -41,7 +41,7 @@ bool ConsistencyConstraint::contains(Device * d)
   return _affected.contains(d->getId());
 }
 
-Edit::Edit(set<string> lockedParams) : _lockedParams(lockedParams)
+Edit::Edit(set<EditParam> lockedParams) : _lockedParams(lockedParams)
 {
   _joint = false;
   _uniform = false;
@@ -553,25 +553,25 @@ bool Edit::isParamLocked(Device * d, EditParam c)
 {
   switch (c) {
   case INTENSITY:
-    return isDeviceParamLocked(d->getId(), "intensity") || _lockedParams.count("intensity") > 0;
+    return isDeviceParamLocked(d->getId(), "intensity") || _lockedParams.count(INTENSITY) > 0;
   case HUE:
-    return isDeviceParamLocked(d->getId(), "color") || _lockedParams.count("color") > 0;
+    return isDeviceParamLocked(d->getId(), "color") || _lockedParams.count(HUE) > 0;
   case SAT:
-    return isDeviceParamLocked(d->getId(), "color") || _lockedParams.count("color") > 0;
+    return isDeviceParamLocked(d->getId(), "color") || _lockedParams.count(SAT) > 0;
   case VALUE:
-    return isDeviceParamLocked(d->getId(), "color") || _lockedParams.count("color") > 0;
+    return isDeviceParamLocked(d->getId(), "color") || _lockedParams.count(VALUE) > 0;
   case RED:
-    return isDeviceParamLocked(d->getId(), "color") || _lockedParams.count("color") > 0;
+    return isDeviceParamLocked(d->getId(), "color") || _lockedParams.count(RED) > 0;
   case GREEN:
-    return isDeviceParamLocked(d->getId(), "color") || _lockedParams.count("color") > 0;
+    return isDeviceParamLocked(d->getId(), "color") || _lockedParams.count(GREEN) > 0;
   case BLUE:
-    return isDeviceParamLocked(d->getId(), "color") || _lockedParams.count("color") > 0;
+    return isDeviceParamLocked(d->getId(), "color") || _lockedParams.count(BLUE) > 0;
   case POLAR:
-    return isDeviceParamLocked(d->getId(), "polar") || _lockedParams.count("polar") > 0;
+    return isDeviceParamLocked(d->getId(), "polar") || _lockedParams.count(POLAR) > 0;
   case AZIMUTH:
-    return isDeviceParamLocked(d->getId(), "azimuth") || _lockedParams.count("azimuth") > 0;
+    return isDeviceParamLocked(d->getId(), "azimuth") || _lockedParams.count(AZIMUTH) > 0;
   case SOFT:
-    return isDeviceParamLocked(d->getId(), "penumbraAngle") || _lockedParams.count("penumbraAngle") > 0;
+    return isDeviceParamLocked(d->getId(), "penumbraAngle") || _lockedParams.count(SOFT) > 0;
   default:
     return false;
   }
