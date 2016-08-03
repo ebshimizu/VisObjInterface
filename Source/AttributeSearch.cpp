@@ -999,24 +999,29 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
   if (_threads.size() != getGlobalSettings()->_searchThreads)
     reinit();
 
-  _active = active;
+  // need to freeze status of attributes but still have access to their functions
+  _active.clear();
+  for (auto& attr : active) {
+    _active[attr.first] = pair<AttributeControllerBase*, AttributeConstraint>(attr.second, attr.second->getStatus());
+  }
+
   _start = start;
-  Image startImg = _active.begin()->second->generateImage(_start);
 
   // objective function for combined set of active attributes.
   if (getGlobalSettings()->_searchMode == MCMC_EDIT) {
-    _f = [this, &startImg](Snapshot* s) {
+    _f = [this](Snapshot* s) {
       // for multiple attributes, we generate the image here first
-      Image img = _active.begin()->second->generateImage(s);
+      Image img = _active.begin()->second.first->generateImage(s);
+      Image startImg = _active.begin()->second.first->generateImage(_start);
       double sum = 0;
       for (const auto& kvp : _active) {
-        if (kvp.second->getStatus() == A_LESS)
-          sum += kvp.second->evaluateScene(s, img);
-        else if (kvp.second->getStatus() == A_MORE) {
-          sum -= kvp.second->evaluateScene(s, img);
+        if (kvp.second.second == A_LESS)
+          sum += kvp.second.first->evaluateScene(s, img);
+        else if (kvp.second.second == A_MORE) {
+          sum -= kvp.second.first->evaluateScene(s, img);
         }
-        else if (kvp.second->getStatus() == A_EQUAL) {
-          sum += pow(kvp.second->evaluateScene(s, img) - kvp.second->evaluateScene(_start, startImg), 2);
+        else if (kvp.second.second == A_EQUAL) {
+          sum += pow(kvp.second.first->evaluateScene(s, img) - kvp.second.first->evaluateScene(_start, startImg), 2);
         }
       }
 
@@ -1024,19 +1029,20 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
     };
   }
   else {
-    _f = [this, &startImg](Snapshot* s) {
-      Image img = _active.begin()->second->generateImage(s);
+    _f = [this](Snapshot* s) {
+      Image img = _active.begin()->second.first->generateImage(s);
+      Image startImg = _active.begin()->second.first->generateImage(_start);
       double sum = 0;
       for (const auto& kvp : _active) {
-        if (kvp.second->getStatus() == A_LESS)
-          sum += kvp.second->evaluateScene(s, img);
-        else if (kvp.second->getStatus() == A_MORE) {
+        if (kvp.second.second == A_LESS)
+          sum += kvp.second.first->evaluateScene(s, img);
+        else if (kvp.second.second == A_MORE) {
           // larger values = smaller function, LM expects things to be non-linear least squares,
           // which are all positive functions
-          sum += (100 - kvp.second->evaluateScene(s, img));
+          sum += (100 - kvp.second.first->evaluateScene(s, img));
         }
-        else if (kvp.second->getStatus() == A_EQUAL)
-          sum += pow(kvp.second->evaluateScene(s, img) - kvp.second->evaluateScene(_start, startImg), 2);
+        else if (kvp.second.second == A_EQUAL)
+          sum += pow(kvp.second.first->evaluateScene(s, img) - kvp.second.first->evaluateScene(_start, startImg), 2);
       }
 
       return sum;
@@ -1079,11 +1085,11 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
   // record what the search params were
   for (const auto& attr : _active) {
     string attrStr = attr.first + " -> ";
-    if (attr.second->getStatus() == A_LESS)
+    if (attr.second.second== A_LESS)
       attrStr = attrStr + "LESS";
-    if (attr.second->getStatus() == A_MORE)
+    if (attr.second.second == A_MORE)
       attrStr = attrStr + "MORE";
-    if (attr.second->getStatus() == A_EQUAL)
+    if (attr.second.second == A_EQUAL)
       attrStr = attrStr + "SAME";
     attrStr += "\n";
 
@@ -1259,7 +1265,7 @@ void AttributeSearch::generateEdits(bool /* explore */)
   // for all active attributes
   map<EditParam, int> lockedParams;
   for (auto& a : _active) {
-    for (auto& p : a.second->_autoLockParams) {
+    for (auto& p : a.second.first->_autoLockParams) {
       if (lockedParams.count(p) == 0) {
         lockedParams[p] = 1;
       }

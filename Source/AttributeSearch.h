@@ -186,7 +186,7 @@ private:
 	map<string, int> _sharedData;
 
   Array<AttributeSearchThread*> _threads;
-  map<string, AttributeControllerBase*> _active;
+  map<string, pair<AttributeControllerBase*, AttributeConstraint> > _active;
   attrObjFunc _f;
   Snapshot* _start;
   set<EditParam> _lockedParams;
