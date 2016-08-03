@@ -496,7 +496,7 @@ double Edit::getParam(Device * d, EditParam p)
   case HUE:
   {
     Eigen::Vector3d hsv = d->getColor()->getHSV();
-    return hsv[0];
+    return hsv[0] / 360.0;
   }
   case SAT:
   {
