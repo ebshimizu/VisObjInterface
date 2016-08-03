@@ -68,17 +68,23 @@ ImageAttribute::~ImageAttribute()
 
 double ImageAttribute::evaluateScene(Snapshot * s)
 {
+  if (s->getRigData().size() == 0)
+    return 0;
+
   Image current = generateImage(s);
   Histogram3D currentHist = getLabHist(current, _n);
 
-  double diff = currentHist.L2dist(_sourceHist);
+  double diff = currentHist.emd(_sourceHist, _metric);
 
-  return 100 - (diff / 100.0);
+  return (10 - diff) * 10;
 }
 
 void ImageAttribute::preProcess()
 {
   _sourceHist = getLabHist(_sourceImg, _n);
+
+  // populate metric distance matrix
+  _metric = _sourceHist.getGroundDistances();
 }
 
 void ImageAttribute::resized()

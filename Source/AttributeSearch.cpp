@@ -1299,19 +1299,19 @@ void AttributeSearch::generateEdits(bool /* explore */)
       // generateColorEdits(a);
     }
 
-    // edits for individual devices
-    for (auto& id : deviceIds) {
-      Edit* e = new Edit(_lockedParams);
-      e->setParams({ INTENSITY, HUE, SAT, VALUE });
-      e->_name = id;
-      e->initArbitrary(id, false, false);
-      if (e->canDoEdit() && !isDuplicateEdit(e))
-        getGlobalSettings()->_edits.push_back(e);
-      else
-        delete e;
-    }
+    // edits for individual devices? Or let use handle?
+    //for (auto& id : deviceIds) {
+    //  Edit* e = new Edit(_lockedParams);
+    //  e->setParams({ INTENSITY, HUE, SAT, VALUE });
+    //  e->_name = id;
+    //  e->initArbitrary(id, false, false);
+    //  if (e->canDoEdit() && !isDuplicateEdit(e))
+    //    getGlobalSettings()->_edits.push_back(e);
+    //  else
+    //    delete e;
+    //}
 
-    // pivot edits (all lights except specified system)
+    // pivot edits (all lights except specified system)?
     // not sure if necessary
   }
   else {

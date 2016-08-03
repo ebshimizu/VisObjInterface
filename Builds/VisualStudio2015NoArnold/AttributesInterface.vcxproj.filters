@@ -11,6 +11,9 @@
     <Filter Include="AttributesInterface\Source\third_party">
       <UniqueIdentifier>{ADF50322-549C-225D-798C-D5B3AE74CE52}</UniqueIdentifier>
     </Filter>
+    <Filter Include="AttributesInterface\Source\third_party\FastEMD">
+      <UniqueIdentifier>{96C28FA6-6F76-068D-68F1-7DA0D0BCCB63}</UniqueIdentifier>
+    </Filter>
     <Filter Include="AttributesInterface\Source\GUI">
       <UniqueIdentifier>{DDC2ADB9-D561-438D-C9F6-602C92B55677}</UniqueIdentifier>
     </Filter>
@@ -2169,6 +2172,18 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\FastEMD-3.1\FastEMD\emd_hat_impl.hpp">
+      <Filter>AttributesInterface\Source\third_party\FastEMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\FastEMD-3.1\FastEMD\flow_utils.hpp">
+      <Filter>AttributesInterface\Source\third_party\FastEMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\FastEMD-3.1\FastEMD\EMD_DEFS.hpp">
+      <Filter>AttributesInterface\Source\third_party\FastEMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\FastEMD-3.1\FastEMD\emd_hat.hpp">
+      <Filter>AttributesInterface\Source\third_party\FastEMD</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\Clustering.h">
       <Filter>AttributesInterface\Source\GUI\clustering</Filter>
     </ClInclude>

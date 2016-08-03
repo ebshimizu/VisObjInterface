@@ -27,7 +27,7 @@ private:
   Image _img;
 };
 
-class ImageAttribute : public HistogramAttribute, public Button::Listener
+class ImageAttribute : public HistogramAttribute
 {
 public:
   ImageAttribute(string name, string filepath, int n = 10);
@@ -45,6 +45,7 @@ private:
   Histogram3D _sourceHist;
   Image _sourceImg;
   Image _originalImg;
+  vector<vector<double> > _metric;
 
   TextButton _showImgButton;
 };

@@ -12,6 +12,7 @@
 #define HISTOGRAMATTRIBUTE_H_INCLUDED
 
 #include "AttributeControllerBase.h"
+#include "FastEMD-3.1/FastEMD/emd_hat.hpp"
 
 // a note about all these histogram classes:
 // when it says numBins the actual number of bins in the histogram will
@@ -71,7 +72,7 @@ private:
   int _numBins;
 };
 
-typedef unsigned int* hist3DData;
+typedef vector<int> hist3DData;
 
 // A histogram for color attributes
 // typically treats bins as values from 0-1, however a custom range may be specified
@@ -99,12 +100,19 @@ public:
   double L2dist(Histogram3D& other);
 
   // Earth Mover's distance for a different histogram
-  double emd(Histogram3D& other);
+  double emd(Histogram3D& other, vector<vector<double> >& gd);
+
+  // Returns the normalized form of the histogram (divides each bin by count)
+  vector<double> normalized();
+
+  // Returns the matrix of ground distances for the histogram
+  vector<vector<double> > getGroundDistances();
 
 private:
   inline int getIndex(int x, int y, int z);
 
   hist3DData _histData;
+  emd_hat_gd_metric<double> _emd;
 
   unsigned int _count;
   int _x;

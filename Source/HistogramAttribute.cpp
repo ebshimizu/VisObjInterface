@@ -238,21 +238,21 @@ Histogram3D::Histogram3D(int n) :
   _x(n), _y(n), _z(n), _xmin(0), _xmax(1), _ymin(0), _ymax(1), _zmin(0), _zmax(0)
 {
   _count = 0;
-  _histData = new unsigned int[_x * _y * _z]();
+  _histData.resize(_x * _y * _z);
 }
 
 Histogram3D::Histogram3D(int x, int y, int z) :
   _x(x), _y(y), _z(z), _xmin(0), _xmax(1), _ymin(0), _ymax(1), _zmin(0), _zmax(0)
 {
   _count = 0;
-  _histData = new unsigned int[_x * _y * _z]();
+  _histData.resize(_x * _y * _z);
 }
 
 Histogram3D::Histogram3D(int x, int y, int z, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax) :
   _x(x), _y(y), _z(z), _xmin(xmin), _xmax(xmax), _ymin(ymin), _ymax(ymax), _zmin(zmin), _zmax(zmax)
 {
   _count = 0;
-  _histData = new unsigned int[_x * _y * _z]();
+  _histData.resize(_x * _y * _z);
 }
 
 Histogram3D::Histogram3D(const Histogram3D & other) :
@@ -260,9 +260,9 @@ Histogram3D::Histogram3D(const Histogram3D & other) :
   _ymin(other._ymin), _ymax(other._ymax), _zmin(other._zmin), _zmax(other._zmax)
 {
   _count = other._count;
-  _histData = new unsigned int[_x * _y * _z]();
+  _histData.resize(_x * _y * _z);
   
-  memcpy(_histData, other._histData, sizeof(unsigned int) * _x * _y * _z);
+  memcpy(&_histData.front(), &other._histData.front(), sizeof(unsigned int) * _x * _y * _z);
 }
 
 Histogram3D & Histogram3D::operator=(const Histogram3D & other)
@@ -278,16 +278,14 @@ Histogram3D & Histogram3D::operator=(const Histogram3D & other)
   _zmax = other._zmax;
   _count = other._count;
 
-  delete[] _histData;
-  _histData = new unsigned int[_x * _y * _z]();
+  _histData.resize(_x * _y * _z);
 
-  memcpy(_histData, other._histData, sizeof(unsigned int) * _x * _y * _z);
+  memcpy(&_histData.front(), &other._histData.front(), sizeof(unsigned int) * _x * _y * _z);
   return *this;
 }
 
 Histogram3D::~Histogram3D()
 {
-  delete[] _histData;
 }
 
 void Histogram3D::addValToBin(double x, double y, double z)
@@ -303,11 +301,13 @@ void Histogram3D::addValToBin(double x, double y, double z)
 void Histogram3D::addToBin(int amt, int x, int y, int z)
 {
   _histData[getIndex(x, y, z)] += amt;
+  _count += amt;
 }
 
 void Histogram3D::removeFromBin(int amt, int x, int y, int z)
 {
   _histData[getIndex(x, y, z)] -= amt;
+  _count -= amt;
 }
 
 unsigned int Histogram3D::getBin(int x, int y, int z)
@@ -354,6 +354,57 @@ double Histogram3D::L2dist(Histogram3D & other)
   }
 
   return sqrt(err);
+}
+
+double Histogram3D::emd(Histogram3D & other, vector<vector<double>>& gd)
+{
+  return _emd(normalized(), other.normalized(), gd);
+}
+
+vector<double> Histogram3D::normalized()
+{
+  vector<double> norm;
+  norm.resize(_x * _y * _z);
+
+  for (int i = 0; i < _x * _y * _z; i++) {
+    if (_count != 0) {
+      norm[i] = _histData[i] / (double)_count;
+    }
+  }
+
+  return norm;
+}
+
+vector<vector<double>> Histogram3D::getGroundDistances()
+{
+  // L1 distance (manhattan distance) between each bin since
+  // this is a fixed size histogram for now
+  vector<vector<double>> gd;
+  gd.resize(_x * _y * _z);
+
+  // fun nested loop time 
+  for (int i = 0; i < _z; i++) {
+    for (int j = 0; j < _y; j++) {
+      for (int k = 0; k < _x; k++) {
+        vector<double> distances;
+        distances.resize(_x * _y * _z);
+
+        // ok now go through it again
+        for (int i2 = 0; i2 < _z; i2++) {
+          for (int j2 = 0; j2 < _y; j2++) {
+            for (int k2 = 0; k2 < _x; k2++) {
+              // calculate l1 dist
+              distances[getIndex(i2, j2, k2)] = abs(i - i2) + abs(j - j2) + abs(k - k2);
+            }
+          }
+        }
+
+        gd[getIndex(i, j, k)] = distances;
+      }
+    }
+  }
+
+  return gd;
 }
 
 int Histogram3D::getIndex(int x, int y, int z)
