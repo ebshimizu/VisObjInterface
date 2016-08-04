@@ -81,7 +81,7 @@ double ImageAttribute::evaluateScene(Snapshot * s, Image& img)
 
   double diff = currentHist.emd(_sourceHist, _metric);
 
-  return (10 - diff) * 10;
+  return (100 - diff);
 }
 
 void ImageAttribute::preProcess()

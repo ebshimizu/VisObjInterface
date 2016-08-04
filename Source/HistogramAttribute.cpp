@@ -388,13 +388,14 @@ vector<vector<double>> Histogram3D::getGroundDistances()
       for (int k = 0; k < _x; k++) {
         vector<double> distances;
         distances.resize(_x * _y * _z);
+        Eigen::Vector3d binVal = getBinVal(i, j, k);
 
         // ok now go through it again
         for (int i2 = 0; i2 < _z; i2++) {
           for (int j2 = 0; j2 < _y; j2++) {
             for (int k2 = 0; k2 < _x; k2++) {
-              // calculate l1 dist
-              distances[getIndex(i2, j2, k2)] = abs(i - i2) + abs(j - j2) + abs(k - k2);
+              // calculate l2 dist in Lab space
+              distances[getIndex(i2, j2, k2)] = (getBinVal(i2, j2, k2) - binVal).norm();
             }
           }
         }
@@ -410,6 +411,17 @@ vector<vector<double>> Histogram3D::getGroundDistances()
 int Histogram3D::getIndex(int x, int y, int z)
 {
   return x + y * _x + z * _x * _y;
+}
+
+Eigen::Vector3d Histogram3D::getBinVal(int x, int y, int z)
+{
+  // we'll return the midpoint of the bin 
+  Eigen::Vector3d binVal;
+  binVal[0] = (x + 0.5) * ((_xmax - _xmin) / _x) + _xmin;
+  binVal[1] = (y + 0.5) * ((_ymax - _ymin) / _y) + _ymin;
+  binVal[2] = (z + 0.5) * ((_zmax - _zmin) / _z) + _zmin;
+
+  return binVal;
 }
 
 // ============================================================================

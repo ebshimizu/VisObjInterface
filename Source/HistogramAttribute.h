@@ -111,6 +111,9 @@ public:
 private:
   inline int getIndex(int x, int y, int z);
 
+  // returns the value of the bin
+  Eigen::Vector3d getBinVal(int x, int y, int z);
+
   hist3DData _histData;
   emd_hat_gd_metric<double> _emd;
 
