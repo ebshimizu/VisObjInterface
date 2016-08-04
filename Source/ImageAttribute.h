@@ -42,7 +42,7 @@ public:
   
 private:
   int _n;
-  Histogram3D _sourceHist;
+  LabxyHistogram _sourceHist;
   Image _sourceImg;
   Image _originalImg;
   vector<vector<double> > _metric;

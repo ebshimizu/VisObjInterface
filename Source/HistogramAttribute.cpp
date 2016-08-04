@@ -388,14 +388,14 @@ vector<vector<double>> Histogram3D::getGroundDistances()
       for (int k = 0; k < _x; k++) {
         vector<double> distances;
         distances.resize(_x * _y * _z);
-        Eigen::Vector3d binVal = getBinVal(i, j, k);
+        Eigen::Vector3d binVal = getBinVal(k, j, i);
 
         // ok now go through it again
         for (int i2 = 0; i2 < _z; i2++) {
           for (int j2 = 0; j2 < _y; j2++) {
             for (int k2 = 0; k2 < _x; k2++) {
               // calculate l2 dist in Lab space
-              distances[getIndex(i2, j2, k2)] = (getBinVal(i2, j2, k2) - binVal).norm();
+              distances[getIndex(i2, j2, k2)] = (getBinVal(k2, j2, i2) - binVal).norm();
             }
           }
         }
@@ -422,6 +422,166 @@ Eigen::Vector3d Histogram3D::getBinVal(int x, int y, int z)
   binVal[2] = (z + 0.5) * ((_zmax - _zmin) / _z) + _zmin;
 
   return binVal;
+}
+
+// ============================================================================
+
+LabxyHistogram::LabxyHistogram(int n, double lambda) : _l(n), _a(n), _b(n), _x(n), _y(n), _lambda(lambda)
+{
+  _bounds = vector<double>({ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1});
+  _histData.resize(_l * _a * _b * _x * _y);
+}
+
+LabxyHistogram::LabxyHistogram(int l, int a, int b, int x, int y, double lambda) :
+  _l(l), _a(a), _b(b), _x(x), _y(y), _lambda(lambda)
+{
+  _bounds = vector<double>({ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1});
+  _histData.resize(_l * _a * _b * _x * _y);
+}
+
+LabxyHistogram::LabxyHistogram(int l, int a, int b, int x, int y, vector<double> bounds, double lambda) :
+  _l(l), _a(a), _b(b), _x(x), _y(y), _lambda(lambda)
+{
+  _bounds = bounds;
+  _histData.resize(_l * _a * _b * _x * _y);
+}
+
+LabxyHistogram::LabxyHistogram(const LabxyHistogram & other) :
+  _l(other._l), _a(other._a), _b(other._b), _x(other._x), _y(other._y), _count(other._count), _lambda(other._lambda)
+{
+  _bounds = other._bounds;
+  _histData = other._histData;
+}
+
+LabxyHistogram & LabxyHistogram::operator=(const LabxyHistogram & other)
+{
+  _l = other._l;
+  _a = other._a;
+  _b = other._b;
+  _x = other._x;
+  _y = other._y;
+  _bounds = other._bounds;
+  _count = other._count;
+  _lambda = other._lambda;
+
+  _histData.clear();
+  _histData = other._histData;
+
+  return *this;
+}
+
+LabxyHistogram::~LabxyHistogram()
+{
+}
+
+void LabxyHistogram::addValToBin(double l, double a, double b, int x, int y)
+{
+  // scale x, y, z to proper values and find what bin they're in
+  int lbin = (int) clamp(((l - _bounds[0]) / (_bounds[1] - _bounds[0])) * _l, 0, _l - 1);
+  int abin = (int) clamp(((a - _bounds[2]) / (_bounds[3] - _bounds[2])) * _a, 0, _a - 1);
+  int bbin = (int) clamp(((b - _bounds[4]) / (_bounds[5] - _bounds[4])) * _b, 0, _b - 1);
+  int xbin = (int) clamp(((x - _bounds[6]) / (_bounds[7] - _bounds[6])) * _x, 0, _x - 1);
+  int ybin = (int) clamp(((y - _bounds[8]) / (_bounds[9] - _bounds[8])) * _y, 0, _y - 1);
+
+  // TODO: add to bins proportionally
+  addToBin(1, lbin, abin, bbin, xbin, ybin);
+}
+
+void LabxyHistogram::addToBin(double amt, int l, int a, int b, int x, int y)
+{
+  _histData[getIndex(l, a, b, x, y)] += amt;
+}
+
+void LabxyHistogram::removeFromBin(double amt, int l, int a, int b, int x, int y)
+{
+  _histData[getIndex(l, a, b, x, y)] -= amt;
+}
+
+double LabxyHistogram::getBin(int l, int a, int b, int x, int y)
+{
+  return _histData[getIndex(l, a, b, x, y)];
+}
+
+double LabxyHistogram::emd(LabxyHistogram & other, const vector<vector<double>>& gd)
+{
+  return _emd(normalized(), other.normalized(), gd);
+}
+
+vector<double> LabxyHistogram::normalized()
+{
+  vector<double> nrm;
+  nrm.resize(_l * _a * _b * _x * _y);
+
+  for (int i = 0; i < nrm.size(); i++) {
+    nrm[i] = _histData[i] / (double)_count;
+  }
+
+  return nrm;
+}
+
+vector<vector<double>> LabxyHistogram::getGroundDistances()
+{
+  vector<vector<double>> gd;
+  gd.resize(_l * _a * _b * _x * _y);
+
+  // fun nested loop time 
+  for (int y = 0; y < _y; y++) {
+    for (int x = 0; x < _x; x++) {
+      for (int b = 0; b < _b; b++) {
+        for (int a = 0; a < _a; a++) {
+          for (int l = 0; l < _l; l++) {
+            vector<double> distances;
+            distances.resize(_l * _a * _b * _x * _y);
+            Eigen::VectorXd binVal = getBinVal(l, a, b, x, y);
+
+
+            // ok now go through it again
+            for (int y2 = 0; y2 < _y; y2++) {
+              for (int x2 = 0; x2 < _x; x2++) {
+                for (int b2 = 0; b2 < _b; b2++) {
+                  for (int a2 = 0; a2 < _a; a2++) {
+                    for (int l2 = 0; l2 < _l; l2++) {
+                      Eigen::VectorXd val = getBinVal(l2, a2, b2, b2, y2);
+                      Eigen::VectorXd delta2 = (binVal - val).cwiseProduct(binVal - val);
+                      distances[getIndex(l2, a2, b2, x2, y2)] = sqrt(delta2[0] + delta2[1] + delta2[2] + _lambda * (delta2[3] + delta2[4]));
+                    }
+                  }
+                }
+              }
+            }
+
+            gd[getIndex(l, a, b, x, y)] = distances;
+          }
+        }
+      }
+    }
+  }
+
+  return gd;
+}
+
+void LabxyHistogram::setLambda(double lambda)
+{
+  _lambda = lambda;
+}
+
+inline int LabxyHistogram::getIndex(int l, int a, int b, int x, int y)
+{
+  return l + a * _l + b * _l * _a + x * _l * _a * _b + y * _l * _a * _b * _x;
+}
+
+Eigen::VectorXd LabxyHistogram::getBinVal(int l, int a, int b, int x, int y)
+{
+  Eigen::VectorXd val;
+  val.resize(5);
+
+  val[0] = (l + 0.5) * ((_bounds[1] - _bounds[0]) / _l) + _bounds[0];
+  val[1] = (a + 0.5) * ((_bounds[3] - _bounds[2]) / _a) + _bounds[2];
+  val[2] = (b + 0.5) * ((_bounds[5] - _bounds[4]) / _b) + _bounds[4];
+  val[3] = (x + 0.5) * ((_bounds[7] - _bounds[6]) / _x) + _bounds[6];
+  val[4] = (y + 0.5) * ((_bounds[9] - _bounds[8]) / _y) + _bounds[8];
+
+  return val;
 }
 
 // ============================================================================
@@ -567,6 +727,29 @@ Histogram3D HistogramAttribute::getLabHist(Image& canonical, int x, int y, int z
   }
 
   return lab;
+}
+
+LabxyHistogram HistogramAttribute::getLabxyHistogram(Image & canonical, int n)
+{
+  return getLabxyHistogram(canonical, n, n, n, n, n);
+}
+
+LabxyHistogram HistogramAttribute::getLabxyHistogram(Image & canonical, int l, int a, int b, int x, int y)
+{
+  LabxyHistogram hist(l, a, b, x, y, {0, 100, -100, 100, -100, 100, 0, 1, 0, 1}, 1);
+
+  for (int y2 = 0; y2 < canonical.getHeight(); y2++) {
+    for (int x2 = 0; x2 < canonical.getWidth(); x2++) {
+      auto color = canonical.getPixelAt(x2, y2);
+      Eigen::Vector3d labColor = RGBtoLab(color.getRed() / 255.0, color.getGreen() / 255.0, color.getBlue() / 255.0);
+      double xnrm = x2 / (double)canonical.getWidth();
+      double ynrm = y2 / (double)canonical.getHeight();
+
+      hist.addValToBin(labColor[0], labColor[1], labColor[2], xnrm, ynrm);
+    }
+  }
+
+  return hist;
 }
 
 Eigen::Vector3d HistogramAttribute::RGBtoLab(double r, double g, double b)

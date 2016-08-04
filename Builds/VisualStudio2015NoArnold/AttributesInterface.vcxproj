@@ -134,6 +134,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\emd.c"/>
     <ClCompile Include="..\..\Source\Clustering.cpp"/>
     <ClCompile Include="..\..\Source\KMeans.cpp"/>
     <ClCompile Include="..\..\Source\MeanShift.cpp"/>
@@ -1716,6 +1717,7 @@
     <ClInclude Include="..\..\Source\FastEMD-3.1\FastEMD\flow_utils.hpp"/>
     <ClInclude Include="..\..\Source\FastEMD-3.1\FastEMD\EMD_DEFS.hpp"/>
     <ClInclude Include="..\..\Source\FastEMD-3.1\FastEMD\emd_hat.hpp"/>
+    <ClInclude Include="..\..\Source\emd.h"/>
     <ClInclude Include="..\..\Source\Clustering.h"/>
     <ClInclude Include="..\..\Source\KMeans.h"/>
     <ClInclude Include="..\..\Source\MeanShift.h"/>

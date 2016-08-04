@@ -27,7 +27,7 @@ void ImageDrawer::paint(Graphics & g)
 }
 
 ImageAttribute::ImageAttribute(string name, string filepath, int n) : HistogramAttribute(name),
-  _sourceHist(Histogram3D(n)), _n(n)
+  _sourceHist(LabxyHistogram(n)), _n(n)
 {
   File img(filepath);
   FileInputStream in(img);
@@ -51,7 +51,7 @@ ImageAttribute::ImageAttribute(string name, string filepath, int n) : HistogramA
 }
 
 ImageAttribute::ImageAttribute(string name, Image img, int n) : HistogramAttribute(name),
-  _sourceHist(Histogram3D(n)), _n(n)
+  _sourceHist(LabxyHistogram(n)), _n(n)
 {
   _originalImg = img;
   _sourceImg = img.rescaled(_canonicalWidth, _canonicalHeight);
@@ -77,7 +77,7 @@ double ImageAttribute::evaluateScene(Snapshot * s, Image& img)
     img = generateImage(s);
   }
 
-  Histogram3D currentHist = getLabHist(img, _n);
+  LabxyHistogram currentHist = getLabxyHistogram(img, _n);
 
   double diff = currentHist.emd(_sourceHist, _metric);
 
@@ -86,10 +86,13 @@ double ImageAttribute::evaluateScene(Snapshot * s, Image& img)
 
 void ImageAttribute::preProcess()
 {
-  _sourceHist = getLabHist(_sourceImg, _n);
+  _sourceHist = getLabxyHistogram(_sourceImg, _n);
 
   // populate metric distance matrix
   _metric = _sourceHist.getGroundDistances();
+
+  // sanity check
+  double selfDist = _sourceHist.emd(_sourceHist, _metric);
 }
 
 void ImageAttribute::resized()

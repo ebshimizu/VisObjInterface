@@ -14,6 +14,8 @@
           <FILE id="ShG2bc" name="EMD_DEFS.hpp" compile="0" resource="0" file="Source/FastEMD-3.1/FastEMD/EMD_DEFS.hpp"/>
           <FILE id="GwzEdN" name="emd_hat.hpp" compile="0" resource="0" file="Source/FastEMD-3.1/FastEMD/emd_hat.hpp"/>
         </GROUP>
+        <FILE id="f8nlPe" name="emd.c" compile="1" resource="0" file="Source/emd.c"/>
+        <FILE id="vExMIw" name="emd.h" compile="0" resource="0" file="Source/emd.h"/>
       </GROUP>
       <GROUP id="{4DA39040-8D72-1165-28A1-9B56CCADE37F}" name="GUI">
         <GROUP id="{443FA844-2B69-1CB3-0D64-C5F82C7F873B}" name="clustering">
