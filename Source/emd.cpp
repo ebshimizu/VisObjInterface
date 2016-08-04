@@ -69,8 +69,8 @@ static void findBasicVariables(node1_t *U, node1_t *V);
 static int isOptimal(node1_t *U, node1_t *V);
 static int findLoop(node2_t **Loop);
 static void newSol();
-static void russel(double *S, double *D);
-static void addBasicVariable(int minI, int minJ, double *S, double *D, 
+static void russel(std::vector<double>& S, std::vector<double>& D);
+static void addBasicVariable(int minI, int minJ, std::vector<double>& S, std::vector<double>& D, 
 			     node1_t *PrevUMinI, node1_t *PrevVMinJ,
 			     node1_t *UHead);
 #if DEBUG_LEVEL > 0
@@ -188,8 +188,8 @@ static float init(signature_t *Signature1, signature_t *Signature2,
   int i, j;
   double sSum, dSum, diff;
   feature_t *P1, *P2;
-  double S[MAX_SIG_SIZE1], D[MAX_SIG_SIZE1];
- 
+  std::vector<double> S, D;
+
   _n1 = Signature1->n;
   _n2 = Signature2->n;
 
@@ -198,7 +198,9 @@ static float init(signature_t *Signature1, signature_t *Signature2,
       fprintf(stderr, "emd: Signature size is limited to %d\n", MAX_SIG_SIZE);
       exit(1);
     }
-  
+  S.resize(_n1);
+  D.resize(_n2);
+
   /* COMPUTE THE DISTANCE MATRIX */
   _maxC = 0;
   for(i=0, P1=Signature1->Features; i < _n1; i++, P1++)
@@ -622,18 +624,27 @@ static int findLoop(node2_t **Loop)
 /**********************
     russel
 **********************/
-static void russel(double *S, double *D)
+static void russel(std::vector<double>& S, std::vector<double>& D)
 {
   int i, j, found, minI, minJ;
   double deltaMin, oldVal, diff;
-  double Delta[MAX_SIG_SIZE1][MAX_SIG_SIZE1];
-  node1_t Ur[MAX_SIG_SIZE1], Vr[MAX_SIG_SIZE1];
+  std::vector<std::vector<double> > Delta;
+  
+  Delta.resize(_n1);
+  for (int i = 0; i < Delta.size(); i++)
+    Delta[i].resize(_n2);
+
+  //node1_t Ur[MAX_SIG_SIZE1], Vr[MAX_SIG_SIZE1];
+  std::vector<node1_t> Ur, Vr;
+  Ur.resize(_n1);
+  Vr.resize(_n2);
+
   node1_t uHead, *CurU, *PrevU;
   node1_t vHead, *CurV, *PrevV;
   node1_t *PrevUMinI, *PrevVMinJ, *Remember;
 
   /* INITIALIZE THE ROWS LIST (Ur), AND THE COLUMNS LIST (Vr) */
-  uHead.Next = CurU = Ur;
+  uHead.Next = CurU = &Ur[0];
   for (i=0; i < _n1; i++)
     {
       CurU->i = i;
@@ -643,7 +654,7 @@ static void russel(double *S, double *D)
     }
   (--CurU)->Next = NULL;
   
-  vHead.Next = CurV = Vr;
+  vHead.Next = CurV = &Vr[0];
   for (j=0; j < _n2; j++)
     {
       CurV->i = j;
@@ -783,7 +794,7 @@ static void russel(double *S, double *D)
 /**********************
     addBasicVariable
 **********************/
-static void addBasicVariable(int minI, int minJ, double *S, double *D, 
+static void addBasicVariable(int minI, int minJ, std::vector<double>& S, std::vector<double>& D, 
 			     node1_t *PrevUMinI, node1_t *PrevVMinJ,
 			     node1_t *UHead)
 {

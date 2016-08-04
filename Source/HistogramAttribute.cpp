@@ -451,6 +451,7 @@ bool HistogramFeature::operator==(const HistogramFeature & other) const
 
 Sparse5DHistogram::Sparse5DHistogram(vector<float> bounds, float lambda) : _bounds(bounds), _lambda(lambda)
 {
+  _totalWeight = 0;
 }
 
 Sparse5DHistogram::~Sparse5DHistogram()
@@ -483,7 +484,7 @@ float Sparse5DHistogram::EMD(Sparse5DHistogram & other)
 {
   vector<feature_t> f1, f2;
   vector<float> weights1 = normalizedWeights(f1);
-  vector<float> weights2 = normalizedWeights(f2);
+  vector<float> weights2 = other.normalizedWeights(f2);
   
   signature_t s1;
   s1.n = f1.size();
