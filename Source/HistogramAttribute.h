@@ -13,6 +13,7 @@
 
 #include "AttributeControllerBase.h"
 #include "FastEMD-3.1/FastEMD/emd_hat.hpp"
+#include "emd.h"
 
 // a note about all these histogram classes:
 // when it says numBins the actual number of bins in the histogram will
@@ -125,58 +126,70 @@ private:
   double _xmin, _xmax, _ymin, _ymax, _zmin, _zmax;
 };
 
-// A histogram for color + position attributes
-// Basically a histogram 3D but with 2 more bins for position
-// note we don't call this a histogram 5D due to special parameters controlling
-// the weight of the x y coordinates in the ground distance
-class LabxyHistogram {
+class HistogramFeature
+{
 public:
-  LabxyHistogram(int n, double lambda = 1);
-  LabxyHistogram(int l, int a, int b, int x, int y, double lambda = 1);
-  LabxyHistogram(int l, int a, int b, int x, int y, vector<double> bounds, double lambda = 1);
-  LabxyHistogram(const LabxyHistogram& other);
-  LabxyHistogram& operator=(const LabxyHistogram& other);
-  ~LabxyHistogram();
+  HistogramFeature();
+  HistogramFeature(float L, float a, float b, float x, float y);
+  bool operator==(const HistogramFeature& other) const;
 
-  void addValToBin(double l, double a, double b, int x, int y);
-  void addToBin(double amt, int l, int a, int b, int x, int y);
-  void removeFromBin(double amt, int l, int a, int b, int x, int y);
+  feature_t _data;
+};
 
-  double getBin(int l, int a, int b, int x, int y);
+namespace std {
+  template<>
+  struct hash<HistogramFeature>
+  {
+    std::size_t operator()(const HistogramFeature& f) const
+    {
+      // potentially lots of collisions idk
+      return ((size_t)f._data.L | ((size_t)f._data.a) << 8 | ((size_t)f._data.b) << 16 | ((size_t)f._data.x << 20 | ((size_t)f._data.y) << 24));
+    }
+  };
+}
+
+// a histogram that doesn't explicitly store every bin.
+// most high dimensional histograms are sparse, and unlike the other classes,
+// you do not need to specify bounds, just bin size and starting offset.
+// histogram bins are centered around 0. So a bin size of 10 would result in a
+// bin with range [-5, 5] and so on.
+class Sparse5DHistogram {
+public:
+  Sparse5DHistogram(vector<float> bounds, float lambda = 1);
+  ~Sparse5DHistogram();
+
+  void add(float l, float a, float b, float x, float y);
+  void addToBin(float amt, float l, float a, float b, float x, float y);
+  void removeFromBin(float amt, float l, float a, float b, float x, float y);
+
+  float getBin(float l, float a, float b, float x, float y);
 
   // Returns the EMD between this histogram and the given other histogram.
-  double emd(LabxyHistogram& other, const vector<vector<double> >& gd);
+  float EMD(Sparse5DHistogram& other);
 
-  // Returns the normalized form of the histogram
-  vector<double> normalized();
+  // Retrieves a vector of the histogram weights and the corresponding features
+  vector<float> weights(vector<feature_t>& out);
 
-  // Returns the matrix of ground distances for the histogram
-  vector<vector<double> > getGroundDistances();
+  // Returns the normalized weights of the histogram and the corresponding features
+  vector<float> normalizedWeights(vector<feature_t>& out);
 
   // Sets the weight for the pixel location
   void setLambda(double lambda);
 
 private:
-  inline int getIndex(int l, int a, int b, int x, int y);
+  // Retrieves the closest bin center to the specified point
+  HistogramFeature closestBin(float l, float a, float b, float x, float y);
 
-  // returns value of the bin
-  Eigen::VectorXd getBinVal(int l, int a, int b, int x, int y);
+  float closest(float val, int boundsIndex);
 
-  vector<double> _histData;
-  emd_hat_gd_metric<double> _emd;
+  unordered_map<HistogramFeature, float> _histData;
+  float _totalWeight;
 
-  unsigned int _count;
-  int _l;
-  int _a;
-  int _b;
-  int _x;
-  int _y;
+  // xy position weight in ground distance
+  float _lambda;
 
-  // xy position weight in l2 norm
-  double _lambda;
-
-  // format: lmin, lmax, amin, amax, bmin, bmax, xmin, xmax, ymin, ymax
-  vector<double> _bounds;
+  // format: Lbase, Lsize...
+  vector<float> _bounds;
 };
 
 // This is the base class for attribute which use histograms created in the pixel
@@ -214,8 +227,8 @@ public:
   Histogram3D getLabHist(Image& canonical, int x, int y, int z);
 
   // Returns the color and position histogram for the given image.
-  LabxyHistogram getLabxyHistogram(Image& canonical, int n);
-  LabxyHistogram getLabxyHistogram(Image& canonical, int l, int a, int b, int x, int y);
+  Sparse5DHistogram getLabxyHist(Image& canonical, int n);
+  Sparse5DHistogram getLabxyHist(Image& canonical, int l, int a, int b, int x, int y);
 
   // Histogram3D getRGBHist();
   // Histogram3D getHSVHist();

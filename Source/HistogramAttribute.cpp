@@ -426,162 +426,133 @@ Eigen::Vector3d Histogram3D::getBinVal(int x, int y, int z)
 
 // ============================================================================
 
-LabxyHistogram::LabxyHistogram(int n, double lambda) : _l(n), _a(n), _b(n), _x(n), _y(n), _lambda(lambda)
-{
-  _bounds = vector<double>({ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1});
-  _histData.resize(_l * _a * _b * _x * _y);
-}
-
-LabxyHistogram::LabxyHistogram(int l, int a, int b, int x, int y, double lambda) :
-  _l(l), _a(a), _b(b), _x(x), _y(y), _lambda(lambda)
-{
-  _bounds = vector<double>({ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1});
-  _histData.resize(_l * _a * _b * _x * _y);
-}
-
-LabxyHistogram::LabxyHistogram(int l, int a, int b, int x, int y, vector<double> bounds, double lambda) :
-  _l(l), _a(a), _b(b), _x(x), _y(y), _lambda(lambda)
-{
-  _bounds = bounds;
-  _histData.resize(_l * _a * _b * _x * _y);
-}
-
-LabxyHistogram::LabxyHistogram(const LabxyHistogram & other) :
-  _l(other._l), _a(other._a), _b(other._b), _x(other._x), _y(other._y), _count(other._count), _lambda(other._lambda)
-{
-  _bounds = other._bounds;
-  _histData = other._histData;
-}
-
-LabxyHistogram & LabxyHistogram::operator=(const LabxyHistogram & other)
-{
-  _l = other._l;
-  _a = other._a;
-  _b = other._b;
-  _x = other._x;
-  _y = other._y;
-  _bounds = other._bounds;
-  _count = other._count;
-  _lambda = other._lambda;
-
-  _histData.clear();
-  _histData = other._histData;
-
-  return *this;
-}
-
-LabxyHistogram::~LabxyHistogram()
+HistogramFeature::HistogramFeature()
 {
 }
 
-void LabxyHistogram::addValToBin(double l, double a, double b, int x, int y)
+HistogramFeature::HistogramFeature(float L, float a, float b, float x, float y)
 {
-  // scale x, y, z to proper values and find what bin they're in
-  int lbin = (int) clamp(((l - _bounds[0]) / (_bounds[1] - _bounds[0])) * _l, 0, _l - 1);
-  int abin = (int) clamp(((a - _bounds[2]) / (_bounds[3] - _bounds[2])) * _a, 0, _a - 1);
-  int bbin = (int) clamp(((b - _bounds[4]) / (_bounds[5] - _bounds[4])) * _b, 0, _b - 1);
-  int xbin = (int) clamp(((x - _bounds[6]) / (_bounds[7] - _bounds[6])) * _x, 0, _x - 1);
-  int ybin = (int) clamp(((y - _bounds[8]) / (_bounds[9] - _bounds[8])) * _y, 0, _y - 1);
-
-  // TODO: add to bins proportionally
-  addToBin(1, lbin, abin, bbin, xbin, ybin);
+  _data.L = L;
+  _data.a = a;
+  _data.b = b;
+  _data.x = x;
+  _data.y = y;
 }
 
-void LabxyHistogram::addToBin(double amt, int l, int a, int b, int x, int y)
+bool HistogramFeature::operator==(const HistogramFeature & other) const
 {
-  _histData[getIndex(l, a, b, x, y)] += amt;
+  return (other._data.L == _data.L &&
+    other._data.a == _data.a &&
+    other._data.b == _data.b &&
+    other._data.x == _data.x &&
+    other._data.y == _data.y
+  );
 }
 
-void LabxyHistogram::removeFromBin(double amt, int l, int a, int b, int x, int y)
+Sparse5DHistogram::Sparse5DHistogram(vector<float> bounds, float lambda) : _bounds(bounds), _lambda(lambda)
 {
-  _histData[getIndex(l, a, b, x, y)] -= amt;
 }
 
-double LabxyHistogram::getBin(int l, int a, int b, int x, int y)
+Sparse5DHistogram::~Sparse5DHistogram()
 {
-  return _histData[getIndex(l, a, b, x, y)];
 }
 
-double LabxyHistogram::emd(LabxyHistogram & other, const vector<vector<double>>& gd)
+void Sparse5DHistogram::add(float l, float a, float b, float x, float y)
 {
-  return _emd(normalized(), other.normalized(), gd);
+  addToBin(1, l, a, b, x, y);
 }
 
-vector<double> LabxyHistogram::normalized()
+void Sparse5DHistogram::addToBin(float amt, float l, float a, float b, float x, float y)
 {
-  vector<double> nrm;
-  nrm.resize(_l * _a * _b * _x * _y);
+  _histData[closestBin(l, a, b, x, y)] += amt;
+  _totalWeight += amt;
+}
 
-  for (int i = 0; i < nrm.size(); i++) {
-    nrm[i] = _histData[i] / (double)_count;
+void Sparse5DHistogram::removeFromBin(float amt, float l, float a, float b, float x, float y)
+{
+  _histData[closestBin(l, a, b, x, y)] -= amt;
+  _totalWeight -= amt;
+}
+
+float Sparse5DHistogram::getBin(float l, float a, float b, float x, float y)
+{
+  return _histData[closestBin(l, a, b, x, y)];
+}
+
+float Sparse5DHistogram::EMD(Sparse5DHistogram & other)
+{
+  vector<feature_t> f1, f2;
+  vector<float> weights1 = normalizedWeights(f1);
+  vector<float> weights2 = normalizedWeights(f2);
+  
+  signature_t s1;
+  s1.n = f1.size();
+  s1.Features = &f1[0];
+  s1.Weights = &weights1[0];
+
+  signature_t s2;
+  s2.n = f2.size();
+  s2.Features = &f2[0];
+  s2.Weights = &weights2[0];
+
+  function<float(feature_t*, feature_t*)> dist = [this](feature_t* f1, feature_t* f2) {
+    return sqrt(pow(f1->L - f2->L, 2) + pow(f1->a - f2->a, 2) + pow(f1->b - f2->b, 2) + _lambda * (pow(f1->x - f2->x, 2) + pow(f1->y - f2->y, 2)));
+  };
+
+  return emd(&s1, &s2, dist, NULL, NULL);
+}
+
+vector<float> Sparse5DHistogram::weights(vector<feature_t>& out)
+{
+  out.clear();
+  vector<float> weights;
+  for (auto& f : _histData) {
+    weights.push_back(f.second);
+    out.push_back(f.first._data);
   }
 
-  return nrm;
+  return weights;
 }
 
-vector<vector<double>> LabxyHistogram::getGroundDistances()
+vector<float> Sparse5DHistogram::normalizedWeights(vector<feature_t>& out)
 {
-  vector<vector<double>> gd;
-  gd.resize(_l * _a * _b * _x * _y);
-
-  // fun nested loop time 
-  for (int y = 0; y < _y; y++) {
-    for (int x = 0; x < _x; x++) {
-      for (int b = 0; b < _b; b++) {
-        for (int a = 0; a < _a; a++) {
-          for (int l = 0; l < _l; l++) {
-            vector<double> distances;
-            distances.resize(_l * _a * _b * _x * _y);
-            Eigen::VectorXd binVal = getBinVal(l, a, b, x, y);
-
-
-            // ok now go through it again
-            for (int y2 = 0; y2 < _y; y2++) {
-              for (int x2 = 0; x2 < _x; x2++) {
-                for (int b2 = 0; b2 < _b; b2++) {
-                  for (int a2 = 0; a2 < _a; a2++) {
-                    for (int l2 = 0; l2 < _l; l2++) {
-                      Eigen::VectorXd val = getBinVal(l2, a2, b2, b2, y2);
-                      Eigen::VectorXd delta2 = (binVal - val).cwiseProduct(binVal - val);
-                      distances[getIndex(l2, a2, b2, x2, y2)] = sqrt(delta2[0] + delta2[1] + delta2[2] + _lambda * (delta2[3] + delta2[4]));
-                    }
-                  }
-                }
-              }
-            }
-
-            gd[getIndex(l, a, b, x, y)] = distances;
-          }
-        }
-      }
-    }
+  out.clear();
+  vector<float> nrmWeights;
+  for (auto& f : _histData) {
+    nrmWeights.push_back(f.second / _totalWeight);
+    out.push_back(f.first._data);
   }
 
-  return gd;
+  return nrmWeights;
 }
 
-void LabxyHistogram::setLambda(double lambda)
+void Sparse5DHistogram::setLambda(double lambda)
 {
   _lambda = lambda;
 }
 
-inline int LabxyHistogram::getIndex(int l, int a, int b, int x, int y)
+HistogramFeature Sparse5DHistogram::closestBin(float l, float a, float b, float x, float y)
 {
-  return l + a * _l + b * _l * _a + x * _l * _a * _b + y * _l * _a * _b * _x;
+  // bins are aligned in multiples of bin size starting at bin base
+  // ex: L base = 5, L size = 10. Bin centers at 5, 15, 25... ranges at [0,10),[10,20)...
+  float lcenter = closest(l, 0);
+  float acenter = closest(a, 2);
+  float bcenter = closest(b, 4);
+  float xcenter = closest(x, 6);
+  float ycenter = closest(y, 8);
+
+  return HistogramFeature(lcenter, acenter, bcenter, xcenter, ycenter);
 }
 
-Eigen::VectorXd LabxyHistogram::getBinVal(int l, int a, int b, int x, int y)
+float Sparse5DHistogram::closest(float val, int boundsIndex)
 {
-  Eigen::VectorXd val;
-  val.resize(5);
+  float bin = (int)((abs(val) - _bounds[boundsIndex]) / _bounds[boundsIndex + 1]) *
+    _bounds[boundsIndex + 1] + _bounds[boundsIndex] + (_bounds[boundsIndex + 1] / 2);
 
-  val[0] = (l + 0.5) * ((_bounds[1] - _bounds[0]) / _l) + _bounds[0];
-  val[1] = (a + 0.5) * ((_bounds[3] - _bounds[2]) / _a) + _bounds[2];
-  val[2] = (b + 0.5) * ((_bounds[5] - _bounds[4]) / _b) + _bounds[4];
-  val[3] = (x + 0.5) * ((_bounds[7] - _bounds[6]) / _x) + _bounds[6];
-  val[4] = (y + 0.5) * ((_bounds[9] - _bounds[8]) / _y) + _bounds[8];
-
-  return val;
+  if (bin == 0)
+    return 0;
+  else
+    return (val < 0) ? -bin : bin;
 }
 
 // ============================================================================
@@ -729,23 +700,23 @@ Histogram3D HistogramAttribute::getLabHist(Image& canonical, int x, int y, int z
   return lab;
 }
 
-LabxyHistogram HistogramAttribute::getLabxyHistogram(Image & canonical, int n)
+Sparse5DHistogram HistogramAttribute::getLabxyHist(Image & canonical, int n)
 {
-  return getLabxyHistogram(canonical, n, n, n, n, n);
+  return getLabxyHist(canonical, n, n, n, n, n);
 }
 
-LabxyHistogram HistogramAttribute::getLabxyHistogram(Image & canonical, int l, int a, int b, int x, int y)
+Sparse5DHistogram HistogramAttribute::getLabxyHist(Image & canonical, int l, int a, int b, int x, int y)
 {
-  LabxyHistogram hist(l, a, b, x, y, {0, 100, -100, 100, -100, 100, 0, 1, 0, 1}, 1);
+  Sparse5DHistogram hist({0, 10, -5, 20, -5, 20, 0, 0.2f, 0, 0.2f}, 1);
 
   for (int y2 = 0; y2 < canonical.getHeight(); y2++) {
     for (int x2 = 0; x2 < canonical.getWidth(); x2++) {
       auto color = canonical.getPixelAt(x2, y2);
       Eigen::Vector3d labColor = RGBtoLab(color.getRed() / 255.0, color.getGreen() / 255.0, color.getBlue() / 255.0);
-      double xnrm = x2 / (double)canonical.getWidth();
-      double ynrm = y2 / (double)canonical.getHeight();
+      float xnrm = x2 / (float)canonical.getWidth();
+      float ynrm = y2 / (float)canonical.getHeight();
 
-      hist.addValToBin(labColor[0], labColor[1], labColor[2], xnrm, ynrm);
+      hist.add(labColor[0], labColor[1], labColor[2], xnrm, ynrm);
     }
   }
 

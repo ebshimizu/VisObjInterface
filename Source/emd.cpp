@@ -64,7 +64,7 @@ static float _maxC;
 
 /* DECLARATION OF FUNCTIONS */
 static float init(signature_t *Signature1, signature_t *Signature2,
-		  float (*Dist)(feature_t *, feature_t *));
+		  std::function<float(feature_t*, feature_t*)> Dist);
 static void findBasicVariables(node1_t *U, node1_t *V);
 static int isOptimal(node1_t *U, node1_t *V);
 static int findLoop(node2_t **Loop);
@@ -80,7 +80,7 @@ static void printSolution();
 
 /******************************************************************************
 float emd(signature_t *Signature1, signature_t *Signature2,
-	  float (*Dist)(feature_t *, feature_t *), flow_t *Flow, int *FlowSize)
+	  std::function<float(feature_t*, feature_t*>) Dist, flow_t *Flow, int *FlowSize)
   
 where
 
@@ -99,7 +99,7 @@ where
 ******************************************************************************/
 
 float emd(signature_t *Signature1, signature_t *Signature2,
-	  float (*Dist)(feature_t *, feature_t *),
+	  std::function<float(feature_t*, feature_t*)> Dist,
 	  flow_t *Flow, int *FlowSize)
 {
   int itr;
@@ -183,7 +183,7 @@ float emd(signature_t *Signature1, signature_t *Signature2,
    init
 **********************/
 static float init(signature_t *Signature1, signature_t *Signature2, 
-		  float (*Dist)(feature_t *, feature_t *))
+		  std::function<float(feature_t*, feature_t*)> Dist)
 {
   int i, j;
   double sSum, dSum, diff;

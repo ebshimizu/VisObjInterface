@@ -15,18 +15,24 @@
     E-Mail: rubner@cs.stanford.edu   URL: http://vision.stanford.edu/~rubner
 */
 
+#include <functional>
 
 /* DEFINITIONS */
-#define MAX_SIG_SIZE   100
+#define MAX_SIG_SIZE   1000
 #define MAX_ITERATIONS 500
 #define INFINITY       1e20
 #define EPSILON        1e-6
 
 /*****************************************************************************/
 /* feature_t SHOULD BE MODIFIED BY THE USER TO REFLECT THE FEATURE TYPE      */
-typedef int feature_t;
+typedef struct {
+  float L;
+  float a;
+  float b;
+  float x;
+  float y;
+} feature_t;
 /*****************************************************************************/
-
 
 typedef struct
 {
@@ -46,7 +52,7 @@ typedef struct
 
 
 float emd(signature_t *Signature1, signature_t *Signature2,
-	  float (*func)(feature_t *, feature_t *),
+    std::function<float(feature_t*, feature_t*)> func,
 	  flow_t *Flow, int *FlowSize);
 
 #endif
