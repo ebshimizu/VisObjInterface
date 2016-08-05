@@ -376,7 +376,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\emd.c">
+    <ClCompile Include="..\..\Source\emd.cpp">
       <Filter>AttributesInterface\Source\third_party</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Clustering.cpp">
