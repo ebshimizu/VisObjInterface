@@ -148,6 +148,60 @@ namespace std {
   };
 }
 
+// A histogram for color + position attributes
+// Basically a histogram 3D but with 2 more bins for position
+// note we don't call this a histogram 5D due to special parameters controlling
+// the weight of the x y coordinates in the ground distance
+class LabxyHistogram {
+public:
+  LabxyHistogram(int n, double lambda = 1);
+  LabxyHistogram(int l, int a, int b, int x, int y, double lambda = 1);
+  LabxyHistogram(int l, int a, int b, int x, int y, vector<double> bounds, double lambda = 1);
+  LabxyHistogram(const LabxyHistogram& other);
+  LabxyHistogram& operator=(const LabxyHistogram& other);
+  ~LabxyHistogram();
+
+  void addValToBin(double l, double a, double b, int x, int y);
+  void addToBin(double amt, int l, int a, int b, int x, int y);
+  void removeFromBin(double amt, int l, int a, int b, int x, int y);
+
+  double getBin(int l, int a, int b, int x, int y);
+
+  // Returns the EMD between this histogram and the given other histogram.
+  double EMD(LabxyHistogram& other, const vector<vector<double> >& gd);
+
+  // Returns the normalized form of the histogram
+  vector<double> normalized();
+
+  // Returns the matrix of ground distances for the histogram
+  vector<vector<double> > getGroundDistances();
+
+  // Sets the weight for the pixel location
+  void setLambda(double lambda);
+
+private:
+  inline int getIndex(int l, int a, int b, int x, int y);
+
+  // returns value of the bin
+  Eigen::VectorXd getBinVal(int l, int a, int b, int x, int y);
+
+  vector<double> _histData;
+  emd_hat_gd_metric<double> _emd;
+
+  unsigned int _count;
+  int _l;
+  int _a;
+  int _b;
+  int _x;
+  int _y;
+
+  // xy position weight in l2 norm
+  double _lambda;
+
+  // format: lmin, lmax, amin, amax, bmin, bmax, xmin, xmax, ymin, ymax
+  vector<double> _bounds;
+};
+
 // a histogram that doesn't explicitly store every bin.
 // most high dimensional histograms are sparse, and unlike the other classes,
 // you do not need to specify bounds, just bin size and starting offset.
