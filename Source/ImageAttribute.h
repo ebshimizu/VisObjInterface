@@ -42,7 +42,7 @@ public:
   
 private:
   int _n;
-  LabxyHistogram _sourceHist;
+  Sparse5DHistogram _sourceHist;
   //Histogram3D _sourceHist;
   Image _sourceImg;
   Image _originalImg;

@@ -376,9 +376,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\emd.cpp">
-      <Filter>AttributesInterface\Source\third_party</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\Clustering.cpp">
       <Filter>AttributesInterface\Source\GUI\clustering</Filter>
     </ClCompile>
@@ -2186,9 +2183,6 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\FastEMD-3.1\FastEMD\emd_hat.hpp">
       <Filter>AttributesInterface\Source\third_party\FastEMD</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Source\emd.h">
-      <Filter>AttributesInterface\Source\third_party</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Clustering.h">
       <Filter>AttributesInterface\Source\GUI\clustering</Filter>
