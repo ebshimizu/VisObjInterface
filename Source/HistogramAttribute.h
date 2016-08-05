@@ -12,7 +12,7 @@
 #define HISTOGRAMATTRIBUTE_H_INCLUDED
 
 #include "AttributeControllerBase.h"
-#include "FastEMD-3.1/FastEMD/emd_hat.hpp"
+#include "FastEMD-3.1/FastEMD/emd_hat_signatures_interface.hpp"
 
 // a note about all these histogram classes:
 // when it says numBins the actual number of bins in the histogram will
@@ -132,11 +132,7 @@ public:
   HistogramFeature(float L, float a, float b, float x, float y);
   bool operator==(const HistogramFeature& other) const;
 
-  float _L;
-  float _a;
-  float _b;
-  float _x;
-  float _y;
+  feature_tt _data;
 };
 
 namespace std {
@@ -146,7 +142,7 @@ namespace std {
     std::size_t operator()(const HistogramFeature& f) const
     {
       // potentially lots of collisions idk
-      return ((size_t)f._L | ((size_t)f._a) << 8 | ((size_t)f._b) << 16 | ((size_t)f._x << 20 | ((size_t)f._y) << 24));
+      return ((size_t)f._data._L | ((size_t)f._data._a) << 8 | ((size_t)f._data._b) << 16 | ((size_t)f._data._x << 20 | ((size_t)f._data._y) << 24));
     }
   };
 }
@@ -225,10 +221,10 @@ public:
   float EMD(Sparse5DHistogram& other);
 
   // Retrieves a vector of the histogram weights and the corresponding features
-  vector<double> weights(vector<HistogramFeature>& out);
+  vector<double> weights(vector<feature_tt>& out);
 
   // Returns the normalized weights of the histogram and the corresponding features
-  vector<double> normalizedWeights(vector<HistogramFeature>& out);
+  vector<double> normalizedWeights(vector<feature_tt>& out);
 
   vector<vector<double> > getGroundDistance(vector<HistogramFeature>& f1, vector<HistogramFeature>& f2);
 
@@ -243,7 +239,6 @@ private:
 
   unordered_map<HistogramFeature, float> _histData;
   float _totalWeight;
-  emd_hat_gd_metric<double> _emd;
 
   // xy position weight in ground distance
   float _lambda;
@@ -290,6 +285,8 @@ public:
   Sparse5DHistogram getLabxyHist(Image& canonical, int n);
   Sparse5DHistogram getLabxyHist(Image& canonical, int l, int a, int b, int x, int y);
 
+  LabxyHistogram getLabxyHist2(Image& canonical, int n);
+  LabxyHistogram getLabxyHist2(Image& canonical, int l, int a, int b, int x, int y);
   // Histogram3D getRGBHist();
   // Histogram3D getHSVHist();
 

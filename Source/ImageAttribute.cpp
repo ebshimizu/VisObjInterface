@@ -77,23 +77,23 @@ double ImageAttribute::evaluateScene(Snapshot * s, Image& img)
     img = generateImage(s);
   }
 
-  Sparse5DHistogram currentHist = getLabxyHist(img, _n, _n, _n, 3, 3);
-  //Histogram3D currentHist = getLabHist(img, _n);
+  //Sparse5DHistogram currentHist = getLabxyHist(img, _n, _n, _n, 3, 3);
+  LabxyHistogram currentHist = getLabxyHist2(img, _n, _n, _n, 3, 3);
 
-  double diff = currentHist.EMD(_sourceHist);
+  double diff = currentHist.EMD(_sourceHist, _metric);
 
   return (100 - diff);
 }
 
 void ImageAttribute::preProcess()
 {
-  _sourceHist = getLabxyHist(_sourceImg, _n, _n, _n, 3, 3);
+  _sourceHist = getLabxyHist2(_sourceImg, _n, _n, _n, 3, 3);
   //_sourceHist = getLabHist(_sourceImg, _n);
 
-  //_metric = _sourceHist.getGroundDistances();
+  _metric = _sourceHist.getGroundDistances();
 
   // sanity check
-  double selfDist = _sourceHist.EMD(_sourceHist);
+  double selfDist = _sourceHist.EMD(_sourceHist, _metric);
 }
 
 void ImageAttribute::resized()

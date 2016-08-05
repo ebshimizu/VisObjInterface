@@ -598,20 +598,20 @@ HistogramFeature::HistogramFeature()
 
 HistogramFeature::HistogramFeature(float L, float a, float b, float x, float y)
 {
-  _L = L;
-  _a = a;
-  _b = b;
-  _x = x;
-  _y = y;
+  _data._L = L;
+  _data._a = a;
+  _data._b = b;
+  _data._x = x;
+  _data._y = y;
 }
 
 bool HistogramFeature::operator==(const HistogramFeature & other) const
 {
-  return (other._L == _L &&
-    other._a == _a &&
-    other._b == _b &&
-    other._x == _x &&
-    other._y == _y
+  return (other._data._L == _data._L &&
+    other._data._a == _data._a &&
+    other._data._b == _data._b &&
+    other._data._x == _data._x &&
+    other._data._y == _data._y
   );
 }
 
@@ -648,38 +648,47 @@ float Sparse5DHistogram::getBin(float l, float a, float b, float x, float y)
 
 float Sparse5DHistogram::EMD(Sparse5DHistogram & other)
 {
-  vector<HistogramFeature> f1, f2;
+  vector<feature_tt> f1, f2;
   vector<double> weights1 = normalizedWeights(f1);
   vector<double> weights2 = other.normalizedWeights(f2);
   
-  // here we actually recompute the distance matrix. Note that in FastEMD the order of the
-  // bins doesn't matter, as long as the distances are accurate
-  // resize the weight vectors first, match longest length
-  (weights1.size() > weights2.size()) ? weights2.resize(weights1.size()) : weights1.resize(weights2.size());
-  vector<vector<double> > gd = getGroundDistance(f1, f2);
-  
-  return _emd(weights1, weights2, gd);
+  function<double(feature_tt*, feature_tt*)> dist = [this](feature_tt* f1, feature_tt* f2) {
+    return sqrt(pow(f1->_L - f2->_L, 2) + pow(f1->_a - f2->_a, 2) + pow(f1->_b - f2->_b, 2) +
+      _lambda * (pow(f1->_x - f2->_x, 2) + pow(f1->_y - f2->_y, 2)));
+  };
+
+  signature_tt<double> s1, s2;
+
+  s1.Features = &f1[0];
+  s1.Weights = &weights1[0];
+  s1.n = weights1.size();
+
+  s2.Features = &f2[0];
+  s2.Weights = &weights2[0];
+  s2.n = weights2.size();
+
+  return emd_hat_signature_interface<double>(&s1, &s2, dist, 0);
 }
 
-vector<double> Sparse5DHistogram::weights(vector<HistogramFeature>& out)
+vector<double> Sparse5DHistogram::weights(vector<feature_tt>& out)
 {
   out.clear();
   vector<double> weights;
   for (auto& f : _histData) {
     weights.push_back(f.second);
-    out.push_back(f.first);
+    out.push_back(f.first._data);
   }
 
   return weights;
 }
 
-vector<double> Sparse5DHistogram::normalizedWeights(vector<HistogramFeature>& out)
+vector<double> Sparse5DHistogram::normalizedWeights(vector<feature_tt>& out)
 {
   out.clear();
   vector<double> nrmWeights;
   for (auto& f : _histData) {
     nrmWeights.push_back(f.second / _totalWeight);
-    out.push_back(f.first);
+    out.push_back(f.first._data);
   }
 
   return nrmWeights;
@@ -689,20 +698,18 @@ vector<vector<double>> Sparse5DHistogram::getGroundDistance(vector<HistogramFeat
 {
   vector<vector<double> > gd;
 
-  int maxSize = (f1.size() > f2.size()) ? f1.size() : f2.size();
-  gd.resize(maxSize);
+  gd.resize(f1.size());
   for (int i = 0; i < gd.size(); i++) {
-    gd[i].resize(maxSize);
+    gd[i].resize(f2.size());
   }
 
   for (int i = 0; i < f1.size(); i++) {
-    for (int j = i; j < f2.size(); j++) {
-      double dist = sqrt(pow(f1[i]._L - f2[j]._L, 2) + pow(f1[i]._a - f2[j]._a, 2) + pow(f1[i]._b - f2[j]._b, 2) +
-        _lambda * (pow(f1[i]._x - f2[j]._x, 2) + pow(f1[i]._y - f2[j]._y, 2)));
+    for (int j = 0; j < f2.size(); j++) {
+      //double dist = sqrt(pow(f1[i]._L - f2[j]._L, 2) + pow(f1[i]._a - f2[j]._a, 2) + pow(f1[i]._b - f2[j]._b, 2) +
+      //  _lambda * (pow(f1[i]._x - f2[j]._x, 2) + pow(f1[i]._y - f2[j]._y, 2)));
 
       // distances are symmetric
-      gd[i][j] = dist;
-      gd[j][i] = dist;
+      // gd[i][j] = dist;
     }
   }
 
@@ -890,7 +897,30 @@ Sparse5DHistogram HistogramAttribute::getLabxyHist(Image & canonical, int n)
 
 Sparse5DHistogram HistogramAttribute::getLabxyHist(Image & canonical, int l, int a, int b, int x, int y)
 {
-  Sparse5DHistogram hist({ 0, 10, -5, 20, -5, 20, 0, 0.2f, 0, 0.2f }, 1);
+  Sparse5DHistogram hist({ 0, 20, -5, 25, -5, 25, 0, 0.25f, 0, 0.25f }, 1);
+
+  for (int y2 = 0; y2 < canonical.getHeight(); y2++) {
+    for (int x2 = 0; x2 < canonical.getWidth(); x2++) {
+      auto color = canonical.getPixelAt(x2, y2);
+      Eigen::Vector3d labColor = RGBtoLab(color.getRed() / 255.0, color.getGreen() / 255.0, color.getBlue() / 255.0);
+      float xnrm = x2 / (float)canonical.getWidth();
+      float ynrm = y2 / (float)canonical.getHeight();
+
+      hist.add(labColor[0], labColor[1], labColor[2], xnrm, ynrm);
+    }
+  }
+
+  return hist;
+}
+
+LabxyHistogram HistogramAttribute::getLabxyHist2(Image & canonical, int n)
+{
+  return getLabxyHist2(canonical, n, n, n, n, n);
+}
+
+LabxyHistogram HistogramAttribute::getLabxyHist2(Image & canonical, int l, int a, int b, int x, int y)
+{
+  LabxyHistogram hist(l, a, b, x, y, { 0, 100, -100, 100, -100, 100, 0, 1, 0, 1 }, 1);
 
   for (int y2 = 0; y2 < canonical.getHeight(); y2++) {
     for (int x2 = 0; x2 < canonical.getWidth(); x2++) {

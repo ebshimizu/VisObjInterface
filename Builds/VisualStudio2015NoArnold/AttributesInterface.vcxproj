@@ -1712,6 +1712,7 @@
     <ClCompile Include="..\..\JuceLibraryCode\juce_video.cpp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\FastEMD-3.1\FastEMD\emd_hat_signatures_interface.hpp"/>
     <ClInclude Include="..\..\Source\FastEMD-3.1\FastEMD\emd_hat_impl.hpp"/>
     <ClInclude Include="..\..\Source\FastEMD-3.1\FastEMD\flow_utils.hpp"/>
     <ClInclude Include="..\..\Source\FastEMD-3.1\FastEMD\EMD_DEFS.hpp"/>

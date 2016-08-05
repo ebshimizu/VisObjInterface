@@ -40,7 +40,13 @@
 
 /*****************************************************************************/
 /* feature_tt SHOULD BE MODIFIED BY THE USER TO REFLECT THE FEATURE TYPE      */
-typedef double feature_tt;
+typedef struct {
+  float _L;
+  float _a;
+  float _b;
+  float _x;
+  float _y;
+} feature_tt;
 /*****************************************************************************/
 
 template<typename NUM_T>
@@ -57,7 +63,7 @@ struct signature_tt {
 ///                      Default value is -1 which means 1*max_distance_between_bins_of_signatures
 template<typename NUM_T>
 NUM_T emd_hat_signature_interface(signature_tt<NUM_T>* Signature1, signature_tt<NUM_T>* Signature2,
-                                  NUM_T (*func)(feature_tt*, feature_tt*),
+                                  function<NUM_T(feature_tt*, feature_tt*)>func,
                                   NUM_T extra_mass_penalty) {
     
     std::vector<NUM_T> P(Signature1->n + Signature2->n , 0);

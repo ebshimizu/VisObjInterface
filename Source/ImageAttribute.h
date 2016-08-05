@@ -42,8 +42,8 @@ public:
   
 private:
   int _n;
-  Sparse5DHistogram _sourceHist;
-  //Histogram3D _sourceHist;
+  //Sparse5DHistogram _sourceHist;
+  LabxyHistogram _sourceHist;
   Image _sourceImg;
   Image _originalImg;
   vector<vector<double> > _metric;

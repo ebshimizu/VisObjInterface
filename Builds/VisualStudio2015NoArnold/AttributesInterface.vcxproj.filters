@@ -2172,6 +2172,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\FastEMD-3.1\FastEMD\emd_hat_signatures_interface.hpp">
+      <Filter>AttributesInterface\Source\third_party\FastEMD</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\FastEMD-3.1\FastEMD\emd_hat_impl.hpp">
       <Filter>AttributesInterface\Source\third_party\FastEMD</Filter>
     </ClInclude>
