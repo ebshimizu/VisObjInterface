@@ -77,16 +77,18 @@ double ImageAttribute::evaluateScene(Snapshot * s, Image& img)
     img = generateImage(s);
   }
 
-  LabxyHistogram currentHist = getLabxyHist(img, _n, _n, _n, 1, 1);
+  LabxyHistogram currentHist = getLabxyHist(img, _n, _n, _n, 3, 3);
+  //Histogram3D currentHist = getLabHist(img, _n);
 
   double diff = currentHist.EMD(_sourceHist, _metric);
 
-  return (500 - diff) / 5;
+  return (100 - diff);
 }
 
 void ImageAttribute::preProcess()
 {
-  _sourceHist = getLabxyHist(_sourceImg, _n, _n, _n, 1, 1);
+  _sourceHist = getLabxyHist(_sourceImg, _n, _n, _n, 3, 3);
+  //_sourceHist = getLabHist(_sourceImg, _n);
 
   _metric = _sourceHist.getGroundDistances();
 
