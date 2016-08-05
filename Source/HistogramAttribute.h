@@ -161,7 +161,7 @@ public:
   LabxyHistogram& operator=(const LabxyHistogram& other);
   ~LabxyHistogram();
 
-  void addValToBin(double l, double a, double b, int x, int y);
+  void add(double l, double a, double b, float x, float y);
   void addToBin(double amt, int l, int a, int b, int x, int y);
   void removeFromBin(double amt, int l, int a, int b, int x, int y);
 
@@ -281,8 +281,8 @@ public:
   Histogram3D getLabHist(Image& canonical, int x, int y, int z);
 
   // Returns the color and position histogram for the given image.
-  Sparse5DHistogram getLabxyHist(Image& canonical, int n);
-  Sparse5DHistogram getLabxyHist(Image& canonical, int l, int a, int b, int x, int y);
+  LabxyHistogram getLabxyHist(Image& canonical, int n);
+  LabxyHistogram getLabxyHist(Image& canonical, int l, int a, int b, int x, int y);
 
   // Histogram3D getRGBHist();
   // Histogram3D getHSVHist();

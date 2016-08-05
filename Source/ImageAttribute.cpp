@@ -27,7 +27,7 @@ void ImageDrawer::paint(Graphics & g)
 }
 
 ImageAttribute::ImageAttribute(string name, string filepath, int n) : HistogramAttribute(name),
-  _sourceHist(Sparse5DHistogram({})), _n(n)
+  _sourceHist(1), _n(n)
 {
   File img(filepath);
   FileInputStream in(img);
@@ -51,7 +51,7 @@ ImageAttribute::ImageAttribute(string name, string filepath, int n) : HistogramA
 }
 
 ImageAttribute::ImageAttribute(string name, Image img, int n) : HistogramAttribute(name),
-  _sourceHist(Sparse5DHistogram({})), _n(n)
+  _sourceHist(1), _n(n)
 {
   _originalImg = img;
   _sourceImg = img.rescaled(_canonicalWidth, _canonicalHeight);
@@ -77,19 +77,21 @@ double ImageAttribute::evaluateScene(Snapshot * s, Image& img)
     img = generateImage(s);
   }
 
-  Sparse5DHistogram currentHist = getLabxyHist(img, _n);
+  LabxyHistogram currentHist = getLabxyHist(img, _n, _n, _n, 1, 1);
 
-  double diff = currentHist.EMD(_sourceHist);
+  double diff = currentHist.EMD(_sourceHist, _metric);
 
-  return (100 - diff);
+  return (500 - diff) / 5;
 }
 
 void ImageAttribute::preProcess()
 {
-  _sourceHist = getLabxyHist(_sourceImg, _n);
+  _sourceHist = getLabxyHist(_sourceImg, _n, _n, _n, 1, 1);
+
+  _metric = _sourceHist.getGroundDistances();
 
   // sanity check
-  double selfDist = _sourceHist.EMD(_sourceHist);
+  double selfDist = _sourceHist.EMD(_sourceHist, _metric);
 }
 
 void ImageAttribute::resized()

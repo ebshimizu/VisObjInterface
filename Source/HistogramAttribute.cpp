@@ -474,7 +474,7 @@ LabxyHistogram::~LabxyHistogram()
 {
 }
 
-void LabxyHistogram::addValToBin(double l, double a, double b, int x, int y)
+void LabxyHistogram::add(double l, double a, double b, float x, float y)
 {
   // scale x, y, z to proper values and find what bin they're in
   int lbin = (int)clamp(((l - _bounds[0]) / (_bounds[1] - _bounds[0])) * _l, 0, _l - 1);
@@ -490,11 +490,13 @@ void LabxyHistogram::addValToBin(double l, double a, double b, int x, int y)
 void LabxyHistogram::addToBin(double amt, int l, int a, int b, int x, int y)
 {
   _histData[getIndex(l, a, b, x, y)] += amt;
+  _count += amt;
 }
 
 void LabxyHistogram::removeFromBin(double amt, int l, int a, int b, int x, int y)
 {
   _histData[getIndex(l, a, b, x, y)] -= amt;
+  _count -= amt;
 }
 
 double LabxyHistogram::getBin(int l, int a, int b, int x, int y)
@@ -534,14 +536,13 @@ vector<vector<double>> LabxyHistogram::getGroundDistances()
             distances.resize(_l * _a * _b * _x * _y);
             Eigen::VectorXd binVal = getBinVal(l, a, b, x, y);
 
-
             // ok now go through it again
             for (int y2 = 0; y2 < _y; y2++) {
               for (int x2 = 0; x2 < _x; x2++) {
                 for (int b2 = 0; b2 < _b; b2++) {
                   for (int a2 = 0; a2 < _a; a2++) {
                     for (int l2 = 0; l2 < _l; l2++) {
-                      Eigen::VectorXd val = getBinVal(l2, a2, b2, b2, y2);
+                      Eigen::VectorXd val = getBinVal(l2, a2, b2, x2, y2);
                       Eigen::VectorXd delta2 = (binVal - val).cwiseProduct(binVal - val);
                       distances[getIndex(l2, a2, b2, x2, y2)] = sqrt(delta2[0] + delta2[1] + delta2[2] + _lambda * (delta2[3] + delta2[4]));
                     }
@@ -861,14 +862,14 @@ Histogram3D HistogramAttribute::getLabHist(Image& canonical, int x, int y, int z
   return lab;
 }
 
-Sparse5DHistogram HistogramAttribute::getLabxyHist(Image & canonical, int n)
+LabxyHistogram HistogramAttribute::getLabxyHist(Image & canonical, int n)
 {
   return getLabxyHist(canonical, n, n, n, n, n);
 }
 
-Sparse5DHistogram HistogramAttribute::getLabxyHist(Image & canonical, int l, int a, int b, int x, int y)
+LabxyHistogram HistogramAttribute::getLabxyHist(Image & canonical, int l, int a, int b, int x, int y)
 {
-  Sparse5DHistogram hist({0, 10, -5, 20, -5, 20, 0, 0.2f, 0, 0.2f}, 1);
+  LabxyHistogram hist(l, a, b, x, y, { 0, 100, -100, 100, -100, 100, 0, 1, 0, 1 }, 50);
 
   for (int y2 = 0; y2 < canonical.getHeight(); y2++) {
     for (int x2 = 0; x2 < canonical.getWidth(); x2++) {
