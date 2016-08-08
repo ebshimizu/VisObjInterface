@@ -149,7 +149,7 @@ enum SearchMode {
 	LM_GRAD_DESCENT,	// Levenberg-Marquardt Method
 	HYBRID_EXPLORE,		// Hybrid explore/exploit method using both MCMC Edits and LM
 	HYBRID_DEBUG,			// Single-threaded mode that investigates certain properties of the LM/MCMC methods. Not a real search.
-  MCMC_CONSTRAIN    // MCMC with additional constraints
+  MCMCLMGD          // MCMC with an additional LM refinement step
 };
 
 // A container for various things that the entire application may want to access

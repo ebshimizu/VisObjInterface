@@ -403,7 +403,7 @@ GlobalSettings::GlobalSettings()
   _primaryDivisiveThreshold = 7.5;
   _secondaryDivisiveThreshold = 5;
 	_clusterDisplay = GRID;
-	_searchMode = MCMC_EDIT;
+	_searchMode = MCMCLMGD;
 	_maxGradIters = 200;
   _reduceRepeatEdits = true;
 

@@ -275,7 +275,7 @@ AttributeSearchThread::~AttributeSearchThread()
   //  delete e;
 }
 
-void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, SearchMode m)
+void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjFunc& fsq, SearchMode m)
 {
   if (_original != nullptr)
     delete _original;
@@ -288,6 +288,7 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, SearchMo
   _failures = 0;
 
   _f = f;
+  _fsq = fsq;
 	_mode = m;
 	_randomInit = false;
 	_status = IDLE;
@@ -431,10 +432,12 @@ void AttributeSearchThread::runHybridDebug()
 
 void AttributeSearchThread::runSearch()
 {
-	if (_mode == MCMC_EDIT)
-		runMCMCEditSearch();
-	else if (_mode == LM_GRAD_DESCENT)
-		runLMGDSearch();
+  if (_mode == MCMC_EDIT)
+    runMCMCEditSearch();
+  else if (_mode == LM_GRAD_DESCENT)
+    runLMGDSearch();
+  else if (_mode == MCMCLMGD)
+    runMCMCLMGDSearch();
 	else if (_mode == HYBRID_EXPLORE) {
 		// This search mode has multiple phases, and each thread can be on a different phase
 		// On thread creation, we should wait for further instructions
@@ -462,8 +465,7 @@ void AttributeSearchThread::runSearch()
 	}
 }
 
-void AttributeSearchThread::runMCMCEditSearch(bool force)
-{
+void AttributeSearchThread::runMCMCEditSearch(bool force) {
 	// assign start scene, initialize result
 	Snapshot* start = new Snapshot(*_original);
 	SearchResult* r = new SearchResult();
@@ -633,7 +635,7 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 	double nu = 2;
 	double eps = 1e-3;
 	double tau = 1e-3;
-	double fx = _f(&xs);
+	double fx = _fsq(&xs);
 	double forig = fx;
 
 	Eigen::MatrixXd J = getJacobian(xs);
@@ -666,7 +668,7 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 			}
 
 			vectorToExistingSnapshot(xnew, xs);
-			double fnew = _f(&xs);
+			double fnew = _fsq(&xs);
 			Eigen::MatrixXd rho = (0.5 * hlm.transpose() * (mu * hlm - g)) * (1 / (fx * fx / 2 - fnew * fnew / 2));
 
 			// should be a scalar
@@ -740,6 +742,247 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 	if (_mode == LM_GRAD_DESCENT || _mode == HYBRID_DEBUG) {
 		_randomInit = true;
 	}
+}
+
+void AttributeSearchThread::runMCMCLMGDSearch()
+{
+  // it was a search like any other
+  // start with the very normal (at this point) MCMC edit search
+
+  // assign start scene, initialize result
+  Snapshot* start = new Snapshot(*_original);
+  SearchResult* r = new SearchResult();
+  double fx = _f(start);
+  double orig = fx;
+
+  // RNG
+  default_random_engine gen(std::random_device{}());
+  uniform_real_distribution<double> udist(0.0, 1.0);
+
+  // do the MCMC search
+  int depth = 0;
+  Edit* e = nullptr;
+
+  // magic number alert
+  int iters = getGlobalSettings()->_standardMCMC ? getGlobalSettings()->_standardMCMCIters : getGlobalSettings()->_maxMCMCIters;
+
+  // depth increases when scenes are rejected from the viewer
+  while (depth < _maxDepth) {
+    if (threadShouldExit()) {
+      delete r;
+      delete start;
+      return;
+    }
+
+    //  pick a next plausible edit
+    if (r->_editHistory.size() == 0)
+      e = _edits[0]->getNextEdit(r->_editHistory, getGlobalSettings()->_globalEditWeights, getGlobalSettings()->_reduceRepeatEdits);
+    else
+      e = e->getNextEdit(r->_editHistory, getGlobalSettings()->_globalEditWeights, getGlobalSettings()->_reduceRepeatEdits);
+
+    r->_editHistory.push_back(e);
+
+    // do the adjustment until acceptance
+    for (int i = 0; i < iters; i++) {
+      if (threadShouldExit()) {
+        delete r;
+        delete start;
+        return;
+      }
+
+      //  adjust the starting scene
+      Snapshot* sp = new Snapshot(*start);
+      e->performEdit(sp, getGlobalSettings()->_editStepSize);
+
+      // check for acceptance
+      double fxp = _f(sp);
+      double a = 0;
+
+      a = min(exp((1 / _T) * (fx - fxp)), 1.0);
+
+      // accept if a >= 1 or with probability a
+      if (a >= 1 || udist(gen) < a) {
+        // update x
+        delete start;
+        start = sp;
+        fx = fxp;
+
+        // update result
+        r->_objFuncVal = fx;
+
+        // diagnostics
+        if (!getGlobalSettings()->_standardMCMC) {
+          DebugData data;
+          auto& samples = getGlobalSettings()->_samples;
+          data._f = r->_objFuncVal;
+          data._a = a;
+          data._sampleId = (unsigned int)samples[_id].size() + 1;
+          data._editName = e->_name;
+          data._accepted = true;
+          data._scene = snapshotToVector(sp);
+          samples[_id].push_back(data);
+        }
+      }
+      else {
+        delete sp;
+      }
+    }
+    depth++;
+  }
+
+  r->_scene = snapshotToVector(start);
+
+  // diagnostics
+  DebugData data;
+  auto& samples = getGlobalSettings()->_samples;
+  data._f = r->_objFuncVal;
+  data._a = 1;
+  data._sampleId = (unsigned int)samples[_id].size() + 1;
+  data._editName = "TERMINAL";
+  data._accepted = true;
+  data._scene = r->_scene;
+
+  r->_extraData["Thread"] = String(_id);
+  r->_extraData["Sample"] = String(data._sampleId);
+
+  // add if we did better
+  if (r->_objFuncVal < orig) {
+    // send scene to the results area. may chose to not use the scene
+    if (!_viewer->addNewResult(r, false)) {
+      // r has been deleted by _viewer here
+      _failures++;
+      data._accepted = false;
+
+      if (_failures > getGlobalSettings()->_searchFailureLimit) {
+        _failures = 0;
+        _maxDepth++;
+      }
+    }
+    else {
+      _acceptedSamples += 1;
+    }
+  }
+  else {
+    data._accepted = false;
+    delete r;
+  }
+
+  samples[_id].push_back(data);
+
+  if (data._accepted == false) {
+    delete start;
+    return;
+  }
+
+
+  // if the sample was accepted, we then perform LMGD on the sample and forcibly
+  // (for now) add that to the results set.
+
+  // Levenberg-Marquardt
+  Snapshot xs(*start);
+  Eigen::VectorXd x = snapshotToVector(&xs);
+
+  int maxIters = getGlobalSettings()->_maxGradIters;
+  double nu = 2;
+  double eps = 1e-3;
+  double tau = 1e-3;
+  fx = _fsq(&xs);
+  double forig = fx;
+
+  Eigen::MatrixXd J = getJacobian(xs);
+  Eigen::MatrixXd H = J.transpose() * J;		// may need to replace with actual calculation of Hessian
+  Eigen::MatrixXd g = J.transpose() * _fsq(&xs);
+
+  double mu = tau * H.diagonal().maxCoeff();
+
+  bool found = false;
+  int k = 0;
+
+  while (!found && k < maxIters) {
+    if (threadShouldExit()) {
+      return;
+    }
+
+    k = k + 1;
+    Eigen::MatrixXd inv = (H + mu * Eigen::MatrixXd::Identity(H.rows(), H.cols())).inverse();
+    Eigen::MatrixXd hlm = -inv * g;
+
+    if (hlm.norm() <= eps * (x.norm() + eps)) {
+      found = true;
+    }
+    else {
+      Eigen::VectorXd xnew = x + hlm;
+
+      // fix constraints, bounded at 1 and 0
+      for (int i = 0; i < x.size(); i++) {
+        xnew[i] = clamp((float)xnew[i], 0, 1);
+      }
+
+      vectorToExistingSnapshot(xnew, xs);
+      double fnew = _fsq(&xs);
+      Eigen::MatrixXd rho = (0.5 * hlm.transpose() * (mu * hlm - g)) * (1 / (fx * fx / 2 - fnew * fnew / 2));
+
+      // should be a scalar
+      double rhoval = rho(0);
+
+      if (rhoval > 0) {
+        // acceptable step
+        x = xnew;
+        J = getJacobian(xs);
+        g = J.transpose() * fnew;
+        found = (g.norm() <= eps);
+        mu = mu * max(1.0 / 3.0, 1 - pow(2 * rhoval - 1, 3));
+        nu = 2;
+        fx = fnew;
+
+        // debug data
+        DebugData data;
+        auto& samples = getGlobalSettings()->_samples;
+        data._f = fnew;
+        data._a = 1;
+        data._sampleId = (unsigned int)samples[_id].size() + 1;
+        data._editName = "L-M DESCENT STEP";
+        data._accepted = true;
+        data._scene = x;
+        samples[_id].push_back(data);
+      }
+      else {
+        mu = mu * nu;
+        nu = 2 * nu;
+
+        // reset
+        vectorToExistingSnapshot(x, xs);
+      }
+    }
+  }
+
+  // found, stick in visible set 
+
+  // debug data
+  DebugData data2;
+  data2._f = fx;
+  data2._a = 1;
+  data2._sampleId = (unsigned int)samples[_id].size() + 1;
+  data2._editName = "L-M TERMINAL";
+  data2._scene = x;
+
+  if (fx < forig) {
+    SearchResult* r = new SearchResult();
+    r->_objFuncVal = _f(&xs);
+    r->_scene = x;
+    r->_extraData["Parent"] = String(data._sampleId);
+    r->_extraData["LM Terminal"] = "True";
+    r->_extraData["Thread"] = String(_id);
+
+    data2._accepted = _viewer->addNewResult(r, true);
+  }
+  else {
+    data2._accepted = false;
+  }
+
+  samples[_id].push_back(data2);
+
+  delete start;
 }
 
 void AttributeSearchThread::checkEdits()
@@ -862,38 +1105,6 @@ list<SearchResult*> AttributeSearchThread::filterSearchResults(list<SearchResult
   return results;
 }
 
-//list<SearchResult*> AttributeSearchThread::filterSearchResults(list<SearchResult*>& results)
-//{
-//  MeanShift shifter;
-//
-//  // eliminate near duplicates
-//  filterResults(results, 1e-3);
-//
-//  // put scenes into list, and weights into vector
-//  list<Eigen::VectorXd> pt;
-//  vector<double> weights;
-//  for (auto& s : results) {
-//    pt.push_back(s->_scene);
-//    weights.push_back(-s->_objFuncVal);
-//  }
-//
-//  // get the centers
-//  list<Eigen::VectorXd> centers = shifter.cluster(pt, getGlobalSettings()->_meanShiftBandwidth, weights);
-//  filterResults(centers, 1e-3);
-//
-//  // place centers into a vector (for indexing)
-//  vector<Eigen::VectorXd> cs;
-//  for (auto& c : centers) {
-//    cs.push_back(c);
-//  }
-//
-//  // place search results into clusters
-//  clusterResults(results, cs);
-//
-//  // resturn the closest results to the center of the clusters
-//  return getClosestScenesToCenters(results, cs);
-//}
-
 void AttributeSearchThread::clusterResults(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers)
 {
   for (auto& r : results) {
@@ -914,7 +1125,7 @@ Eigen::VectorXd AttributeSearchThread::getDerivative(Snapshot & s)
 	Eigen::VectorXd x = snapshotToVector(&s);
 	Eigen::VectorXd dx;
 	dx.resizeLike(x);
-	double fx = _f(&s);
+	double fx = _fsq(&s);
 
 	// adjust each parameter in order
 	double h = 1e-3;
@@ -925,14 +1136,14 @@ Eigen::VectorXd AttributeSearchThread::getDerivative(Snapshot & s)
 		if (x[i] >= 1) {
 			x[i] -= h;
 			vectorToExistingSnapshot(x, s);
-			double fxp = _f(&s);
+			double fxp = _fsq(&s);
 			dx[i] = (fx - fxp) / h;
 			x[i] += h;
 		}
 		else {
 			x[i] += h;
 			vectorToExistingSnapshot(x, s);
-			double fxp = _f(&s);
+			double fxp = _fsq(&s);
 			dx[i] = (fxp - fx) / h;
 			x[i] -= h;
 		}
@@ -1007,47 +1218,44 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
 
   _start = start;
 
-  // objective function for combined set of active attributes.
-  if (getGlobalSettings()->_searchMode == MCMC_EDIT) {
-    _f = [this](Snapshot* s) {
-      // for multiple attributes, we generate the image here first
-      Image img = _active.begin()->second.first->generateImage(s);
-      Image startImg = _active.begin()->second.first->generateImage(_start);
-      double sum = 0;
-      for (const auto& kvp : _active) {
-        if (kvp.second.second == A_LESS)
-          sum += kvp.second.first->evaluateScene(s, img);
-        else if (kvp.second.second == A_MORE) {
-          sum -= kvp.second.first->evaluateScene(s, img);
-        }
-        else if (kvp.second.second == A_EQUAL) {
-          sum += pow(kvp.second.first->evaluateScene(s, img) - kvp.second.first->evaluateScene(_start, startImg), 2);
-        }
+  // objective functions for combined set of active attributes.
+  _f = [this](Snapshot* s) {
+    // for multiple attributes, we generate the image here first
+    Image img = _active.begin()->second.first->generateImage(s);
+    Image startImg = _active.begin()->second.first->generateImage(_start);
+    double sum = 0;
+    for (const auto& kvp : _active) {
+      if (kvp.second.second == A_LESS)
+        sum += kvp.second.first->evaluateScene(s, img);
+      else if (kvp.second.second == A_MORE) {
+        sum -= kvp.second.first->evaluateScene(s, img);
       }
-
-      return sum;
-    };
-  }
-  else {
-    _f = [this](Snapshot* s) {
-      Image img = _active.begin()->second.first->generateImage(s);
-      Image startImg = _active.begin()->second.first->generateImage(_start);
-      double sum = 0;
-      for (const auto& kvp : _active) {
-        if (kvp.second.second == A_LESS)
-          sum += kvp.second.first->evaluateScene(s, img);
-        else if (kvp.second.second == A_MORE) {
-          // larger values = smaller function, LM expects things to be non-linear least squares,
-          // which are all positive functions
-          sum += (100 - kvp.second.first->evaluateScene(s, img));
-        }
-        else if (kvp.second.second == A_EQUAL)
-          sum += pow(kvp.second.first->evaluateScene(s, img) - kvp.second.first->evaluateScene(_start, startImg), 2);
+      else if (kvp.second.second == A_EQUAL) {
+        sum += pow(kvp.second.first->evaluateScene(s, img) - kvp.second.first->evaluateScene(_start, startImg), 2);
       }
+    }
 
-      return sum;
-    };
-  }
+    return sum;
+  };
+
+  _fsq = [this](Snapshot* s) {
+    Image img = _active.begin()->second.first->generateImage(s);
+    Image startImg = _active.begin()->second.first->generateImage(_start);
+    double sum = 0;
+    for (const auto& kvp : _active) {
+      if (kvp.second.second == A_LESS)
+        sum += kvp.second.first->evaluateScene(s, img);
+      else if (kvp.second.second == A_MORE) {
+        // larger values = smaller function, LM expects things to be non-linear least squares,
+        // which are all positive functions
+        sum += (100 - kvp.second.first->evaluateScene(s, img));
+      }
+      else if (kvp.second.second == A_EQUAL)
+        sum += pow(kvp.second.first->evaluateScene(s, img) - kvp.second.first->evaluateScene(_start, startImg), 2);
+    }
+
+    return sum;
+  };
 
   generateEdits(false);
 
@@ -1062,7 +1270,7 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
   // init all threads
   int i = 0;
   for (auto& t : _threads) {
-    t->setState(_start, _f, getGlobalSettings()->_searchMode);
+    t->setState(_start, _f, _fsq, getGlobalSettings()->_searchMode);
 
     // set up diagnostics container
     samples[i] = vector<DebugData>();
@@ -1109,7 +1317,7 @@ void AttributeSearch::run()
 
   // run all threads
   // make sure to set the state properly before running/resuming
-	if (_mode == MCMC_EDIT) {
+	if (_mode == MCMC_EDIT || _mode == MCMCLMGD) {
 		// compute edit weights first before starting
     {
       MessageManagerLock mmlock(this);

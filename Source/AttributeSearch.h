@@ -59,7 +59,7 @@ public:
   AttributeSearchThread(String name, SearchResultsViewer* viewer, map<string, int>& sharedData);
   ~AttributeSearchThread();
 
-  void setState(Snapshot* start, attrObjFunc& f, SearchMode m);
+  void setState(Snapshot* start, attrObjFunc& f, attrObjFunc& fsq, SearchMode m);
 
   void run() override;
 
@@ -97,6 +97,7 @@ private:
   bool _singleSame;
   vector<Edit*> _edits;
   attrObjFunc _f;
+  attrObjFunc _fsq;
   double _T;
 	SearchMode _mode;	// set before launching to prevent issues when switching mid-run
 	bool _randomInit;	// For L-M descent, indicates if the starting position should be randomized
@@ -129,6 +130,11 @@ private:
 	// Runs the Levenberg-Marquardt Method. Gradient descent, does not use the edits generated
 	// during setup. Intended as a reference.
 	void runLMGDSearch(bool force = false);
+
+  // Runs the MCMC edit sampling + LM refinement search.
+  // there's a lot of code duplication here but that's mostly to easily isolate changes
+  // between different search approaches.
+  void runMCMCLMGDSearch();
 
   // Runs a search for each edit in order (non-parallel at the moment)
   void checkEdits();
@@ -188,6 +194,7 @@ private:
   Array<AttributeSearchThread*> _threads;
   map<string, pair<AttributeControllerBase*, AttributeConstraint> > _active;
   attrObjFunc _f;
+  attrObjFunc _fsq; // least squares version (guaranteed to always be positive basically
   Snapshot* _start;
   set<EditParam> _lockedParams;
 };
