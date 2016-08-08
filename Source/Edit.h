@@ -83,6 +83,11 @@ public:
 	// Approximates the importance of the edit
 	virtual double variance(Snapshot* s, attrObjFunc f, double radius, int n);
 
+  // Returns an expected value of the edit. This isn't necessarily the mathematical
+  // expected value, but it's the same idea. Returns a number that expresses how
+  // likely we are to get a better result
+  virtual double expected(Snapshot* s, attrObjFunc f, double radius, int n);
+
   string _name;
 
   // Checks for edit equality.

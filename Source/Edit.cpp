@@ -304,6 +304,45 @@ double Edit::variance(Snapshot * s, attrObjFunc f, double radius, int n)
 	return shifted.sum() / n;
 }
 
+double Edit::expected(Snapshot * s, attrObjFunc f, double radius, int n)
+{
+  double fstart = f(s);
+
+	// take n samples using step size radius
+	Eigen::VectorXd samples;
+	samples.resize(n);
+	Eigen::VectorXd start = snapshotToVector(s);
+
+  int numPos = 0;
+  double sum = 0;
+
+	// do the edit n times, record difference from starting value
+	for (int i = 0; i < n; i++) {
+		performEdit(s, radius);
+		samples[i] = fstart - f(s);
+		
+    if (samples[i] > 0) {
+      numPos++;
+      sum += samples[i];
+    }
+    
+    vectorToExistingSnapshot(start, *s); // loading from vector probably faster than reallocating a new one
+	}
+
+	// compute sample variance
+	double mean = samples.mean();
+	Eigen::VectorXd shifted = (samples - mean * Eigen::VectorXd::Ones(n));
+	shifted = shifted.cwiseProduct(shifted);
+	double var = shifted.sum() / n;
+
+  // compute ratio of positive changes and sum up total of those changes
+  // multiply ratio by average change
+  double ev = (sum * numPos) / n;
+
+  return var * 0.5 + ev * 0.5;
+}
+
+
 bool Edit::isEqual(Edit & other)
 {
   // edits are equal if they affect the same devices and the same parameters

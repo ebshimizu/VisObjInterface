@@ -329,10 +329,10 @@ void AttributeSearchThread::computeEditWeights(bool showStatusMessages)
       }
     }
 
-		double weight = sqrt(_edits[i]->variance(_original, _f, getGlobalSettings()->_editStepSize * 3, 50));
+		double weight = sqrt(_edits[i]->expected(_original, _f, getGlobalSettings()->_editStepSize * 3, 50));
 
     // minimum weight, prevent conflicts and also enable all edits to possibly be chosen
-    weights[i] = (weight < 1e-3) ? 1e-3 : weight;
+    weights[i] = (weight < 1e-1) ? 1e-1 : weight;
 	}
 
   {
