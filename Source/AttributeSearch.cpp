@@ -782,7 +782,12 @@ void AttributeSearchThread::runMCMCLMGDSearch()
 
     r->_editHistory.push_back(e);
 
-    // do the adjustment until acceptance
+    // here we'll actually pull the lowest observed accepted sample
+    Eigen::VectorXd lowestScene;
+    double minVal = DBL_MAX;
+    bool accepted = false;
+
+    // do the adjustment a few times. meander around the space 
     for (int i = 0; i < iters; i++) {
       if (threadShouldExit()) {
         delete r;
@@ -811,22 +816,36 @@ void AttributeSearchThread::runMCMCLMGDSearch()
         r->_objFuncVal = fx;
 
         // diagnostics
-        if (!getGlobalSettings()->_standardMCMC) {
-          DebugData data;
-          auto& samples = getGlobalSettings()->_samples;
-          data._f = r->_objFuncVal;
-          data._a = a;
-          data._sampleId = (unsigned int)samples[_id].size() + 1;
-          data._editName = e->_name;
-          data._accepted = true;
-          data._scene = snapshotToVector(sp);
-          samples[_id].push_back(data);
+        DebugData data;
+        auto& samples = getGlobalSettings()->_samples;
+        data._f = r->_objFuncVal;
+        data._a = a;
+        data._sampleId = (unsigned int)samples[_id].size() + 1;
+        data._editName = e->_name;
+        data._accepted = true;
+        data._scene = snapshotToVector(sp);
+        samples[_id].push_back(data);
+
+        if (fx < minVal) {
+          minVal = fx;
+          lowestScene = data._scene;
         }
+
+        accepted = true;
       }
       else {
         delete sp;
       }
     }
+
+    // adjust so that the min scene gets used as next starting point
+    // but check that something actually was accepted (probability may not accept everything)
+    if (accepted) {
+      r->_objFuncVal = minVal;
+      delete start;
+      start = vectorToSnapshot(lowestScene);
+    }
+
     depth++;
   }
 
@@ -874,6 +893,8 @@ void AttributeSearchThread::runMCMCLMGDSearch()
     return;
   }
 
+  // TEMP SHORT CIRCUit
+  return;
 
   // if the sample was accepted, we then perform LMGD on the sample and forcibly
   // (for now) add that to the results set.
