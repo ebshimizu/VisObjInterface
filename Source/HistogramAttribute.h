@@ -180,6 +180,14 @@ public:
 
 private:
   inline int getIndex(int l, int a, int b, int x, int y);
+  inline int numTotalBins();
+
+  // adds a mass of 1 to the histogram propotionally
+  // does this by recursively dividing up the mass into the different axes
+  void addProportional(float weight, vector<double> coord, vector<int> bin);
+
+  // returns the nearest bin for the given value on the specified axis
+  int nearest(double val, int axis);
 
   // returns value of the bin
   Eigen::VectorXd getBinVal(int l, int a, int b, int x, int y);
@@ -187,12 +195,8 @@ private:
   vector<double> _histData;
   emd_hat_gd_metric<double> _emd;
 
-  unsigned int _count;
-  int _l;
-  int _a;
-  int _b;
-  int _x;
-  int _y;
+  double _count;
+  vector<int> _bins;
 
   // xy position weight in l2 norm
   double _lambda;

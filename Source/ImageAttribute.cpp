@@ -90,7 +90,7 @@ void ImageAttribute::preProcess()
   _sourceHist = getLabxyHist2(_sourceImg, _n, _n, _n, 3, 3);
   //_sourceHist = getLabHist(_sourceImg, _n);
 
-  _metric = _sourceHist.getGroundDistances();
+  _metric = getGlobalSettings()->_metric;
 
   // sanity check
   double selfDist = _sourceHist.EMD(_sourceHist, _metric);

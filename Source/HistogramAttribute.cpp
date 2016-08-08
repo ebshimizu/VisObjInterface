@@ -426,31 +426,31 @@ Eigen::Vector3d Histogram3D::getBinVal(int x, int y, int z)
 
 // ============================================================================
 
-LabxyHistogram::LabxyHistogram(int n, double lambda) : _l(n), _a(n), _b(n), _x(n), _y(n), _lambda(lambda)
+LabxyHistogram::LabxyHistogram(int n, double lambda) : _bins({ n, n, n, n, n }), _lambda(lambda)
 {
   _count = 0;
   _bounds = vector<double>({ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 });
-  _histData.resize(_l * _a * _b * _x * _y);
+  _histData.resize(numTotalBins());
 }
 
 LabxyHistogram::LabxyHistogram(int l, int a, int b, int x, int y, double lambda) :
-  _l(l), _a(a), _b(b), _x(x), _y(y), _lambda(lambda)
+  _bins({ l, a, b, x, y }), _lambda(lambda)
 {
   _count = 0;
   _bounds = vector<double>({ 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 });
-  _histData.resize(_l * _a * _b * _x * _y);
+  _histData.resize(numTotalBins());
 }
 
 LabxyHistogram::LabxyHistogram(int l, int a, int b, int x, int y, vector<double> bounds, double lambda) :
-  _l(l), _a(a), _b(b), _x(x), _y(y), _lambda(lambda)
+  _bins({ l, a, b, x, y }), _lambda(lambda)
 {
   _count = 0;
   _bounds = bounds;
-  _histData.resize(_l * _a * _b * _x * _y);
+  _histData.resize(numTotalBins());
 }
 
 LabxyHistogram::LabxyHistogram(const LabxyHistogram & other) :
-  _l(other._l), _a(other._a), _b(other._b), _x(other._x), _y(other._y), _count(other._count), _lambda(other._lambda)
+  _bins(other._bins), _count(other._count), _lambda(other._lambda)
 {
   _count = other._count;
   _bounds = other._bounds;
@@ -459,11 +459,7 @@ LabxyHistogram::LabxyHistogram(const LabxyHistogram & other) :
 
 LabxyHistogram & LabxyHistogram::operator=(const LabxyHistogram & other)
 {
-  _l = other._l;
-  _a = other._a;
-  _b = other._b;
-  _x = other._x;
-  _y = other._y;
+  _bins = other._bins;
   _bounds = other._bounds;
   _count = other._count;
   _lambda = other._lambda;
@@ -481,14 +477,11 @@ LabxyHistogram::~LabxyHistogram()
 void LabxyHistogram::add(double l, double a, double b, float x, float y)
 {
   // scale x, y, z to proper values and find what bin they're in
-  int lbin = (int)clamp(((l - _bounds[0]) / (_bounds[1] - _bounds[0])) * _l, 0, _l - 1);
-  int abin = (int)clamp(((a - _bounds[2]) / (_bounds[3] - _bounds[2])) * _a, 0, _a - 1);
-  int bbin = (int)clamp(((b - _bounds[4]) / (_bounds[5] - _bounds[4])) * _b, 0, _b - 1);
-  int xbin = (int)clamp(((x - _bounds[6]) / (_bounds[7] - _bounds[6])) * _x, 0, _x - 1);
-  int ybin = (int)clamp(((y - _bounds[8]) / (_bounds[9] - _bounds[8])) * _y, 0, _y - 1);
+
 
   // TODO: add to bins proportionally
-  addToBin(1, lbin, abin, bbin, xbin, ybin);
+  addToBin(1, nearest(l, 0), nearest(a, 1), nearest(b, 2), nearest(x, 3), nearest(y, 4));
+  //addProportional(1, { l, a, b, x, y }, {});
 }
 
 void LabxyHistogram::addToBin(double amt, int l, int a, int b, int x, int y)
@@ -516,10 +509,10 @@ double LabxyHistogram::EMD(LabxyHistogram & other, const vector<vector<double>>&
 vector<double> LabxyHistogram::normalized()
 {
   vector<double> nrm;
-  nrm.resize(_l * _a * _b * _x * _y);
+  nrm.resize(numTotalBins());
 
   for (int i = 0; i < nrm.size(); i++) {
-    nrm[i] = _histData[i] / (double)_count;
+    nrm[i] = _histData[i] / _count;
   }
 
   return nrm;
@@ -528,24 +521,24 @@ vector<double> LabxyHistogram::normalized()
 vector<vector<double>> LabxyHistogram::getGroundDistances()
 {
   vector<vector<double>> gd;
-  gd.resize(_l * _a * _b * _x * _y);
+  gd.resize(numTotalBins());
 
   // fun nested loop time 
-  for (int y = 0; y < _y; y++) {
-    for (int x = 0; x < _x; x++) {
-      for (int b = 0; b < _b; b++) {
-        for (int a = 0; a < _a; a++) {
-          for (int l = 0; l < _l; l++) {
+  for (int y = 0; y < _bins[4]; y++) {
+    for (int x = 0; x < _bins[3]; x++) {
+      for (int b = 0; b < _bins[2]; b++) {
+        for (int a = 0; a < _bins[1]; a++) {
+          for (int l = 0; l < _bins[0]; l++) {
             vector<double> distances;
-            distances.resize(_l * _a * _b * _x * _y);
+            distances.resize(numTotalBins());
             Eigen::VectorXd binVal = getBinVal(l, a, b, x, y);
 
             // ok now go through it again
-            for (int y2 = 0; y2 < _y; y2++) {
-              for (int x2 = 0; x2 < _x; x2++) {
-                for (int b2 = 0; b2 < _b; b2++) {
-                  for (int a2 = 0; a2 < _a; a2++) {
-                    for (int l2 = 0; l2 < _l; l2++) {
+            for (int y2 = 0; y2 < _bins[4]; y2++) {
+              for (int x2 = 0; x2 < _bins[3]; x2++) {
+                for (int b2 = 0; b2 < _bins[2]; b2++) {
+                  for (int a2 = 0; a2 < _bins[1]; a2++) {
+                    for (int l2 = 0; l2 < _bins[0]; l2++) {
                       Eigen::VectorXd val = getBinVal(l2, a2, b2, x2, y2);
                       Eigen::VectorXd diff = binVal - val;
                       Eigen::VectorXd delta2 = (diff).cwiseProduct(diff);
@@ -573,7 +566,63 @@ void LabxyHistogram::setLambda(double lambda)
 
 inline int LabxyHistogram::getIndex(int l, int a, int b, int x, int y)
 {
-  return l + a * _l + b * _l * _a + x * _l * _a * _b + y * _l * _a * _b * _x;
+  return l + a * _bins[0] + b * _bins[0] * _bins[1] + x * _bins[0] * _bins[1] * _bins[2] + y * _bins[0] * _bins[1] * _bins[2] * _bins[3];
+}
+
+inline int LabxyHistogram::numTotalBins()
+{
+  return _bins[0] * _bins[1] * _bins[2] * _bins[3] * _bins[4];
+}
+
+void LabxyHistogram::addProportional(float weight, vector<double> coord, vector<int> bin)
+{
+  // also a base case if there's nothing to allocate
+  if (weight == 0)
+    return;
+
+  int currentDepth = bin.size();
+  int idx = currentDepth * 2;
+  double binVal = clamp((coord[currentDepth] - _bounds[idx]) / ((_bounds[idx + 1] - _bounds[idx]) / (_bins[currentDepth] - 1)), 0, _bins[currentDepth] - 1);
+  int high = ceil(binVal);
+  int low = floor(binVal);
+
+  // % of weight in high bin.
+  // this is not necessarily the closest bin.
+  float a;
+  
+  if (abs(binVal - high) < abs(binVal - low)) {
+    a = 1 - abs(binVal - high);
+  }
+  else {
+    a = abs(binVal - low);
+  }
+
+  // 4 is max depth here, the y bin axis, base case
+  if (currentDepth == 4) {
+    addToBin(weight * a, bin[0], bin[1], bin[2], bin[3], high);
+    addToBin(weight * (1 - a), bin[0], bin[1], bin[2], bin[3], low);
+  }
+  else {
+    vector<int> hbin(bin);
+    vector<int> lbin(bin);
+
+    hbin.push_back(high);
+    lbin.push_back(low);
+
+    addProportional(weight * a, coord, hbin);
+    addProportional(weight * (1 - a), coord, lbin);
+  }
+}
+
+int LabxyHistogram::nearest(double val, int axis)
+{
+  // bins here are specified as evenly distributed points within the max-min range specified in bounds.
+  int idx = axis * 2;
+
+  double binVal = (val - _bounds[idx]) / ((_bounds[idx + 1] - _bounds[idx]) / (_bins[axis] - 1));
+  binVal = clamp(binVal, 0, _bins[axis] - 1);
+
+  return (int) round(binVal);
 }
 
 Eigen::VectorXd LabxyHistogram::getBinVal(int l, int a, int b, int x, int y)
@@ -581,11 +630,11 @@ Eigen::VectorXd LabxyHistogram::getBinVal(int l, int a, int b, int x, int y)
   Eigen::VectorXd val;
   val.resize(5);
 
-  val[0] = (l + 0.5) * ((_bounds[1] - _bounds[0]) / _l) + _bounds[0];
-  val[1] = (a + 0.5) * ((_bounds[3] - _bounds[2]) / _a) + _bounds[2];
-  val[2] = (b + 0.5) * ((_bounds[5] - _bounds[4]) / _b) + _bounds[4];
-  val[3] = (x + 0.5) * ((_bounds[7] - _bounds[6]) / _x) + _bounds[6];
-  val[4] = (y + 0.5) * ((_bounds[9] - _bounds[8]) / _y) + _bounds[8];
+  val[0] = l * ((_bounds[1] - _bounds[0]) / (_bins[0] - 1)) + _bounds[0];
+  val[1] = a * ((_bounds[3] - _bounds[2]) / (_bins[1] - 1)) + _bounds[2];
+  val[2] = b * ((_bounds[5] - _bounds[4]) / (_bins[2] - 1)) + _bounds[4];
+  val[3] = x * ((_bounds[7] - _bounds[6]) / (_bins[3] - 1)) + _bounds[6];
+  val[4] = y * ((_bounds[9] - _bounds[8]) / (_bins[4] - 1)) + _bounds[8];
 
   return val;
 }
@@ -920,8 +969,8 @@ LabxyHistogram HistogramAttribute::getLabxyHist2(Image & canonical, int n)
 
 LabxyHistogram HistogramAttribute::getLabxyHist2(Image & canonical, int l, int a, int b, int x, int y)
 {
-  LabxyHistogram hist(l, a, b, x, y, { 0, 100, -100, 100, -100, 100, 0, 1, 0, 1 }, 1);
-
+  LabxyHistogram hist(l, a, b, x, y, { 0, 100, -70, 70, -70, 70, 0, 1, 0, 1 }, 1);
+  double tmp = DBL_MIN;
   for (int y2 = 0; y2 < canonical.getHeight(); y2++) {
     for (int x2 = 0; x2 < canonical.getWidth(); x2++) {
       auto color = canonical.getPixelAt(x2, y2);
@@ -930,6 +979,9 @@ LabxyHistogram HistogramAttribute::getLabxyHist2(Image & canonical, int l, int a
       float ynrm = y2 / (float)canonical.getHeight();
 
       hist.add(labColor[0], labColor[1], labColor[2], xnrm, ynrm);
+
+      if (abs(labColor[1]) > tmp)
+        tmp = abs(labColor[1]);
     }
   }
 

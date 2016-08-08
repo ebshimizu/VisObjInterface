@@ -267,6 +267,9 @@ public:
   // Device IDs selected as the key lights for clustering.
   // All other lights are treated as secondary lights
   vector<string> _keyIds;
+
+  // distance matrix for EMD. initialized on attribute load
+  vector<vector<double> > _metric;
 };
 
 // Results that eventually get returned to the UI layer
