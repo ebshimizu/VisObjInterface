@@ -704,14 +704,14 @@ float Sparse5DHistogram::EMD(Sparse5DHistogram & other)
 
   // construct stuctures for FastSimplex
   vector<feature_tt> f1, f2;
-  vector<int> weights1 = weights(f1);
-  vector<int> weights2 = other.negWeights(f2);
+  vector<float> weights1 = normalizedWeights(f1);
+  vector<float> weights2 = other.negNormalizedWeights(f2);
 
   unsigned int n1 = f1.size();
   unsigned int n2 = f2.size();
 
   Digraph di(n1, n2);
-  NetworkSimplexSimple<Digraph, int, float, unsigned int> net(di, true, n1 + n2, n1 * n2);
+  NetworkSimplexSimple<Digraph, float, float, unsigned int> net(di, true, n1 + n2, n1 * n2, 1000);
   unsigned int arcId = 0;
   for (unsigned int i = 0; i < n1; i++) {
     for (unsigned int j = 0; j < n2; j++) {
@@ -770,7 +770,7 @@ vector<float> Sparse5DHistogram::negNormalizedWeights(vector<feature_tt>& out)
   vector<float> nrmWeights;
   for (auto& f : _histData) {
     // add just a bit of extra negative weight to make solver happy
-    nrmWeights.push_back((-f.second / _totalWeight) - 1e-4);
+    nrmWeights.push_back((-f.second / _totalWeight));
     out.push_back(f.first._data);
   }
 

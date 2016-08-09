@@ -343,8 +343,8 @@ void AttributeControls::initAttributes()
   Array<File> imagesToLoad;
   int numImage = imageDir.findChildFiles(imagesToLoad, 2, false, "*.png");
 
-  LabxyHistogram gen(5, 5, 5, 3, 3, { 0, 100, -70, 70, -70, 70, 0, 1, 0, 1 }, 100);
-  getGlobalSettings()->_metric = gen.getGroundDistances();
+  //LabxyHistogram gen(5, 5, 5, 3, 3, { 0, 100, -70, 70, -70, 70, 0, 1, 0, 1 }, 100);
+  //getGlobalSettings()->_metric = gen.getGroundDistances();
 
   for (int i = 0; i < numImage; i++) {
     String name = imagesToLoad[i].getFileNameWithoutExtension();
