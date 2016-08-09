@@ -62,6 +62,18 @@ ImageAttribute::ImageAttribute(string name, Image img, int n) : HistogramAttribu
   addAndMakeVisible(_showImgButton);
 }
 
+ImageAttribute::ImageAttribute(string name, Snapshot * s, int n) : HistogramAttribute(name),
+  _sourceHist({}), _n(n)
+{
+  _originalImg = generateImage(s, 1920, 1080);
+  _sourceImg = _originalImg.rescaled(_canonicalWidth, _canonicalHeight);
+
+  _showImgButton.setButtonText("Show Image");
+  _showImgButton.setName("Show Image");
+  _showImgButton.addListener(this);
+  addAndMakeVisible(_showImgButton);
+}
+
 ImageAttribute::~ImageAttribute()
 {
 }
@@ -134,4 +146,9 @@ void ImageAttribute::buttonClicked(Button * b)
 
     CallOutBox::launchAsynchronously(vp, _showImgButton.getScreenBounds(), nullptr);
   }
+}
+
+Image ImageAttribute::getOriginalImage()
+{
+  return _originalImg;
 }

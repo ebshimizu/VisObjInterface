@@ -152,3 +152,22 @@ Image AttributeControllerBase::generateImage(Snapshot * s)
 
   return canonical;
 }
+
+Image AttributeControllerBase::generateImage(Snapshot * s, int w, int h)
+{
+  auto devices = s->getDevices();
+  auto p = getAnimationPatch();
+
+  if (p == nullptr) {
+    return Image(Image::ARGB, w, h, true);
+  }
+
+  Image highRes = Image(Image::ARGB, w, h, true);
+  uint8* bufptr = Image::BitmapData(highRes, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+  p->setDims(w, h);
+  p->setSamples(getGlobalSettings()->_thumbnailRenderSamples);
+
+  getAnimationPatch()->renderSingleFrameToBuffer(devices, bufptr, w, h);
+
+  return highRes;
+}

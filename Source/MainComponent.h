@@ -111,6 +111,12 @@ private:
 	void saveClusters();
 	void loadClusters();
 
+  // Starts automatic processing based on command line args.
+  void startAuto();
+  void endAuto();
+
+  void createLogDirs();
+
   // Opens a selection box presenting a dropdown consisting of the selected
   // metadata field
   void selectBox(string metadataKey, bool inv, string title);
@@ -145,6 +151,19 @@ private:
   ScopedPointer<AttributeSearch> _searchWorker;
 
   TooltipWindow _tips;
+
+  class AutoTimer : public Timer
+  {
+  public:
+    AutoTimer();
+    ~AutoTimer();
+
+    void setWorker(AttributeSearch* worker);
+    virtual void timerCallback();
+  private:
+    AttributeSearch* _worker;
+  };
+  AutoTimer _autoTimer;
 
   // Indicates if the user manually stopped the search.
   bool _searchWasStopped;

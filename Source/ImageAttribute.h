@@ -35,13 +35,17 @@ class ImageAttribute : public HistogramAttribute
 public:
   ImageAttribute(string name, string filepath, int n = 10);
   ImageAttribute(string name, Image img, int n = 10);
+  ImageAttribute(string name, Snapshot* s, int n = 10);
   ~ImageAttribute();
 
   virtual double evaluateScene(Snapshot* s, Image& img);
+
   virtual void preProcess();
 
   virtual void resized() override;
   virtual void buttonClicked(Button* b) override;
+
+  Image getOriginalImage();
   
 private:
   int _n;

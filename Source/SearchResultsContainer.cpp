@@ -1236,6 +1236,11 @@ shared_ptr<SearchResultContainer> SearchResultsContainer::getLastSample()
 	}
 }
 
+const Array<shared_ptr<SearchResultContainer>>& SearchResultsContainer::getAllResults()
+{
+  return _allResults;
+}
+
 void SearchResultsContainer::writeMetadata(std::ofstream &statsFile, SearchMetadata &md)
 {
 	statsFile << "Cluster mode: " << md._mode << "\n";

@@ -406,6 +406,7 @@ GlobalSettings::GlobalSettings()
 	_searchMode = MCMCLMGD;
 	_maxGradIters = 200;
   _reduceRepeatEdits = true;
+  _autoTimeout = 30;
 
   if (_searchThreads <= 0)
     _searchThreads = 1;

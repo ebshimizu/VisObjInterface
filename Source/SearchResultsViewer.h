@@ -88,6 +88,8 @@ public:
 	// Clears the history container
 	void clearHistory();
 
+  const Array<shared_ptr<SearchResultContainer> >& getAllResults();
+
 	map<int, shared_ptr<SearchResultContainer> >& getTerminalScenes();
 	map<int, int>& getLocalSampleCounts();
 	shared_ptr<SearchResultContainer> getLastSample();

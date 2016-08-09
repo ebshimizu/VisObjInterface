@@ -80,6 +80,12 @@ public:
 
   map<string, AttributeControllerBase*> getActiveAttributes();
 
+  // Deletes all the attributes in the container
+  void deleteAllAttributes();
+  
+  // Adds a new controller to the container.
+  void addAttributeController(AttributeControllerBase* controller);
+
 private:
   void initAttributes();
 

@@ -314,6 +314,17 @@ map<string, AttributeControllerBase*> AttributeControls::getActiveAttributes()
   return _container->getActiveAttribues();
 }
 
+void AttributeControls::deleteAllAttributes()
+{
+  _container->removeAllControllers();
+}
+
+void AttributeControls::addAttributeController(AttributeControllerBase * controller)
+{
+  controller->preProcess();
+  _container->addAttributeController(controller);
+}
+
 void AttributeControls::initAttributes()
 {
   // Add saturation
@@ -350,9 +361,4 @@ void AttributeControls::initAttributes()
     String name = imagesToLoad[i].getFileNameWithoutExtension();
     _container->addAttributeController(new ImageAttribute(name.toStdString(), imagesToLoad[i].getFullPathName().toStdString(), 5));
   }
-
-  //_container->addAttributeController(new BacklitAttribute());
-  //_container->addAttributeController(new SoftAttribute());
-  //_container->addAttributeController(new HighAngleAttribute());
-  //_container->addAttributeController(new SVRAttribute("C:/Users/falindrith/Documents/GitHub/pairwise-collector/server/romantic_p2g.svm", "Romantic"));
 }

@@ -981,7 +981,7 @@ Sparse5DHistogram HistogramAttribute::getLabxyHist(Image & canonical, int n)
 
 Sparse5DHistogram HistogramAttribute::getLabxyHist(Image & canonical, int l, int a, int b, int x, int y)
 {
-  Sparse5DHistogram hist({ 0, 20, -5, 25, -5, 25, 0, 0.25f, 0, 0.25f }, 1);
+  Sparse5DHistogram hist({ 0, 20, -5, 25, -5, 25, 0, 0.25f, 0, 0.25f }, 50);
 
   for (int y2 = 0; y2 < canonical.getHeight(); y2++) {
     for (int x2 = 0; x2 < canonical.getWidth(); x2++) {

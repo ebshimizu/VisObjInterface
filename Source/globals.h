@@ -40,6 +40,8 @@ enum command {
   REFRESH_PARAMS = 0x2000,
   REFRESH_ATTR = 0x2001,
 	REFRESH_SETTINGS = 0x2002,
+  START_AUTO = 0x2003,
+  END_AUTO = 0x2004,
 
   // Render
   ARNOLD_RENDER = 0x3000,
@@ -202,6 +204,7 @@ public:
 	SearchMode _searchMode;				// Search method
 	int _maxGradIters;						// Maximum number of gradient descent iterations.
   bool _reduceRepeatEdits;      // Reduce the probability of repeat edits during a search
+  int _autoTimeout;             // Maximum amout of time to keep the program running during auto
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results
@@ -270,6 +273,10 @@ public:
 
   // distance matrix for EMD. initialized on attribute load
   vector<vector<double> > _metric;
+
+  // records the time the search was started and ended
+  chrono::time_point<chrono::system_clock> _searchStartTime;
+  chrono::time_point<chrono::system_clock> _searchEndTime;
 };
 
 // Results that eventually get returned to the UI layer

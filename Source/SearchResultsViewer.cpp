@@ -200,6 +200,11 @@ void SearchResultsViewer::clearHistory()
 	_history->clearAllHistory();
 }
 
+const Array<shared_ptr<SearchResultContainer>>& SearchResultsViewer::getAllResults()
+{
+  return _results->getAllResults();
+}
+
 map<int, shared_ptr<SearchResultContainer>>& SearchResultsViewer::getTerminalScenes()
 {
 	return _results->getTerminalScenes();

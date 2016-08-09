@@ -45,6 +45,7 @@ public:
 
   // popualtes the image field of the histogram attribute
   Image generateImage(Snapshot* s);
+  Image generateImage(Snapshot* s, int w, int h);
 
   // for integration of non-semantic attributes into the system
   virtual bool isNonSemantic() { return false; }

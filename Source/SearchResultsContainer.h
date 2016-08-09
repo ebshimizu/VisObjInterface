@@ -134,6 +134,8 @@ public:
 	// AttributeSearchThread::runHybridDebug
 	shared_ptr<SearchResultContainer> getLastSample();
 
+  const Array<shared_ptr<SearchResultContainer> >& getAllResults();
+
 private:
   // All results contains every result in the container. It should only be deleted at the top
   // level of the container hierarchy, which looks like:

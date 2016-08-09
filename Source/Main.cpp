@@ -63,6 +63,41 @@ public:
           // this should be a filename or "auto" for automatically generate one.
           getGlobalSettings()->_commandLineArgs["img-attr"] = commandLine.substring(start, end);
         }
+        else if (substr == "--more" || substr == "-m") {
+          // Indicates more for the attribute
+          getGlobalSettings()->_commandLineArgs["more"] = "true";
+        }
+        else if (substr == "--less" || substr == "-l") {
+          // Indicates more for the attribute
+          getGlobalSettings()->_commandLineArgs["less"] = "true";
+        }
+        else if (substr == "--samples" || substr == "-n") {
+          start = end + 1;
+          end = commandLine.indexOf(start, " ");
+          if (end == -1)
+            end = commandLine.length();
+
+          // this should be a number
+          getGlobalSettings()->_commandLineArgs["samples"] = commandLine.substring(start, end);
+        }
+        else if (substr == "--out" || "-o") {
+          start = end + 1;
+          end = commandLine.indexOf(start, " ");
+          if (end == -1)
+            end = commandLine.length();
+
+          // this should be a directory
+          getGlobalSettings()->_commandLineArgs["out"] = commandLine.substring(start, end);
+        }
+        else if (substr == "--timeout" || "-t") {
+          start = end + 1;
+          end = commandLine.indexOf(start, " ");
+          if (end == -1)
+            end = commandLine.length();
+
+          // this should be a number in minutes
+          getGlobalSettings()->_commandLineArgs["timeout"] = commandLine.substring(start, end);
+        }
 
         if (start == 0)
           break;

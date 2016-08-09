@@ -11,6 +11,7 @@
 #include "SettingsEditor.h"
 #include "AttributeSearch.h"
 #include "HistoryPanel.h"
+#include "ImageAttribute.h"
 
 //==============================================================================
 MainContentComponent::MainContentComponent()
@@ -47,17 +48,15 @@ MainContentComponent::MainContentComponent()
   }
 
 	// create log directories if they don't exist
-	File clusterFolder;
-	clusterFolder = clusterFolder.getCurrentWorkingDirectory().getChildFile(String(getGlobalSettings()->_logRootDir + "/clusters/"));
-	if (!clusterFolder.exists()) {
-		clusterFolder.createDirectory();
-	}
+  createLogDirs();
 
-	File logFolder;
-	logFolder = logFolder.getCurrentWorkingDirectory().getChildFile(String(getGlobalSettings()->_logRootDir + "/traces/"));
-	if (!logFolder.exists()) {
-		logFolder.createDirectory();
-	}
+  // if the auto flag is present, redirect to different function to get that started.
+  // pass it through the application command manager to make it async
+  if (getGlobalSettings()->_commandLineArgs.count("auto") != 0) {
+    getApplicationCommandManager()->invokeDirectly(START_AUTO, true);
+  }
+
+  _autoTimer.setWorker(_searchWorker.get());
 }
 
 MainContentComponent::~MainContentComponent()
@@ -110,7 +109,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::SAVE_RENDER, command::GET_FROM_ARNOLD, command::STOP_SEARCH, command::GET_NEW_RESULTS,
     command::UPDATE_NUM_THREADS, command::SAVE_RESULTS, command::LOAD_RESULTS, command::LOAD_TRACES,
     command::PICK_TRACE, command::OPEN_MASK, command::SAVE_CLUSTERS, command::LOAD_CLUSTERS, command::REFRESH_SETTINGS,
-    command::CONSTRAINTS
+    command::CONSTRAINTS, command::START_AUTO, command::END_AUTO
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -235,6 +234,12 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::CONSTRAINTS:
     result.setInfo("Constraints Editor", "Adjust the constraints on search parameters", "Explore", 0);
     break;
+  case command::START_AUTO:
+    result.setInfo("Start Automatic Command", "Internal: Start search based on command line arguments", "Internal", 0);
+    break;
+  case command::END_AUTO:
+    result.setInfo("STop Automatic Command", "Internal: Runs the final code for the automatic search", "Internal", 0);
+    break;
   default:
     return;
   }
@@ -346,6 +351,12 @@ bool MainContentComponent::perform(const InvocationInfo & info)
 			_settingsWindow->refresh();
 		}
 	}
+  case command::START_AUTO:
+    startAuto();
+    break;
+  case command::END_AUTO:
+    endAuto();
+    break;
   default:
     return false;
   }
@@ -834,6 +845,154 @@ void MainContentComponent::loadClusters()
 	}
 }
 
+void MainContentComponent::startAuto()
+{
+  getStatusBar()->setStatusMessage("Running auto program");
+
+  // assert all required params are present
+  auto& args = getGlobalSettings()->_commandLineArgs;
+  if (args.count("auto") == 0 || args.count("img-attr") == 0 ||
+      args.count("samples") == 0 || args.count("out") == 0) {
+    // kill the app otherwise
+    JUCEApplicationBase::quit();
+  }
+
+  // settings
+  getGlobalSettings()->_searchMode = (SearchMode)args["auto"].getIntValue();
+  getGlobalSettings()->_maxReturnedScenes = args["samples"].getIntValue();
+  getGlobalSettings()->_logRootDir = args["out"].toStdString();
+  getGlobalSettings()->_exportTraces = true;
+  getGlobalSettings()->_autoRunTraceGraph = false;
+  
+  if (args.count("timeout") > 0)
+    getGlobalSettings()->_autoTimeout = args["timeout"].getIntValue();
+
+  createLogDirs();
+
+  // replace all attributes with our specific attribute
+  _attrs->deleteAllAttributes();
+  ImageAttribute* imgAttr;
+
+  if (args["img-attr"] == "auto") {
+    // generate image
+    // okay to keep things consistent, we'll just take the start scene and do a bunch of random edits
+    // to it to maintain some semblance of consistency.
+    _searchWorker->setState(new Snapshot(getRig()), _attrs->getActiveAttributes());
+    _searchWorker->generateEdits(false);
+
+    default_random_engine gen(std::random_device{}());
+    uniform_real_distribution<float> udist(10, 200);
+    uniform_real_distribution<float> edist(0, getGlobalSettings()->_edits.size());
+
+    Snapshot* target = new Snapshot(getRig());
+
+    // conveniently edits are just in the globals so
+    for (int i = 0; i < (int)udist(gen); i++) {
+      int id = (int)edist(gen);
+      getGlobalSettings()->_edits[id]->performEdit(target, 0.5); // go nuts
+    }
+
+    // create attribute controller
+    imgAttr = new ImageAttribute("auto", target);
+    _attrs->addAttributeController(imgAttr);
+    delete target;
+  }
+  else {
+    // load image
+    File img(args["img-attr"]);
+    imgAttr = new ImageAttribute(img.getFileNameWithoutExtension().toStdString(), args["img-attr"].toStdString());
+    _attrs->addAttributeController(imgAttr);
+  }
+
+  // set attribute status
+  if (args.count("less") > 0)
+    imgAttr->setStatus(A_LESS);
+  else
+    imgAttr->setStatus(A_MORE);
+
+  search();
+
+  // search starts. when finished, aplication will quit after all data is gathered.
+  _autoTimer.startTimer(100);
+}
+
+void MainContentComponent::endAuto()
+{
+  // back in the main thread
+  // we want to pull out all the relevant data and put it in a folder in the log root dir
+  // first, create the folder
+  File resultsFolder;
+  resultsFolder = resultsFolder.getCurrentWorkingDirectory().
+    getChildFile(String(getGlobalSettings()->_logRootDir + "/" + getGlobalSettings()->_sessionName + "/"));
+  
+  if (!resultsFolder.exists()) {
+    resultsFolder.createDirectory();
+  }
+
+  string filename = resultsFolder.getChildFile("search.meta").getFullPathName().toStdString();
+  // write metadata file
+  ofstream file;
+  file.open(filename, ios::trunc);
+  file << getGlobalSettings()->_sessionSearchSettings;
+
+  // write out search specific settings
+  file << "Starting Edit Depth: " << getGlobalSettings()->_editDepth << "\n";
+  file << "Edit Step Size: " << getGlobalSettings()->_editStepSize << "\n";
+  file << "Max MCMC Iterations: " << getGlobalSettings()->_maxMCMCIters << "\n";
+  file << "Max Displayed Results: " << getGlobalSettings()->_maxReturnedScenes << "\n";
+  file << "Required Distance from Other Results: " << getGlobalSettings()->_jndThreshold << "\n";
+  file << "Search Failure Limit: " << getGlobalSettings()->_searchFailureLimit << "\n";
+  file << "Search Threads: " << getGlobalSettings()->_searchThreads << "\n";
+  file << "Temperature: " << getGlobalSettings()->_T << "\n";
+
+  file << "\nEdit Weights\n";
+
+  for (auto e : getGlobalSettings()->_globalEditWeights) {
+    file << e.first << " : " << e.second->_name << "\n";
+  }
+
+  file.close();
+
+  // save the target image
+  File img = resultsFolder.getChildFile("target.png");
+  FileOutputStream os(img);
+  PNGImageFormat pngif;
+
+  // get the attribute image (the original)
+  // the attribute should be the only one in the controls
+  ImageAttribute* attr = dynamic_cast<ImageAttribute*>(_attrs->getActiveAttributes()[0]);
+  Image target = attr->getOriginalImage();
+  pngif.writeImageToStream(target, os);
+
+  // save results
+  // for all results in the results container we want to export:
+  // - thread, sample id, time from start it was generated, attr value
+  //   avg lab distance to target, feature vector in that order as a csv file
+  filename = resultsFolder.getChildFile("results.csv").getFullPathName().toStdString();
+  file.open(filename, ios::trunc);
+
+  const Array<shared_ptr<SearchResultContainer> > results = _search->getAllResults();
+
+  // export results here
+
+  file.close();
+}
+
+void MainContentComponent::createLogDirs()
+{
+	File clusterFolder;
+	clusterFolder = clusterFolder.getCurrentWorkingDirectory().getChildFile(String(getGlobalSettings()->_logRootDir + "/clusters/"));
+	if (!clusterFolder.exists()) {
+		clusterFolder.createDirectory();
+	}
+
+	File logFolder;
+	logFolder = logFolder.getCurrentWorkingDirectory().getChildFile(String(getGlobalSettings()->_logRootDir + "/traces/"));
+	if (!logFolder.exists()) {
+		logFolder.createDirectory();
+	}
+}
+
 void MainContentComponent::selectBox(string metadataKey, bool inv, string title)
 {
 #if JUCE_MODAL_LOOPS_PERMITTED
@@ -900,4 +1059,27 @@ void MainContentComponent::stopSearch()
   }
 
   _searchWasStopped = true;
+}
+
+MainContentComponent::AutoTimer::AutoTimer()
+{
+}
+
+MainContentComponent::AutoTimer::~AutoTimer()
+{
+}
+
+void MainContentComponent::AutoTimer::setWorker(AttributeSearch* worker) {
+  _worker = worker;
+}
+
+void MainContentComponent::AutoTimer::timerCallback()
+{
+  if (!_worker->isThreadRunning()) {
+    // run exit code.
+    getApplicationCommandManager()->invokeDirectly(END_AUTO, true);
+    stopTimer();
+  }
+
+  // check timeout conditions here
 }
