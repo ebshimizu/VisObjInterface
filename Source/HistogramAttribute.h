@@ -13,6 +13,12 @@
 
 #include "AttributeControllerBase.h"
 #include "FastEMD-3.1/FastEMD/emd_hat_signatures_interface.hpp"
+#include "FastSimplex/network_simplex_simple.h"
+
+using namespace lemon;
+
+typedef FullBipartiteDigraph Digraph;
+DIGRAPH_TYPEDEFS(FullBipartiteDigraph);
 
 // a note about all these histogram classes:
 // when it says numBins the actual number of bins in the histogram will
@@ -225,12 +231,14 @@ public:
   float EMD(Sparse5DHistogram& other);
 
   // Retrieves a vector of the histogram weights and the corresponding features
-  vector<double> weights(vector<feature_tt>& out);
+  vector<int> weights(vector<feature_tt>& out);
+  vector<int> negWeights(vector<feature_tt>& out);
 
   // Returns the normalized weights of the histogram and the corresponding features
-  vector<double> normalizedWeights(vector<feature_tt>& out);
+  vector<float> normalizedWeights(vector<feature_tt>& out);
+  vector<float> negNormalizedWeights(vector<feature_tt>& out);
 
-  vector<vector<double> > getGroundDistance(vector<HistogramFeature>& f1, vector<HistogramFeature>& f2);
+  vector<vector<float> > getGroundDistance(vector<HistogramFeature>& f1, vector<HistogramFeature>& f2);
 
   // Sets the weight for the pixel location
   void setLambda(double lambda);

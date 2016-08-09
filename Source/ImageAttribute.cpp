@@ -88,7 +88,7 @@ double ImageAttribute::evaluateScene(Snapshot * s, Image& img)
 void ImageAttribute::preProcess()
 {
   _sourceHist = getLabxyHist2(_sourceImg, _n, _n, _n, 3, 3);
-  //_sourceHist = getLabHist(_sourceImg, _n);
+  //_sourceHist = getLabxyHist(_sourceImg, _n);
 
   _metric = getGlobalSettings()->_metric;
 

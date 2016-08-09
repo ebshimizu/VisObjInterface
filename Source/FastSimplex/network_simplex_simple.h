@@ -34,8 +34,8 @@
 /// \file
 /// \brief Network Simplex algorithm for finding a minimum cost flow.
 
-// if your compiler has troubles with stdext or hashmaps, just comment the following line to use a slower std::map instead
-#define HASHMAP
+// if your compiler has troubles with stdext or hashmaps, just comment the following line to use a slower std::unordered_map instead
+//#define HASHMAP
 
 #include <vector>
 #include <limits>
@@ -73,7 +73,7 @@ template <typename T>
 #ifdef HASHMAP
 			typename stdext::hash_map<int,T>::const_iterator it = data.find(id);
 #else
-			typename std::map<int,T>::const_iterator it = data.find(id);
+			typename std::unordered_map<int,T>::const_iterator it = data.find(id);
 #endif
 			if (it==data.end())
 				return 0;
@@ -90,7 +90,7 @@ template <typename T>
 #ifdef HASHMAP
 		stdext::hash_map<int,T> data;
 #else
-		std::map<int,T> data;
+		std::unordered_map<int,T> data;
 #endif
 
 	};
@@ -113,7 +113,7 @@ template <typename T>
 #ifdef HASHMAP
 			typename stdext::hash_map<int,T>::iterator it = _v->data.find(_idx);
 #else
-			typename std::map<int,T>::iterator it = _v->data.find(_idx);
+			typename std::unordered_map<int,T>::iterator it = _v->data.find(_idx);
 #endif
 			if (it==_v->data.end())
 				return 0;
@@ -127,7 +127,7 @@ template <typename T>
 #ifdef HASHMAP
 			typename stdext::hash_map<int,T>::iterator it = _v->data.find(_idx);
 #else
-			typename std::map<int,T>::iterator it = _v->data.find(_idx);
+			typename std::unordered_map<int,T>::iterator it = _v->data.find(_idx);
 #endif
 			if (it==_v->data.end())
 				_v->data[_idx] = val;
@@ -146,7 +146,7 @@ template <typename T>
 #ifdef HASHMAP
 			typename stdext::hash_map<int,T>::iterator it = _v->data.find(_idx);
 #else
-			typename std::map<int,T>::iterator it = _v->data.find(_idx);
+			typename std::unordered_map<int,T>::iterator it = _v->data.find(_idx);
 #endif
 			if (it==_v->data.end())
 				_v->data[_idx] = -val;
@@ -839,7 +839,7 @@ int divid (int x, int y)
 /*#ifdef HASHMAP
 	  typename stdext::hash_map<int, Value>::const_iterator it;
 #else
-	  typename std::map<int, Value>::const_iterator it;
+	  typename std::unordered_map<int, Value>::const_iterator it;
 #endif
 	  for (it = _flow.data.begin(); it!=_flow.data.end(); ++it)
 		c += Number(it->second) * Number(_cost[it->first]);

@@ -503,6 +503,33 @@ double LabxyHistogram::getBin(int l, int a, int b, int x, int y)
 
 double LabxyHistogram::EMD(LabxyHistogram & other, const vector<vector<double>>& gd)
 {
+  vector<double> weights1 = normalized();
+  vector<double> weights2 = other.normalized();
+
+  for (int i = 0; i < weights2.size(); i++) {
+    weights2[i] = -weights2[i] - 1e-6;
+  }
+
+  unsigned int n1 = weights1.size();
+  unsigned int n2 = weights2.size();
+
+  Digraph di(n1, n2);
+  NetworkSimplexSimple<Digraph, double, double, unsigned int> net(di, true, n1 + n2, n1 * n2);
+  unsigned int arcId = 0;
+  for (unsigned int i = 0; i < n1; i++) {
+    for (unsigned int j = 0; j < n2; j++) {
+      float d = gd[i][j];
+      net.setCost(di.arcFromId(arcId), d);
+      arcId++;
+    }
+  }
+
+  net.supplyMap(&weights1[0], n1, &weights2[0], n2);
+  int ret = net.run();
+
+  double resultDist = net.totalCost();
+  return resultDist;
+
   return _emd(normalized(), other.normalized(), gd);
 }
 
@@ -697,44 +724,65 @@ float Sparse5DHistogram::getBin(float l, float a, float b, float x, float y)
 
 float Sparse5DHistogram::EMD(Sparse5DHistogram & other)
 {
-  vector<feature_tt> f1, f2;
-  vector<double> weights1 = normalizedWeights(f1);
-  vector<double> weights2 = other.normalizedWeights(f2);
-  
-  function<double(feature_tt*, feature_tt*)> dist = [this](feature_tt* f1, feature_tt* f2) {
+  function<float(feature_tt*, feature_tt*)> dist = [this](feature_tt* f1, feature_tt* f2) {
     return sqrt(pow(f1->_L - f2->_L, 2) + pow(f1->_a - f2->_a, 2) + pow(f1->_b - f2->_b, 2) +
       _lambda * (pow(f1->_x - f2->_x, 2) + pow(f1->_y - f2->_y, 2)));
   };
 
-  signature_tt<double> s1, s2;
+  // construct stuctures for FastSimplex
+  vector<feature_tt> f1, f2;
+  vector<int> weights1 = weights(f1);
+  vector<int> weights2 = other.negWeights(f2);
 
-  s1.Features = &f1[0];
-  s1.Weights = &weights1[0];
-  s1.n = weights1.size();
+  unsigned int n1 = f1.size();
+  unsigned int n2 = f2.size();
 
-  s2.Features = &f2[0];
-  s2.Weights = &weights2[0];
-  s2.n = weights2.size();
+  Digraph di(n1, n2);
+  NetworkSimplexSimple<Digraph, int, float, unsigned int> net(di, true, n1 + n2, n1 * n2);
+  unsigned int arcId = 0;
+  for (unsigned int i = 0; i < n1; i++) {
+    for (unsigned int j = 0; j < n2; j++) {
+      float d = dist(&f1[i], &f2[j]);
+      net.setCost(di.arcFromId(arcId), d);
+      arcId++;
+    }
+  }
 
-  return emd_hat_signature_interface<double>(&s1, &s2, dist, 0);
+  net.supplyMap(&weights1[0], n1, &weights2[0], n2);
+  int ret = net.run();
+
+  double resultDist = net.totalCost();
+  return (float) resultDist;
 }
 
-vector<double> Sparse5DHistogram::weights(vector<feature_tt>& out)
+vector<int> Sparse5DHistogram::weights(vector<feature_tt>& out)
 {
   out.clear();
-  vector<double> weights;
+  vector<int> weights;
   for (auto& f : _histData) {
-    weights.push_back(f.second);
+    weights.push_back((int)f.second);
     out.push_back(f.first._data);
   }
 
   return weights;
 }
 
-vector<double> Sparse5DHistogram::normalizedWeights(vector<feature_tt>& out)
+vector<int> Sparse5DHistogram::negWeights(vector<feature_tt>& out)
 {
   out.clear();
-  vector<double> nrmWeights;
+  vector<int> weights;
+  for (auto& f : _histData) {
+    weights.push_back((int)-f.second);
+    out.push_back(f.first._data);
+  }
+
+  return weights;
+}
+
+vector<float> Sparse5DHistogram::normalizedWeights(vector<feature_tt>& out)
+{
+  out.clear();
+  vector<float> nrmWeights;
   for (auto& f : _histData) {
     nrmWeights.push_back(f.second / _totalWeight);
     out.push_back(f.first._data);
@@ -743,9 +791,22 @@ vector<double> Sparse5DHistogram::normalizedWeights(vector<feature_tt>& out)
   return nrmWeights;
 }
 
-vector<vector<double>> Sparse5DHistogram::getGroundDistance(vector<HistogramFeature>& f1, vector<HistogramFeature>& f2)
+vector<float> Sparse5DHistogram::negNormalizedWeights(vector<feature_tt>& out)
 {
-  vector<vector<double> > gd;
+  out.clear();
+  vector<float> nrmWeights;
+  for (auto& f : _histData) {
+    // add just a bit of extra negative weight to make solver happy
+    nrmWeights.push_back((-f.second / _totalWeight) - 1e-4);
+    out.push_back(f.first._data);
+  }
+
+  return nrmWeights;
+}
+
+vector<vector<float>> Sparse5DHistogram::getGroundDistance(vector<HistogramFeature>& f1, vector<HistogramFeature>& f2)
+{
+  vector<vector<float> > gd;
 
   gd.resize(f1.size());
   for (int i = 0; i < gd.size(); i++) {
@@ -754,11 +815,12 @@ vector<vector<double>> Sparse5DHistogram::getGroundDistance(vector<HistogramFeat
 
   for (int i = 0; i < f1.size(); i++) {
     for (int j = 0; j < f2.size(); j++) {
-      //double dist = sqrt(pow(f1[i]._L - f2[j]._L, 2) + pow(f1[i]._a - f2[j]._a, 2) + pow(f1[i]._b - f2[j]._b, 2) +
-      //  _lambda * (pow(f1[i]._x - f2[j]._x, 2) + pow(f1[i]._y - f2[j]._y, 2)));
+      float dist = sqrt(pow(f1[i]._data._L - f2[j]._data._L, 2) + pow(f1[i]._data._a - f2[j]._data._a, 2) +
+        pow(f1[i]._data._b - f2[j]._data._b, 2) +
+        _lambda * (pow(f1[i]._data._x - f2[j]._data._x, 2) + pow(f1[i]._data._y - f2[j]._data._y, 2)));
 
       // distances are symmetric
-      // gd[i][j] = dist;
+      gd[i][j] = dist;
     }
   }
 

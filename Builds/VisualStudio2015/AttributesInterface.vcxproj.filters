@@ -11,6 +11,9 @@
     <Filter Include="AttributesInterface\Source\third_party">
       <UniqueIdentifier>{ADF50322-549C-225D-798C-D5B3AE74CE52}</UniqueIdentifier>
     </Filter>
+    <Filter Include="AttributesInterface\Source\third_party\FastSimplex">
+      <UniqueIdentifier>{D404D55D-79D2-5FB1-A760-410E0F050CF8}</UniqueIdentifier>
+    </Filter>
     <Filter Include="AttributesInterface\Source\third_party\FastEMD">
       <UniqueIdentifier>{96C28FA6-6F76-068D-68F1-7DA0D0BCCB63}</UniqueIdentifier>
     </Filter>
@@ -2172,6 +2175,18 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\FastSimplex\chrono.h">
+      <Filter>AttributesInterface\Source\third_party\FastSimplex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\FastSimplex\core.h">
+      <Filter>AttributesInterface\Source\third_party\FastSimplex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\FastSimplex\full_bipartitegraph.h">
+      <Filter>AttributesInterface\Source\third_party\FastSimplex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\FastSimplex\network_simplex_simple.h">
+      <Filter>AttributesInterface\Source\third_party\FastSimplex</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\FastEMD-3.1\FastEMD\emd_hat_signatures_interface.hpp">
       <Filter>AttributesInterface\Source\third_party\FastEMD</Filter>
     </ClInclude>
