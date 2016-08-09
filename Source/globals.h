@@ -209,7 +209,7 @@ public:
   // Current sorting method to use
   string _currentSortMode;
 
-  map<string, string> _commandLineArgs;
+  map<String, String> _commandLineArgs;
 
   // Diagnostic storage for search
   map<int, vector<DebugData> > _samples;

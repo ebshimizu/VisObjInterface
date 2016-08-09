@@ -503,33 +503,6 @@ double LabxyHistogram::getBin(int l, int a, int b, int x, int y)
 
 double LabxyHistogram::EMD(LabxyHistogram & other, const vector<vector<double>>& gd)
 {
-  vector<double> weights1 = normalized();
-  vector<double> weights2 = other.normalized();
-
-  for (int i = 0; i < weights2.size(); i++) {
-    weights2[i] = -weights2[i] - 1e-6;
-  }
-
-  unsigned int n1 = weights1.size();
-  unsigned int n2 = weights2.size();
-
-  Digraph di(n1, n2);
-  NetworkSimplexSimple<Digraph, double, double, unsigned int> net(di, true, n1 + n2, n1 * n2);
-  unsigned int arcId = 0;
-  for (unsigned int i = 0; i < n1; i++) {
-    for (unsigned int j = 0; j < n2; j++) {
-      float d = gd[i][j];
-      net.setCost(di.arcFromId(arcId), d);
-      arcId++;
-    }
-  }
-
-  net.supplyMap(&weights1[0], n1, &weights2[0], n2);
-  int ret = net.run();
-
-  double resultDist = net.totalCost();
-  return resultDist;
-
   return _emd(normalized(), other.normalized(), gd);
 }
 

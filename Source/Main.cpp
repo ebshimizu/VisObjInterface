@@ -30,7 +30,6 @@ public:
     void initialise (const String& commandLine) override
     {
       // This method is where you should put your application's initialisation code..
-
       // process command line args
       int start = 0;
       int end = 0;
@@ -38,17 +37,37 @@ public:
         end = commandLine.indexOf(start, " ");
         String substr = commandLine.substring(start, end);
 
-        if (substr == "--preload") {
+        if (substr == "--preload" || substr == "-p") {
           start = end + 1;
           end = commandLine.indexOf(start, " ");
           if (end == -1)
             end = commandLine.length();
-          getGlobalSettings()->_commandLineArgs["preload"] = commandLine.substring(start, end).toStdString();
+          getGlobalSettings()->_commandLineArgs["preload"] = commandLine.substring(start, end);
+        }
+        else if (substr == "--auto" || substr == "-a") {
+          // indicates process should automatically run something then close.
           start = end + 1;
+          end = commandLine.indexOf(start, " ");
+          if (end == -1)
+            end = commandLine.length();
+
+          // this should be the search method id. see SearchMode in globals.h
+          getGlobalSettings()->_commandLineArgs["auto"] = commandLine.substring(start, end);
+        }
+        else if (substr == "--img-attr" || substr == "-ia") {
+          start = end + 1;
+          end = commandLine.indexOf(start, " ");
+          if (end == -1)
+            end = commandLine.length();
+
+          // this should be a filename or "auto" for automatically generate one.
+          getGlobalSettings()->_commandLineArgs["img-attr"] = commandLine.substring(start, end);
         }
 
         if (start == 0)
           break;
+
+        start = end + 1;
       }
 
       mainWindow = new MainWindow (getApplicationName());
