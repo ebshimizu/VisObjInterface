@@ -65,7 +65,7 @@ ImageAttribute::ImageAttribute(string name, Image img, int n) : HistogramAttribu
 ImageAttribute::ImageAttribute(string name, Snapshot * s, int n) : HistogramAttribute(name),
   _sourceHist({}), _n(n)
 {
-  _originalImg = generateImage(s, 1920, 1080);
+  _originalImg = generateImage(s, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
   _sourceImg = _originalImg.rescaled(_canonicalWidth, _canonicalHeight);
 
   _showImgButton.setButtonText("Show Image");
@@ -97,7 +97,6 @@ double ImageAttribute::evaluateScene(Snapshot * s, Image& img)
   LabxyHistogram currentHist = getLabxyHist2(img, _n, _n, _n, 3, 3);
   double diff = currentHist.EMD(_sourceHist, _metric);
 #endif
-
 
   return (100 - diff);
 }
@@ -151,4 +150,25 @@ void ImageAttribute::buttonClicked(Button * b)
 Image ImageAttribute::getOriginalImage()
 {
   return _originalImg;
+}
+
+double ImageAttribute::avgLabDistance(Snapshot * s)
+{
+  Image query = generateImage(s);
+  double sum = 0;
+
+  // compute average lab feature difference
+  for (int y = 0; y < _canonicalHeight; y++) {
+    for (int x = 0; x < _canonicalWidth; x++) {
+      auto px = _sourceImg.getPixelAt(x, y);
+      Eigen::Vector3d Lab1 = rgbToLab(px.getRed() / 255.0, px.getGreen() / 255.0, px.getBlue() / 255.0);
+
+      auto px2 = query.getPixelAt(x, y);
+      Eigen::Vector3d Lab2 = rgbToLab(px2.getRed() / 255.0, px2.getGreen() / 255.0, px2.getBlue() / 255.0);
+
+      sum += (Lab1 - Lab2).norm();
+    }
+  }
+
+  return sum / (_canonicalWidth * _canonicalHeight);
 }

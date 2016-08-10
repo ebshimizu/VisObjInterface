@@ -578,6 +578,8 @@ void AttributeSearchThread::runMCMCEditSearch(bool force) {
 	data._scene = r->_scene;
 	
 	r->_extraData["Thread"] = String(_id);
+  r->_extraData["Sample"] = String(data._sampleId);
+  r->_creationTime = chrono::high_resolution_clock::now();
 
 	if (_mode == HYBRID_EXPLORE || _mode == HYBRID_DEBUG) {
 		r->_extraData["Parent"] = String(_parent);
@@ -729,6 +731,8 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 		r->_scene = x;
 		r->_extraData["LM Terminal"] = "True";
 		r->_extraData["Thread"] = String(_id);
+    r->_extraData["Sample"] = String(data._sampleId);
+    r->_creationTime = chrono::high_resolution_clock::now();
 		// r->_extraData["Parent"]
 
 		data._accepted = _viewer->addNewResult(r, force);
@@ -863,6 +867,7 @@ void AttributeSearchThread::runMCMCLMGDSearch()
 
   r->_extraData["Thread"] = String(_id);
   r->_extraData["Sample"] = String(data._sampleId);
+  r->_creationTime = chrono::high_resolution_clock::now();
 
   // add if we did better
   if (r->_objFuncVal < orig) {
@@ -1241,6 +1246,9 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
 
   // objective functions for combined set of active attributes.
   _f = [this](Snapshot* s) {
+    if (_active.size() == 0)
+      return 0.0;
+
     // for multiple attributes, we generate the image here first
     Image img = _active.begin()->second.first->generateImage(s);
     Image startImg = _active.begin()->second.first->generateImage(_start);
@@ -1260,6 +1268,9 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
   };
 
   _fsq = [this](Snapshot* s) {
+    if (_active.size() == 0)
+      return 0.0;
+
     Image img = _active.begin()->second.first->generateImage(s);
     Image startImg = _active.begin()->second.first->generateImage(_start);
     double sum = 0;
@@ -1335,6 +1346,8 @@ void AttributeSearch::run()
     }
   }
   getRecorder()->log(SYSTEM, "Started Attribute Search.");
+  getGlobalSettings()->_searchStartTime = chrono::high_resolution_clock::now();
+  getGlobalSettings()->_searchAbsStartTime = chrono::system_clock::now();
 
   // run all threads
   // make sure to set the state properly before running/resuming
@@ -1375,8 +1388,10 @@ void AttributeSearch::run()
   while (1) {
     wait(100);
 
-    if (threadShouldExit())
+    if (threadShouldExit()) {
+      getGlobalSettings()->_searchEndTime = chrono::high_resolution_clock::now();
       return;
+    }
 
     if (_viewer->isFull()) {
       // clear new results queue, forcefully

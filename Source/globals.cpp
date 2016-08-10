@@ -407,6 +407,7 @@ GlobalSettings::GlobalSettings()
 	_maxGradIters = 200;
   _reduceRepeatEdits = true;
   _autoTimeout = 30;
+  _evWeight = 0;
 
   if (_searchThreads <= 0)
     _searchThreads = 1;
@@ -417,4 +418,10 @@ GlobalSettings::~GlobalSettings()
   for (auto& e : _edits) {
     delete e;
   }
+}
+
+Eigen::Vector3d rgbToLab(double r, double g, double b)
+{
+  Eigen::Vector3d xyz = ColorUtils::convRGBtoXYZ(r, g, b, sRGB);
+  return ColorUtils::convXYZtoLab(xyz, refWhites[D65] / 100.0);
 }

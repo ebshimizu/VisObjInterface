@@ -339,7 +339,9 @@ double Edit::expected(Snapshot * s, attrObjFunc f, double radius, int n)
   // multiply ratio by average change
   double ev = (sum * numPos) / n;
 
-  return var * 0.5 + ev * 0.5;
+  double weight = getGlobalSettings()->_evWeight;
+
+  return var * (1 - weight) + ev * weight;
 }
 
 

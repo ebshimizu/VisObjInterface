@@ -87,9 +87,6 @@ public:
   // Adds the specified element to this cluster
   void addToCluster(shared_ptr<SearchResultContainer> elem);
 
-  // convert RGB to Lab, D65 ref illuminant
-  Eigen::Vector3d rgbToLab(double r, double g, double b);
-
   // Returns the results contained within search result container.
   // this will either nothing, or all elements contained
   // within clusters contained by this element

@@ -50,12 +50,6 @@ MainContentComponent::MainContentComponent()
 	// create log directories if they don't exist
   createLogDirs();
 
-  // if the auto flag is present, redirect to different function to get that started.
-  // pass it through the application command manager to make it async
-  if (getGlobalSettings()->_commandLineArgs.count("auto") != 0) {
-    getApplicationCommandManager()->invokeDirectly(START_AUTO, true);
-  }
-
   _autoTimer.setWorker(_searchWorker.get());
 }
 
@@ -867,6 +861,9 @@ void MainContentComponent::startAuto()
   if (args.count("timeout") > 0)
     getGlobalSettings()->_autoTimeout = args["timeout"].getIntValue();
 
+  if (args.count("jnd") > 0)
+    getGlobalSettings()->_jndThreshold = args["jnd"].getFloatValue();
+
   createLogDirs();
 
   // replace all attributes with our specific attribute
@@ -881,7 +878,7 @@ void MainContentComponent::startAuto()
     _searchWorker->generateEdits(false);
 
     default_random_engine gen(std::random_device{}());
-    uniform_real_distribution<float> udist(10, 200);
+    uniform_real_distribution<float> udist(50, 500);
     uniform_real_distribution<float> edist(0, getGlobalSettings()->_edits.size());
 
     Snapshot* target = new Snapshot(getRig());
@@ -889,7 +886,7 @@ void MainContentComponent::startAuto()
     // conveniently edits are just in the globals so
     for (int i = 0; i < (int)udist(gen); i++) {
       int id = (int)edist(gen);
-      getGlobalSettings()->_edits[id]->performEdit(target, 0.5); // go nuts
+      getGlobalSettings()->_edits[id]->performEdit(target, 0.2); // go nuts
     }
 
     // create attribute controller
@@ -910,6 +907,8 @@ void MainContentComponent::startAuto()
   else
     imgAttr->setStatus(A_MORE);
 
+  // search start timer init here for timer
+  getGlobalSettings()->_searchStartTime = chrono::high_resolution_clock::now();
   search();
 
   // search starts. when finished, aplication will quit after all data is gathered.
@@ -918,6 +917,8 @@ void MainContentComponent::startAuto()
 
 void MainContentComponent::endAuto()
 {
+  getStatusBar()->setStatusMessage("Writing search data...");
+
   // back in the main thread
   // we want to pull out all the relevant data and put it in a folder in the log root dir
   // first, create the folder
@@ -930,12 +931,17 @@ void MainContentComponent::endAuto()
   }
 
   string filename = resultsFolder.getChildFile("search.meta").getFullPathName().toStdString();
+
   // write metadata file
   ofstream file;
   file.open(filename, ios::trunc);
   file << getGlobalSettings()->_sessionSearchSettings;
 
-  // write out search specific settings
+  time_t now = chrono::system_clock::to_time_t(getGlobalSettings()->_searchAbsStartTime);
+
+  file << "Search Start Time: " << ctime(&now);
+  file << "Search Duration: " << chrono::duration<float>(getGlobalSettings()->_searchEndTime - getGlobalSettings()->_searchStartTime).count() << "s\n\n";
+
   file << "Starting Edit Depth: " << getGlobalSettings()->_editDepth << "\n";
   file << "Edit Step Size: " << getGlobalSettings()->_editStepSize << "\n";
   file << "Max MCMC Iterations: " << getGlobalSettings()->_maxMCMCIters << "\n";
@@ -945,7 +951,7 @@ void MainContentComponent::endAuto()
   file << "Search Threads: " << getGlobalSettings()->_searchThreads << "\n";
   file << "Temperature: " << getGlobalSettings()->_T << "\n";
 
-  file << "\nEdit Weights\n";
+  file << "\nEdit Weight Table\n";
 
   for (auto e : getGlobalSettings()->_globalEditWeights) {
     file << e.first << " : " << e.second->_name << "\n";
@@ -960,22 +966,59 @@ void MainContentComponent::endAuto()
 
   // get the attribute image (the original)
   // the attribute should be the only one in the controls
-  ImageAttribute* attr = dynamic_cast<ImageAttribute*>(_attrs->getActiveAttributes()[0]);
+  ImageAttribute* attr = (ImageAttribute*)(_attrs->getActiveAttributes().begin()->second);
   Image target = attr->getOriginalImage();
   pngif.writeImageToStream(target, os);
 
   // save results
   // for all results in the results container we want to export:
   // - thread, sample id, time from start it was generated, attr value
-  //   avg lab distance to target, feature vector in that order as a csv file
+  //   avg lab distance to target, edit history, feature vector in that order as a csv file
   filename = resultsFolder.getChildFile("results.csv").getFullPathName().toStdString();
   file.open(filename, ios::trunc);
 
   const Array<shared_ptr<SearchResultContainer> > results = _search->getAllResults();
 
   // export results here
+  for (auto r : results) {
+    // creation time
+    float timeSinceStart = chrono::duration<float>(r->getSearchResult()->_creationTime - getGlobalSettings()->_searchStartTime).count();
+    
+    // lab distance to target
+    Snapshot* s = vectorToSnapshot(r->getSearchResult()->_scene);
+    double labDist = attr->avgLabDistance(s);
+    delete s;
+
+    file << r->getSearchResult()->_extraData["Thread"] << "," << r->getSearchResult()->_extraData["Sample"] << ",";
+    file << timeSinceStart << "," << r->getSearchResult()->_objFuncVal << "," << labDist << ",";
+
+    string editHist = "";
+    for (int i = 0; i < r->getSearchResult()->_editHistory.size(); i++) {
+      editHist = editHist + r->getSearchResult()->_editHistory[i]->_name + " -> ";
+    }
+
+    file << editHist << ",";
+
+    // feature vector (scene vector)
+    for (int i = 0; i < r->getSearchResult()->_scene.size(); i++) {
+      file << r->getSearchResult()->_scene[i];
+      if (i <= (r->getSearchResult()->_scene.size() - 2)) {
+        file << ",";
+      }
+      else {
+        file << "\n";
+      }
+    }
+  }
 
   file.close();
+
+  // we'll also just straight up save the results in case we want to look at them in viewer
+  // at some point in the future
+  _search->saveResults(resultsFolder.getChildFile("raw_results.csv").getFullPathName().toStdString());
+
+  // close the app we're done with this run
+  JUCEApplicationBase::quit();
 }
 
 void MainContentComponent::createLogDirs()
@@ -1075,11 +1118,17 @@ void MainContentComponent::AutoTimer::setWorker(AttributeSearch* worker) {
 
 void MainContentComponent::AutoTimer::timerCallback()
 {
-  if (!_worker->isThreadRunning()) {
-    // run exit code.
-    getApplicationCommandManager()->invokeDirectly(END_AUTO, true);
-    stopTimer();
-  }
-
   // check timeout conditions here
+  chrono::time_point<chrono::high_resolution_clock> now = chrono::high_resolution_clock::now();
+  double elapsed = chrono::duration<float>(now - getGlobalSettings()->_searchStartTime).count();
+
+  if (!_worker->isThreadRunning() || elapsed > getGlobalSettings()->_autoTimeout * 60) {
+    // run exit code.
+    stopTimer();
+
+    // reach in to main component directly in case app doesn't have focus
+    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+    mc->stopSearch();
+    mc->endAuto();
+  }
 }

@@ -80,7 +80,7 @@ public:
           // this should be a number
           getGlobalSettings()->_commandLineArgs["samples"] = commandLine.substring(start, end);
         }
-        else if (substr == "--out" || "-o") {
+        else if (substr == "--out" || substr == "-o") {
           start = end + 1;
           end = commandLine.indexOf(start, " ");
           if (end == -1)
@@ -89,7 +89,7 @@ public:
           // this should be a directory
           getGlobalSettings()->_commandLineArgs["out"] = commandLine.substring(start, end);
         }
-        else if (substr == "--timeout" || "-t") {
+        else if (substr == "--timeout" || substr == "-t") {
           start = end + 1;
           end = commandLine.indexOf(start, " ");
           if (end == -1)
@@ -97,6 +97,15 @@ public:
 
           // this should be a number in minutes
           getGlobalSettings()->_commandLineArgs["timeout"] = commandLine.substring(start, end);
+        }
+        else if (substr == "--jnd" || substr == "-j") {
+          start = end + 1;
+          end = commandLine.indexOf(start, " ");
+          if (end == -1)
+            end = commandLine.length();
+
+          // this should be a number
+          getGlobalSettings()->_commandLineArgs["jnd"] = commandLine.substring(start, end);
         }
 
         if (start == 0)
@@ -106,6 +115,12 @@ public:
       }
 
       mainWindow = new MainWindow (getApplicationName());
+
+      // if the auto flag is present, redirect to different function to get that started.
+      // pass it through the application command manager to make it async
+      if (getGlobalSettings()->_commandLineArgs.count("auto") != 0) {
+        getApplicationCommandManager()->invokeDirectly(START_AUTO, true);
+      }
     }
 
     void shutdown() override

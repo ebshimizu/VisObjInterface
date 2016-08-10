@@ -181,7 +181,9 @@ void SearchResultContainer::setImage(Image img)
 
 void SearchResultContainer::computeGradient()
 {
+  // magic number warning wow
 	int dim = 64;
+
 	// compute luminance gradient (x, y, magnitude)
 	for (int y = 0; y < dim; y++) {
 		for (int x = 0; x < dim; x++) {
@@ -329,12 +331,6 @@ int SearchResultContainer::numResults()
 void SearchResultContainer::addToCluster(shared_ptr<SearchResultContainer> elem)
 {
   _clusterContents->addResult(elem);
-}
-
-Eigen::Vector3d SearchResultContainer::rgbToLab(double r, double g, double b)
-{
-  Eigen::Vector3d xyz = ColorUtils::convRGBtoXYZ(r, g, b, sRGB);
-  return ColorUtils::convXYZtoLab(xyz, refWhites[D65] / 100.0);
 }
 
 Array<shared_ptr<SearchResultContainer> > SearchResultContainer::getResults()

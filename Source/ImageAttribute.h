@@ -46,6 +46,10 @@ public:
   virtual void buttonClicked(Button* b) override;
 
   Image getOriginalImage();
+
+  // Returns the average Lab distance from the given confguration to the target
+  // histogram image
+  double avgLabDistance(Snapshot* s);
   
 private:
   int _n;

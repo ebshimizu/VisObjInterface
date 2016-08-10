@@ -151,6 +151,7 @@ enum SearchMode {
 	LM_GRAD_DESCENT,	// Levenberg-Marquardt Method
 	HYBRID_EXPLORE,		// Hybrid explore/exploit method using both MCMC Edits and LM
 	HYBRID_DEBUG,			// Single-threaded mode that investigates certain properties of the LM/MCMC methods. Not a real search.
+  MIN_MCMC_EDIT,    // Minimizing MCMC (choses minimal point when running MCMC step)
   MCMCLMGD          // MCMC with an additional LM refinement step
 };
 
@@ -205,6 +206,7 @@ public:
 	int _maxGradIters;						// Maximum number of gradient descent iterations.
   bool _reduceRepeatEdits;      // Reduce the probability of repeat edits during a search
   int _autoTimeout;             // Maximum amout of time to keep the program running during auto
+  float _evWeight;              // Weight of the expected value in the MCMC Edit generation step
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results
@@ -275,8 +277,9 @@ public:
   vector<vector<double> > _metric;
 
   // records the time the search was started and ended
-  chrono::time_point<chrono::system_clock> _searchStartTime;
-  chrono::time_point<chrono::system_clock> _searchEndTime;
+  chrono::time_point<chrono::high_resolution_clock> _searchStartTime;
+  chrono::time_point<chrono::high_resolution_clock> _searchEndTime;
+  chrono::time_point<chrono::system_clock> _searchAbsStartTime;
 };
 
 // Results that eventually get returned to the UI layer
@@ -291,6 +294,7 @@ public:
   vector<Edit*> _editHistory;
   double _objFuncVal;
   unsigned int _sampleNo;
+  chrono::time_point<chrono::high_resolution_clock> _creationTime;
 
   // Paired with a vector of cluster centers, indicates which cluster the result belongs to.
   unsigned long _cluster;
@@ -334,5 +338,8 @@ void setSessionName();
 
 // clamps a value to be between the min and max values
 float clamp(float val, float min, float max);
+
+// D65 RGB to Lab conversion
+Eigen::Vector3d rgbToLab(double r, double g, double b);
 
 #endif  // GLOBALS_H_INCLUDED
