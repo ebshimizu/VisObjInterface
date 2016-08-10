@@ -107,6 +107,16 @@ public:
           // this should be a number
           getGlobalSettings()->_commandLineArgs["jnd"] = commandLine.substring(start, end);
         }
+        else if (substr == "--ev-weight") {
+          start = end + 1;
+          end = commandLine.indexOf(start, " ");
+          if (end == -1)
+            end = commandLine.length();
+
+          // this should be a number
+          getGlobalSettings()->_commandLineArgs["evWeight"] = commandLine.substring(start, end);
+        }
+
 
         if (start == 0)
           break;

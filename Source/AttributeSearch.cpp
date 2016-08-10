@@ -432,7 +432,7 @@ void AttributeSearchThread::runHybridDebug()
 
 void AttributeSearchThread::runSearch()
 {
-  if (_mode == MCMC_EDIT)
+  if (_mode == MCMC_EDIT || _mode == MIN_MCMC_EDIT)
     runMCMCEditSearch();
   else if (_mode == LM_GRAD_DESCENT)
     runLMGDSearch();
@@ -500,9 +500,12 @@ void AttributeSearchThread::runMCMCEditSearch(bool force) {
 		r->_editHistory.push_back(e);
 
 		// iterate a bit, do a little bit of searching
-		// at this point it's probably better to just do gradient descent, but for testing
-		// we'll simulate this by doing some mcmc iterations
-		Eigen::VectorXd minScene;
+
+    // Only used during MIN_MCMC_EDIT mode
+    // here we'll actually pull the lowest observed accepted sample
+    Eigen::VectorXd lowestScene;
+    double minVal = DBL_MAX;
+    bool accepted = false;
 
 		// do the adjustment until acceptance
 		for (int i = 0; i < iters; i++) {
@@ -520,7 +523,7 @@ void AttributeSearchThread::runMCMCEditSearch(bool force) {
 			double fxp = _f(sp);
 			double a = 0;
 			
-			if (_mode == MCMC_EDIT) {
+			if (_mode == MCMC_EDIT || _mode == MIN_MCMC_EDIT) {
 				a = min(exp((1 / _T) * (fx - fxp)), 1.0);
 			}
 			else if (_mode == HYBRID_EXPLORE || _mode == HYBRID_DEBUG) {
@@ -541,27 +544,37 @@ void AttributeSearchThread::runMCMCEditSearch(bool force) {
 				r->_objFuncVal = fx;
 
 				// diagnostics
-				if (!getGlobalSettings()->_standardMCMC) {
-					DebugData data;
-					auto& samples = getGlobalSettings()->_samples;
-					data._f = r->_objFuncVal;
-					data._a = a;
-					data._sampleId = (unsigned int) samples[_id].size() + 1;
-					data._editName = e->_name;
-					data._accepted = true;
-					data._scene = snapshotToVector(sp);
-					samples[_id].push_back(data);
-				}
+        DebugData data;
+        auto& samples = getGlobalSettings()->_samples;
+        data._f = r->_objFuncVal;
+        data._a = a;
+        data._sampleId = (unsigned int) samples[_id].size() + 1;
+        data._editName = e->_name;
+        data._accepted = true;
+        data._scene = snapshotToVector(sp);
+        samples[_id].push_back(data);
 
-				// break after acceptance
-				//break;
+        if (_mode == MIN_MCMC_EDIT && fx < minVal) {
+          minVal = fx;
+          lowestScene = data._scene;
+        }
+
+        accepted = true;
 			}
 			else {
 				delete sp;
 			}
-			//sleep(10);
 		}
-		depth++;
+
+    // adjust so that the min scene gets used as next starting point
+    // but check that something actually was accepted (probability may not accept everything)
+    if (_mode == MIN_MCMC_EDIT && accepted) {
+      r->_objFuncVal = minVal;
+      delete start;
+      start = vectorToSnapshot(lowestScene);
+    }
+
+    depth++;
 	}
 
 	r->_scene = snapshotToVector(start);
@@ -897,9 +910,6 @@ void AttributeSearchThread::runMCMCLMGDSearch()
     delete start;
     return;
   }
-
-  // TEMP SHORT CIRCUit
-  return;
 
   // if the sample was accepted, we then perform LMGD on the sample and forcibly
   // (for now) add that to the results set.
@@ -1351,7 +1361,7 @@ void AttributeSearch::run()
 
   // run all threads
   // make sure to set the state properly before running/resuming
-	if (_mode == MCMC_EDIT || _mode == MCMCLMGD) {
+	if (_mode == MCMC_EDIT || _mode == MCMCLMGD || _mode == MIN_MCMC_EDIT) {
 		// compute edit weights first before starting
     {
       MessageManagerLock mmlock(this);

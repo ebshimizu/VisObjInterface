@@ -452,6 +452,7 @@ void MainContentComponent::openRig() {
 
 void MainContentComponent::openRig(String fname)
 {
+  stopSearch();
   File selected = File(fname);
 
   bool res = getRig()->load(selected.getFullPathName().toStdString());
@@ -864,6 +865,9 @@ void MainContentComponent::startAuto()
   if (args.count("jnd") > 0)
     getGlobalSettings()->_jndThreshold = args["jnd"].getFloatValue();
 
+  if (args.count("evWeight") > 0)
+    getGlobalSettings()->_evWeight = args["evWeight"].getFloatValue();
+
   createLogDirs();
 
   // replace all attributes with our specific attribute
@@ -997,7 +1001,7 @@ void MainContentComponent::endAuto()
       editHist = editHist + r->getSearchResult()->_editHistory[i]->_name + " -> ";
     }
 
-    file << editHist << ",";
+    file << editHist << "END,";
 
     // feature vector (scene vector)
     for (int i = 0; i < r->getSearchResult()->_scene.size(); i++) {
