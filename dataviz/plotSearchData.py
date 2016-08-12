@@ -18,9 +18,11 @@ def main(arg1):
 	attrVal = []
 	labVal = []
 	desc = []
+	variance = []
+	diameter = []
 	startid = 0
 
-	# gather data from csv into proper format for t-sne
+	# gather data
 	with open(filename, 'rb') as csvfile:
 		freader = csv.reader(csvfile, delimiter=",")
 		for row in freader:
@@ -29,7 +31,10 @@ def main(arg1):
 			time.append(float(row[2]))
 			attrVal.append(float(row[3]))
 			labVal.append(float(row[4]))
-			desc.append('Score: ' + row[3] + '<br>Thread: ' + row[0] + ' Sample: ' + row[1] + '<br>Edit History: ' + row[5])
+			diameter.append(float(row[6]))
+			variance.append(float(row[7]))
+			desc.append('Score: ' + row[3] + '<br>Display ID:' + str(startid) + ' Thread: ' + row[0] + '<br>Edit History: ' + row[5])
+			startid = startid + 1
 
 	# fit some curves
 	attrLine = numpy.polyfit(time, attrVal, 1)
@@ -40,8 +45,24 @@ def main(arg1):
 		x = time,
 		y = attrVal,
 		mode = 'markers',
-		name = 'Attribute Value Over Time',
+		name = 'Attribute Score',
 		text = desc
+	)
+
+	varPoints = go.Scatter(
+		x = time,
+		y = variance,
+		yaxis = 'y2',
+		mode = 'lines',
+		name = "Variance"
+	)
+
+	diamPoints = go.Scatter(
+		x = time,
+		y = diameter,
+		yaxis = 'y2',
+		mode = 'lines',
+		name = 'Diameter'
 	)
 
 	attrLinePlot = go.Scatter(
@@ -52,10 +73,11 @@ def main(arg1):
 		text = str(attrLine[1]) + " + " + str(attrLine[0]) + " * x"
 	)
 
-	graphData = [attrPoints, attrLinePlot]
+	graphData = [attrPoints, attrLinePlot, varPoints, diamPoints]
 
 	layout = go.Layout(
-		title="Attribute Values over Time"
+		title="Attribute Values over Time",
+		yaxis2 = dict(overlaying='y', side='right')
 	)
 
 	py.plot(dict(data=graphData, layout=layout), filename = prefix + "attr-vals.html", auto_open=False)
@@ -76,10 +98,11 @@ def main(arg1):
 		text = str(labLine[1]) + " + " + str(labLine[0]) + " * x"
 	)
 
-	graphData = [labPoints, labLinePlot]
+	graphData = [labPoints, labLinePlot, varPoints, diamPoints]
 
 	layout = go.Layout(
-		title="Lab Distances over Time"
+		title="Lab Distances over Time",
+		yaxis2 = dict(overlaying='y', side='right')
 	)
 
 	py.plot(dict(data=graphData, layout=layout), filename = prefix + "lab-vals.html", auto_open=False)

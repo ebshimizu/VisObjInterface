@@ -979,7 +979,7 @@ void MainContentComponent::endAuto()
   // save results
   // for all results in the results container we want to export:
   // - thread, sample id, time from start it was generated, attr value
-  //   avg lab distance to target, edit history, feature vector in that order as a csv file
+  //   avg lab distance to target, edit history, diameter, variance, feature vector in that order as a csv file
   filename = resultsFolder.getChildFile("results.csv").getFullPathName().toStdString();
   file.open(filename, ios::trunc);
 
@@ -991,7 +991,47 @@ void MainContentComponent::endAuto()
   map<int, float> timeToNLab;   // Records the first time we encounter an average lab value less than n.
   map<int, int> resultsToNLab;  // Records the number of the first returned result to have a lab distance less than n
 
+  // compute variance from mean position and diameter of cluster over time
+  Eigen::VectorXd runningTotal, variance, diameter;
+  Eigen::MatrixXd distances;
+  runningTotal.resize(results[0]->getSearchResult()->_scene.size());
+  runningTotal.setZero();
+  variance.resize(results.size());
+  variance.setZero();
+  diameter.resize(results.size());
+  distances.resize(results.size(), results.size());
+  distances.setZero();
+
+  // compute distance matrix and compute related values
+  for (int r = 0; r < results.size(); r++) {
+    for (int c = r; c < results.size(); c++) {
+      distances(r, c) = (results[r]->getSearchResult()->_scene - results[c]->getSearchResult()->_scene).norm();
+    }
+
+    runningTotal += results[r]->getSearchResult()->_scene;
+    Eigen::VectorXd mean = runningTotal / (r + 1);
+
+    for (int i = 0; i < r; i++) {
+      variance[r] += (results[i]->getSearchResult()->_scene - mean).squaredNorm();
+    }
+    variance[r] /= (r + 1);
+
+    // diameter is maximum pairwise distance
+    diameter[r] = 0;
+    for (int i = 0; i < r; i++) {
+      for (int j = i; j < r; j++) {
+        if (distances(i, j) > diameter[r])
+          diameter[r] = distances(i, j);
+      }
+    }
+  }
+
+  Snapshot* s = new Snapshot(getRig());
+  file << "-1,0,0," << getGlobalSettings()->_samples[-1][0]._f << "," << attr->avgLabDistance(s) << ",START,0,0,0\n";
+  delete s;
+
   // export results here
+  int index = 0; // man im lazy
   for (auto r : results) {
     // creation time
     float timeSinceStart = chrono::duration<float>(r->getSearchResult()->_creationTime - getGlobalSettings()->_searchStartTime).count();
@@ -1010,6 +1050,7 @@ void MainContentComponent::endAuto()
     }
 
     file << editHist << "END,";
+    file << diameter[index] << "," << variance[index] << ",";
 
     // feature vector (scene vector)
     for (int i = 0; i < r->getSearchResult()->_scene.size(); i++) {
@@ -1040,6 +1081,8 @@ void MainContentComponent::endAuto()
         }
       }
     }
+
+    index++;
   }
 
   file.close();
@@ -1142,6 +1185,7 @@ void MainContentComponent::stopSearch()
 {
   getStatusBar()->setStatusMessage("Stopping current search operation...");
   _searchWorker->stop();
+  _search->showNewResults();
   getStatusBar()->setStatusMessage("Search stopped.");
 
   if (getGlobalSettings()->_exportTraces) {

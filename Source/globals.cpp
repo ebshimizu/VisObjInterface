@@ -157,7 +157,6 @@ void GlobalSettings::dumpDiagnosticData()
     }
   }
 
-  _samples.clear();
   _clusterCounter = 0;
 }
 
