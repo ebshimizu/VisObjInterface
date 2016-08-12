@@ -928,7 +928,7 @@ void MainContentComponent::endAuto()
   // first, create the folder
   File resultsFolder;
   resultsFolder = resultsFolder.getCurrentWorkingDirectory().
-    getChildFile(String(getGlobalSettings()->_logRootDir + "/" + getGlobalSettings()->_sessionName + "/"));
+    getChildFile(String(getGlobalSettings()->_logRootDir + "/" + String(getGlobalSettings()->_searchMode) + "/" + getGlobalSettings()->_sessionName + "/"));
   
   if (!resultsFolder.exists()) {
     resultsFolder.createDirectory();
@@ -942,10 +942,13 @@ void MainContentComponent::endAuto()
   file << getGlobalSettings()->_sessionSearchSettings;
 
   time_t now = chrono::system_clock::to_time_t(getGlobalSettings()->_searchAbsStartTime);
+  const Array<shared_ptr<SearchResultContainer> > results = _search->getAllResults();
+  ImageAttribute* attr = (ImageAttribute*)(_attrs->getActiveAttributes().begin()->second);
 
   file << "Search Start Time: " << ctime(&now);
   file << "Search Duration: " << chrono::duration<float>(getGlobalSettings()->_searchEndTime - getGlobalSettings()->_searchStartTime).count() << "s\n\n";
 
+  file << "Search Mode: " << getGlobalSettings()->_searchMode << "\n";
   file << "Starting Edit Depth: " << getGlobalSettings()->_editDepth << "\n";
   file << "Edit Step Size: " << getGlobalSettings()->_editStepSize << "\n";
   file << "Max MCMC Iterations: " << getGlobalSettings()->_maxMCMCIters << "\n";
@@ -970,7 +973,6 @@ void MainContentComponent::endAuto()
 
   // get the attribute image (the original)
   // the attribute should be the only one in the controls
-  ImageAttribute* attr = (ImageAttribute*)(_attrs->getActiveAttributes().begin()->second);
   Image target = attr->getOriginalImage();
   pngif.writeImageToStream(target, os);
 
@@ -981,7 +983,13 @@ void MainContentComponent::endAuto()
   filename = resultsFolder.getChildFile("results.csv").getFullPathName().toStdString();
   file.open(filename, ios::trunc);
 
-  const Array<shared_ptr<SearchResultContainer> > results = _search->getAllResults();
+  // collect some data about the results while we're at it
+  double avgAttrVal = 0;
+  double minAttrVal = DBL_MAX;
+  double avgLab = 0;
+  double minLab = DBL_MAX;
+  map<int, float> timeToNLab;   // Records the first time we encounter an average lab value less than n.
+  map<int, int> resultsToNLab;  // Records the number of the first returned result to have a lab distance less than n
 
   // export results here
   for (auto r : results) {
@@ -1013,6 +1021,40 @@ void MainContentComponent::endAuto()
         file << "\n";
       }
     }
+
+    // stat collection
+    avgAttrVal += r->getSearchResult()->_objFuncVal;
+    avgLab += labDist;
+
+    if (r->getSearchResult()->_objFuncVal < minAttrVal)
+      minAttrVal = r->getSearchResult()->_objFuncVal;
+
+    if (labDist < minLab)
+      minLab = labDist;
+
+    for (int i = 1; i < 12; i++) {
+      if (timeToNLab.count(i) == 0) {
+        if (labDist < i) {
+          timeToNLab[i] = timeSinceStart;
+          resultsToNLab[i] = r->getSearchResult()->_sampleNo;
+        }
+      }
+    }
+  }
+
+  file.close();
+
+  filename = resultsFolder.getChildFile("stats.csv").getFullPathName().toStdString();
+  file.open(filename, ios::trunc);
+
+  file << "Average Lab," << avgLab / results.size() << "\n";
+  file << "Average Attr," << avgAttrVal / results.size() << "\n";
+  file << "Min Lab," << minLab << "\n";
+  file << "Min Attr," << minAttrVal << "\n";
+  file << "Min To N Lab\n";
+
+  for (auto kvp : timeToNLab) {
+    file << kvp.first << "," << kvp.second << "," << resultsToNLab[kvp.first] << "\n";
   }
 
   file.close();

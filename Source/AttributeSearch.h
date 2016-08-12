@@ -136,6 +136,10 @@ private:
   // between different search approaches.
   void runMCMCLMGDSearch();
 
+  // Search function for testing out new search methods.
+  // other stable searches left there for comparison
+  void runExperimentalSearch();
+
   // Runs a search for each edit in order (non-parallel at the moment)
   void checkEdits();
 

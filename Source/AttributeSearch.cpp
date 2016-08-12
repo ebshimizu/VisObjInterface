@@ -438,6 +438,8 @@ void AttributeSearchThread::runSearch()
     runLMGDSearch();
   else if (_mode == MCMCLMGD)
     runMCMCLMGDSearch();
+  else if (_mode == MCMC_TEST)
+    runExperimentalSearch();
 	else if (_mode == HYBRID_EXPLORE) {
 		// This search mode has multiple phases, and each thread can be on a different phase
 		// On thread creation, we should wait for further instructions
@@ -1006,6 +1008,8 @@ void AttributeSearchThread::runMCMCLMGDSearch()
     SearchResult* r = new SearchResult();
     r->_objFuncVal = _f(&xs);
     r->_scene = x;
+    r->_creationTime = chrono::high_resolution_clock::now();
+    r->_extraData["Sample"] = String(data._sampleId);
     r->_extraData["Parent"] = String(data._sampleId);
     r->_extraData["LM Terminal"] = "True";
     r->_extraData["Thread"] = String(_id);
@@ -1019,6 +1023,214 @@ void AttributeSearchThread::runMCMCLMGDSearch()
   samples[_id].push_back(data2);
 
   delete start;
+}
+
+void AttributeSearchThread::runExperimentalSearch()
+{
+	// assign start scene, initialize result
+	Snapshot* start = new Snapshot(*_original);
+	SearchResult* r = new SearchResult();
+	double fx = _f(start);
+	double orig = fx;
+
+	// RNG
+	default_random_engine gen(std::random_device{}());
+	uniform_real_distribution<double> udist(0.0, 1.0);
+
+	// do the MCMC search
+	int depth = 0;
+	Edit* e = nullptr;
+
+	// magic number alert
+	int iters = getGlobalSettings()->_standardMCMC ? getGlobalSettings()->_standardMCMCIters : getGlobalSettings()->_maxMCMCIters;
+
+	// depth increases when scenes are rejected from the viewer
+	while (depth < _maxDepth) {
+		if (threadShouldExit()) {
+			delete r;
+			delete start;
+			return;
+		}
+
+    // here we'll actually pull the lowest observed accepted sample
+    Eigen::VectorXd lowestScene;
+    double minVal = DBL_MAX;
+    bool accepted = false;
+    Edit* minEdit;
+
+		//  pick a next plausible edit
+    if (r->_editHistory.size() == 0)
+      e = _edits[0]->getNextEdit(r->_editHistory, getGlobalSettings()->_globalEditWeights, getGlobalSettings()->_reduceRepeatEdits);
+    else {
+      if (depth >= getGlobalSettings()->_editDepth) {
+        // we will recompute edit weights here, but we also wanna do it quick.
+        // basically we'll reduce influence of edits we've already done, and then do some edits and count the percent that
+        // were better. Also, to not completely waste these cycles, we'll track the minimum value we find and if that
+        // is still the min value after doing the mcmc process, we'll just pick that one.
+        map<Edit*, int> editCounts;
+        for (auto ed : r->_editHistory) {
+          editCounts[ed] += 1;
+        }
+
+        map<Edit*, double> weights;
+        double sum = 0;
+
+        for (auto ed : _edits) {
+          if (threadShouldExit()) {
+            delete r;
+            delete start;
+            return;
+          }
+
+          Eigen::VectorXd bestForEdit;
+          double bestEditVal;
+
+          // for each edit, do it 10 times (parameterize later maybe)
+          weights[ed] = e->proportionGood(start, _f, fx, getGlobalSettings()->_editStepSize, 10, bestForEdit, bestEditVal);
+
+          // we want to disproportionally weight towards higher percentages
+          weights[ed] *= weights[ed];
+
+          if (editCounts.count(ed) > 0) {
+            weights[ed] *= 1.0 / (editCounts[ed] + 1);
+          }
+
+          // minimum weight
+          if (weights[ed] == 0)
+            weights[ed] = 1e-3;
+
+          sum += weights[ed];
+
+          if (bestEditVal < minVal) {
+            minVal = bestEditVal;
+            lowestScene = bestForEdit;
+            minEdit = ed;
+          }
+        }
+
+        // compile edit weights
+        map<double, Edit*> localEditWeights;
+        double total = 0;
+
+        for (auto& w : weights) {
+          total += w.second / sum;
+          localEditWeights[total] = w.first;
+        }
+
+        e = e->getNextEdit(r->_editHistory, localEditWeights, false);
+      }
+      else {
+        e = e->getNextEdit(r->_editHistory, getGlobalSettings()->_globalEditWeights, getGlobalSettings()->_reduceRepeatEdits);
+      }
+    }
+
+		// iterate a bit, do a little bit of searching
+		// do the adjustment until acceptance
+		for (int i = 0; i < iters; i++) {
+			if (threadShouldExit()) {
+				delete r;
+				delete start;
+				return;
+			}
+
+			//  adjust the starting scene
+			Snapshot* sp = new Snapshot(*start);
+			e->performEdit(sp, getGlobalSettings()->_editStepSize);
+
+			// check for acceptance
+			double fxp = _f(sp);
+      double a = min(exp((1 / _T) * (fx - fxp)), 1.0);
+
+			// accept if a >= 1 or with probability a
+			if (a >= 1 || udist(gen) < a) {
+				// update x
+				delete start;
+				start = sp;
+				fx = fxp;
+
+				// update result
+				r->_objFuncVal = fx;
+
+				// diagnostics
+        DebugData data;
+        auto& samples = getGlobalSettings()->_samples;
+        data._f = r->_objFuncVal;
+        data._a = a;
+        data._sampleId = (unsigned int) samples[_id].size() + 1;
+        data._editName = e->_name;
+        data._accepted = true;
+        data._scene = snapshotToVector(sp);
+        samples[_id].push_back(data);
+
+        if (fx < minVal) {
+          minVal = fx;
+          lowestScene = data._scene;
+          minEdit = e;
+        }
+
+        accepted = true;
+			}
+			else {
+				delete sp;
+			}
+		}
+
+    // adjust so that the min scene gets used as next starting point
+    // but check that something actually was accepted (probability may not accept everything)
+    if (accepted) {
+      r->_objFuncVal = minVal;
+      delete start;
+      start = vectorToSnapshot(lowestScene);
+      r->_editHistory.push_back(minEdit);
+    }
+    else {
+      r->_editHistory.push_back(e);
+    }
+
+    depth++;
+	}
+
+	r->_scene = snapshotToVector(start);
+	delete start;
+
+	// diagnostics
+	DebugData data;
+	auto& samples = getGlobalSettings()->_samples;
+	data._f = r->_objFuncVal;
+	data._a = 1;
+	data._sampleId = (unsigned int) samples[_id].size() + 1;
+	data._editName = "TERMINAL";
+	data._accepted = true;
+	data._scene = r->_scene;
+	
+	r->_extraData["Thread"] = String(_id);
+  r->_extraData["Sample"] = String(data._sampleId);
+  r->_creationTime = chrono::high_resolution_clock::now();
+
+	// add if we did better
+	// hybrid method doesn't actually care just add it anyway
+	if (r->_objFuncVal < orig) {
+		// send scene to the results area. may chose to not use the scene
+		if (!_viewer->addNewResult(r, false)) {
+			// r has been deleted by _viewer here
+			_failures++;
+			data._accepted = false;
+
+			if (_failures > getGlobalSettings()->_searchFailureLimit) {
+				_failures = 0;
+				_maxDepth++;
+			}
+		}
+		else {
+			_acceptedSamples += 1;
+		}
+	}
+	else {
+		data._accepted = false;
+		delete r;
+	}
+
+	samples[_id].push_back(data);
 }
 
 void AttributeSearchThread::checkEdits()
@@ -1361,7 +1573,7 @@ void AttributeSearch::run()
 
   // run all threads
   // make sure to set the state properly before running/resuming
-	if (_mode == MCMC_EDIT || _mode == MCMCLMGD || _mode == MIN_MCMC_EDIT) {
+	if (_mode == MCMC_EDIT || _mode == MCMCLMGD || _mode == MIN_MCMC_EDIT || _mode == MCMC_TEST) {
 		// compute edit weights first before starting
     {
       MessageManagerLock mmlock(this);

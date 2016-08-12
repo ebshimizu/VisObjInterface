@@ -131,7 +131,14 @@ void Edit::performEdit(Snapshot * s, double stepSize)
 					if (snapshotDev == rep)
 						continue;
 
-					setParam(snapshotDev, p, getParam(rep, p));
+          if (p == HUE || p == SAT || p == VALUE) {
+            setParam(snapshotDev, HUE, getParam(rep, HUE));
+            setParam(snapshotDev, SAT, getParam(rep, SAT));
+            setParam(snapshotDev, VALUE, getParam(rep, VALUE));
+          }
+          else {
+            setParam(snapshotDev, p, getParam(rep, p));
+          }
 				}
       }
     }
@@ -342,6 +349,30 @@ double Edit::expected(Snapshot * s, attrObjFunc f, double radius, int n)
   double weight = getGlobalSettings()->_evWeight;
 
   return var * (1 - weight) + ev * weight;
+}
+
+double Edit::proportionGood(Snapshot * s, attrObjFunc f, double startVal, double radius, int n, Eigen::VectorXd & minScene, double & minVal)
+{
+  Eigen::VectorXd start = snapshotToVector(s);
+  minVal = DBL_MAX;
+  int good = 0;
+
+  for (int i = 0; i < n; i++) {
+    performEdit(s, radius);
+    double fx = f(s);
+
+    if (fx < minVal) {
+      minVal = fx;
+      minScene = snapshotToVector(s);
+    }
+
+    if (fx < startVal)
+      good++;
+
+    vectorToExistingSnapshot(start, *s);
+  }
+
+  return (double)good / n;
 }
 
 

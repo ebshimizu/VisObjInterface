@@ -88,6 +88,11 @@ public:
   // likely we are to get a better result
   virtual double expected(Snapshot* s, attrObjFunc f, double radius, int n);
 
+  // Returns the number of samples that were better than the original value
+  // along with the best scene found and the corresponding attribute value
+  virtual double proportionGood(Snapshot* s, attrObjFunc f, double startVal, double radius, int n,
+    Eigen::VectorXd& minScene, double& minVal);
+
   string _name;
 
   // Checks for edit equality.

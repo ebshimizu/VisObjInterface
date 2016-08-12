@@ -152,7 +152,8 @@ enum SearchMode {
 	HYBRID_EXPLORE,		// Hybrid explore/exploit method using both MCMC Edits and LM
 	HYBRID_DEBUG,			// Single-threaded mode that investigates certain properties of the LM/MCMC methods. Not a real search.
   MIN_MCMC_EDIT,    // Minimizing MCMC (choses minimal point when running MCMC step)
-  MCMCLMGD          // MCMC with an additional LM refinement step
+  MCMCLMGD,         // MCMC with an additional LM refinement step
+  MCMC_TEST         // Unstable search testing new things
 };
 
 // A container for various things that the entire application may want to access
