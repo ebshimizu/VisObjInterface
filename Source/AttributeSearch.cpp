@@ -299,6 +299,9 @@ void AttributeSearchThread::run()
   //checkEdits();
   //return;
 
+  if (_mode == MCMC_TEST)
+    computeEditWeights(false, false);
+
   // here we basically want to run the search indefinitely until cancelled by user
   // so we just call the actual search function over and over
   while (1) {    
@@ -309,7 +312,7 @@ void AttributeSearchThread::run()
   }
 }
 
-void AttributeSearchThread::computeEditWeights(bool showStatusMessages)
+void AttributeSearchThread::computeEditWeights(bool showStatusMessages, bool global)
 {
 	// Here we take the starting scene and evaluate the variance of all available edits
 	// when performed on the starting scene. The idea is to measure how much each edit
@@ -322,7 +325,7 @@ void AttributeSearchThread::computeEditWeights(bool showStatusMessages)
 	weights.resize(_edits.size());
 
 	for (int i = 0; i < _edits.size(); i++) {
-    {
+    if (showStatusMessages) {
       MessageManagerLock mmlock(this);
       if (mmlock.lockWasGained()) {
         getStatusBar()->setStatusMessage("Precomputing Edit Weights... (" + String(i + 1) + "/" + String(_edits.size()) + ")");
@@ -335,7 +338,7 @@ void AttributeSearchThread::computeEditWeights(bool showStatusMessages)
     weights[i] = (weight < 1e-1) ? 1e-1 : weight;
 	}
 
-  {
+  if (showStatusMessages) {
     MessageManagerLock mmlock(this);
     if (mmlock.lockWasGained()) {
       getStatusBar()->setStatusMessage("Precomputing Edit Weights... (" + String(_edits.size()) + "/" + String(_edits.size()) + ")");
@@ -343,19 +346,33 @@ void AttributeSearchThread::computeEditWeights(bool showStatusMessages)
   }
 
 	// normalize to [0,1] and update weights
-	map<double, Edit*>& editWeights = getGlobalSettings()->_globalEditWeights;
-	double sum = weights.sum();
-	double total = 0;
+  if (global) {
+    map<double, Edit*>& editWeights = getGlobalSettings()->_globalEditWeights;
 
-	for (int i = 0; i < _edits.size(); i++) {
-		total += weights[i] / sum;
-		editWeights[total] = _edits[i];
-	}
+    double sum = weights.sum();
+    double total = 0;
 
-	// reset to idle state after completion
-	// also update shared values to indicate completion
-	_sharedData["Edit Weight Status"] = 2;
-	_status = IDLE;
+    for (int i = 0; i < _edits.size(); i++) {
+      total += weights[i] / sum;
+      editWeights[total] = _edits[i];
+    }
+
+    // reset to idle state after completion
+    // also update shared values to indicate completion
+    _sharedData["Edit Weight Status"] = 2;
+    _status = IDLE;
+  }
+  else {
+    map<double, Edit*>& editWeights = _localEditWeights;
+
+    double sum = weights.sum();
+    double total = 0;
+
+    for (int i = 0; i < _edits.size(); i++) {
+      total += weights[i] / sum;
+      editWeights[total] = _edits[i];
+    }
+  }
 }
 
 void AttributeSearchThread::setStartConfig(Snapshot * start)
@@ -428,6 +445,35 @@ void AttributeSearchThread::runHybridDebug()
 	}
 
 	hybridLog.close();
+}
+
+void AttributeSearchThread::recenter(Snapshot * s)
+{
+  // for now, thread id 0 can never be recentered, but it can use a larger edit depth
+  if (_id == 0) {
+    _maxDepth++;
+    return;
+  }
+
+  // if the snapshot is null we should ask the viewer for the 
+  // best not already exploited scene in the results
+  if (s == nullptr) {
+    auto container = _viewer->getBestUnexploitedResult();
+
+    if (container == nullptr) {
+      // if there's nothing left to exploit, we're basically done
+      threadShouldExit();
+      return;
+    }
+
+    s = vectorToSnapshot(container->getSearchResult()->_scene);
+  }
+  
+  setStartConfig(s);
+  computeEditWeights(false, false);
+
+  getRecorder()->log(SYSTEM, "Recentered thread " + String(_id).toStdString() + " to new scene");
+  delete s;
 }
 
 void AttributeSearchThread::runSearch()
@@ -1060,68 +1106,9 @@ void AttributeSearchThread::runExperimentalSearch()
 
 		//  pick a next plausible edit
     if (r->_editHistory.size() == 0)
-      e = _edits[0]->getNextEdit(r->_editHistory, getGlobalSettings()->_globalEditWeights, getGlobalSettings()->_reduceRepeatEdits);
+      e = _edits[0]->getNextEdit(r->_editHistory, _localEditWeights, getGlobalSettings()->_reduceRepeatEdits);
     else {
-      if (depth >= getGlobalSettings()->_editDepth) {
-        // we will recompute edit weights here, but we also wanna do it quick.
-        // basically we'll reduce influence of edits we've already done, and then do some edits and count the percent that
-        // were better. Also, to not completely waste these cycles, we'll track the minimum value we find and if that
-        // is still the min value after doing the mcmc process, we'll just pick that one.
-        map<Edit*, int> editCounts;
-        for (auto ed : r->_editHistory) {
-          editCounts[ed] += 1;
-        }
-
-        map<Edit*, double> weights;
-        double sum = 0;
-
-        for (auto ed : _edits) {
-          if (threadShouldExit()) {
-            delete r;
-            delete start;
-            return;
-          }
-
-          Eigen::VectorXd bestForEdit;
-          double bestEditVal;
-
-          // for each edit, do it 10 times (parameterize later maybe)
-          weights[ed] = e->proportionGood(start, _f, fx, getGlobalSettings()->_editStepSize, 10, bestForEdit, bestEditVal);
-
-          // we want to disproportionally weight towards higher percentages
-          weights[ed] *= weights[ed];
-
-          if (editCounts.count(ed) > 0) {
-            weights[ed] *= 1.0 / (editCounts[ed] + 1);
-          }
-
-          // minimum weight
-          if (weights[ed] == 0)
-            weights[ed] = 1e-3;
-
-          sum += weights[ed];
-
-          if (bestEditVal < minVal) {
-            minVal = bestEditVal;
-            lowestScene = bestForEdit;
-            minEdit = ed;
-          }
-        }
-
-        // compile edit weights
-        map<double, Edit*> localEditWeights;
-        double total = 0;
-
-        for (auto& w : weights) {
-          total += w.second / sum;
-          localEditWeights[total] = w.first;
-        }
-
-        e = e->getNextEdit(r->_editHistory, localEditWeights, false);
-      }
-      else {
-        e = e->getNextEdit(r->_editHistory, getGlobalSettings()->_globalEditWeights, getGlobalSettings()->_reduceRepeatEdits);
-      }
+      e = e->getNextEdit(r->_editHistory, _localEditWeights, getGlobalSettings()->_reduceRepeatEdits);
     }
 
 		// iterate a bit, do a little bit of searching
@@ -1218,7 +1205,7 @@ void AttributeSearchThread::runExperimentalSearch()
 
 			if (_failures > getGlobalSettings()->_searchFailureLimit) {
 				_failures = 0;
-				_maxDepth++;
+        recenter();
 			}
 		}
 		else {
@@ -1573,7 +1560,7 @@ void AttributeSearch::run()
 
   // run all threads
   // make sure to set the state properly before running/resuming
-	if (_mode == MCMC_EDIT || _mode == MCMCLMGD || _mode == MIN_MCMC_EDIT || _mode == MCMC_TEST) {
+	if (_mode == MCMC_EDIT || _mode == MCMCLMGD || _mode == MIN_MCMC_EDIT) {
 		// compute edit weights first before starting
     {
       MessageManagerLock mmlock(this);

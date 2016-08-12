@@ -73,7 +73,7 @@ public:
 
 	// Uses the thread's set of edits and current objective function to compute the
 	// relative effectiveness of each edit
-	void computeEditWeights(bool showStatusMessages = true);
+	void computeEditWeights(bool showStatusMessages = true, bool global = true);
 
 	// Sets the starting lighting configuration
 	void setStartConfig(Snapshot* start);
@@ -85,6 +85,10 @@ public:
 
 	// Special function for computing statistics about the hybrid search mode.
 	void runHybridDebug();
+
+  // resets the thread state to use the given scene ast the starting config.
+  // also recomputes edit weights as needed, etc.
+  void recenter(Snapshot* s = nullptr);
 
   int _phase;
 
@@ -102,6 +106,9 @@ private:
 	SearchMode _mode;	// set before launching to prevent issues when switching mid-run
 	bool _randomInit;	// For L-M descent, indicates if the starting position should be randomized
 	ThreadState _status;
+
+  // computes the edit weights for this thread's starting scene
+  map<double, Edit*> _localEditWeights;
 
 	// Counter for determining when to stop the exploit phase
 	int _acceptedSamples;

@@ -370,7 +370,7 @@ GlobalSettings::GlobalSettings()
   _thumbnailRenderScale = 0.50;
   _editDepth = 4;
   _clusterDistThreshold = 0.30;
-  _editStepSize = 0.15;
+  _editStepSize = 0.1;
   _maxMCMCIters = 30;
   _numDisplayClusters = 1;
   _jndThreshold = 3;
@@ -387,7 +387,7 @@ GlobalSettings::GlobalSettings()
   _meanShiftBandwidth = 7;
   _grayscaleMode = false;
   _searchFailureLimit = 3;
-  _searchThreads = 1; //thread::hardware_concurrency() / 2;
+  _searchThreads = thread::hardware_concurrency() / 2;
   _autoRunTraceGraph = false;
   _standardMCMCIters = (int) 5e3;
   _numPrimaryClusters = 5;

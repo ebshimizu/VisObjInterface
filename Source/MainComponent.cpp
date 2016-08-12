@@ -1047,6 +1047,7 @@ void MainContentComponent::endAuto()
   filename = resultsFolder.getChildFile("stats.csv").getFullPathName().toStdString();
   file.open(filename, ios::trunc);
 
+  file << "Start Attribute Value," << getGlobalSettings()->_samples[-1][0]._f << "\n";
   file << "Average Lab," << avgLab / results.size() << "\n";
   file << "Average Attr," << avgAttrVal / results.size() << "\n";
   file << "Min Lab," << minLab << "\n";

@@ -136,6 +136,10 @@ public:
 
   const Array<shared_ptr<SearchResultContainer> >& getAllResults();
 
+  // Returns the best scene according to attribute value in the returned results
+  // that doesn't have the "Exploited" extra attribute set
+  shared_ptr<SearchResultContainer> getBestUnexploitedResult();
+
 private:
   // All results contains every result in the container. It should only be deleted at the top
   // level of the container hierarchy, which looks like:

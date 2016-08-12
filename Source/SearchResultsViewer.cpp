@@ -200,6 +200,11 @@ void SearchResultsViewer::clearHistory()
 	_history->clearAllHistory();
 }
 
+shared_ptr<SearchResultContainer> SearchResultsViewer::getBestUnexploitedResult()
+{
+  return _results->getBestUnexploitedResult();
+}
+
 const Array<shared_ptr<SearchResultContainer>>& SearchResultsViewer::getAllResults()
 {
   return _results->getAllResults();

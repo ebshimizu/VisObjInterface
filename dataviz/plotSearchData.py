@@ -39,7 +39,7 @@ def main(arg1):
 	attrPoints = go.Scatter(
 		x = time,
 		y = attrVal,
-		mode = 'lines+markers',
+		mode = 'markers',
 		name = 'Attribute Value Over Time',
 		text = desc
 	)
@@ -63,7 +63,7 @@ def main(arg1):
 	labPoints = go.Scatter(
 		x = time,
 		y = labVal,
-		mode = 'lines+markers',
+		mode = 'markers',
 		name = 'Lab Distance Over Time',
 		text = desc
 	)

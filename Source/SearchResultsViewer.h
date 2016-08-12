@@ -88,6 +88,10 @@ public:
 	// Clears the history container
 	void clearHistory();
 
+  // returns the best result in the database that hasn't been used as a
+  // recentering scene for the search functions
+  shared_ptr<SearchResultContainer> getBestUnexploitedResult();
+
   const Array<shared_ptr<SearchResultContainer> >& getAllResults();
 
 	map<int, shared_ptr<SearchResultContainer> >& getTerminalScenes();

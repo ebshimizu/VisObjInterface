@@ -1241,6 +1241,32 @@ const Array<shared_ptr<SearchResultContainer>>& SearchResultsContainer::getAllRe
   return _allResults;
 }
 
+shared_ptr<SearchResultContainer> SearchResultsContainer::getBestUnexploitedResult()
+{
+  // basically we just sort an all results proxy (so no changes are visible)
+  // and pick the best one not already exploited
+  Array<shared_ptr<SearchResultContainer> > allProxy(_allResults);
+
+
+  {
+    // lock
+    lock_guard<mutex> lock(_resultsLock);
+    
+    allProxy.addArray(_newResults);
+    DefaultSorter sorter;
+    allProxy.sort(sorter);
+
+    for (int i = 0; i < allProxy.size(); i++) {
+      if (allProxy[i]->getSearchResult()->_extraData.count("Exploited") == 0) {
+        allProxy[i]->getSearchResult()->_extraData["Exploited"] = "true";
+        return allProxy[i];
+      }
+    }
+  }
+
+  return nullptr;
+}
+
 void SearchResultsContainer::writeMetadata(std::ofstream &statsFile, SearchMetadata &md)
 {
 	statsFile << "Cluster mode: " << md._mode << "\n";
