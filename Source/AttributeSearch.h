@@ -107,6 +107,9 @@ private:
 	bool _randomInit;	// For L-M descent, indicates if the starting position should be randomized
 	ThreadState _status;
 
+  // this snapshot will always be the very first configuration the thread is set to.
+  Snapshot* _fallback;
+
   // computes the edit weights for this thread's starting scene
   map<double, Edit*> _localEditWeights;
 
@@ -143,9 +146,11 @@ private:
   // between different search approaches.
   void runMCMCLMGDSearch();
 
-  // Search function for testing out new search methods.
-  // other stable searches left there for comparison
-  void runExperimentalSearch();
+  // Minimizing MCMC with recentering. Moves to good result once max depth hit.
+  void runRecenteringMCMCSearch();
+
+  // Search function for doing the recentering MCMC search with the LMGD refinement step too.
+  void runRecenteringMCMCLMGDSearch();
 
   // Runs a search for each edit in order (non-parallel at the moment)
   void checkEdits();

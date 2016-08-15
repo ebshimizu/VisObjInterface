@@ -359,6 +359,6 @@ void AttributeControls::initAttributes()
 
   for (int i = 0; i < numImage; i++) {
     String name = imagesToLoad[i].getFileNameWithoutExtension();
-    _container->addAttributeController(new ImageAttribute(name.toStdString(), imagesToLoad[i].getFullPathName().toStdString(), 5));
+    _container->addAttributeController(new ImageAttribute(name.toStdString(), imagesToLoad[i].getFullPathName().toStdString(), 50));
   }
 }

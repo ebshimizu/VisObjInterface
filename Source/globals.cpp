@@ -367,7 +367,7 @@ GlobalSettings::GlobalSettings()
   _renderWidth = 0;
   _renderHeight = 0;
   _thumbnailRenderScale = 0.50;
-  _editDepth = 4;
+  _editDepth = 3;
   _clusterDistThreshold = 0.30;
   _editStepSize = 0.1;
   _maxMCMCIters = 30;
@@ -402,7 +402,7 @@ GlobalSettings::GlobalSettings()
   _primaryDivisiveThreshold = 7.5;
   _secondaryDivisiveThreshold = 5;
 	_clusterDisplay = GRID;
-	_searchMode = MCMC_TEST;
+	_searchMode = RECENTER_MCMC_EDIT;
 	_maxGradIters = 200;
   _reduceRepeatEdits = true;
   _autoTimeout = 30;

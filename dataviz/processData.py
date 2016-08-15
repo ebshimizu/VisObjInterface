@@ -13,8 +13,8 @@ import compare
 logFolder = sys.argv[1]
 
 # we specifically look for folders 0, 4, 5 (more added as needed)
-searchModes = [0, 4, 5, 6]
-searchModeNames = {0: 'MCMC with Edits', 4 : 'Minimizing MCMC with Edits', 5 : 'MCMC with LMGD Refinement', 6 : 'Exprimental: Recentring MCMC'}
+searchModes = [0, 4, 5, 6, 7]
+searchModeNames = {0: 'MCMC with Edits', 4 : 'Minimizing MCMC with Edits', 5 : 'MCMC with LMGD Refinement', 6 : 'Recentring MCMC', 7 : 'Recentering MCMC with LMGD'}
 
 # collect averages of other data points of interest
 avgLab = dict()
@@ -72,13 +72,13 @@ for i in range(0, len(os.listdir(logFolder + str(searchModes[-1])))):
 # graphs
 avgTrace = go.Bar(
 	x = searchModeNames.values(),
-	y = [avgLab[0], avgLab[4], avgLab[5], avgLab[6]],
+	y = [avgLab[0], avgLab[4], avgLab[5], avgLab[6], avgLab[7]],
 	name = 'Average Lab Result Distance'
 )
 
 avgMinLabTrace = go.Bar(
 	x = searchModeNames.values(),
-	y = [avgMinLab[0], avgMinLab[4], avgMinLab[5], avgMinLab[6]],
+	y = [avgMinLab[0], avgMinLab[4], avgMinLab[5], avgMinLab[6], avgMinLab[7]],
 	name = 'Average Minimum Lab Result Distance'
 )
 

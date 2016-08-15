@@ -147,13 +147,14 @@ enum ClusterDisplayMode {
 };
 
 enum SearchMode {
-	MCMC_EDIT,				// Markov-Chain Monte Carlo with Metropolis-Hastings criteria + edit system
-	LM_GRAD_DESCENT,	// Levenberg-Marquardt Method
-	HYBRID_EXPLORE,		// Hybrid explore/exploit method using both MCMC Edits and LM
-	HYBRID_DEBUG,			// Single-threaded mode that investigates certain properties of the LM/MCMC methods. Not a real search.
-  MIN_MCMC_EDIT,    // Minimizing MCMC (choses minimal point when running MCMC step)
-  MCMCLMGD,         // MCMC with an additional LM refinement step
-  MCMC_TEST         // Unstable search testing new things
+	MCMC_EDIT,				 // Markov-Chain Monte Carlo with Metropolis-Hastings criteria + edit system
+	LM_GRAD_DESCENT,	 // Levenberg-Marquardt Method
+	HYBRID_EXPLORE,		 // Hybrid explore/exploit method using both MCMC Edits and LM
+	HYBRID_DEBUG,			 // Single-threaded mode that investigates certain properties of the LM/MCMC methods. Not a real search.
+  MIN_MCMC_EDIT,     // Minimizing MCMC (choses minimal point when running MCMC step)
+  MCMCLMGD,          // MCMC with an additional LM refinement step
+  RECENTER_MCMC_EDIT,// Re-centers the search to different locations once max depth reached
+  RECENTER_MCMC_LM   // Does MCMCLMGD and recenters on reaching max depth
 };
 
 // A container for various things that the entire application may want to access

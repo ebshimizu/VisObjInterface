@@ -974,14 +974,9 @@ Histogram3D HistogramAttribute::getLabHist(Image& canonical, int x, int y, int z
   return lab;
 }
 
-Sparse5DHistogram HistogramAttribute::getLabxyHist(Image & canonical, int n)
+Sparse5DHistogram HistogramAttribute::getLabxyHist(Image & canonical, float lambda)
 {
-  return getLabxyHist(canonical, n, n, n, n, n);
-}
-
-Sparse5DHistogram HistogramAttribute::getLabxyHist(Image & canonical, int l, int a, int b, int x, int y)
-{
-  Sparse5DHistogram hist({ 0, 20, -5, 25, -5, 25, 0, 0.25f, 0, 0.25f }, 50);
+  Sparse5DHistogram hist({ 0, 20, -5, 25, -5, 25, 0, 0.25f, 0, 0.25f }, lambda);
 
   for (int y2 = 0; y2 < canonical.getHeight(); y2++) {
     for (int x2 = 0; x2 < canonical.getWidth(); x2++) {

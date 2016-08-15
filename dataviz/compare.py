@@ -11,9 +11,8 @@ import plotly.graph_objs as go
 # If args[3] is an int the format is: [output file name] [input directory] [folder number]
 # If args[3] is not an int the format is: [output file name] [list of directories...]
 def main(args):
-	print args
-	searchModeNames = {0: 'MCMC with Edits', 4 : 'Minimizing MCMC with Edits', 5 : 'MCMC with LMGD Refinement', 6 : 'Exprimental: Recentring MCMC'}
-	searchModes = [0, 4, 5, 6]
+	searchModeNames = {0: 'MCMC with Edits', 4 : 'Minimizing MCMC with Edits', 5 : 'MCMC with LMGD Refinement', 6 : 'Recentring MCMC', 7 : 'Recentering MCMC with LMGD'}
+	searchModes = [0, 4, 5, 6, 7]
 
 	arbitrary = False
 	try:
@@ -38,7 +37,7 @@ def main(args):
 	diamPlots = []
 	varPlots = []
 
-	print "reading directories:\n" + "\n".join(dirList)
+	print "comparing directories:\n" + "\n".join(dirList)
 
 	i = 0
 	for path in dirList:

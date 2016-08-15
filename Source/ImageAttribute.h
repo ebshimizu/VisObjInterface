@@ -33,9 +33,9 @@ private:
 class ImageAttribute : public HistogramAttribute
 {
 public:
-  ImageAttribute(string name, string filepath, int n = 10);
-  ImageAttribute(string name, Image img, int n = 10);
-  ImageAttribute(string name, Snapshot* s, int n = 10);
+  ImageAttribute(string name, string filepath, float weight = 50);
+  ImageAttribute(string name, Image img, float weight = 50);
+  ImageAttribute(string name, Snapshot* s, float weight = 50);
   ~ImageAttribute();
 
   virtual double evaluateScene(Snapshot* s, Image& img);
@@ -52,7 +52,8 @@ public:
   double avgLabDistance(Snapshot* s);
   
 private:
-  int _n;
+  float _weight;
+
 #ifdef SPARSE5D
   Sparse5DHistogram _sourceHist;
 #endif

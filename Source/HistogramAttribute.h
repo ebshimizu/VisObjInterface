@@ -294,8 +294,7 @@ public:
   Histogram3D getLabHist(Image& canonical, int x, int y, int z);
 
   // Returns the color and position histogram for the given image.
-  Sparse5DHistogram getLabxyHist(Image& canonical, int n);
-  Sparse5DHistogram getLabxyHist(Image& canonical, int l, int a, int b, int x, int y);
+  Sparse5DHistogram getLabxyHist(Image& canonical, float lambda = 50);
 
   LabxyHistogram getLabxyHist2(Image& canonical, int n);
   LabxyHistogram getLabxyHist2(Image& canonical, int l, int a, int b, int x, int y);

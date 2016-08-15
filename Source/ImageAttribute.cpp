@@ -26,8 +26,8 @@ void ImageDrawer::paint(Graphics & g)
   g.drawImageWithin(_img, 0, 0, getWidth(), getHeight(), RectanglePlacement::centred);
 }
 
-ImageAttribute::ImageAttribute(string name, string filepath, int n) : HistogramAttribute(name),
-  _sourceHist({}), _n(n)
+ImageAttribute::ImageAttribute(string name, string filepath, float weight) : HistogramAttribute(name),
+  _sourceHist({}), _weight(weight)
 {
   File img(filepath);
   FileInputStream in(img);
@@ -50,8 +50,8 @@ ImageAttribute::ImageAttribute(string name, string filepath, int n) : HistogramA
   addAndMakeVisible(_showImgButton);
 }
 
-ImageAttribute::ImageAttribute(string name, Image img, int n) : HistogramAttribute(name),
-  _sourceHist({}), _n(n)
+ImageAttribute::ImageAttribute(string name, Image img, float weight) : HistogramAttribute(name),
+  _sourceHist({}), _weight(weight)
 {
   _originalImg = img;
   _sourceImg = img.rescaled(_canonicalWidth, _canonicalHeight);
@@ -62,8 +62,8 @@ ImageAttribute::ImageAttribute(string name, Image img, int n) : HistogramAttribu
   addAndMakeVisible(_showImgButton);
 }
 
-ImageAttribute::ImageAttribute(string name, Snapshot * s, int n) : HistogramAttribute(name),
-  _sourceHist({}), _n(n)
+ImageAttribute::ImageAttribute(string name, Snapshot * s, float weight) : HistogramAttribute(name),
+  _sourceHist({}), _weight(weight)
 {
   _originalImg = generateImage(s, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
   _sourceImg = _originalImg.rescaled(_canonicalWidth, _canonicalHeight);
@@ -90,7 +90,7 @@ double ImageAttribute::evaluateScene(Snapshot * s, Image& img)
   }
 
 #ifdef SPARSE5D
-  Sparse5DHistogram currentHist = getLabxyHist(img, _n, _n, _n, 3, 3);
+  Sparse5DHistogram currentHist = getLabxyHist(img, _weight);
   double diff = currentHist.EMD(_sourceHist);
 #endif
 #ifdef LABXYHIST
@@ -104,7 +104,7 @@ double ImageAttribute::evaluateScene(Snapshot * s, Image& img)
 void ImageAttribute::preProcess()
 {
 #ifdef SPARSE5D
-  _sourceHist = getLabxyHist(_sourceImg, _n);
+  _sourceHist = getLabxyHist(_sourceImg, _weight);
 #endif
 #ifdef LABXYHIST
   _sourceHist = getLabxyHist2(_sourceImg, _n, _n, _n, 3, 3);

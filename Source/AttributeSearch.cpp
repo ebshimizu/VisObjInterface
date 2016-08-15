@@ -263,6 +263,7 @@ AttributeSearchThread::AttributeSearchThread(String name, SearchResultsViewer* v
 	Thread(name), _viewer(viewer), _edits(vector<Edit*>()), _sharedData(sharedData)
 {
   _original = nullptr;
+  _fallback = nullptr;
 }
 
 AttributeSearchThread::~AttributeSearchThread()
@@ -270,6 +271,7 @@ AttributeSearchThread::~AttributeSearchThread()
   // don't delete anything, other objects need the results allocated here.
   // except for internally used variables only
   delete _original;
+  delete _fallback;
 
   //for (auto e : _edits)
   //  delete e;
@@ -279,6 +281,8 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjF
 {
   if (_original != nullptr)
     delete _original;
+  if (_fallback != nullptr)
+    delete _fallback;
 
   _original = new Snapshot(*start);
   _edits.clear();
@@ -292,6 +296,7 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjF
 	_mode = m;
 	_randomInit = false;
 	_status = IDLE;
+  _fallback = new Snapshot(*start);
 }
 
 void AttributeSearchThread::run()
@@ -299,7 +304,7 @@ void AttributeSearchThread::run()
   //checkEdits();
   //return;
 
-  if (_mode == MCMC_TEST)
+  if (_mode == RECENTER_MCMC_EDIT || _mode == RECENTER_MCMC_LM)
     computeEditWeights(false, false);
 
   // here we basically want to run the search indefinitely until cancelled by user
@@ -325,6 +330,9 @@ void AttributeSearchThread::computeEditWeights(bool showStatusMessages, bool glo
 	weights.resize(_edits.size());
 
 	for (int i = 0; i < _edits.size(); i++) {
+    if (threadShouldExit())
+      return;
+
     if (showStatusMessages) {
       MessageManagerLock mmlock(this);
       if (mmlock.lockWasGained()) {
@@ -461,12 +469,15 @@ void AttributeSearchThread::recenter(Snapshot * s)
     auto container = _viewer->getBestUnexploitedResult();
 
     if (container == nullptr) {
-      // if there's nothing left to exploit, we're basically done
-      threadShouldExit();
+      // if there's nothing left to exploit, reset back to the beginning for a bit
+      setStartConfig(_fallback);
+      computeEditWeights(false, false);
+      getRecorder()->log(SYSTEM, "Recentered thread " + String(_id).toStdString() + " to original config");
       return;
     }
-
-    s = vectorToSnapshot(container->getSearchResult()->_scene);
+    else {
+      s = vectorToSnapshot(container->getSearchResult()->_scene);
+    }
   }
   
   setStartConfig(s);
@@ -484,8 +495,10 @@ void AttributeSearchThread::runSearch()
     runLMGDSearch();
   else if (_mode == MCMCLMGD)
     runMCMCLMGDSearch();
-  else if (_mode == MCMC_TEST)
-    runExperimentalSearch();
+  else if (_mode == RECENTER_MCMC_EDIT)
+    runRecenteringMCMCSearch();
+  else if (_mode == RECENTER_MCMC_LM)
+    runRecenteringMCMCLMGDSearch();
 	else if (_mode == HYBRID_EXPLORE) {
 		// This search mode has multiple phases, and each thread can be on a different phase
 		// On thread creation, we should wait for further instructions
@@ -1071,7 +1084,7 @@ void AttributeSearchThread::runMCMCLMGDSearch()
   delete start;
 }
 
-void AttributeSearchThread::runExperimentalSearch()
+void AttributeSearchThread::runRecenteringMCMCSearch()
 {
 	// assign start scene, initialize result
 	Snapshot* start = new Snapshot(*_original);
@@ -1218,6 +1231,268 @@ void AttributeSearchThread::runExperimentalSearch()
 	}
 
 	samples[_id].push_back(data);
+}
+
+void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
+{
+  // it was a search like any other
+  // start with the very normal (at this point) MCMC edit search
+
+  // assign start scene, initialize result
+  Snapshot* start = new Snapshot(*_original);
+  SearchResult* r = new SearchResult();
+  double fx = _f(start);
+  double orig = fx;
+
+  // RNG
+  default_random_engine gen(std::random_device{}());
+  uniform_real_distribution<double> udist(0.0, 1.0);
+
+  // do the MCMC search
+  int depth = 0;
+  Edit* e = nullptr;
+
+  // magic number alert
+  int iters = getGlobalSettings()->_standardMCMC ? getGlobalSettings()->_standardMCMCIters : getGlobalSettings()->_maxMCMCIters;
+
+  // depth increases when scenes are rejected from the viewer
+  while (depth < _maxDepth) {
+    if (threadShouldExit()) {
+      delete r;
+      delete start;
+      return;
+    }
+
+    //  pick a next plausible edit
+    if (r->_editHistory.size() == 0)
+      e = _edits[0]->getNextEdit(r->_editHistory, _localEditWeights, getGlobalSettings()->_reduceRepeatEdits);
+    else
+      e = e->getNextEdit(r->_editHistory, _localEditWeights, getGlobalSettings()->_reduceRepeatEdits);
+
+    r->_editHistory.push_back(e);
+
+    // here we'll actually pull the lowest observed accepted sample
+    Eigen::VectorXd lowestScene;
+    double minVal = DBL_MAX;
+    bool accepted = false;
+
+    // do the adjustment a few times. meander around the space 
+    for (int i = 0; i < iters; i++) {
+      if (threadShouldExit()) {
+        delete r;
+        delete start;
+        return;
+      }
+
+      //  adjust the starting scene
+      Snapshot* sp = new Snapshot(*start);
+      e->performEdit(sp, getGlobalSettings()->_editStepSize);
+
+      // check for acceptance
+      double fxp = _f(sp);
+      double a = 0;
+
+      a = min(exp((1 / _T) * (fx - fxp)), 1.0);
+
+      // accept if a >= 1 or with probability a
+      if (a >= 1 || udist(gen) < a) {
+        // update x
+        delete start;
+        start = sp;
+        fx = fxp;
+
+        // update result
+        r->_objFuncVal = fx;
+
+        // diagnostics
+        DebugData data;
+        auto& samples = getGlobalSettings()->_samples;
+        data._f = r->_objFuncVal;
+        data._a = a;
+        data._sampleId = (unsigned int)samples[_id].size() + 1;
+        data._editName = e->_name;
+        data._accepted = true;
+        data._scene = snapshotToVector(sp);
+        samples[_id].push_back(data);
+
+        if (fx < minVal) {
+          minVal = fx;
+          lowestScene = data._scene;
+        }
+
+        accepted = true;
+      }
+      else {
+        delete sp;
+      }
+    }
+
+    // adjust so that the min scene gets used as next starting point
+    // but check that something actually was accepted (probability may not accept everything)
+    if (accepted) {
+      r->_objFuncVal = minVal;
+      delete start;
+      start = vectorToSnapshot(lowestScene);
+    }
+
+    depth++;
+  }
+
+  r->_scene = snapshotToVector(start);
+
+  // diagnostics
+  DebugData data;
+  auto& samples = getGlobalSettings()->_samples;
+  data._f = r->_objFuncVal;
+  data._a = 1;
+  data._sampleId = (unsigned int)samples[_id].size() + 1;
+  data._editName = "TERMINAL";
+  data._accepted = true;
+  data._scene = r->_scene;
+
+  r->_extraData["Thread"] = String(_id);
+  r->_extraData["Sample"] = String(data._sampleId);
+  r->_creationTime = chrono::high_resolution_clock::now();
+
+  // add if we did better
+  if (r->_objFuncVal < orig) {
+    // send scene to the results area. may chose to not use the scene
+    if (!_viewer->addNewResult(r, false)) {
+      // r has been deleted by _viewer here
+      _failures++;
+      data._accepted = false;
+
+      if (_failures > getGlobalSettings()->_searchFailureLimit) {
+				_failures = 0;
+        recenter();
+      }
+    }
+    else {
+      _acceptedSamples += 1;
+    }
+  }
+  else {
+    data._accepted = false;
+    delete r;
+  }
+
+  samples[_id].push_back(data);
+
+  if (data._accepted == false) {
+    delete start;
+    return;
+  }
+
+  // if the sample was accepted, we then perform LMGD on the sample and forcibly
+  // (for now) add that to the results set.
+
+  // Levenberg-Marquardt
+  Snapshot xs(*start);
+  Eigen::VectorXd x = snapshotToVector(&xs);
+
+  int maxIters = getGlobalSettings()->_maxGradIters;
+  double nu = 2;
+  double eps = 1e-3;
+  double tau = 1e-3;
+  fx = _fsq(&xs);
+  double forig = fx;
+
+  Eigen::MatrixXd J = getJacobian(xs);
+  Eigen::MatrixXd H = J.transpose() * J;		// may need to replace with actual calculation of Hessian
+  Eigen::MatrixXd g = J.transpose() * _fsq(&xs);
+
+  double mu = tau * H.diagonal().maxCoeff();
+
+  bool found = false;
+  int k = 0;
+
+  while (!found && k < maxIters) {
+    if (threadShouldExit()) {
+      return;
+    }
+
+    k = k + 1;
+    Eigen::MatrixXd inv = (H + mu * Eigen::MatrixXd::Identity(H.rows(), H.cols())).inverse();
+    Eigen::MatrixXd hlm = -inv * g;
+
+    if (hlm.norm() <= eps * (x.norm() + eps)) {
+      found = true;
+    }
+    else {
+      Eigen::VectorXd xnew = x + hlm;
+
+      // fix constraints, bounded at 1 and 0
+      for (int i = 0; i < x.size(); i++) {
+        xnew[i] = clamp((float)xnew[i], 0, 1);
+      }
+
+      vectorToExistingSnapshot(xnew, xs);
+      double fnew = _fsq(&xs);
+      Eigen::MatrixXd rho = (0.5 * hlm.transpose() * (mu * hlm - g)) * (1 / (fx * fx / 2 - fnew * fnew / 2));
+
+      // should be a scalar
+      double rhoval = rho(0);
+
+      if (rhoval > 0) {
+        // acceptable step
+        x = xnew;
+        J = getJacobian(xs);
+        g = J.transpose() * fnew;
+        found = (g.norm() <= eps);
+        mu = mu * max(1.0 / 3.0, 1 - pow(2 * rhoval - 1, 3));
+        nu = 2;
+        fx = fnew;
+
+        // debug data
+        DebugData data;
+        auto& samples = getGlobalSettings()->_samples;
+        data._f = fnew;
+        data._a = 1;
+        data._sampleId = (unsigned int)samples[_id].size() + 1;
+        data._editName = "L-M DESCENT STEP";
+        data._accepted = true;
+        data._scene = x;
+        samples[_id].push_back(data);
+      }
+      else {
+        mu = mu * nu;
+        nu = 2 * nu;
+
+        // reset
+        vectorToExistingSnapshot(x, xs);
+      }
+    }
+  }
+
+  // found, stick in visible set 
+
+  // debug data
+  DebugData data2;
+  data2._f = fx;
+  data2._a = 1;
+  data2._sampleId = (unsigned int)samples[_id].size() + 1;
+  data2._editName = "L-M TERMINAL";
+  data2._scene = x;
+
+  if (fx < forig) {
+    SearchResult* r = new SearchResult();
+    r->_objFuncVal = _f(&xs);
+    r->_scene = x;
+    r->_creationTime = chrono::high_resolution_clock::now();
+    r->_extraData["Sample"] = String(data._sampleId);
+    r->_extraData["Parent"] = String(data._sampleId);
+    r->_extraData["LM Terminal"] = "True";
+    r->_extraData["Thread"] = String(_id);
+
+    data2._accepted = _viewer->addNewResult(r, true);
+  }
+  else {
+    data2._accepted = false;
+  }
+
+  samples[_id].push_back(data2);
+
+  delete start;
 }
 
 void AttributeSearchThread::checkEdits()

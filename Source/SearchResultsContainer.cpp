@@ -1249,8 +1249,9 @@ shared_ptr<SearchResultContainer> SearchResultsContainer::getBestUnexploitedResu
 
   // we also want to encourage variation, so it's possible all the
   // good results are clustered together with similar values
-  // ok but before we try that, we should note that the algorithm may be
-  // overfitting to a specific case so lets try other stuff first.
+	default_random_engine gen(std::random_device{}());
+	uniform_real_distribution<double> udist(0.0, _allResults.size() * 0.1);
+  int target = (int)(udist(gen));
 
   {
     // lock
@@ -1262,8 +1263,13 @@ shared_ptr<SearchResultContainer> SearchResultsContainer::getBestUnexploitedResu
 
     for (int i = 0; i < allProxy.size(); i++) {
       if (allProxy[i]->getSearchResult()->_extraData.count("Exploited") == 0) {
-        allProxy[i]->getSearchResult()->_extraData["Exploited"] = "true";
-        return allProxy[i];
+        if (target <= 0) {
+          allProxy[i]->getSearchResult()->_extraData["Exploited"] = "true";
+          return allProxy[i];
+        }
+        else {
+          target--;
+        }
       }
     }
   }
