@@ -988,8 +988,12 @@ void MainContentComponent::endAuto()
   double minAttrVal = DBL_MAX;
   double avgLab = 0;
   double minLab = DBL_MAX;
-  map<int, float> timeToNLab;   // Records the first time we encounter an average lab value less than n.
-  map<int, int> resultsToNLab;  // Records the number of the first returned result to have a lab distance less than n
+
+  // capture variance and diameter at specific points in time
+  map<double, double> diamAtN;
+  map<double, double> varAtN;
+  diamAtN[0] = 0;
+  varAtN[0] = 0;
 
   // compute variance from mean position and diameter of cluster over time
   Eigen::VectorXd runningTotal, variance, diameter;
@@ -1032,6 +1036,7 @@ void MainContentComponent::endAuto()
 
   // export results here
   int index = 0; // man im lazy
+  double threshold = 25;
   for (auto r : results) {
     // creation time
     float timeSinceStart = chrono::duration<float>(r->getSearchResult()->_creationTime - getGlobalSettings()->_searchStartTime).count();
@@ -1073,13 +1078,10 @@ void MainContentComponent::endAuto()
     if (labDist < minLab)
       minLab = labDist;
 
-    for (int i = 1; i < 12; i++) {
-      if (timeToNLab.count(i) == 0) {
-        if (labDist < i) {
-          timeToNLab[i] = timeSinceStart;
-          resultsToNLab[i] = r->getSearchResult()->_sampleNo;
-        }
-      }
+    if (timeSinceStart > threshold) {
+      diamAtN[threshold] = diameter[index];
+      varAtN[threshold] = variance[index];
+      threshold += 25;
     }
 
     index++;
@@ -1097,8 +1099,8 @@ void MainContentComponent::endAuto()
   file << "Min Attr," << minAttrVal << "\n";
   file << "Min To N Lab\n";
 
-  for (auto kvp : timeToNLab) {
-    file << kvp.first << "," << kvp.second << "," << resultsToNLab[kvp.first] << "\n";
+  for (auto kvp : diamAtN) {
+    file << kvp.first << "," << kvp.second << "," << varAtN[kvp.first] << "\n";
   }
 
   file.close();

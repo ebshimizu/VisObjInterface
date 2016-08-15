@@ -1247,6 +1247,10 @@ shared_ptr<SearchResultContainer> SearchResultsContainer::getBestUnexploitedResu
   // and pick the best one not already exploited
   Array<shared_ptr<SearchResultContainer> > allProxy(_allResults);
 
+  // we also want to encourage variation, so it's possible all the
+  // good results are clustered together with similar values
+  // ok but before we try that, we should note that the algorithm may be
+  // overfitting to a specific case so lets try other stuff first.
 
   {
     // lock
