@@ -209,6 +209,7 @@ public:
   bool _reduceRepeatEdits;      // Reduce the probability of repeat edits during a search
   int _autoTimeout;             // Maximum amout of time to keep the program running during auto
   float _evWeight;              // Weight of the expected value in the MCMC Edit generation step
+  bool _uniformEditWeights;     // Use uniform edit weights, or don't. Default: false
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

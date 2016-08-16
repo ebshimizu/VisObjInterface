@@ -868,6 +868,15 @@ void MainContentComponent::startAuto()
   if (args.count("evWeight") > 0)
     getGlobalSettings()->_evWeight = args["evWeight"].getFloatValue();
 
+  if (args.count("T") > 0)
+    getGlobalSettings()->_T = args["T"].getFloatValue();
+
+  if (args.count("stepSize") > 0)
+    getGlobalSettings()->_editStepSize = args["stepSize"].getFloatValue();
+
+  if (args.count("uniformEdits") > 0)
+    getGlobalSettings()->_uniformEditWeights = true;
+
   createLogDirs();
 
   // replace all attributes with our specific attribute
@@ -927,9 +936,15 @@ void MainContentComponent::endAuto()
   // we want to pull out all the relevant data and put it in a folder in the log root dir
   // first, create the folder
   File resultsFolder;
-  resultsFolder = resultsFolder.getCurrentWorkingDirectory().
-    getChildFile(String(getGlobalSettings()->_logRootDir + "/" + String(getGlobalSettings()->_searchMode) + "/" + getGlobalSettings()->_sessionName + "/"));
-  
+  if (getGlobalSettings()->_commandLineArgs.count("outputFolderName") > 0) {
+    resultsFolder = resultsFolder.getCurrentWorkingDirectory().
+      getChildFile(String(getGlobalSettings()->_logRootDir + "/" + String(getGlobalSettings()->_searchMode) + "/" + getGlobalSettings()->_commandLineArgs["outputFolderName"] + "/"));
+  }
+  else {
+    resultsFolder = resultsFolder.getCurrentWorkingDirectory().
+      getChildFile(String(getGlobalSettings()->_logRootDir + "/" + String(getGlobalSettings()->_searchMode) + "/" + getGlobalSettings()->_sessionName + "/"));
+  }
+
   if (!resultsFolder.exists()) {
     resultsFolder.createDirectory();
   }
@@ -942,7 +957,7 @@ void MainContentComponent::endAuto()
   file << getGlobalSettings()->_sessionSearchSettings;
 
   time_t now = chrono::system_clock::to_time_t(getGlobalSettings()->_searchAbsStartTime);
-  const Array<shared_ptr<SearchResultContainer> > results = _search->getAllResults();
+  Array<shared_ptr<SearchResultContainer> > results = _search->getAllResults();
   ImageAttribute* attr = (ImageAttribute*)(_attrs->getActiveAttributes().begin()->second);
 
   file << "Search Start Time: " << ctime(&now);
@@ -1085,6 +1100,29 @@ void MainContentComponent::endAuto()
     }
 
     index++;
+  }
+
+  // export the top 10 results
+  DefaultSorter sorter;
+  results.sort(sorter);
+
+  for (int i = 0; i < 10; i++) {
+    Snapshot* s = vectorToSnapshot(results[i]->getSearchResult()->_scene);
+    auto p = getAnimationPatch();
+
+    // with caching we can render at full and then scale down
+    Image img = Image(Image::ARGB, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight, true);
+    uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+    p->setDims(getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
+
+    getAnimationPatch()->renderSingleFrameToBuffer(s->getDevices(), bufptr, img.getWidth(), img.getHeight());
+    File imgf = resultsFolder.getChildFile(String(i) + "-" + String(results[i]->getSearchResult()->_sampleNo) + ".png");
+    FileOutputStream os(imgf);
+    PNGImageFormat pngif;
+
+    // get the attribute image (the original)
+    // the attribute should be the only one in the controls
+    pngif.writeImageToStream(img, os);
   }
 
   file.close();

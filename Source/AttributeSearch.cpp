@@ -332,18 +332,23 @@ void AttributeSearchThread::computeEditWeights(bool showStatusMessages, bool glo
 	for (int i = 0; i < _edits.size(); i++) {
     if (threadShouldExit())
       return;
-
-    if (showStatusMessages) {
-      MessageManagerLock mmlock(this);
-      if (mmlock.lockWasGained()) {
-        getStatusBar()->setStatusMessage("Precomputing Edit Weights... (" + String(i + 1) + "/" + String(_edits.size()) + ")");
-      }
+    if (getGlobalSettings()->_uniformEditWeights) {
+      // uniform edit weight
+      weights[i] = 1;
     }
+    else {
+      if (showStatusMessages) {
+        MessageManagerLock mmlock(this);
+        if (mmlock.lockWasGained()) {
+          getStatusBar()->setStatusMessage("Precomputing Edit Weights... (" + String(i + 1) + "/" + String(_edits.size()) + ")");
+        }
+      }
 
-		double weight = sqrt(_edits[i]->expected(_original, _f, getGlobalSettings()->_editStepSize * 3, 50));
+      double weight = sqrt(_edits[i]->expected(_original, _f, getGlobalSettings()->_editStepSize * 3, 50));
 
-    // minimum weight, prevent conflicts and also enable all edits to possibly be chosen
-    weights[i] = (weight < 1e-1) ? 1e-1 : weight;
+      // minimum weight, prevent conflicts and also enable all edits to possibly be chosen
+      weights[i] = (weight < 1e-1) ? 1e-1 : weight;
+    }
 	}
 
   if (showStatusMessages) {

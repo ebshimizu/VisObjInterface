@@ -116,7 +116,42 @@ public:
           // this should be a number
           getGlobalSettings()->_commandLineArgs["evWeight"] = commandLine.substring(start, end);
         }
+        else if (substr == "--temperature" || substr == "-T") {
+          start = end + 1;
+          end = commandLine.indexOf(start, " ");
+          if (end == -1)
+            end = commandLine.length();
 
+          // this should be a number
+          getGlobalSettings()->_commandLineArgs["T"] = commandLine.substring(start, end);
+        }
+        else if (substr == "--step-size" || substr == "-s") {
+          start = end + 1;
+          end = commandLine.indexOf(start, " ");
+          if (end == -1)
+            end = commandLine.length();
+
+          // this should be a number
+          getGlobalSettings()->_commandLineArgs["stepSize"] = commandLine.substring(start, end);
+        }
+        else if (substr == "--session-name") {
+          start = end + 1;
+          end = commandLine.indexOf(start, " ");
+          if (end == -1)
+            end = commandLine.length();
+
+          // this should be a number
+          getGlobalSettings()->_commandLineArgs["outputFolderName"] = commandLine.substring(start, end);
+        }
+        else if (substr == "--uniformEdits") {
+          start = end + 1;
+          end = commandLine.indexOf(start, " ");
+          if (end == -1)
+            end = commandLine.length();
+
+          // this should be a number
+          getGlobalSettings()->_commandLineArgs["uniformEdits"] = "true";
+        }
 
         if (start == 0)
           break;

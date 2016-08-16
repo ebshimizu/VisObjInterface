@@ -236,6 +236,9 @@ void SettingsBoolButton::setState(bool newState)
   else if (_id == "Reduce Repeat Edits") {
     getGlobalSettings()->_reduceRepeatEdits = newState;
   }
+  else if (_id == "Uniform Edit Weights") {
+    getGlobalSettings()->_uniformEditWeights = newState;
+  }
 
   refresh();
 }
@@ -254,6 +257,8 @@ bool SettingsBoolButton::getState() const
     return getGlobalSettings()->_useFGMask;
   else if (_id == "Reduce Repeat Edits")
     return getGlobalSettings()->_reduceRepeatEdits;
+  else if (_id == "Uniform Edit Weights")
+    return getGlobalSettings()->_uniformEditWeights;
 
   return false;
 }
@@ -414,6 +419,7 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsBoolButton("Use Mask"));
   searchComponents.add(new SettingsBoolButton("Reduce Repeat Edits"));
   searchComponents.add(new SettingsSlider("Expected Value Weight", 0, 1, 0.01));
+  searchComponents.add(new SettingsBoolButton("Uniform Edit Weights"));
   _settings.addSection("Search", searchComponents);
 
 
