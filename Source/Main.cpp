@@ -143,14 +143,13 @@ public:
           // this should be a number
           getGlobalSettings()->_commandLineArgs["outputFolderName"] = commandLine.substring(start, end);
         }
-        else if (substr == "--uniformEdits") {
-          start = end + 1;
-          end = commandLine.indexOf(start, " ");
-          if (end == -1)
-            end = commandLine.length();
-
+        else if (substr == "--uniform-edits") {
           // this should be a number
           getGlobalSettings()->_commandLineArgs["uniformEdits"] = "true";
+        }
+        else if (substr == "--random-init") {
+          // this should be a number
+          getGlobalSettings()->_commandLineArgs["randomInit"] = "true";
         }
 
         if (start == 0)

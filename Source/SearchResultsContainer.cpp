@@ -587,7 +587,12 @@ void SearchResultsContainer::saveResults(string filename)
   // format is: id, obj func val, edit history, scene
   for (auto& r : _allResults) {
     auto result = r->getSearchResult();
-    file << result->_sampleNo << "," << result->_objFuncVal << "," << r->getTooltip() << ",";
+    file << result->_sampleNo << "," << result->_objFuncVal << ",";
+    
+    for (auto e : result->_editHistory) {
+      file << e->_name << " -> ";
+    }
+    file << "END,";
 
     Eigen::VectorXd scene = result->_scene;
     for (int i = 0; i < scene.size(); i++) {

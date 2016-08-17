@@ -2,10 +2,13 @@ import sys
 from subprocess import call
 import glob
 
+# tests to compare effect of edit step size on search results
+# Temperature = 0.5, initial edit depth = 3, JND = 0.1
+
 scene = sys.argv[1]
 targetsDir = sys.argv[2]
 
-tvalues = [0.1, 10, 5, 1, 0.5, 0.001]
+stepSizes = [0.1, 0.05, 0.01, 0.2, 0.5]
 editModes = [0, 5, 6, 7]
 
 targetImages = glob.glob(targetsDir + "/*.png")
@@ -13,18 +16,18 @@ targetImages = glob.glob(targetsDir + "/*.png")
 exe = "../Builds/VisualStudio2015NoArnold/x64/Release/AttributesInterface.exe"
 
 for imgPath in targetImages:
-	for tvalue in tvalues:
-		logDir = "../analysis/T" + str(tvalue) + "/"
+	for stepSize in stepSizes:
+		logDir = "../analysis/stepSize/" + str(tvalue) + "/"
 
 		# special cases
 		# uniform edit weight
-		cmd = exe + " --preload " + scene + " --auto 0 --uniform-edits --img-attr " + imgPath + " --more --samples 700 --out " + logDir + " --jnd 0.1 --timeout 10 --temperature " + str(tvalue) + " --session-name 0.1"
+		cmd = exe + "--step-size " + str(stepSize) + " --preload " + scene + " --auto 0 --uniform-edits --img-attr " + imgPath + " --more --samples 700 --out " + logDir + " --jnd 0.1 --timeout 10 --temperature 0.5 --session-name 0.1"
 		print cmd
 		call(cmd)
 
 
 		for editMode in editModes:
-			cmd = exe + " --preload " + scene + " --auto " + str(editMode) + " --img-attr " + imgPath + " --more --samples 700 --out " + logDir + " --jnd 0.1 --timeout 10 --temperature " + str(tvalue)
+			cmd = exe + "--step-size " + str(stepSize) + " --preload " + scene + " --auto " + str(editMode) + " --img-attr " + imgPath + " --more --samples 700 --out " + logDir + " --jnd 0.1 --timeout 10 --temperature 0.5"
 			print cmd
 			call(cmd)
 
@@ -32,7 +35,7 @@ for imgPath in targetImages:
 
 
 	# lmgd just for fun
-	cmd = exe + " --preload " + scene + " --auto 1 --uniform-edits --img-attr " + imgPath + " --more --samples 700 --out " + logDir + " --jnd 0.1 --timeout 10 --temperature " + str(tvalue)
+	cmd = exe + "--step-size " + str(stepSize) + " --preload " + scene + " --auto 1 --uniform-edits --img-attr " + imgPath + " --more --samples 700 --out " + logDir + " --jnd 0.1 --timeout 10 --temperature 0.5"
 
 
 #for i in range(0, 194):

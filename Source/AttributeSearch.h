@@ -27,19 +27,6 @@ enum ThreadState {
 	EDIT_WEIGHTS
 };
 
-// Remove vectors from the set that are within a specified threshold of other elements
-// in the set
-void filterResults(list<mcmcSample>& results, double t);
-
-// Remove scenes from the set that are within a specified threshold of other elements
-void filterResults(list<SearchResult*>& results, double t);
-
-// remove points from the set that are within a specified threshold 
-void filterResults(list<Eigen::VectorXd>& points, double t);
-
-// For each center, return the closest search result to that center
-list<SearchResult*> getClosestScenesToCenters(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers);
-
 // Returns a vector representation of the rig state contained in the snapshot
 // Order of parameters detailed in implementation
 Eigen::VectorXd snapshotToVector(Snapshot* s);
@@ -152,14 +139,8 @@ private:
   // Search function for doing the recentering MCMC search with the LMGD refinement step too.
   void runRecenteringMCMCLMGDSearch();
 
-  // Runs a search for each edit in order (non-parallel at the moment)
-  void checkEdits();
-
   // Filters the _results set down to a reasonable size;
   list<SearchResult*> filterSearchResults(list<SearchResult*>& results);
-
-  // Assign each result to the closest center (L2 norm)
-  void clusterResults(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers);
 
 	// Returns the partial numeric derivative wrt each adjustable parameter
 	// Assumes we want the derivative for the current attribute objective function
@@ -167,6 +148,8 @@ private:
 
 	// Computes the jacobian matrix for the given configuration and current 
 	Eigen::MatrixXd getJacobian(Snapshot& s);
+
+  void randomizeStart();
 };
 
 class AttributeSearch : public Thread

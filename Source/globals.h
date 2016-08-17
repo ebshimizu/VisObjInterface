@@ -210,6 +210,7 @@ public:
   int _autoTimeout;             // Maximum amout of time to keep the program running during auto
   float _evWeight;              // Weight of the expected value in the MCMC Edit generation step
   bool _uniformEditWeights;     // Use uniform edit weights, or don't. Default: false
+  bool _randomInit;             // If true, each thread randomizes its starting position before running the search
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

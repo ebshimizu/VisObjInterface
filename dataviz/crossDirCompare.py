@@ -6,31 +6,21 @@ import numpy
 import plotly.offline as py
 import plotly.graph_objs as go
 
-# The command line args for this are totally weird but here's how it works.
-# Everything hinges off of the 3rd argument and whether or not its an integer
-# If args[3] is an int the format is: [output file name] [input directory] [folder number]
-# If args[3] is not an int the format is: [output file name] [list of directories...]
+# Compares a very specific set of results
+# args: [base path] [folder index] [search type] [output file]
 def main(args):
 	searchModeNames = {0: 'MCMC with Edits', 0.1 : 'MCMC with Uniform Edit Weights', 4 : 'Minimizing MCMC with Edits', 5 : 'MCMC with LMGD Refinement', 6 : 'Recentring MCMC', 7 : 'Recentering MCMC with LMGD'}
 	searchModes = [0, 0.1, 5, 6, 7]
-
-	arbitrary = False
-	try:
-		x = int(args[3])
-	except ValueError:
-		arbitrary = True
+	folders = ["T10", "T5", "T1", "T0.5", "T0.1", "T0.001"]
 
 	dirList = []
-	if arbitrary == True:
-		dirList = args[2:-1]
-	else:
-		prefix = args[2]
-		dirNum = int(args[3])
-		for i in searchModes:
-			if os.path.exists(prefix + str(i)):
-				dirs = os.listdir(prefix + str(i))
-				if (os.path.isfile(prefix + str(i) + "/" + dirs[dirNum] + "/results.csv")):
-					dirList.append(prefix + str(i) + "/" + dirs[dirNum])
+	prefix = args[1]
+	dirNum = int(args[2])
+	for i in folders:
+		if os.path.exists(prefix + i):
+			dirs = os.listdir(prefix + i + "/" + args[3])
+			if (os.path.isfile(prefix + str(i) + "/" + args[3] + "/" + dirs[dirNum] + "/results.csv")):
+				dirList.append(prefix + str(i) + "/" + args[3] + "/" + dirs[dirNum])
 
 	attrPlots = []
 	LabPlots = []
@@ -78,8 +68,7 @@ def main(args):
 			attrLine = numpy.polyfit(time, attrVal, 1)
 			labLine = numpy.polyfit(time, labVal, 1)
 
-			if arbitrary == False:
-				dirName = searchModeNames[searchModes[i]]
+			dirName = folders[i]
 
 			# plot with plotly
 			attrPoints = go.Scatter(
@@ -155,10 +144,10 @@ def main(args):
 		title = "Result Variance"
 	)
 
-	reportFile = args[1]
+	reportFile = args[4]
 	f = open(reportFile, 'w')
 
-	f.write("<html>\n\t<head>\n\t\t<title>Comparison Report</title>\n\t</head>\n\t<body>\n")
+	f.write("<html>\n\t<head>\n\t\t<title>Comparison Report - Search Mode: " + args[3] + "</title>\n\t</head>\n\t<body>\n")
 
 	f.write('<div style="display: block; height: 700px;">')
 	f.write(py.plot(dict(data=attrPlots+attrTrendPlots, layout=attrLayout), output_type='div'))

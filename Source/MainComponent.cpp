@@ -877,6 +877,23 @@ void MainContentComponent::startAuto()
   if (args.count("uniformEdits") > 0)
     getGlobalSettings()->_uniformEditWeights = true;
 
+  if (args.count("randomInit") > 0) {
+    // signals that each thread should do a random initialization of its starting
+    // configuration before running the search
+  }
+
+  File logFolder;
+  if (getGlobalSettings()->_commandLineArgs.count("outputFolderName") > 0) {
+    getGlobalSettings()->_logRootDir = logFolder.getCurrentWorkingDirectory().
+      getChildFile(String(getGlobalSettings()->_logRootDir + "/" + getGlobalSettings()->_commandLineArgs["outputFolderName"])).
+      getFullPathName().toStdString();
+  }
+  else {
+    getGlobalSettings()->_logRootDir = logFolder.getCurrentWorkingDirectory().
+      getChildFile(String(getGlobalSettings()->_logRootDir + "/" + String(getGlobalSettings()->_searchMode))).
+      getFullPathName().toStdString();
+  }
+
   createLogDirs();
 
   // replace all attributes with our specific attribute
@@ -935,21 +952,13 @@ void MainContentComponent::endAuto()
   // back in the main thread
   // we want to pull out all the relevant data and put it in a folder in the log root dir
   // first, create the folder
-  File resultsFolder;
-  if (getGlobalSettings()->_commandLineArgs.count("outputFolderName") > 0) {
-    resultsFolder = resultsFolder.getCurrentWorkingDirectory().
-      getChildFile(String(getGlobalSettings()->_logRootDir + "/" + String(getGlobalSettings()->_searchMode) + "/" + getGlobalSettings()->_commandLineArgs["outputFolderName"] + "/"));
-  }
-  else {
-    resultsFolder = resultsFolder.getCurrentWorkingDirectory().
-      getChildFile(String(getGlobalSettings()->_logRootDir + "/" + String(getGlobalSettings()->_searchMode) + "/" + getGlobalSettings()->_sessionName + "/"));
-  }
+  File resultsFolder = File::getCurrentWorkingDirectory().getChildFile(
+    String(getGlobalSettings()->_logRootDir) + "/" + String(getGlobalSettings()->_sessionName));
+  string filename = resultsFolder.getChildFile("search.meta").getFullPathName().toStdString();
 
   if (!resultsFolder.exists()) {
     resultsFolder.createDirectory();
   }
-
-  string filename = resultsFolder.getChildFile("search.meta").getFullPathName().toStdString();
 
   // write metadata file
   ofstream file;
@@ -1052,6 +1061,7 @@ void MainContentComponent::endAuto()
   // export results here
   int index = 0; // man im lazy
   double threshold = 25;
+  map<double, int> sortedVals;
   for (auto r : results) {
     // creation time
     float timeSinceStart = chrono::duration<float>(r->getSearchResult()->_creationTime - getGlobalSettings()->_searchStartTime).count();
@@ -1099,15 +1109,18 @@ void MainContentComponent::endAuto()
       threshold += 25;
     }
 
+    sortedVals[r->getSearchResult()->_objFuncVal] = index;
     index++;
   }
 
   // export the top 10 results
-  DefaultSorter sorter;
-  results.sort(sorter);
 
-  for (int i = 0; i < 10; i++) {
-    Snapshot* s = vectorToSnapshot(results[i]->getSearchResult()->_scene);
+  int i = 0;
+  for (auto it = sortedVals.begin(); it != sortedVals.end(); it++) {
+    if (i > 10)
+      break;
+
+    Snapshot* s = vectorToSnapshot(results[it->second]->getSearchResult()->_scene);
     auto p = getAnimationPatch();
 
     // with caching we can render at full and then scale down
@@ -1116,13 +1129,14 @@ void MainContentComponent::endAuto()
     p->setDims(getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
 
     getAnimationPatch()->renderSingleFrameToBuffer(s->getDevices(), bufptr, img.getWidth(), img.getHeight());
-    File imgf = resultsFolder.getChildFile(String(i) + "-" + String(results[i]->getSearchResult()->_sampleNo) + ".png");
+    File imgf = resultsFolder.getChildFile(String(i) + "-" + String(results[it->second]->getSearchResult()->_sampleNo) + ".png");
     FileOutputStream os(imgf);
     PNGImageFormat pngif;
 
     // get the attribute image (the original)
     // the attribute should be the only one in the controls
     pngif.writeImageToStream(img, os);
+    i++;
   }
 
   file.close();

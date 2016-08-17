@@ -16,152 +16,6 @@
 
 // Search functions
 // ==============================================================================
-void filterResults(list<mcmcSample>& results, double t)
-{
-  // starting at the first element
-  for (auto it = results.begin(); it != results.end(); it++) {
-    // See how close all other elements are
-    for (auto it2 = results.begin(); it2 != results.end(); ) {
-      if (it == it2) {
-        it2++;
-        continue;
-      }
-
-      double dist = (it->first - it2->first).norm();
-
-      // delete element if it's too close
-      if (dist < t) {
-        it2 = results.erase(it2);
-      }
-      else {
-        it2++;
-      }
-    }
-  }
-}
-
-void filterResults(list<SearchResult*>& results, double t)
-{
-  // starting at the first element
-  for (auto it = results.begin(); it != results.end(); it++) {
-    // See how close all other elements are
-    for (auto it2 = results.begin(); it2 != results.end(); ) {
-      if (it == it2) {
-        it2++;
-        continue;
-      }
-
-      double dist = ((*it)->_scene - (*it2)->_scene).norm();
-
-      // delete element if it's too close
-      if (dist < t) {
-        delete *it2;
-        it2 = results.erase(it2);
-      }
-      else {
-        it2++;
-      }
-    }
-  }
-}
-
-void filterResults(list<Eigen::VectorXd>& results, double t)
-{
-  // starting at the first element
-  for (auto it = results.begin(); it != results.end(); it++) {
-    // See how close all other elements are
-    for (auto it2 = results.begin(); it2 != results.end(); ) {
-      if (it == it2) {
-        it2++;
-        continue;
-      }
-
-      double dist = (*it - *it2).norm();
-
-      // delete element if it's too close
-      if (dist < t) {
-        it2 = results.erase(it2);
-      }
-      else {
-        it2++;
-      }
-    }
-  }
-}
-
-void filterWeightedResults(list<SearchResult*>& results, double t) {
-  // similar to filterResults, but this time the result that has a lower attribute
-  // value is discarded instead.
-
-  // starting at the first element
-  for (auto it = results.begin(); it != results.end(); ) {
-    // See how close all other elements are
-    bool erase = false;
-    for (auto it2 = results.begin(); it2 != results.end(); ) {
-      if (it == it2) {
-        it2++;
-        continue;
-      }
-
-      double dist = ((*it)->_scene - (*it2)->_scene).norm();
-
-      // delete element with lower score if it's too close
-      // remember objFuncVals have lower scores being better
-      if (dist < t) {
-        if ((*it)->_objFuncVal < (*it2)->_objFuncVal) {
-          delete *it2;
-          it2 = results.erase(it2);
-        }
-        else {
-          delete *it;
-          erase = true;
-          break;
-        }
-      }
-      else {
-        it2++;
-      }
-    }
-
-    if (erase) {
-      it = results.erase(it);
-    }
-    else {
-      it++;
-    }
-  }
-}
-
-list<SearchResult*> getClosestScenesToCenters(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers)
-{
-  vector<multimap<double, SearchResult*> > res;
-  for (int i = 0; i < centers.size(); i++)
-    res.push_back(multimap<double, SearchResult*>());
-
-  // Place scenes sorted by distance to center into their clusters
-  for (auto r : results) {
-    double dist = (r->_scene - centers[r->_cluster]).norm();
-    res[r->_cluster].insert(pair<double, SearchResult*>(dist, r));
-  }
-
-  // put first element in to results vector, ignore the rest
-  list<SearchResult*> filteredResults;
-  for (auto c : res) {
-    bool first = true;
-    for (auto kvp : c) {
-      if (first) {
-        filteredResults.push_back(kvp.second);
-        first = false;
-      }
-      else {
-        // skip
-      }
-    }
-  }
-
-  return filteredResults;
-}
-
 Eigen::VectorXd snapshotToVector(Snapshot * s)
 {
   // Param order: Intensity, polar, azimuth, R, G, B, Softness (penumbra angle)
@@ -306,6 +160,11 @@ void AttributeSearchThread::run()
 
   if (_mode == RECENTER_MCMC_EDIT || _mode == RECENTER_MCMC_LM)
     computeEditWeights(false, false);
+
+  if (getGlobalSettings()->_randomInit) {
+    // switch up the very first starting scene.
+    randomizeStart();
+  }
 
   // here we basically want to run the search indefinitely until cancelled by user
   // so we just call the actual search function over and over
@@ -1500,116 +1359,6 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
   delete start;
 }
 
-void AttributeSearchThread::checkEdits()
-{
-  // RNG
-  default_random_engine gen(std::random_device{}());
-  uniform_real_distribution<double> udist(0.0, 1.0);
-
-  for (auto e : _edits) {
-    // assign start scene, initialize result
-    Snapshot* start = new Snapshot(*_original);
-    SearchResult* r = new SearchResult();
-    double fx = _f(start);
-    double orig = fx;
-
-    // magic number alert
-    int iters = getGlobalSettings()->_standardMCMC ? getGlobalSettings()->_standardMCMCIters : getGlobalSettings()->_maxMCMCIters;
-
-    // No depth counter here, just one edit
-    if (threadShouldExit()) {
-      delete r;
-      delete start;
-      return;
-    }
-
-    r->_editHistory.push_back(e);
-
-    // iterate a bit, do a little bit of searching
-    // at this point it's probably better to just do gradient descent, but for testing
-    // we'll simulate this by doing some mcmc iterations
-    Eigen::VectorXd minScene;
-
-    // do the adjustment until acceptance
-    for (int i = 0; i < iters; i++) {
-      if (threadShouldExit()) {
-        delete r;
-        delete start;
-        return;
-      }
-
-      //  adjust the starting scene
-      Snapshot* sp = new Snapshot(*start);
-      e->performEdit(sp, getGlobalSettings()->_editStepSize);
-
-      // check for acceptance
-      double fxp = _f(sp);
-      double a = min(exp((1 / _T) * (fx - fxp)), 1.0);
-
-      // accept if a >= 1 or with probability a
-      if (a >= 1 || udist(gen) < a) {
-        // update x
-        delete start;
-        start = sp;
-        fx = fxp;
-
-        // update result
-        r->_objFuncVal = fx;
-
-        // diagnostics
-        if (!getGlobalSettings()->_standardMCMC) {
-          DebugData data;
-          auto& samples = getGlobalSettings()->_samples;
-          data._f = r->_objFuncVal;
-          data._a = a;
-          data._sampleId = (unsigned int) samples[_id].size() + 1;
-          data._editName = e->_name;
-          data._accepted = true;
-          data._scene = snapshotToVector(sp);
-          samples[_id].push_back(data);
-        }
-      }
-      else {
-        delete sp;
-      }
-    }
-
-    r->_scene = snapshotToVector(start);
-    delete start;
-
-    // diagnostics
-    DebugData data;
-    auto& samples = getGlobalSettings()->_samples;
-    data._f = r->_objFuncVal;
-    data._a = 1;
-    data._sampleId = (unsigned int) samples[_id].size() + 1;
-    data._editName = "TERMINAL";
-    data._accepted = true;
-    data._scene = r->_scene;
-
-    // add if we did better
-    if (r->_objFuncVal < orig) {
-      // send scene to the results area. may chose to not use the scene
-      if (!_viewer->addNewResult(r)) {
-        // r has been deleted by _viewer here
-        _failures++;
-        data._accepted = false;
-
-        if (_failures > getGlobalSettings()->_searchFailureLimit) {
-          _failures = 0;
-          _maxDepth++;
-        }
-      }
-    }
-    else {
-      data._accepted = false;
-      delete r;
-    }
-
-    samples[_id].push_back(data);
-  }
-}
-
 list<SearchResult*> AttributeSearchThread::filterSearchResults(list<SearchResult*>& results) {
   double eps = getGlobalSettings()->_jndThreshold;
   do {
@@ -1618,21 +1367,6 @@ list<SearchResult*> AttributeSearchThread::filterSearchResults(list<SearchResult
   } while (results.size() > getGlobalSettings()->_maxReturnedScenes);
 
   return results;
-}
-
-void AttributeSearchThread::clusterResults(list<SearchResult*>& results, vector<Eigen::VectorXd>& centers)
-{
-  for (auto& r : results) {
-    // calculate distance to centers, save closest
-    double lowest = 1e10;
-    for (int i = 0; i < centers.size(); i++) {
-      double dist = (r->_scene - centers[i]).norm();
-      if (dist < lowest) {
-        r->_cluster = i;
-        lowest = dist;
-      }
-    }
-  }
 }
 
 Eigen::VectorXd AttributeSearchThread::getDerivative(Snapshot & s)

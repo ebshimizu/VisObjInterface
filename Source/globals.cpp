@@ -408,6 +408,7 @@ GlobalSettings::GlobalSettings()
   _autoTimeout = 30;
   _evWeight = 0;
   _uniformEditWeights = false;
+  _randomInit = false;
 
   if (_searchThreads <= 0)
     _searchThreads = 1;

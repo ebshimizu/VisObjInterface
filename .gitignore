@@ -292,3 +292,4 @@ Builds/VisualStudio2015/clusters/*
 Builds/VisualStudio2015/traces/*
 Builds/VisualStudio2015NoArnold/AttributesInterface.exe
 *.pyc
+analysis/*
