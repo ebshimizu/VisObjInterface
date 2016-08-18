@@ -589,7 +589,16 @@ void MainContentComponent::saveRender() {
     File img = _parentDir.getChildFile(fileName + ".png");
     FileOutputStream os(img);
     PNGImageFormat pngif;
-    pngif.writeImageToStream(_viewer->getRender(), os);
+
+    // TEMP: RENDER DOWNSCALED IMAGE FOR A TEST TARGET
+    auto p = getAnimationPatch();
+    Image highRes = Image(Image::ARGB, 200, 200, true);
+    uint8* bufptr = Image::BitmapData(highRes, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+    p->setDims(200, 200);
+
+    getAnimationPatch()->renderSingleFrameToBuffer(getRig()->getDeviceRaw(), bufptr, 200, 200);
+
+    pngif.writeImageToStream(highRes, os);
 
     File description = _parentDir.getChildFile(fileName + ".csv");
     FileOutputStream dos(description);

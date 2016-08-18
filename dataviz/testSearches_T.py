@@ -14,26 +14,26 @@ exe = "../Builds/VisualStudio2015NoArnold/x64/Release/AttributesInterface.exe"
 
 for imgPath in targetImages:
 	for tvalue in tvalues:
-		logDir = "../analysis/T" + str(tvalue) + "/"
+		logDir = "../analysis/temperature/T" + str(tvalue) + "/"
 
 		# special cases
 		# uniform edit weight
-		cmd = exe + " --preload " + scene + " --auto 0 --uniform-edits --img-attr " + imgPath + " --more --samples 700 --out " + logDir + " --jnd 0.1 --timeout 10 --temperature " + str(tvalue) + " --session-name 0.1"
+		cmd = exe + " --preload " + scene + " --auto 0 --uniform-edits --img-attr " + imgPath + " --more --samples 1000 --out " + logDir + " --jnd 0.1 --timeout 10 --temperature " + str(tvalue) + " --session-name 0.1"
 		print cmd
 		call(cmd)
 
 
 		for editMode in editModes:
-			cmd = exe + " --preload " + scene + " --auto " + str(editMode) + " --img-attr " + imgPath + " --more --samples 700 --out " + logDir + " --jnd 0.1 --timeout 10 --temperature " + str(tvalue)
+			cmd = exe + " --preload " + scene + " --auto " + str(editMode) + " --img-attr " + imgPath + " --more --samples 1000 --out " + logDir + " --jnd 0.1 --timeout 10 --temperature " + str(tvalue)
 			print cmd
 			call(cmd)
 
 		call("python processData.py " + logDir)
 
-
 	# lmgd just for fun
-	cmd = exe + " --preload " + scene + " --auto 1 --uniform-edits --img-attr " + imgPath + " --more --samples 700 --out " + logDir + " --jnd 0.1 --timeout 10 --temperature " + str(tvalue)
+	cmd = exe + " --preload " + scene + " --auto 1 --uniform-edits --img-attr " + imgPath + " --more --samples 1000 --out " + logDir + " --jnd 0.1 --timeout 10 --temperature " + str(tvalue)
 
+call("python crossCompareT.py")
 
 #for i in range(0, 194):
 #	call(exe + " --preload " + scene + " --auto 0 --img-attr auto --more --samples 400 --out C:/Users/eshimizu/Documents/AttributesInterface/logs/ --jnd 1.5 --timeout 10")

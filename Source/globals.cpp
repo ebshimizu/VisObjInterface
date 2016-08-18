@@ -248,14 +248,14 @@ void GlobalSettings::updateCache()
   }
 
   // Get the image dimensions
-  int width = getGlobalSettings()->_renderWidth;
-  int height = getGlobalSettings()->_renderHeight;
+  int width = 100 * 2; //getGlobalSettings()->_renderWidth;
+  int height = 100 * 2; //getGlobalSettings()->_renderHeight;
   p->setDims(width, height);
   p->setSamples(getGlobalSettings()->_stageRenderSamples);
 
   Image cache = Image(Image::ARGB, width, height, true);
   uint8* bufptr = Image::BitmapData(cache, Image::BitmapData::readWrite).getPixelPointer(0, 0);
-  p->renderSingleFrameToBuffer(getRig()->getDeviceRaw(), bufptr, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
+  p->renderSingleFrameToBuffer(getRig()->getDeviceRaw(), bufptr, width, height);
 
   setCache(cache);
 }

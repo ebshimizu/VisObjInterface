@@ -66,8 +66,8 @@ for i in searchModes:
 			diameters[i][key] = diameters[i][key] / diamCounts[i][key]
 			variances[i][key] = variances[i][key] / diamCounts[i][key]
 
-#comparison graphs
 try:
+	#comparison graphs
 	for i in range(0, len(os.listdir(logFolder + str(searchModes[-1])))):
 		#this function kinda sucks due to it having a strange command line structure
 		compare.main(['', logFolder + "compare-" + str(i) + ".html ", logFolder, str(i)])
@@ -106,10 +106,6 @@ try:
 
 	f.write("<html>\n\t<head>\n\t\t<title>Search Statistics</title>\n\t</head>\n\t<body>\n")
 
-	f.write('<div style="display: block; height: 500px;">')
-	f.write(py.plot(fig, output_type='div'))
-	f.write('</div>')
-
 	f.write('<div style="display: block; height: 600px;">')
 	f.write(py.plot(dict(data=diamData, layout=diamLayout), output_type='div'))
 	f.write('</div>')
@@ -120,5 +116,4 @@ try:
 
 	f.write("\n\t</body>\n</html>")
 except:
-	print "Error generating comparisons and summary. Maybe not all runs were completed?"
-
+	print "Error processing graph summaries"

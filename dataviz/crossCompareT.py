@@ -13,4 +13,4 @@ folderIds = [ 1, 2, 3 ]
 
 for i in editTypes:
 	for folderId in folderIds:
-		crossDirCompare.main(["", "../analysis/", str(folderId), str(i), "../analysis/" + targetNames[folderId] + "-" + str(i) + ".html"])
+		crossDirCompare.main(["", "../analysis/temperature/", str(folderId), str(i), "../analysis/temperature/" + targetNames[folderId] + "-" + str(i) + ".html"])

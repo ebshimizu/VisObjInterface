@@ -239,6 +239,9 @@ void SettingsBoolButton::setState(bool newState)
   else if (_id == "Uniform Edit Weights") {
     getGlobalSettings()->_uniformEditWeights = newState;
   }
+  else if (_id == "Randomize Starts") {
+    getGlobalSettings()->_randomInit = newState;
+  }
 
   refresh();
 }
@@ -259,6 +262,8 @@ bool SettingsBoolButton::getState() const
     return getGlobalSettings()->_reduceRepeatEdits;
   else if (_id == "Uniform Edit Weights")
     return getGlobalSettings()->_uniformEditWeights;
+  else if (_id == "Randomize Starts")
+    return getGlobalSettings()->_randomInit;
 
   return false;
 }
@@ -405,7 +410,7 @@ SettingsEditor::SettingsEditor()
     "Recentering MCMC with Edits and L-M Refinement"}));
   searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 25, 1));
   searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 10, 0.01));
-  searchComponents.add(new SettingsSlider("Max Results", 1, 500, 1));
+  searchComponents.add(new SettingsSlider("Max Results", 1, 1000, 1));
   searchComponents.add(new SettingsSlider("MCMC Step Size", 0, 0.25, 0.001));
   searchComponents.add(new SettingsSlider("MCMC Max Iterations", 1, 100, 1));
 	searchComponents.add(new SettingsSlider("L-M Max Iterations", 1, 1000, 1));
@@ -420,6 +425,7 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsBoolButton("Reduce Repeat Edits"));
   searchComponents.add(new SettingsSlider("Expected Value Weight", 0, 1, 0.01));
   searchComponents.add(new SettingsBoolButton("Uniform Edit Weights"));
+  searchComponents.add(new SettingsBoolButton("Randomzie Starts"));
   _settings.addSection("Search", searchComponents);
 
 

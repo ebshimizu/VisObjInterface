@@ -139,16 +139,14 @@ private:
   // Search function for doing the recentering MCMC search with the LMGD refinement step too.
   void runRecenteringMCMCLMGDSearch();
 
-  // Filters the _results set down to a reasonable size;
-  list<SearchResult*> filterSearchResults(list<SearchResult*>& results);
-
 	// Returns the partial numeric derivative wrt each adjustable parameter
 	// Assumes we want the derivative for the current attribute objective function
 	Eigen::VectorXd getDerivative(Snapshot& s);
 
 	// Computes the jacobian matrix for the given configuration and current 
 	Eigen::MatrixXd getJacobian(Snapshot& s);
-
+  
+  // randomizes the starting position using the available edits
   void randomizeStart();
 };
 

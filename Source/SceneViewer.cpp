@@ -133,7 +133,8 @@ void SceneViewer::renderScene() {
   (new RenderBackgroundThread(p, bufptr))->runThread();
   getRecorder()->log(RENDER, "Render finished.");
 
-  getGlobalSettings()->setCache(_currentRender);
+  getGlobalSettings()->updateCache();
+  //getGlobalSettings()->setCache(_currentRender);
 
   if (getGlobalSettings()->_grayscaleMode) {
     _currentRender.desaturate();

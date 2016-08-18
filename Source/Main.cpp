@@ -152,10 +152,10 @@ public:
           getGlobalSettings()->_commandLineArgs["randomInit"] = "true";
         }
 
-        if (start == 0)
-          break;
-
         start = end + 1;
+
+        if (start <= 0)
+          break;
       }
 
       mainWindow = new MainWindow (getApplicationName());

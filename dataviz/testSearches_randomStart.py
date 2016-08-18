@@ -2,7 +2,7 @@ import sys
 from subprocess import call
 import glob
 
-# tests to compare effect of edit step size on search results
+# tests to compare effect of randomizing the search start space
 # Temperature = 0.5, initial edit depth = 3, JND = 0.1
 
 scene = sys.argv[1]

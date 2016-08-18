@@ -56,13 +56,13 @@ selected = []
 yselected = []
 
 # find selected element IDs
-with open(idfilename, 'rb') as selcsv:
-	freader = csv.reader(selcsv, delimiter=",")
-	for row in freader:
-		selected.append(xsamples[int(row[0])])
-		yselected.append(ysamples[xsamples[int(row[0])]])
+#with open(idfilename, 'rb') as selcsv:
+#	freader = csv.reader(selcsv, delimiter=",")
+#	for row in freader:
+#		selected.append(xsamples[int(row[0])])
+#		yselected.append(ysamples[xsamples[int(row[0])]])
 
-print selected
+#print selected
 
 graphData = []
 
@@ -104,16 +104,16 @@ for k in data:
 	i = i + 1
 
 # create plot for selected elements
-selTrace = go.Scatter(
-	x = selected,
-	y = yselected,
-	name = "Selected Samples",
-	mode = 'markers',
-	type = 'scatter',
-	marker = dict(size=10, color='rgb(255, 0, 0)', symbol='star')
-)
+#selTrace = go.Scatter(
+#	x = selected,
+#	y = yselected,
+#	name = "Selected Samples",
+#	mode = 'markers',
+#	type = 'scatter',
+#	marker = dict(size=10, color='rgb(255, 0, 0)', symbol='star')
+#)
 
-graphData.append(selTrace)
+#graphData.append(selTrace)
 
 layout = go.Layout(
 	title=filename,

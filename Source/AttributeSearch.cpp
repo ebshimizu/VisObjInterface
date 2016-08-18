@@ -161,11 +161,6 @@ void AttributeSearchThread::run()
   if (_mode == RECENTER_MCMC_EDIT || _mode == RECENTER_MCMC_LM)
     computeEditWeights(false, false);
 
-  if (getGlobalSettings()->_randomInit) {
-    // switch up the very first starting scene.
-    randomizeStart();
-  }
-
   // here we basically want to run the search indefinitely until cancelled by user
   // so we just call the actual search function over and over
   while (1) {    
@@ -391,10 +386,16 @@ void AttributeSearchThread::runSearch()
 }
 
 void AttributeSearchThread::runMCMCEditSearch(bool force) {
+	double fx = _f(_original);
+
+  if (getGlobalSettings()->_randomInit) {
+    // switch up the very first starting scene.
+    randomizeStart();
+  }
+
 	// assign start scene, initialize result
 	Snapshot* start = new Snapshot(*_original);
 	SearchResult* r = new SearchResult();
-	double fx = _f(start);
 	double orig = fx;
 
 	// RNG
@@ -551,6 +552,11 @@ void AttributeSearchThread::runMCMCEditSearch(bool force) {
 
 void AttributeSearchThread::runLMGDSearch(bool force)
 {
+  if (getGlobalSettings()->_randomInit) {
+    // switch up the very first starting scene.
+    randomizeStart();
+  }
+
 	// Levenberg-Marquardt
 	// It's a bit questionable whether or not this formulation of the optimization problem
 	// actually fits the non-linear least squares method, however
@@ -574,13 +580,14 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 	int maxIters = getGlobalSettings()->_maxGradIters;
 	double nu = 2;
 	double eps = 1e-3;
+  double eps2 = 1e-9;
 	double tau = 1e-3;
 	double fx = _fsq(&xs);
 	double forig = fx;
 
 	Eigen::MatrixXd J = getJacobian(xs);
 	Eigen::MatrixXd H = J.transpose() * J;		// may need to replace with actual calculation of Hessian
-	Eigen::MatrixXd g = J.transpose() * _f(&xs);
+	Eigen::MatrixXd g = J.transpose() * _fsq(&xs);
 
 	double mu = tau * H.diagonal().maxCoeff();
 
@@ -596,7 +603,7 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 		Eigen::MatrixXd inv = (H + mu * Eigen::MatrixXd::Identity(H.rows(), H.cols())).inverse();
 		Eigen::MatrixXd hlm = -inv * g;
 
-		if (hlm.norm() <= eps * (x.norm() + eps)) {
+		if (hlm.norm() <= eps2 * (x.norm() + eps2)) {
 			found = true;
 		}
 		else {
@@ -609,10 +616,8 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 
 			vectorToExistingSnapshot(xnew, xs);
 			double fnew = _fsq(&xs);
-			Eigen::MatrixXd rho = (0.5 * hlm.transpose() * (mu * hlm - g)) * (1 / (fx * fx / 2 - fnew * fnew / 2));
-
-			// should be a scalar
-			double rhoval = rho(0);
+      Eigen::MatrixXd denom = (0.5 * hlm.transpose() * (mu * hlm - g));
+			double rhoval = (fx * fx / 2 - fnew * fnew / 2) / denom(0);
 
 			if (rhoval > 0) {
 				// acceptable step
@@ -673,7 +678,7 @@ void AttributeSearchThread::runLMGDSearch(bool force)
     r->_creationTime = chrono::high_resolution_clock::now();
 		// r->_extraData["Parent"]
 
-		data._accepted = _viewer->addNewResult(r, force);
+		data._accepted = _viewer->addNewResult(r, true);
 	}
 	else {
 		data._accepted = false;
@@ -688,13 +693,19 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 
 void AttributeSearchThread::runMCMCLMGDSearch()
 {
+  double fx = _f(_original);
+
+  if (getGlobalSettings()->_randomInit) {
+    // switch up the very first starting scene.
+    randomizeStart();
+  }
+
   // it was a search like any other
   // start with the very normal (at this point) MCMC edit search
 
   // assign start scene, initialize result
   Snapshot* start = new Snapshot(*_original);
   SearchResult* r = new SearchResult();
-  double fx = _f(start);
   double orig = fx;
 
   // RNG
@@ -950,10 +961,16 @@ void AttributeSearchThread::runMCMCLMGDSearch()
 
 void AttributeSearchThread::runRecenteringMCMCSearch()
 {
+  double fx = _f(_original);
+
+  if (getGlobalSettings()->_randomInit) {
+    // switch up the very first starting scene.
+    randomizeStart();
+  }
+
 	// assign start scene, initialize result
 	Snapshot* start = new Snapshot(*_original);
 	SearchResult* r = new SearchResult();
-	double fx = _f(start);
 	double orig = fx;
 
 	// RNG
@@ -1099,13 +1116,19 @@ void AttributeSearchThread::runRecenteringMCMCSearch()
 
 void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
 {
+  double fx = _f(_original);
+
+  if (getGlobalSettings()->_randomInit) {
+    // switch up the very first starting scene.
+    randomizeStart();
+  }
+
   // it was a search like any other
   // start with the very normal (at this point) MCMC edit search
 
   // assign start scene, initialize result
   Snapshot* start = new Snapshot(*_original);
   SearchResult* r = new SearchResult();
-  double fx = _f(start);
   double orig = fx;
 
   // RNG
@@ -1359,16 +1382,6 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
   delete start;
 }
 
-list<SearchResult*> AttributeSearchThread::filterSearchResults(list<SearchResult*>& results) {
-  double eps = getGlobalSettings()->_jndThreshold;
-  do {
-    filterWeightedResults(results, eps);
-    eps += 0.01;
-  } while (results.size() > getGlobalSettings()->_maxReturnedScenes);
-
-  return results;
-}
-
 Eigen::VectorXd AttributeSearchThread::getDerivative(Snapshot & s)
 {
 	Eigen::VectorXd x = snapshotToVector(&s);
@@ -1380,22 +1393,22 @@ Eigen::VectorXd AttributeSearchThread::getDerivative(Snapshot & s)
 	double h = 1e-3;
 
 	for (int i = 0; i < dx.size(); i++) {
-		// we're bounded by some physical restrictions here, however, they get
-		// partially addressed by the vector to snapshot function
-		if (x[i] >= 1) {
-			x[i] -= h;
-			vectorToExistingSnapshot(x, s);
-			double fxp = _fsq(&s);
-			dx[i] = (fx - fxp) / h;
-			x[i] += h;
-		}
-		else {
-			x[i] += h;
-			vectorToExistingSnapshot(x, s);
-			double fxp = _fsq(&s);
-			dx[i] = (fxp - fx) / h;
-			x[i] -= h;
-		}
+    // we're bounded by some physical restrictions here, however, they get
+    // partially addressed by the vector to snapshot function
+    if (x[i] >= 1) {
+      x[i] -= h;
+      vectorToExistingSnapshot(x, s);
+      double fxp = _fsq(&s);
+      dx[i] = (fx - fxp) / h;
+      x[i] += h;
+    }
+    else {
+      x[i] += h;
+      vectorToExistingSnapshot(x, s);
+      double fxp = _fsq(&s);
+      dx[i] = (fxp - fx) / h;
+      x[i] -= h;
+    }
 	}
 
 	return dx;
@@ -1416,6 +1429,19 @@ Eigen::MatrixXd AttributeSearchThread::getJacobian(Snapshot & s)
 	J.row(0) = dx;
 
 	return J;
+}
+
+void AttributeSearchThread::randomizeStart()
+{
+  default_random_engine gen(std::random_device{}());
+  uniform_real_distribution<float> udist(50, 500);
+  uniform_real_distribution<float> edist(0, getGlobalSettings()->_edits.size());
+
+  // only use the edits in globals to maintain consistency
+  for (int i = 0; i < (int)udist(gen); i++) {
+    int id = (int)edist(gen);
+    getGlobalSettings()->_edits[id]->performEdit(_original, 0.2); // go nuts
+  }
 }
 
 AttributeSearch::AttributeSearch(SearchResultsViewer * viewer) : _viewer(viewer), Thread("Attribute Search Dispatcher")
