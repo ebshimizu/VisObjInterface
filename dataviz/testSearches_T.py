@@ -6,7 +6,7 @@ scene = sys.argv[1]
 targetsDir = sys.argv[2]
 
 tvalues = [0.1, 10, 5, 1, 0.5, 0.001]
-editModes = [0, 5, 6, 7]
+editModes = [6, 7, 0, 5]
 
 targetImages = glob.glob(targetsDir + "/*.png")
 
@@ -14,7 +14,7 @@ exe = "../Builds/VisualStudio2015NoArnold/x64/Release/AttributesInterface.exe"
 
 for imgPath in targetImages:
 	for tvalue in tvalues:
-		logDir = "../analysis/temperature/T" + str(tvalue) + "/"
+		logDir = "../analysis/temperature2/T" + str(tvalue) + "/"
 
 		# special cases
 		# uniform edit weight

@@ -114,6 +114,10 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_maxGradIters = (int)newValue;
   else if (_id == "Expected Value Weight")
     getGlobalSettings()->_evWeight = newValue;
+  else if (_id == "Switching Time")
+    getGlobalSettings()->_resampleTime = (int)newValue;
+  else if (_id == "Movable Threads")
+    getGlobalSettings()->_resampleThreads = (int)newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -198,6 +202,10 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_maxGradIters;
   else if (_id == "Expected Value Weight")
     return getGlobalSettings()->_evWeight;
+  else if (_id == "Switching Time")
+    return getGlobalSettings()->_resampleTime;
+  else if (_id == "Movable Threads")
+    return getGlobalSettings()->_resampleThreads;
 
   return 0;
 }
@@ -426,6 +434,8 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Expected Value Weight", 0, 1, 0.01));
   searchComponents.add(new SettingsBoolButton("Uniform Edit Weights"));
   searchComponents.add(new SettingsBoolButton("Randomzie Starts"));
+  searchComponents.add(new SettingsSlider("Switching Time", 1, 500, 1));
+  searchComponents.add(new SettingsSlider("Movable Threads", 0, thread::hardware_concurrency(), 1));
   _settings.addSection("Search", searchComponents);
 
 

@@ -409,6 +409,8 @@ GlobalSettings::GlobalSettings()
   _evWeight = 0;
   _uniformEditWeights = false;
   _randomInit = false;
+  _resampleTime = 30;
+  _resampleThreads = thread::hardware_concurrency();
 
   if (_searchThreads <= 0)
     _searchThreads = 1;

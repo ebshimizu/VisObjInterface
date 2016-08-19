@@ -35,7 +35,6 @@ for imgPath in targetImages:
 
 		call("python processData.py " + logDir)
 
-
 	# lmgd just for fun
 	cmd = common + " --auto 1"
 

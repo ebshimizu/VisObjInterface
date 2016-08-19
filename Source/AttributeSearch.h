@@ -93,6 +93,9 @@ private:
 	SearchMode _mode;	// set before launching to prevent issues when switching mid-run
 	bool _randomInit;	// For L-M descent, indicates if the starting position should be randomized
 	ThreadState _status;
+  int _resampleTime;
+  int _samplesTaken;
+  int _resampleThreads;   // number threads that get moved during search (particle filtering)
 
   // this snapshot will always be the very first configuration the thread is set to.
   Snapshot* _fallback;
@@ -148,6 +151,9 @@ private:
   
   // randomizes the starting position using the available edits
   void randomizeStart();
+
+  // Performs gradient descent from the starting scene
+  Eigen::VectorXd performLMGD(Snapshot* scene, double& finalObjVal);
 };
 
 class AttributeSearch : public Thread

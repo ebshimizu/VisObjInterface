@@ -211,6 +211,8 @@ public:
   float _evWeight;              // Weight of the expected value in the MCMC Edit generation step
   bool _uniformEditWeights;     // Use uniform edit weights, or don't. Default: false
   bool _randomInit;             // If true, each thread randomizes its starting position before running the search
+  int _resampleTime;            // For RECENTER_MCMC variants. Number of sample to take before resampling and moving
+  int _resampleThreads;         // Number of threads to allow recentering on
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

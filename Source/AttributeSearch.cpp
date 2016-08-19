@@ -118,6 +118,7 @@ AttributeSearchThread::AttributeSearchThread(String name, SearchResultsViewer* v
 {
   _original = nullptr;
   _fallback = nullptr;
+  _samplesTaken = 0;
 }
 
 AttributeSearchThread::~AttributeSearchThread()
@@ -144,6 +145,8 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjF
   _T = getGlobalSettings()->_T;
   _maxDepth = (getGlobalSettings()->_standardMCMC) ? 1 : getGlobalSettings()->_editDepth;
   _failures = 0;
+  _resampleTime = getGlobalSettings()->_resampleTime;
+  _resampleThreads = getGlobalSettings()->_resampleThreads;
 
   _f = f;
   _fsq = fsq;
@@ -151,6 +154,7 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjF
 	_randomInit = false;
 	_status = IDLE;
   _fallback = new Snapshot(*start);
+  _samplesTaken = 0;
 }
 
 void AttributeSearchThread::run()
@@ -179,7 +183,7 @@ void AttributeSearchThread::computeEditWeights(bool showStatusMessages, bool glo
 
 	// NOTE: Right now the weights are computed globally, as in for one particular scene
 	// in the future we may want to maintain separate weights for each scene
-
+  _localEditWeights.clear();
 	Eigen::VectorXd weights;
 	weights.resize(_edits.size());
 
@@ -230,14 +234,12 @@ void AttributeSearchThread::computeEditWeights(bool showStatusMessages, bool glo
     _status = IDLE;
   }
   else {
-    map<double, Edit*>& editWeights = _localEditWeights;
-
     double sum = weights.sum();
     double total = 0;
 
     for (int i = 0; i < _edits.size(); i++) {
       total += weights[i] / sum;
-      editWeights[total] = _edits[i];
+      _localEditWeights[total] = _edits[i];
     }
   }
 }
@@ -317,7 +319,7 @@ void AttributeSearchThread::runHybridDebug()
 void AttributeSearchThread::recenter(Snapshot * s)
 {
   // for now, thread id 0 can never be recentered, but it can use a larger edit depth
-  if (_id == 0) {
+  if (_id >= _resampleThreads) {
     _maxDepth++;
     return;
   }
@@ -336,12 +338,26 @@ void AttributeSearchThread::recenter(Snapshot * s)
     }
     else {
       s = vectorToSnapshot(container->getSearchResult()->_scene);
+
+      // log which config we moved to
+      DebugData data;
+      auto& samples = getGlobalSettings()->_samples;
+      data._f = container->getSearchResult()->_objFuncVal;
+      data._a = 1;
+      data._sampleId = container->getSearchResult()->_sampleNo;
+      data._editName = "MOVE TARGET";
+      data._accepted = true;
+      data._scene = container->getSearchResult()->_scene;
+      samples[_id].push_back(data);
+
+      _maxDepth = getGlobalSettings()->_editDepth;
     }
   }
   
   setStartConfig(s);
   computeEditWeights(false, false);
 
+  _samplesTaken = 0;
   getRecorder()->log(SYSTEM, "Recentered thread " + String(_id).toStdString() + " to new scene");
   delete s;
 }
@@ -554,16 +570,15 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 {
   if (getGlobalSettings()->_randomInit) {
     // switch up the very first starting scene.
-    randomizeStart();
+    _randomInit = true;
   }
 
 	// Levenberg-Marquardt
 	// It's a bit questionable whether or not this formulation of the optimization problem
 	// actually fits the non-linear least squares method, however
 	// we're just gonna do it and see what happens.
-
 	Snapshot xs(*_original);
-	Eigen::VectorXd x = snapshotToVector(&xs);
+  Eigen::VectorXd x = snapshotToVector(&xs);
 
 	if (_randomInit) {
 		// RNG
@@ -577,87 +592,12 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 		x = snapshotToVector(&xs);
 	}
 
-	int maxIters = getGlobalSettings()->_maxGradIters;
-	double nu = 2;
-	double eps = 1e-3;
-  double eps2 = 1e-9;
-	double tau = 1e-3;
-	double fx = _fsq(&xs);
-	double forig = fx;
+  double fx = 0;
+  double forig = _fsq(&xs);
+	x = performLMGD(&xs, fx);
+  vectorToExistingSnapshot(x, xs);
 
-	Eigen::MatrixXd J = getJacobian(xs);
-	Eigen::MatrixXd H = J.transpose() * J;		// may need to replace with actual calculation of Hessian
-	Eigen::MatrixXd g = J.transpose() * _fsq(&xs);
-
-	double mu = tau * H.diagonal().maxCoeff();
-
-	bool found = false;
-	int k = 0;
-
-	while (!found && k < maxIters) {
-		if (threadShouldExit()) {
-			return;
-		}
-
-		k = k + 1;
-		Eigen::MatrixXd inv = (H + mu * Eigen::MatrixXd::Identity(H.rows(), H.cols())).inverse();
-		Eigen::MatrixXd hlm = -inv * g;
-
-		if (hlm.norm() <= eps2 * (x.norm() + eps2)) {
-			found = true;
-		}
-		else {
-			Eigen::VectorXd xnew = x + hlm;
-			
-			// fix constraints, bounded at 1 and 0
-			for (int i = 0; i < x.size(); i++) {
-				xnew[i] = clamp((float) xnew[i], 0, 1);
-			}
-
-			vectorToExistingSnapshot(xnew, xs);
-			double fnew = _fsq(&xs);
-      Eigen::MatrixXd denom = (0.5 * hlm.transpose() * (mu * hlm - g));
-			double rhoval = (fx * fx / 2 - fnew * fnew / 2) / denom(0);
-
-			if (rhoval > 0) {
-				// acceptable step
-				x = xnew;
-				J = getJacobian(xs);
-				g = J.transpose() * fnew;
-				found = (g.norm() <= eps);
-				mu = mu * max(1.0 / 3.0, 1 - pow(2 * rhoval - 1, 3));
-				nu = 2;
-				fx = fnew;
-
-				// put the result in the visible set for debugging
-				//SearchResult* r = new SearchResult();
-				//r->_objFuncVal = fnew;
-				//r->_scene = x;
-				//_viewer->addNewResult(r);
-
-				// debug data
-				DebugData data;
-				auto& samples = getGlobalSettings()->_samples;
-				data._f = fnew;
-				data._a = 1;
-				data._sampleId = (unsigned int) samples[_id].size() + 1;
-				data._editName = "L-M DESCENT STEP";
-				data._accepted = true;
-				data._scene = x;
-				samples[_id].push_back(data);
-			}
-			else {
-				mu = mu * nu;
-				nu = 2 * nu;
-
-				// reset
-				vectorToExistingSnapshot(x, xs);
-			}
-		}
-	}
-
-	// found, stick in visible set if actually better
-
+  // found, stick in visible set if actually better
 	// debug data
 	DebugData data;
 	auto& samples = getGlobalSettings()->_samples;
@@ -851,84 +791,9 @@ void AttributeSearchThread::runMCMCLMGDSearch()
   // (for now) add that to the results set.
 
   // Levenberg-Marquardt
-  Snapshot xs(*start);
-  Eigen::VectorXd x = snapshotToVector(&xs);
-
-  int maxIters = getGlobalSettings()->_maxGradIters;
-  double nu = 2;
-  double eps = 1e-3;
-  double tau = 1e-3;
-  fx = _fsq(&xs);
-  double forig = fx;
-
-  Eigen::MatrixXd J = getJacobian(xs);
-  Eigen::MatrixXd H = J.transpose() * J;		// may need to replace with actual calculation of Hessian
-  Eigen::MatrixXd g = J.transpose() * _fsq(&xs);
-
-  double mu = tau * H.diagonal().maxCoeff();
-
-  bool found = false;
-  int k = 0;
-
-  while (!found && k < maxIters) {
-    if (threadShouldExit()) {
-      return;
-    }
-
-    k = k + 1;
-    Eigen::MatrixXd inv = (H + mu * Eigen::MatrixXd::Identity(H.rows(), H.cols())).inverse();
-    Eigen::MatrixXd hlm = -inv * g;
-
-    if (hlm.norm() <= eps * (x.norm() + eps)) {
-      found = true;
-    }
-    else {
-      Eigen::VectorXd xnew = x + hlm;
-
-      // fix constraints, bounded at 1 and 0
-      for (int i = 0; i < x.size(); i++) {
-        xnew[i] = clamp((float)xnew[i], 0, 1);
-      }
-
-      vectorToExistingSnapshot(xnew, xs);
-      double fnew = _fsq(&xs);
-      Eigen::MatrixXd rho = (0.5 * hlm.transpose() * (mu * hlm - g)) * (1 / (fx * fx / 2 - fnew * fnew / 2));
-
-      // should be a scalar
-      double rhoval = rho(0);
-
-      if (rhoval > 0) {
-        // acceptable step
-        x = xnew;
-        J = getJacobian(xs);
-        g = J.transpose() * fnew;
-        found = (g.norm() <= eps);
-        mu = mu * max(1.0 / 3.0, 1 - pow(2 * rhoval - 1, 3));
-        nu = 2;
-        fx = fnew;
-
-        // debug data
-        DebugData data;
-        auto& samples = getGlobalSettings()->_samples;
-        data._f = fnew;
-        data._a = 1;
-        data._sampleId = (unsigned int)samples[_id].size() + 1;
-        data._editName = "L-M DESCENT STEP";
-        data._accepted = true;
-        data._scene = x;
-        samples[_id].push_back(data);
-      }
-      else {
-        mu = mu * nu;
-        nu = 2 * nu;
-
-        // reset
-        vectorToExistingSnapshot(x, xs);
-      }
-    }
-  }
-
-  // found, stick in visible set 
+  double forig = _fsq(start);
+  Eigen::VectorXd x = performLMGD(start, fx);
+  Snapshot* xs = vectorToSnapshot(x);
 
   // debug data
   DebugData data2;
@@ -940,10 +805,10 @@ void AttributeSearchThread::runMCMCLMGDSearch()
 
   if (fx < forig) {
     SearchResult* r = new SearchResult();
-    r->_objFuncVal = _f(&xs);
+    r->_objFuncVal = _f(xs);
     r->_scene = x;
     r->_creationTime = chrono::high_resolution_clock::now();
-    r->_extraData["Sample"] = String(data._sampleId);
+    r->_extraData["Sample"] = String(data2._sampleId);
     r->_extraData["Parent"] = String(data._sampleId);
     r->_extraData["LM Terminal"] = "True";
     r->_extraData["Thread"] = String(_id);
@@ -954,6 +819,7 @@ void AttributeSearchThread::runMCMCLMGDSearch()
     data2._accepted = false;
   }
 
+  delete xs;
   samples[_id].push_back(data2);
 
   delete start;
@@ -1099,7 +965,7 @@ void AttributeSearchThread::runRecenteringMCMCSearch()
 
 			if (_failures > getGlobalSettings()->_searchFailureLimit) {
 				_failures = 0;
-        recenter();
+        _maxDepth++;
 			}
 		}
 		else {
@@ -1112,10 +978,19 @@ void AttributeSearchThread::runRecenteringMCMCSearch()
 	}
 
 	samples[_id].push_back(data);
+  _samplesTaken++;
+
+  if (_samplesTaken > _resampleTime) {
+    recenter();
+  }
 }
 
 void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
 {
+  if (_samplesTaken > _resampleTime) {
+    recenter();
+  }
+
   double fx = _f(_original);
 
   if (getGlobalSettings()->_randomInit) {
@@ -1266,6 +1141,7 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
   samples[_id].push_back(data);
 
   if (data._accepted == false) {
+    _samplesTaken++;
     delete start;
     return;
   }
@@ -1274,84 +1150,9 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
   // (for now) add that to the results set.
 
   // Levenberg-Marquardt
-  Snapshot xs(*start);
-  Eigen::VectorXd x = snapshotToVector(&xs);
-
-  int maxIters = getGlobalSettings()->_maxGradIters;
-  double nu = 2;
-  double eps = 1e-3;
-  double tau = 1e-3;
-  fx = _fsq(&xs);
-  double forig = fx;
-
-  Eigen::MatrixXd J = getJacobian(xs);
-  Eigen::MatrixXd H = J.transpose() * J;		// may need to replace with actual calculation of Hessian
-  Eigen::MatrixXd g = J.transpose() * _fsq(&xs);
-
-  double mu = tau * H.diagonal().maxCoeff();
-
-  bool found = false;
-  int k = 0;
-
-  while (!found && k < maxIters) {
-    if (threadShouldExit()) {
-      return;
-    }
-
-    k = k + 1;
-    Eigen::MatrixXd inv = (H + mu * Eigen::MatrixXd::Identity(H.rows(), H.cols())).inverse();
-    Eigen::MatrixXd hlm = -inv * g;
-
-    if (hlm.norm() <= eps * (x.norm() + eps)) {
-      found = true;
-    }
-    else {
-      Eigen::VectorXd xnew = x + hlm;
-
-      // fix constraints, bounded at 1 and 0
-      for (int i = 0; i < x.size(); i++) {
-        xnew[i] = clamp((float)xnew[i], 0, 1);
-      }
-
-      vectorToExistingSnapshot(xnew, xs);
-      double fnew = _fsq(&xs);
-      Eigen::MatrixXd rho = (0.5 * hlm.transpose() * (mu * hlm - g)) * (1 / (fx * fx / 2 - fnew * fnew / 2));
-
-      // should be a scalar
-      double rhoval = rho(0);
-
-      if (rhoval > 0) {
-        // acceptable step
-        x = xnew;
-        J = getJacobian(xs);
-        g = J.transpose() * fnew;
-        found = (g.norm() <= eps);
-        mu = mu * max(1.0 / 3.0, 1 - pow(2 * rhoval - 1, 3));
-        nu = 2;
-        fx = fnew;
-
-        // debug data
-        DebugData data;
-        auto& samples = getGlobalSettings()->_samples;
-        data._f = fnew;
-        data._a = 1;
-        data._sampleId = (unsigned int)samples[_id].size() + 1;
-        data._editName = "L-M DESCENT STEP";
-        data._accepted = true;
-        data._scene = x;
-        samples[_id].push_back(data);
-      }
-      else {
-        mu = mu * nu;
-        nu = 2 * nu;
-
-        // reset
-        vectorToExistingSnapshot(x, xs);
-      }
-    }
-  }
-
-  // found, stick in visible set 
+  double forig = _fsq(start);
+  Eigen::VectorXd x = performLMGD(start, fx);
+  Snapshot* xs = vectorToSnapshot(x);
 
   // debug data
   DebugData data2;
@@ -1363,10 +1164,10 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
 
   if (fx < forig) {
     SearchResult* r = new SearchResult();
-    r->_objFuncVal = _f(&xs);
+    r->_objFuncVal = _f(xs);
     r->_scene = x;
     r->_creationTime = chrono::high_resolution_clock::now();
-    r->_extraData["Sample"] = String(data._sampleId);
+    r->_extraData["Sample"] = String(data2._sampleId);
     r->_extraData["Parent"] = String(data._sampleId);
     r->_extraData["LM Terminal"] = "True";
     r->_extraData["Thread"] = String(_id);
@@ -1378,8 +1179,10 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
   }
 
   samples[_id].push_back(data2);
-
+  delete xs;
   delete start;
+
+  _samplesTaken++;
 }
 
 Eigen::VectorXd AttributeSearchThread::getDerivative(Snapshot & s)
@@ -1442,6 +1245,91 @@ void AttributeSearchThread::randomizeStart()
     int id = (int)edist(gen);
     getGlobalSettings()->_edits[id]->performEdit(_original, 0.2); // go nuts
   }
+}
+
+Eigen::VectorXd AttributeSearchThread::performLMGD(Snapshot* scene, double& finalObjVal)
+{
+  // implementation based off of Non-Linear Methods for Least Squares Problems, 2nd ed.
+  // by K Madsen et al.
+  Snapshot xs(*scene);
+  Eigen::VectorXd x = snapshotToVector(&xs);
+
+  int maxIters = getGlobalSettings()->_maxGradIters;
+  double nu = 2;
+  double eps = 1e-3;
+  double eps2 = 1e-6;
+  double tau = 1e-3;
+  double fx = _fsq(&xs);
+  double forig = fx;
+
+  Eigen::MatrixXd J = getJacobian(xs);
+  Eigen::MatrixXd H = J.transpose() * J;		// may need to replace with actual calculation of Hessian
+  Eigen::MatrixXd g = J.transpose() * _fsq(&xs);
+
+  double mu = tau * H.diagonal().maxCoeff();
+
+  bool found = false;
+  int k = 0;
+
+  while (!found && k < maxIters) {
+    if (threadShouldExit()) {
+      x.setZero();
+      return x;
+    }
+
+    k = k + 1;
+    Eigen::MatrixXd inv = (H + mu * Eigen::MatrixXd::Identity(H.rows(), H.cols())).inverse();
+    Eigen::MatrixXd hlm = -inv * g;
+
+    if (hlm.norm() <= eps2 * (x.norm() + eps2)) {
+      found = true;
+    }
+    else {
+      Eigen::VectorXd xnew = x + hlm;
+
+      // fix constraints, bounded at 1 and 0
+      for (int i = 0; i < x.size(); i++) {
+        xnew[i] = clamp((float)xnew[i], 0, 1);
+      }
+
+      vectorToExistingSnapshot(xnew, xs);
+      double fnew = _fsq(&xs);
+      Eigen::MatrixXd denom = (0.5 * hlm.transpose() * (mu * hlm - g));
+      double rhoval = (fx * fx / 2 - fnew * fnew / 2) / denom(0);
+
+      if (rhoval > 0) {
+        // acceptable step
+        x = xnew;
+        J = getJacobian(xs);
+        g = J.transpose() * fnew;
+        found = (g.norm() <= eps);
+        mu = mu * max(1.0 / 3.0, 1 - pow(2 * rhoval - 1, 3));
+        nu = 2;
+        fx = fnew;
+
+        // debug data
+        DebugData data;
+        auto& samples = getGlobalSettings()->_samples;
+        data._f = fnew;
+        data._a = 1;
+        data._sampleId = (unsigned int)samples[_id].size() + 1;
+        data._editName = "L-M DESCENT STEP";
+        data._accepted = true;
+        data._scene = x;
+        samples[_id].push_back(data);
+      }
+      else {
+        mu = mu * 2; //nu;
+        // nu = 2 * nu;
+
+        // reset
+        vectorToExistingSnapshot(x, xs);
+      }
+    }
+  }
+
+  finalObjVal = fx;
+  return x;
 }
 
 AttributeSearch::AttributeSearch(SearchResultsViewer * viewer) : _viewer(viewer), Thread("Attribute Search Dispatcher")
