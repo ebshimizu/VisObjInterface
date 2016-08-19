@@ -20,6 +20,10 @@ def main(arg1):
 	desc = []
 	variance = []
 	diameter = []
+	minScene = 5000
+	minSceneVals = []
+	attrMean = 0
+	attrMeanVals = []
 	startid = 0
 
 	# gather data
@@ -34,6 +38,17 @@ def main(arg1):
 			diameter.append(float(row[6]))
 			variance.append(float(row[7]))
 			desc.append('Score: ' + row[3] + '<br>Display ID:' + str(startid) + ' Thread: ' + row[0] + '<br>Edit History: ' + row[5])
+
+			# minimum attribute scores
+			if attrVal[-1] < minScene:
+				minScene = attrVal[-1]
+
+			minSceneVals.append(minScene)
+
+			# mean attribute score
+			attrMean = attrMean + attrVal[-1]
+			attrMeanVals.append(attrMean / len(attrVal))
+
 			startid = startid + 1
 
 	# fit some curves
@@ -72,8 +87,24 @@ def main(arg1):
 		name = 'trend',
 		text = str(attrLine[1]) + " + " + str(attrLine[0]) + " * x"
 	)
+	
+	# minimum attribute value
+	minAttrVal = go.Scatter(
+		x = time,
+		y = minSceneVals,
+		mode = 'lines',
+		name = 'Minimum Attribute Value'
+	)
 
-	graphData = [attrPoints, attrLinePlot, varPoints, diamPoints]
+	# mean attribute value
+	meanAttrVal = go.Scatter(
+		x = time,
+		y = attrMeanVals,
+		mode = 'lines',
+		name = 'Mean Attribute Value'
+	)
+
+	graphData = [attrPoints, attrLinePlot, varPoints, diamPoints, minAttrVal, meanAttrVal]
 
 	layout = go.Layout(
 		title="Attribute Values over Time",
