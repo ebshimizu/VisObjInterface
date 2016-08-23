@@ -115,10 +115,12 @@ void GlobalSettings::dumpDiagnosticData()
     file.open(filename, ios::trunc);
 
     // export format:
-    // Thread id, sample id, function val, acceptance chance, generating edit name, feature vector
+    // time, Thread id, sample id, function val, acceptance chance, generating edit name, feature vector
     for (auto& kvp : _samples) {
       for (auto& d : kvp.second) {
-        file << kvp.first << "," << d._sampleId << "," << d._f << "," << d._a << "," << d._editName << "," << d._accepted << ",";
+        double time = chrono::duration<float>(d._timeStamp - _searchStartTime).count();
+        
+        file << time << "," << kvp.first << "," << d._sampleId << "," << d._f << "," << d._a << "," << d._editName << "," << d._accepted << ",";
         for (int i = 0; i < d._scene.size(); i++) {
           file << d._scene[i];
           if (i <= (d._scene.size() - 2)) {
@@ -181,25 +183,25 @@ void GlobalSettings::loadDiagnosticData(string filename)
 
       int i = 0;
       while (getline(lineStream, cell, ',')) {
-        if (i == 0) {
+        if (i == 1) {
           sample._threadId = stoi(cell);
         }
-        else if (i == 1) {
+        else if (i == 2) {
           sample._sampleId = stoi(cell);
         }
-        else if (i == 2) {
+        else if (i == 3) {
           sample._f = stod(cell);
         }
-        else if (i == 3) {
+        else if (i == 4) {
           sample._a = stod(cell);
         }
-        else if (i == 4) {
+        else if (i == 5) {
           sample._editName = cell;
         }
-        else if (i == 5) {
+        else if (i == 6) {
           sample._accepted = (stoi(cell) == 1) ? true : false;
         }
-        else {
+        else if (i > 6) {
           sceneVals.push_back(stod(cell));
         }
         

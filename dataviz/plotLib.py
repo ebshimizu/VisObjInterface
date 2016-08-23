@@ -63,15 +63,24 @@ def getPlots(resultsFile, baseColor, rawTrace = ''):
 		with open(rawTrace, 'rb') as csvfile:
 			freader = csv.reader(csvfile, delimiter=',')
 			for row in freader:
-				if row[4] == "MOVE TARGET":
-					resId = int(row[1] + 1)
+				if row[5] == "MOVE TARGET":
+					resId = int(row[2]) + 1
 					events.append(dict(
-						time = time[resId],
+						time = float(row[0]),
 						attrVal = attrVal[resId],
 						kind = "Move to Sample " + str(resId),
-						tread = int(row[0])
+						thread = int(row[1])
 					))
 
+
+	# collect events data
+	eventText = []
+	eventY = []
+	eventX = []
+	for event in events:
+		eventX.append(event['time'])
+		eventY.append(event['attrVal'])
+		eventText.append(event['kind'] + '<br>Thread: ' + str(event['thread']))
 
 	# fit some curves
 	attrLine = numpy.polyfit(time, attrVal, 3)
@@ -85,6 +94,15 @@ def getPlots(resultsFile, baseColor, rawTrace = ''):
 	outerColorStr = 'rgba(' + ','.join(baseColor) + ", 0.2)"
 
 	# gather plots
+	eventPlot = go.Scatter(
+		x = eventX,
+		y = eventY,
+		text = eventText,
+		name = 'Events',
+		mode = 'markers',
+		marker = dict(color = colorStr, size = 10, line=dict(width=1, color='rgb(0,0,0)'))
+	)
+
 	attrPoints = go.Scatter(
 		x = time,
 		y = attrVal,
@@ -225,7 +243,8 @@ def getPlots(resultsFile, baseColor, rawTrace = ''):
 		outerFill = outerFill,
 		labPoints = labPoints,
 		labTrend = labLinePlot,
-		top25 = top25Plot
+		top25 = top25Plot,
+		events = eventPlot
 	)
 
 def renamePlots(plots, prefix):

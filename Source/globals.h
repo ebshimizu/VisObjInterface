@@ -111,6 +111,7 @@ struct DebugData {
   unsigned int _sampleId;
   int _threadId;
   Eigen::VectorXd _scene;
+  chrono::time_point<chrono::high_resolution_clock> _timeStamp;
 };
 
 enum ClusterMethod {

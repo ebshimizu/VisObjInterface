@@ -348,6 +348,7 @@ void AttributeSearchThread::recenter(Snapshot * s)
       data._editName = "MOVE TARGET";
       data._accepted = true;
       data._scene = container->getSearchResult()->_scene;
+      data._timeStamp = chrono::high_resolution_clock::now();
       samples[_id].push_back(data);
 
       _maxDepth = getGlobalSettings()->_editDepth;
@@ -494,6 +495,7 @@ void AttributeSearchThread::runMCMCEditSearch(bool force) {
         data._editName = e->_name;
         data._accepted = true;
         data._scene = snapshotToVector(sp);
+        data._timeStamp = chrono::high_resolution_clock::now();
         samples[_id].push_back(data);
 
         if (_mode == MIN_MCMC_EDIT && fx < minVal) {
@@ -531,6 +533,7 @@ void AttributeSearchThread::runMCMCEditSearch(bool force) {
 	data._editName = "TERMINAL";
 	data._accepted = true;
 	data._scene = r->_scene;
+  data._timeStamp = chrono::high_resolution_clock::now();
 	
 	r->_extraData["Thread"] = String(_id);
   r->_extraData["Sample"] = String(data._sampleId);
@@ -606,6 +609,7 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 	data._sampleId = (unsigned int) samples[_id].size() + 1;
 	data._editName = "L-M TERMINAL";
 	data._scene = x;
+  data._timeStamp = chrono::high_resolution_clock::now();
 	samples[_id].push_back(data);
 
 	if (fx < forig) {
@@ -717,6 +721,7 @@ void AttributeSearchThread::runMCMCLMGDSearch()
         data._editName = e->_name;
         data._accepted = true;
         data._scene = snapshotToVector(sp);
+        data._timeStamp = chrono::high_resolution_clock::now();
         samples[_id].push_back(data);
 
         if (fx < minVal) {
@@ -753,6 +758,7 @@ void AttributeSearchThread::runMCMCLMGDSearch()
   data._editName = "TERMINAL";
   data._accepted = true;
   data._scene = r->_scene;
+  data._timeStamp = chrono::high_resolution_clock::now();
 
   r->_extraData["Thread"] = String(_id);
   r->_extraData["Sample"] = String(data._sampleId);
@@ -802,6 +808,7 @@ void AttributeSearchThread::runMCMCLMGDSearch()
   data2._sampleId = (unsigned int)samples[_id].size() + 1;
   data2._editName = "L-M TERMINAL";
   data2._scene = x;
+  data2._timeStamp = chrono::high_resolution_clock::now();
 
   if (fx < forig) {
     SearchResult* r = new SearchResult();
@@ -907,6 +914,7 @@ void AttributeSearchThread::runRecenteringMCMCSearch()
         data._editName = e->_name;
         data._accepted = true;
         data._scene = snapshotToVector(sp);
+        data._timeStamp = chrono::high_resolution_clock::now();
         samples[_id].push_back(data);
 
         if (fx < minVal) {
@@ -949,6 +957,7 @@ void AttributeSearchThread::runRecenteringMCMCSearch()
 	data._editName = "TERMINAL";
 	data._accepted = true;
 	data._scene = r->_scene;
+  data._timeStamp = chrono::high_resolution_clock::now();
 	
 	r->_extraData["Thread"] = String(_id);
   r->_extraData["Sample"] = String(data._sampleId);
@@ -1075,6 +1084,7 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
         data._editName = e->_name;
         data._accepted = true;
         data._scene = snapshotToVector(sp);
+        data._timeStamp = chrono::high_resolution_clock::now();
         samples[_id].push_back(data);
 
         if (fx < minVal) {
@@ -1111,6 +1121,7 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
   data._editName = "TERMINAL";
   data._accepted = true;
   data._scene = r->_scene;
+  data._timeStamp = chrono::high_resolution_clock::now();
 
   r->_extraData["Thread"] = String(_id);
   r->_extraData["Sample"] = String(data._sampleId);
@@ -1161,6 +1172,7 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
   data2._sampleId = (unsigned int)samples[_id].size() + 1;
   data2._editName = "L-M TERMINAL";
   data2._scene = x;
+  data2._timeStamp = chrono::high_resolution_clock::now();
 
   if (fx < forig) {
     SearchResult* r = new SearchResult();
@@ -1316,6 +1328,7 @@ Eigen::VectorXd AttributeSearchThread::performLMGD(Snapshot* scene, double& fina
         data._editName = "L-M DESCENT STEP";
         data._accepted = true;
         data._scene = x;
+        data._timeStamp = chrono::high_resolution_clock::now();
         samples[_id].push_back(data);
       }
       else {
@@ -1454,6 +1467,7 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
   data._editName = "START";
   data._accepted = true;
   data._scene = snapshotToVector(start);
+  data._timeStamp = chrono::high_resolution_clock::now();
   samples[-1].push_back(data);
 
   setSessionName();

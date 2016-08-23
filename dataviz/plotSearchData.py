@@ -8,13 +8,13 @@ import plotly.offline as py
 import plotly.graph_objs as go
 import plotLib
 
-def main(arg1):
+def main(arg1, arg2 = ''):
 	prefix = arg1
 	filename = prefix + "results.csv"
 
-	plots = plotLib.getPlots(filename, ['19', '103', '226'])
+	plots = plotLib.getPlots(filename, ['19', '103', '226'], arg2)
 
-	graphData = [plots['attributePoints'], plots['attributeTrend'], plots['minAttrValues'], plots['top25']]
+	graphData = [plots['attributePoints'], plots['attributeTrend'], plots['minAttrValues'], plots['top25'], plots['events']]
 
 	layout = go.Layout(
 		title="Attribute Values over Time"
@@ -33,4 +33,7 @@ def main(arg1):
 	py.plot(dict(data=graphData, layout=layout), filename = prefix + "lab-vals.html", auto_open=False)
 
 if __name__ == "__main__":
-	main(sys.argv[1])
+	if len(sys.argv) == 3:
+		main(sys.argv[1], sys.argv[2])
+	else:
+		main(sys.argv[1])

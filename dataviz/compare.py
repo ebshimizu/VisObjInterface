@@ -22,6 +22,7 @@ def main(args):
 		arbitrary = True
 
 	dirList = []
+	eventData = []
 	if arbitrary == True:
 		dirList = args[2:-1]
 	else:
@@ -32,6 +33,7 @@ def main(args):
 				dirs = os.listdir(prefix + str(i))
 				if (os.path.isfile(prefix + str(i) + "/" + dirs[dirNum] + "/results.csv")):
 					dirList.append(prefix + str(i) + "/" + dirs[dirNum])
+					eventData.append(prefix + str(i) + "/traces/" + dirs[dirNum] + ".csv")
 
 	plots = []
 
@@ -48,7 +50,7 @@ def main(args):
 
 		if os.path.isfile(filename):
 			rgb = colorsys.hsv_to_rgb(hue, 1.0, 0.7)
-			newPlots = plotLib.getPlots(filename, [str(rgb[0] *255), str(rgb[1]*255), str(rgb[2]*255)])
+			newPlots = plotLib.getPlots(filename, [str(rgb[0] *255), str(rgb[1]*255), str(rgb[2]*255)], eventData[i])
 			newPlots = plotLib.renamePlots(newPlots, searchModeNames[searchModes[i]])
 			plots.append(newPlots)
 			hue = hue + 0.15
@@ -59,6 +61,7 @@ def main(args):
 	attrTrendPlots = []
 	topPlots = []
 	labPlots = []
+	eventPlots = []
 	for plot in plots:
 		attrPlots.append(plot['attributePoints'])
 		attrTrendPlots.append(plot['attributeTrend'])
@@ -66,6 +69,7 @@ def main(args):
 		topPlots.append(plot['minAttrValues'])
 		labPlots.append(plot['labPoints'])
 		labPlots.append(plot['labTrend'])
+		eventPlots.append(plot['events'])
 
 
 	attrLayout = go.Layout(
@@ -92,7 +96,7 @@ def main(args):
 	f.write('\n\t</head>\n\t<body>\n')
 
 	f.write('<div id="main" style="display: block; height: 700px;">')
-	f.write(py.plot(dict(data=attrPlots+topPlots, layout=attrLayout), output_type='div'))
+	f.write(py.plot(dict(data=attrPlots+topPlots + eventPlots, layout=attrLayout), output_type='div'))
 	f.write('</div>')
 
 	f.write('<div style="display: block; height: 700px;">')
