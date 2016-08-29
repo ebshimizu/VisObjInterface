@@ -7,17 +7,17 @@
 #include <windows.h>
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION  0,06,0,0
+FILEVERSION  0,07,0,0
 BEGIN
   BLOCK "StringFileInfo"
   BEGIN
     BLOCK "040904E4"
     BEGIN
-      VALUE "CompanyName",  "Adobe\0"
+      VALUE "CompanyName",  "Carnegie Mellon University\0"
       VALUE "FileDescription",  "AttributesInterface\0"
-      VALUE "FileVersion",  "0.06\0"
+      VALUE "FileVersion",  "0.07\0"
       VALUE "ProductName",  "AttributesInterface\0"
-      VALUE "ProductVersion",  "0.06\0"
+      VALUE "ProductVersion",  "0.07\0"
     END
   END
 
