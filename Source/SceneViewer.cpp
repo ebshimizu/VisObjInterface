@@ -126,6 +126,9 @@ void SceneViewer::renderScene() {
   p->setDims(width, height);
   p->setSamples(getGlobalSettings()->_stageRenderSamples);
 
+  if (width == 0 || height == 0)
+    return;
+
   _currentRender = Image(Image::ARGB, width, height, true);
   uint8* bufptr = Image::BitmapData(_currentRender, Image::BitmapData::readWrite).getPixelPointer(0,0);
 

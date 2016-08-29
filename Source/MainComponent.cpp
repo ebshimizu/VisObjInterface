@@ -455,50 +455,58 @@ void MainContentComponent::openRig(String fname)
   stopSearch();
   File selected = File(fname);
 
-  bool res = getRig()->load(selected.getFullPathName().toStdString());
+  try {
+    bool res = false;
+    res = getRig()->load(selected.getFullPathName().toStdString());
 
-  if (res) {
-    getStatusBar()->setStatusMessage("Loaded file \"" + selected.getFullPathName() + "\" successfully.");
-    getRecorder()->log(SYSTEM, "Loaded file \"" + selected.getFullPathName().toStdString() + "\" successfully.");
+    if (res) {
+      getStatusBar()->setStatusMessage("Loaded file \"" + selected.getFullPathName() + "\" successfully.");
+      getRecorder()->log(SYSTEM, "Loaded file \"" + selected.getFullPathName().toStdString() + "\" successfully.");
 
-    getRig()->init();
+      getRig()->init();
 
-    loadComponents();
+      loadComponents();
 
-		// try to auto load mask
-		// looks for mask.png in same folder as loaded .json
-		File mask = selected.getParentDirectory();
-		File maskFile = mask.getChildFile("mask.png");
-		FileInputStream in(maskFile);
+      // try to auto load mask
+      // looks for mask.png in same folder as loaded .json
+      File mask = selected.getParentDirectory();
+      File maskFile = mask.getChildFile("mask.png");
+      FileInputStream in(maskFile);
 
-		if (in.openedOk()) {
-			PNGImageFormat pngReader;
-			getGlobalSettings()->_fgMask = pngReader.decodeImage(in);
-			getGlobalSettings()->_useFGMask = true;
-		}
+      if (in.openedOk()) {
+        PNGImageFormat pngReader;
+        getGlobalSettings()->_fgMask = pngReader.decodeImage(in);
+        getGlobalSettings()->_useFGMask = true;
+      }
 
-    _attrs->reload();
-    // Also should delete history and clear any displayed clusters
-		_search->clearContainer();
-		_search->clearHistory();
-    _showName = selected.getFileName();
+      _attrs->reload();
+      // Also should delete history and clear any displayed clusters
+      _search->clearContainer();
+      _search->clearHistory();
+      _showName = selected.getFileName();
 
-    // initialize consistency constraints
-    if (_constraintWindow != nullptr)
-      delete _constraintWindow;
+      // initialize consistency constraints
+      if (_constraintWindow != nullptr)
+        delete _constraintWindow;
 
-    getGlobalSettings()->_constraints.clear();
-    getGlobalSettings()->generateDefaultConstraints();
-    getGlobalSettings()->_showThumbnailImg = false;
+      getGlobalSettings()->_constraints.clear();
+      getGlobalSettings()->generateDefaultConstraints();
+      getGlobalSettings()->_showThumbnailImg = false;
 
-    getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);
+      getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);
+    }
+    else {
+      getStatusBar()->setStatusMessage("Error loading \"" + selected.getFullPathName() + "\"", true);
+      getRecorder()->log(SYSTEM, "Failed to load \"" + selected.getFullPathName().toStdString() + "\"");
+    }
+
+    arnoldRender();
   }
-  else {
-    getStatusBar()->setStatusMessage("Error loading \"" + selected.getFullPathName() + "\"");
-    getRecorder()->log(SYSTEM, "Failed to load \"" + selected.getFullPathName().toStdString() + "\"");
-  }
+  catch (exception e) {
+    getStatusBar()->setStatusMessage("Failed to load " + fname, true);
 
-  arnoldRender();
+    return;
+  }
 }
 
 void MainContentComponent::openMask()
