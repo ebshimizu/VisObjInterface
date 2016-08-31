@@ -631,7 +631,7 @@ bool Edit::isParamLocked(Device * d, EditParam c)
   case SAT:
     return isDeviceParamLocked(d->getId(), "color") || _lockedParams.count(SAT) > 0;
   case VALUE:
-    return isDeviceParamLocked(d->getId(), "color") || _lockedParams.count(VALUE) > 0;
+    return isDeviceParamLocked(d->getId(), "color") || isDeviceParamLocked(d->getId(), "intensity") || _lockedParams.count(VALUE) > 0;
   case RED:
     return isDeviceParamLocked(d->getId(), "color") || _lockedParams.count(RED) > 0;
   case GREEN:
