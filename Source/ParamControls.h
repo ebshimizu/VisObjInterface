@@ -107,6 +107,9 @@ public:
   virtual void buttonClicked(Button* b) override;
   virtual void changeListenerCallback(ChangeBroadcaster* source) override;
 
+  void lockSelected(vector<string> params);
+  void unlockSelected(vector<string> params);
+
 private:
   PropertyPanel _properties;
   StringArray _ids;
@@ -115,6 +118,10 @@ private:
 
   Slider _groupIntens;
   ColoredTextButton _groupColor;
+
+  TextButton _qsArea;
+  TextButton _qsSystem;
+  TextButton _qsNone;
 
   // stores the most recently clicked on device's color
   Colour _recentColor;

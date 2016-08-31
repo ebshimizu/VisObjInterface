@@ -301,6 +301,21 @@ ParamControls::ParamControls() : _groupColor("Group Color", true)
 
   _groupColor.addListener(this);
   addAndMakeVisible(_groupColor);
+
+  _qsArea.addListener(this);
+  _qsArea.setName("qsArea");
+  _qsArea.setButtonText("Area");
+  addAndMakeVisible(_qsArea);
+
+  _qsSystem.addListener(this);
+  _qsSystem.setName("qsSystem");
+  _qsSystem.setButtonText("System");
+  addAndMakeVisible(_qsSystem);
+
+  _qsNone.addListener(this);
+  _qsNone.setName("qsNone");
+  _qsNone.setButtonText("None");
+  addAndMakeVisible(_qsNone);
 }
 
 ParamControls::~ParamControls()
@@ -321,6 +336,9 @@ void ParamControls::paint (Graphics& g)
   g.drawFittedText("Intensity", top.removeFromTop(26).removeFromLeft(80).reduced(5), Justification::left, 1);
 
   g.drawFittedText("Color", top.removeFromTop(26).removeFromLeft(80).reduced(5), Justification::left, 1);
+
+  auto bot = b.removeFromBottom(26);
+  g.drawFittedText("Quick Select", bot.removeFromLeft(80).reduced(5), Justification::centredLeft, 1);
 }
 
 void ParamControls::resized()
@@ -336,11 +354,19 @@ void ParamControls::resized()
   color.removeFromLeft(80);
   _groupColor.setBounds(color.reduced(2));
 
+  auto bot = b.removeFromBottom(26);
+  bot.removeFromLeft(80);
+
+  _qsArea.setBounds(bot.removeFromLeft(60).reduced(2));
+  _qsSystem.setBounds(bot.removeFromLeft(60).reduced(2));
+  _qsNone.setBounds(bot.removeFromLeft(60).reduced(2));
+
   _table.setBounds(b);
 }
 
 void ParamControls::initProperties()
 {
+  _ids.clear();
   Rig* rig = getRig();
   auto devices = rig->getAllDevices();
 
@@ -352,8 +378,9 @@ void ParamControls::initProperties()
 }
 
 void ParamControls::refreshParams() {
-  _properties.refreshAll();
   _table.updateContent();
+  _table.repaint();
+  repaint();
 }
 
 int ParamControls::getNumRows()
@@ -448,20 +475,22 @@ void ParamControls::selectedRowsChanged(int lastRowSelected)
     _selected.add(_ids[_table.getSelectedRow(i)]);
   }
 
-  // pull most recently selected device's intensity and color
-  string recentId = _ids[lastRowSelected].toStdString();
-  _recentIntens = getRig()->getDevice(recentId)->getIntensity()->asPercent();
+  if (lastRowSelected != -1) {
+    // pull most recently selected device's intensity and color
+    string recentId = _ids[lastRowSelected].toStdString();
+    _recentIntens = getRig()->getDevice(recentId)->getIntensity()->asPercent();
 
-  LumiverseColor* recentColor = getRig()->getDevice(recentId)->getColor();
-  Eigen::Vector3d c;
-  c[0] = recentColor->getColorChannel("Red");
-  c[1] = recentColor->getColorChannel("Green");
-  c[2] = recentColor->getColorChannel("Blue");
-  c *= 255;
-  _recentColor = Colour((uint8)c[0], (uint8)c[1], (uint8)c[2]);
+    LumiverseColor* recentColor = getRig()->getDevice(recentId)->getColor();
+    Eigen::Vector3d c;
+    c[0] = recentColor->getColorChannel("Red");
+    c[1] = recentColor->getColorChannel("Green");
+    c[2] = recentColor->getColorChannel("Blue");
+    c *= 255;
+    _recentColor = Colour((uint8)c[0], (uint8)c[1], (uint8)c[2]);
 
-  _groupColor.setColor(_recentColor);
-  _groupIntens.setValue(_recentIntens * 100, dontSendNotification);
+    _groupColor.setColor(_recentColor);
+    _groupIntens.setValue(_recentIntens * 100, dontSendNotification);
+  }
 
   repaint();
 }
@@ -508,6 +537,67 @@ void ParamControls::buttonClicked(Button * b)
     cs->addChangeListener(this);
     CallOutBox::launchAsynchronously(cs, _groupColor.getScreenBounds(), nullptr);
   }
+  else if (b->getName() == "qsNone") {
+    _table.deselectAllRows();
+    _table.updateContent();
+    _table.repaint();
+  }
+  else if (b->getName() == "qsArea") {
+    // get all areas
+    auto areaSet = getRig()->getMetadataValues("area");
+
+    vector<string> areas;
+    for (auto a : areaSet)
+      areas.push_back(a);
+
+    PopupMenu m;
+    for (int i = 0; i < areas.size(); i++) {
+      m.addItem(i + 1, areas[i]);
+    }
+
+    int result = m.showAt(&_qsArea);
+
+    if (result == 0)
+      return;
+
+    _table.deselectAllRows();
+    auto selected = getRig()->select("$area=" + areas[result - 1]);
+    set<Device*> devices = selected.getDevices();
+    for (auto d : devices) {
+      _table.selectRow(_ids.indexOf(String(d->getId())), true, false);
+    }
+
+    _table.updateContent();
+    _table.repaint();
+  }
+  else if (b->getName() == "qsSystem") {
+    // get all areas
+    auto systemSet = getRig()->getMetadataValues("system");
+
+    vector<string> systems;
+    for (auto s : systemSet)
+      systems.push_back(s);
+
+    PopupMenu m;
+    for (int i = 0; i < systems.size(); i++) {
+      m.addItem(i + 1, systems[i]);
+    }
+
+    int result = m.showAt(&_qsSystem);
+
+    if (result == 0)
+      return;
+
+    _table.deselectAllRows();
+    auto selected = getRig()->select("$system=" + systems[result - 1]);
+    set<Device*> devices = selected.getDevices();
+    for (auto d : devices) {
+      _table.selectRow(_ids.indexOf(String(d->getId())), true, false);
+    }
+
+    _table.updateContent();
+    _table.repaint();
+  }
 }
 
 void ParamControls::changeListenerCallback(ChangeBroadcaster * source)
@@ -534,4 +624,25 @@ void ParamControls::changeListenerCallback(ChangeBroadcaster * source)
       mc->refreshAttr();
     }
   }
+}
+
+void ParamControls::lockSelected(vector<string> params)
+{
+  for (auto& p : params) {
+    for (auto& id : _selected) {
+      lockDeviceParam(id.toStdString(), p);
+    }
+  }
+  
+  _table.repaint();
+}
+
+void ParamControls::unlockSelected(vector<string> params) {
+  for (auto& p : params) {
+    for (auto& id : _selected) {
+      unlockDeviceParam(id.toStdString(), p);
+    }
+  }
+  
+  _table.repaint();
 }

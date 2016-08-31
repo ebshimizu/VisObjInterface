@@ -67,7 +67,6 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& /* menu
     menu.addCommandItem(cm, command::LOCK_SYSTEM);
     menu.addCommandItem(cm, command::LOCK_ALL_COLOR);
     menu.addCommandItem(cm, command::LOCK_ALL_INTENSITY);
-    menu.addCommandItem(cm, command::LOCK_ALL_POSITION);
   }
   else if (topLevelMenuIndex == 3) {
     menu.addCommandItem(cm, command::SAVE_RESULTS);

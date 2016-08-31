@@ -103,7 +103,9 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::SAVE_RENDER, command::GET_FROM_ARNOLD, command::STOP_SEARCH, command::GET_NEW_RESULTS,
     command::UPDATE_NUM_THREADS, command::SAVE_RESULTS, command::LOAD_RESULTS, command::LOAD_TRACES,
     command::PICK_TRACE, command::OPEN_MASK, command::SAVE_CLUSTERS, command::LOAD_CLUSTERS, command::REFRESH_SETTINGS,
-    command::CONSTRAINTS, command::START_AUTO, command::END_AUTO
+    command::CONSTRAINTS, command::START_AUTO, command::END_AUTO, command::LOCK_ALL_SELECTED,
+    command::LOCK_SELECTED_INTENSITY, command::LOCK_SELECTED_COLOR, command::UNLOCK_ALL_SELECTED,
+    command::UNLOCK_SELECTED_COLOR, command::UNLOCK_SELECTED_INTENSITY
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -232,7 +234,31 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Start Automatic Command", "Internal: Start search based on command line arguments", "Internal", 0);
     break;
   case command::END_AUTO:
-    result.setInfo("STop Automatic Command", "Internal: Runs the final code for the automatic search", "Internal", 0);
+    result.setInfo("Stop Automatic Command", "Internal: Runs the final code for the automatic search", "Internal", 0);
+    break;
+  case command::LOCK_SELECTED_COLOR:
+    result.setInfo("Lock Selected Color", "Lock the selected devices' color parameter", "Explore", 0);
+    result.addDefaultKeypress('j', ModifierKeys::noModifiers);
+    break;
+  case command::LOCK_SELECTED_INTENSITY:
+    result.setInfo("Lock Selected Intensity", "Lock the selected devices' intensity parameter", "Explore", 0);
+    result.addDefaultKeypress('k', ModifierKeys::noModifiers);
+    break;
+  case command::LOCK_ALL_SELECTED:
+    result.setInfo("Lock Selected All", "Lock all parameters in the selected devices", "Explore", 0);
+    result.addDefaultKeypress('l', ModifierKeys::noModifiers);
+    break;
+  case command::UNLOCK_SELECTED_COLOR:
+    result.setInfo("Unlock Selected Color", "Unlock the selected devices' color parameter", "Explore", 0);
+    result.addDefaultKeypress('j', ModifierKeys::commandModifier);
+    break;
+  case command::UNLOCK_SELECTED_INTENSITY:
+    result.setInfo("Unlock Selected Intensity", "Unlock the selected devices' intensity parameter", "Explore", 0);
+    result.addDefaultKeypress('k', ModifierKeys::commandModifier);
+    break;
+  case command::UNLOCK_ALL_SELECTED:
+    result.setInfo("Unlock Selected All", "Unlock all parameters in the selected devices", "Explore", 0);
+    result.addDefaultKeypress('l', ModifierKeys::commandModifier);
     break;
   default:
     return;
@@ -350,6 +376,24 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::END_AUTO:
     endAuto();
+    break;
+  case command::LOCK_SELECTED_INTENSITY:
+    _params->lockSelected({ "intensity" });
+    break;
+  case command::LOCK_SELECTED_COLOR:
+    _params->lockSelected({ "color" });
+    break;
+  case command::LOCK_ALL_SELECTED:
+    _params->lockSelected({ "intensity", "color" });
+    break;
+  case command::UNLOCK_SELECTED_INTENSITY:
+    _params->unlockSelected({ "intensity" });
+    break;
+  case command::UNLOCK_SELECTED_COLOR:
+    _params->unlockSelected({ "color" });
+    break;
+  case command::UNLOCK_ALL_SELECTED:
+    _params->unlockSelected({ "intensity", "color" });
     break;
   default:
     return false;
@@ -700,6 +744,7 @@ void MainContentComponent::pickTrace()
 void MainContentComponent::loadComponents()
 {
   _params->initProperties();
+  _params->refreshParams();
   auto p = getAnimationPatch();
   getGlobalSettings()->_renderWidth = p->getWidth();
   getGlobalSettings()->_renderHeight = p->getHeight();

@@ -410,6 +410,10 @@ void SearchResultsContainer::cluster()
 {
   lock_guard<mutex> lock(_resultsLock);
 
+  // check that something actually exists to be clustered
+  if (_allResults.size() == 0)
+    return;
+
   // if the distance metric expects at least one light to be selected as key light, make sure that
   // is true first, otherwise abort now
   if (getGlobalSettings()->_primaryClusterMetric == KEYPARAM || getGlobalSettings()->_secondaryClusterMetric == KEYPARAM) {
