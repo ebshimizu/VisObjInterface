@@ -89,6 +89,18 @@ void unlockDeviceParam(string id, string param)
   d->setMetadata(param + "_lock", "n");
 }
 
+void toggleDeviceParamLock(string id, string param)
+{
+  Device* d = getRig()->getDevice(id);
+
+  if (d->getMetadata(param + "_lock") == "y") {
+    unlockDeviceParam(id, param);
+  }
+  else {
+    lockDeviceParam(id, param);
+  }
+}
+
 void setSessionName()
 {
   time_t t = time(0);   // get time now

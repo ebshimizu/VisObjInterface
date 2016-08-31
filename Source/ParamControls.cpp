@@ -175,8 +175,8 @@ void OrientationPropertySlider::sliderDragEnded(Slider * /* s */)
   getRecorder()->log(ACTION, ss.str());
 }
 
-ColorPropertyPicker::ColorPropertyPicker(string id, string param, LumiverseColor * val) :
-  PropertyComponent("color"), _id(id), _param(param), _val(val)
+ColorPickerButton::ColorPickerButton(string id, string param, LumiverseColor * val) :
+  _id(id), _param(param), _val(val)
 {
 	_button = new ColoredTextButton("Set Color");
 	addAndMakeVisible(_button);
@@ -192,42 +192,21 @@ ColorPropertyPicker::ColorPropertyPicker(string id, string param, LumiverseColor
 	_button->setColor(Colour((uint8) c[0], (uint8) c[1], (uint8) c[2]));
 }
 
-ColorPropertyPicker::~ColorPropertyPicker()
+ColorPickerButton::~ColorPickerButton()
 {
 	delete _button;
 }
 
-void ColorPropertyPicker::paint(Graphics & g)
+void ColorPickerButton::paint(Graphics & g)
 {
   LookAndFeel& lf = getLookAndFeel();
 
   if (isDeviceParamLocked(_id, _param)) {
     g.setColour(Colour(0xFFFF3838));
   }
-  else {
-    g.setColour(this->findColour(PropertyComponent::backgroundColourId));
-  }
-
-  g.fillRect(0, 0, getWidth(), getHeight() - 1);
-
-  lf.drawPropertyComponentLabel(g, getWidth(), getHeight(), *this);
 }
 
-void ColorPropertyPicker::mouseDown(const MouseEvent & event)
-{
-  if (event.mods.isRightButtonDown()) {
-    if (isDeviceParamLocked(_id, _param)) {
-      unlockDeviceParam(_id, _param);
-    }
-    else {
-      lockDeviceParam(_id, _param);
-    }
-
-    getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, false);
-  }
-}
-
-void ColorPropertyPicker::changeListenerCallback(ChangeBroadcaster * source)
+void ColorPickerButton::changeListenerCallback(ChangeBroadcaster * source)
 {
   ColourSelector* cs = dynamic_cast<ColourSelector*>(source);
   if (!isDeviceParamLocked(_id, _param) && cs != nullptr) {
@@ -252,7 +231,20 @@ void ColorPropertyPicker::changeListenerCallback(ChangeBroadcaster * source)
   }
 }
 
-void ColorPropertyPicker::buttonClicked(Button* /* b */)
+void ColorPickerButton::changeId(string newId)
+{
+  _id = newId;
+  _val = getRig()->getDevice(_id)->getColor();
+
+  refresh();
+}
+
+void ColorPickerButton::resized()
+{
+  _button->setBounds(getLocalBounds().reduced(2));
+}
+
+void ColorPickerButton::buttonClicked(Button* /* b */)
 {
   Eigen::Vector3d c;
   c[0] = _val->getColorChannel("Red");
@@ -268,7 +260,7 @@ void ColorPropertyPicker::buttonClicked(Button* /* b */)
   CallOutBox::launchAsynchronously(cs, this->getScreenBounds(), nullptr);
 }
 
-void ColorPropertyPicker::refresh()
+void ColorPickerButton::refresh()
 {
 	Eigen::Vector3d c;
 	c[0] = _val->getColorChannel("Red");
@@ -282,12 +274,33 @@ void ColorPropertyPicker::refresh()
 }
 
 //==============================================================================
-ParamControls::ParamControls()
+ParamControls::ParamControls() : _groupColor("Group Color", true)
 {
   // In your constructor, you should add any child components, and
   // initialise any special settings that your component needs.
 
-  addAndMakeVisible(_properties);
+  addAndMakeVisible(_table);
+  _table.setModel(this);
+
+  _table.getHeader().addColumn("ID", 1, 100, 30, -1, TableHeaderComponent::ColumnPropertyFlags::notSortable);
+  _table.getHeader().addColumn("Intensity", 2, 100, TableHeaderComponent::ColumnPropertyFlags::notSortable);
+  _table.getHeader().addColumn("IL", 3, 20, TableHeaderComponent::ColumnPropertyFlags::notSortable | TableHeaderComponent::ColumnPropertyFlags::notResizable);
+  _table.getHeader().addColumn("Color", 4, 100, TableHeaderComponent::ColumnPropertyFlags::notSortable);
+  _table.getHeader().addColumn("CL", 5, 20, TableHeaderComponent::ColumnPropertyFlags::notSortable | TableHeaderComponent::ColumnPropertyFlags::notResizable);
+
+
+  _table.setMultipleSelectionEnabled(true);
+  _table.setColour(ListBox::ColourIds::backgroundColourId, Colour(0xff222222));
+
+  _groupIntens.addListener(this);
+  _groupIntens.setName("Group Intensity");
+  _groupIntens.setSliderStyle(Slider::SliderStyle::LinearBar);
+  _groupIntens.setRange(0, 100, 0.01);
+  _groupIntens.setColour(Slider::ColourIds::backgroundColourId, Colour(0xff929292));
+  addAndMakeVisible(_groupIntens);
+
+  _groupColor.addListener(this);
+  addAndMakeVisible(_groupColor);
 }
 
 ParamControls::~ParamControls()
@@ -296,47 +309,229 @@ ParamControls::~ParamControls()
 
 void ParamControls::paint (Graphics& g)
 {
-  g.fillAll(Colour(0xff929292));
+  auto b = getLocalBounds();
+
+  auto top = b.removeFromTop(100);
+
+  g.fillAll(Colour(0xff333333));
+
+  g.setColour(Colours::white);
+  g.drawFittedText("Selected: " + String(_selected.size()), top.removeFromTop(26).reduced(5), Justification::left, 2);
+
+  g.drawFittedText("Intensity", top.removeFromTop(26).removeFromLeft(80).reduced(5), Justification::left, 1);
+
+  g.drawFittedText("Color", top.removeFromTop(26).removeFromLeft(80).reduced(5), Justification::left, 1);
 }
 
 void ParamControls::resized()
 {
-  // This method is where you should set the bounds of any child
-  // components that your component contains..
-  _properties.setBounds(getLocalBounds());
+  auto b = getLocalBounds();
+
+  b.removeFromTop(26);
+  auto intens = b.removeFromTop(26);
+  intens.removeFromLeft(80);
+  _groupIntens.setBounds(intens.reduced(2));
+
+  auto color = b.removeFromTop(26);
+  color.removeFromLeft(80);
+  _groupColor.setBounds(color.reduced(2));
+
+  _table.setBounds(b);
 }
 
 void ParamControls::initProperties()
 {
-  _properties.clear();
   Rig* rig = getRig();
-
   auto devices = rig->getAllDevices();
 
   for (const auto d : devices.getDevices()) {
-    Array<PropertyComponent*> components;
-
-    if (d->paramExists("intensity"))
-      components.add(new FloatPropertySlider(d->getId(), "intensity", (LumiverseFloat*)d->getParam("intensity")));
-    if (d->paramExists("polar"))
-      components.add(new OrientationPropertySlider(d->getId(), "polar", (LumiverseOrientation*)d->getParam("polar")));
-    if (d->paramExists("azimuth"))
-      components.add(new OrientationPropertySlider(d->getId(), "azimuth", (LumiverseOrientation*)d->getParam("azimuth")));
-    if (d->paramExists("color"))
-      components.add(new ColorPropertyPicker(d->getId(), "color", d->getParam<LumiverseColor>("color")));
-    if (d->paramExists("penumbraAngle"))
-      components.add(new FloatPropertySlider(d->getId(), "penumbraAngle", d->getParam<LumiverseFloat>("penumbraAngle")));
-
-    
-    // these are really internal components and probably shouldn't be user editable
-    //components.add(new FloatPropertySlider(d->getId(), "lookAtX", (LumiverseFloat*)d->getParam("lookAtX")));
-    //components.add(new FloatPropertySlider(d->getId(), "lookAtY", (LumiverseFloat*)d->getParam("lookAtY")));
-    //components.add(new FloatPropertySlider(d->getId(), "lookAtZ", (LumiverseFloat*)d->getParam("lookAtZ")));
-
-    _properties.addSection(d->getId(), components);
+    _ids.add(d->getId());
   }
+
+  _ids.sort(true);
 }
 
 void ParamControls::refreshParams() {
   _properties.refreshAll();
+  _table.updateContent();
+}
+
+int ParamControls::getNumRows()
+{
+  return _ids.size();
+}
+
+void ParamControls::paintRowBackground(Graphics & g, int rowNumber, int width, int height, bool rowIsSelected)
+{
+  if (rowIsSelected)
+    g.fillAll(Colours::lightblue);
+  else
+    g.fillAll(Colour(0xff222222));
+}
+
+void ParamControls::paintCell(Graphics & g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
+{
+  if (rowIsSelected) {
+    g.setColour(Colours::black);
+  }
+  else {
+    g.setColour(Colours::white);
+  }
+
+  g.setFont(14);
+
+  if (columnId == 1) {
+    String text(_ids[rowNumber]);
+    g.drawText(text, 2, 0, width - 4, height, Justification::centredLeft, true);
+  }
+  else if (columnId == 2) {
+    g.setColour(Colour(0xff929292));
+    g.fillRect(0, 0, width, height);
+  }
+  else if (columnId == 3) {
+    if (isDeviceParamLocked(_ids[rowNumber].toStdString(), "intensity")) {
+      g.setColour(Colours::red);
+      g.fillRect(2, 2, width - 2, height - 2);
+    }
+    g.setColour(Colours::white);
+    g.drawRect(2, 2, width - 2, height - 2, 1);
+  }
+  else if (columnId == 5) {
+    if (isDeviceParamLocked(_ids[rowNumber].toStdString(), "color")) {
+      g.setColour(Colours::red);
+      g.fillRect(2, 2, width - 2, height - 2);
+    }
+    g.setColour(Colours::white);
+    g.drawRect(2, 2, width - 2, height - 2, 1);
+  }
+}
+
+Component * ParamControls::refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, Component * existingComponentToUpdate)
+{
+  if (columnId == 2) {
+    Slider* intensSlider = static_cast<Slider*>(existingComponentToUpdate);
+
+    if (intensSlider == nullptr) {
+      intensSlider = new Slider();
+      intensSlider->setRange(0, 100, 0.01);
+      intensSlider->setSliderStyle(Slider::SliderStyle::LinearBar);
+      intensSlider->setColour(Slider::ColourIds::backgroundColourId, Colour(0xa0929292));
+      intensSlider->addListener(this);
+    }
+
+    intensSlider->setName(_ids[rowNumber]);
+    intensSlider->setValue(getRig()->getDevice(_ids[rowNumber].toStdString())->getIntensity()->asPercent() * 100, dontSendNotification);
+    return intensSlider;
+  }
+  if (columnId == 4) {
+    ColorPickerButton* button = static_cast<ColorPickerButton*>(existingComponentToUpdate);
+
+    string id = _ids[rowNumber].toStdString();
+    LumiverseColor* targetVal = getRig()->getDevice(id)->getColor();
+
+    if (button == nullptr) {
+      button = new ColorPickerButton(id, "color", targetVal);
+    }
+
+    button->changeId(id);
+    return button;
+  }
+
+  return nullptr;
+}
+
+void ParamControls::selectedRowsChanged(int lastRowSelected)
+{
+  _selected.clear();
+
+  for (int i = 0; i < _table.getNumSelectedRows(); i++) {
+    _selected.add(_ids[_table.getSelectedRow(i)]);
+  }
+
+  // pull most recently selected device's intensity and color
+  string recentId = _ids[lastRowSelected].toStdString();
+  _recentIntens = getRig()->getDevice(recentId)->getIntensity()->asPercent();
+
+  LumiverseColor* recentColor = getRig()->getDevice(recentId)->getColor();
+  Eigen::Vector3d c;
+  c[0] = recentColor->getColorChannel("Red");
+  c[1] = recentColor->getColorChannel("Green");
+  c[2] = recentColor->getColorChannel("Blue");
+  c *= 255;
+  _recentColor = Colour((uint8)c[0], (uint8)c[1], (uint8)c[2]);
+
+  _groupColor.setColor(_recentColor);
+  _groupIntens.setValue(_recentIntens * 100, dontSendNotification);
+
+  repaint();
+}
+
+void ParamControls::cellClicked(int rowNumber, int columnId, const MouseEvent & e)
+{
+  if (columnId == 3) {
+    toggleDeviceParamLock(_ids[rowNumber].toStdString(), "intensity");
+    _table.updateContent();
+    repaint();
+  }
+  else if (columnId == 5) {
+    toggleDeviceParamLock(_ids[rowNumber].toStdString(), "color");
+    _table.updateContent();
+    repaint();
+  }
+}
+
+void ParamControls::sliderValueChanged(Slider * s)
+{
+  if (s->getName() == "Group Intensity") {
+    float val = s->getValue() / 100.0f;
+    for (auto& id : _selected) {
+      getRig()->getDevice(id.toStdString())->getIntensity()->setValAsPercent(val);
+    }
+
+    refreshParams();
+  }
+  else {
+    getRig()->getDevice(s->getName().toStdString())->getIntensity()->setValAsPercent(s->getValue() / 100);
+  }
+
+  getGlobalSettings()->invalidateCache();
+  getApplicationCommandManager()->invokeDirectly(command::REFRESH_ATTR, true);
+}
+
+void ParamControls::buttonClicked(Button * b)
+{
+  if (b->getName() == "Group Color") {
+    ColourSelector* cs = new ColourSelector(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace);
+    cs->setName("Group Color");
+    cs->setCurrentColour(_recentColor);
+    cs->setSize(300, 400);
+    cs->addChangeListener(this);
+    CallOutBox::launchAsynchronously(cs, _groupColor.getScreenBounds(), nullptr);
+  }
+}
+
+void ParamControls::changeListenerCallback(ChangeBroadcaster * source)
+{
+  ColourSelector* cs = dynamic_cast<ColourSelector*>(source);
+  if (cs != nullptr) {
+    _recentColor = cs->getCurrentColour();
+
+    for (auto& id : _selected) {
+      LumiverseColor* val = getRig()->getDevice(id.toStdString())->getColor();
+
+      val->setColorChannel("Red", _recentColor.getFloatRed());
+      val->setColorChannel("Green", _recentColor.getFloatGreen());
+      val->setColorChannel("Blue", _recentColor.getFloatBlue());
+    }
+
+    _groupColor.setColor(_recentColor);
+    getGlobalSettings()->invalidateCache();
+
+    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+    if (mc != nullptr) {
+      mc->refreshParams();
+      mc->refreshAttr();
+    }
+  }
 }

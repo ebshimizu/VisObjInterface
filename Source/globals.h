@@ -339,6 +339,7 @@ bool isDeviceParamLocked(string id, string param);
 
 void lockDeviceParam(string id, string param);
 void unlockDeviceParam(string id, string param);
+void toggleDeviceParamLock(string id, string param);
 
 // For debugging, set the common filename for all files in the search session
 void setSessionName();

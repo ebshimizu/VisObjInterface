@@ -962,7 +962,7 @@ void AttributeSearchThread::runRecenteringMCMCSearch()
 	r->_extraData["Thread"] = String(_id);
   r->_extraData["Sample"] = String(data._sampleId);
   r->_creationTime = chrono::high_resolution_clock::now();
-
+  
 	// add if we did better
 	// hybrid method doesn't actually care just add it anyway
 	if (r->_objFuncVal < orig) {
