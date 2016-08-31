@@ -290,7 +290,7 @@ ParamControls::ParamControls() : _groupColor("Group Color", true)
 
 
   _table.setMultipleSelectionEnabled(true);
-  _table.setColour(ListBox::ColourIds::backgroundColourId, Colour(0xff222222));
+  _table.setColour(ListBox::ColourIds::backgroundColourId, Colour(0xff333333));
 
   _groupIntens.addListener(this);
   _groupIntens.setName("Group Intensity");
@@ -316,6 +316,11 @@ ParamControls::ParamControls() : _groupColor("Group Color", true)
   _qsNone.setName("qsNone");
   _qsNone.setButtonText("None");
   addAndMakeVisible(_qsNone);
+
+  _qsAll.addListener(this);
+  _qsAll.setName("qsAll");
+  _qsAll.setButtonText("All");
+  addAndMakeVisible(_qsAll);
 }
 
 ParamControls::~ParamControls()
@@ -359,6 +364,7 @@ void ParamControls::resized()
 
   _qsArea.setBounds(bot.removeFromLeft(60).reduced(2));
   _qsSystem.setBounds(bot.removeFromLeft(60).reduced(2));
+  _qsAll.setBounds(bot.removeFromLeft(60).reduced(2));
   _qsNone.setBounds(bot.removeFromLeft(60).reduced(2));
 
   _table.setBounds(b);
@@ -393,7 +399,7 @@ void ParamControls::paintRowBackground(Graphics & g, int rowNumber, int width, i
   if (rowIsSelected)
     g.fillAll(Colours::lightblue);
   else
-    g.fillAll(Colour(0xff222222));
+    g.fillAll(Colour(0xff333333));
 }
 
 void ParamControls::paintCell(Graphics & g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
@@ -539,6 +545,12 @@ void ParamControls::buttonClicked(Button * b)
   }
   else if (b->getName() == "qsNone") {
     _table.deselectAllRows();
+    _table.updateContent();
+    _table.repaint();
+  }
+  else if (b->getName() == "qsAll") {
+    _table.deselectAllRows();
+    _table.selectRangeOfRows(0, _ids.size() - 1);
     _table.updateContent();
     _table.repaint();
   }
