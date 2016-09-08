@@ -222,7 +222,29 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
     PopupMenu m;
     m.addItem(1, "Move to Stage");
     m.addItem(2, "Repeat Search with Selected");
-    m.addItem(3, "Transfer Selected");
+    m.addItem(3, "Transfer Selected to Stage");
+
+    PopupMenu subTransferArea;
+    StringArray areas;
+    for (auto area : getRig()->getMetadataValues("area")) {
+      areas.add(area);
+    }
+
+    for (int i = 0; i < areas.size(); i++) {
+      subTransferArea.addItem(i + 4, areas[i]);
+    }
+    m.addSubMenu("Transfer Area to Stage", subTransferArea);
+
+    PopupMenu subTransferSystem;
+    StringArray systems;
+    for (auto system : getRig()->getMetadataValues("system")) {
+      systems.add(system);
+    }
+
+    for (int i = 0; i < systems.size(); i++) {
+      subTransferSystem.addItem(i + 4 + areas.size(), systems[i]);
+    }
+    m.addSubMenu("Transfer System to Stage", subTransferSystem);
 
     const int result = m.show();
 
@@ -259,6 +281,32 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
 
       if (mc != nullptr) {
         mc->transferSelected(s);
+        mc->refreshParams();
+        mc->refreshAttr();
+      }
+
+      delete s;
+    }
+    else if (result >= 4 && result < areas.size() + 4) {
+      Snapshot* s = vectorToSnapshot(_result->_scene);
+
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+      if (mc != nullptr) {
+        mc->transferSelected(s, getRig()->select("$area=" + areas[result - 4].toStdString()));
+        mc->refreshParams();
+        mc->refreshAttr();
+      }
+
+      delete s;
+    }
+    else if (result >= areas.size() + 4) {
+      Snapshot* s = vectorToSnapshot(_result->_scene);
+
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+      if (mc != nullptr) {
+        mc->transferSelected(s, getRig()->select("$system=" + systems[result - 4 - areas.size()].toStdString()));
         mc->refreshParams();
         mc->refreshAttr();
       }

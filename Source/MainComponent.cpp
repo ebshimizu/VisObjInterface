@@ -467,6 +467,23 @@ void MainContentComponent::transferSelected(Snapshot * source)
   arnoldRender();
 }
 
+void MainContentComponent::transferSelected(Snapshot * source, DeviceSet devices)
+{
+  auto ids = devices.getIds();
+
+  for (string id : ids) {
+    Device* sourceDevice = source->getRigData()[id];
+    Device* targetDevice = getRig()->getDevice(id);
+
+    for (string param : sourceDevice->getParamNames()) {
+      LumiverseTypeUtils::copyByVal(sourceDevice->getParam(param), targetDevice->getParam(param));
+    }
+  }
+
+  getGlobalSettings()->invalidateCache();
+  arnoldRender();
+}
+
 void MainContentComponent::openRig() {
   FileChooser fc("Load Show (pick a .rig.json or .playback.json file)", File::getCurrentWorkingDirectory(),
     "*.rig.json;*.playback.json", true);
