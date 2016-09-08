@@ -658,3 +658,8 @@ void ParamControls::unlockSelected(vector<string> params) {
   
   _table.repaint();
 }
+
+StringArray ParamControls::getSelectedIds()
+{
+  return _selected;
+}

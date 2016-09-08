@@ -109,6 +109,7 @@ public:
 
   void lockSelected(vector<string> params);
   void unlockSelected(vector<string> params);
+  StringArray getSelectedIds();
 
 private:
   PropertyPanel _properties;

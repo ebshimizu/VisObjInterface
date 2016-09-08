@@ -482,6 +482,24 @@ void MainContentComponent::clearClusters()
 	_search->clearClusters();
 }
 
+void MainContentComponent::transferSelected(Snapshot * source)
+{
+  StringArray ids = _params->getSelectedIds();
+
+  for (String s : ids) {
+    string id = s.toStdString();
+    Device* sourceDevice = source->getRigData()[id];
+    Device* targetDevice = getRig()->getDevice(id);
+
+    for (string param : sourceDevice->getParamNames()) {
+      LumiverseTypeUtils::copyByVal(sourceDevice->getParam(param), targetDevice->getParam(param));
+    }
+  }
+
+  getGlobalSettings()->invalidateCache();
+  arnoldRender();
+}
+
 void MainContentComponent::openRig() {
   FileChooser fc("Load Show (pick a .rig.json or .playback.json file)", File::getCurrentWorkingDirectory(),
     "*.rig.json;*.playback.json", true);

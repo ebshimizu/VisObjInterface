@@ -77,6 +77,10 @@ public:
 
 	void clearClusters();
 
+  // Transfers the currently selected devices from the source snapshot to the
+  // stage. Selected devices are as stored in the param controls
+  void transferSelected(Snapshot* source);
+
 private:
   // Open a Lumiverse file
   void openRig();

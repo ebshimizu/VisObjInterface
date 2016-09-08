@@ -221,6 +221,7 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
     PopupMenu m;
     m.addItem(1, "Move to Stage");
     m.addItem(2, "Repeat Search with Selected");
+    m.addItem(3, "Transfer Selected");
 
     const int result = m.show();
 
@@ -249,6 +250,19 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
         mc->refreshAttr();
         mc->search();
       }
+    }
+    else if (result == 3) {
+      Snapshot* s = vectorToSnapshot(_result->_scene);
+
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+      if (mc != nullptr) {
+        mc->transferSelected(s);
+        mc->refreshParams();
+        mc->refreshAttr();
+      }
+
+      delete s;
     }
   }
   else if (event.mods.isLeftButtonDown() && event.mods.isCommandDown()) {
