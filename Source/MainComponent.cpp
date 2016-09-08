@@ -97,7 +97,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
   const CommandID ids[] = {
     command::OPEN, command::REFRESH_PARAMS, command::ARNOLD_RENDER, command::SETTINGS,
     command::SEARCH, command::REFRESH_ATTR, command::SAVE, command::SAVE_AS, command::RECLUSTER,
-    command::UNDO, command::REDO, command::LOCK_ALL_COLOR,
+    command::LOCK_ALL_COLOR,
     command::LOCK_ALL_INTENSITY, command::LOCK_ALL_POSITION, command::UNLOCK_ALL,
     command::LOCK_ALL_AREAS_EXCEPT, command::LOCK_AREA, command::LOCK_SYSTEM, command::LOCK_ALL_SYSTEMS_EXCEPT,
     command::SAVE_RENDER, command::GET_FROM_ARNOLD, command::STOP_SEARCH, command::GET_NEW_RESULTS,
@@ -147,14 +147,6 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::RECLUSTER:
     result.setInfo("Cluster", "Cluster results", "Explore", 0);
 		result.addDefaultKeypress('c', ModifierKeys::noModifiers);
-    break;
-  case command::UNDO:
-    result.setInfo("Undo", "Undo", "Edit", 0);
-    result.addDefaultKeypress('z', ModifierKeys::commandModifier);
-    break;
-  case command::REDO:
-    result.setInfo("Redo", "Redo", "Edit", 0);
-    result.addDefaultKeypress('y', ModifierKeys::commandModifier);
     break;
   case command::LOCK_ALL_COLOR:
     result.setInfo("Lock All Color", "Lock all color parameters", "Explore", 0);
@@ -295,12 +287,6 @@ bool MainContentComponent::perform(const InvocationInfo & info)
   case command::RECLUSTER:
     _search->cluster();
     break;
-  case command::UNDO:
-    undo();
-    break;
-  case command::REDO:
-    redo();
-    break;
   case command::LOCK_ALL_COLOR:
     lockAllColor();
     break;
@@ -421,14 +407,6 @@ void MainContentComponent::addHistory()
   h->addHistoryItem(c);
   _search->resized();
   _search->repaint();
-}
-
-void MainContentComponent::undo()
-{
-}
-
-void MainContentComponent::redo()
-{
 }
 
 void MainContentComponent::sortCluster()

@@ -44,8 +44,6 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& /* menu
   }
   else if (topLevelMenuIndex == 1) {
     menu.addCommandItem(cm, command::ARNOLD_RENDER);
-    menu.addCommandItem(cm, command::UNDO);
-    menu.addCommandItem(cm, command::REDO);
     menu.addSeparator();
     menu.addCommandItem(cm, command::GET_FROM_ARNOLD);
     menu.addSeparator();

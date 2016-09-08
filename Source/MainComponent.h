@@ -55,12 +55,6 @@ public:
   // Adds the current state of the rig and rendered image to the history panel.
   void addHistory();
 
-  // Undoes the previous operation (pops off the history stack)
-  void undo();
-
-  // Redoes the previous operation (returns history item to stack)
-  void redo();
-
   // Tells the currently displayed cluster, if it exists, to sort itself
   void sortCluster();
 
