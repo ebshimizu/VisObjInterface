@@ -405,41 +405,30 @@ bool MainContentComponent::perform(const InvocationInfo & info)
 void MainContentComponent::addHistory()
 {
   HistoryPanel* h = _search->getHistory();
-  h->clearRedo();
-  h->addHistoryItem(new HistoryEntry(new Snapshot(getRig()), "History", _viewer->getRender()));
+
+  // take current scene, package as search result, add to history
+  SearchResult* r = new SearchResult();
+
+  Snapshot* current = new Snapshot(getRig());
+  r->_scene = snapshotToVector(current);
+  delete current;
+
+  r->_sampleNo = h->getHistorySize() + 1;
+
+  SearchResultContainer* c = new SearchResultContainer(r, true);
+  c->setImage(_viewer->getRender());
+
+  h->addHistoryItem(c);
   _search->resized();
   _search->repaint();
 }
 
 void MainContentComponent::undo()
 {
-  HistoryPanel* h = _search->getHistory();
-  HistoryEntry* e = h->removeHistoryItem();
-  if (e != nullptr) {
-    e->_sceneState->loadRig(getRig());
-    _viewer->setRender(e->_thumb);
-    refreshAttr();
-    refreshParams();
-
-    h->addRedoItem(e);
-    getRecorder()->log(ACTION, "Undo Called");
-  }
 }
 
 void MainContentComponent::redo()
 {
-  HistoryPanel* h = _search->getHistory();
-  HistoryEntry* e = h->removeRedoItem();
-  if (e != nullptr) {
-    e->_sceneState->loadRig(getRig());
-    _viewer->setRender(e->_thumb);
-
-    refreshAttr();
-    refreshParams();
-
-    h->addHistoryItem(e);
-    getRecorder()->log(ACTION, "Redo Called");
-  }
 }
 
 void MainContentComponent::sortCluster()
@@ -780,11 +769,13 @@ void MainContentComponent::refreshAttr()
   _attrs->repaint();
 }
 
-void MainContentComponent::arnoldRender()
+void MainContentComponent::arnoldRender(bool add)
 {
   _viewer->renderScene();
-  // always add history element after a render
-  addHistory();
+
+  // sometimes add history item
+  if (add)
+    addHistory();
 }
 
 void MainContentComponent::arnoldRenderNoPopup()

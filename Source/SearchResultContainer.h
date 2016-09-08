@@ -44,7 +44,7 @@ This class represents a scene returned from a search operation
 class SearchResultContainer : public Component, public SettableTooltipClient
 {
 public:
-  SearchResultContainer(SearchResult* result);
+  SearchResultContainer(SearchResult* result, bool isHistoryItem = false);
   ~SearchResultContainer();
 
   void regenToolTip();
@@ -151,6 +151,10 @@ private:
 
   // Contains elements that belong to this particular cluster
   SearchResultList* _clusterContents;
+
+  // Indicates if this is a history item. If true, is not placed into history stack
+  // when transferred to stage.
+  bool _isHistoryItem;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SearchResultContainer)
 };

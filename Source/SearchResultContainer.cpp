@@ -71,7 +71,8 @@ void SearchResultBlender::sliderValueChanged(Slider * s)
 
 
 //==============================================================================
-SearchResultContainer::SearchResultContainer(SearchResult* result) : _result(result)
+SearchResultContainer::SearchResultContainer(SearchResult* result, bool isHistoryItem) :
+  _result(result), _isHistoryItem(isHistoryItem)
 {
   // In your constructor, you should add any child components, and
   // initialise any special settings that your component needs.
@@ -233,7 +234,7 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
       MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
       if (mc != nullptr) {
-        mc->arnoldRender();
+        mc->arnoldRender(!_isHistoryItem);
         mc->refreshParams();
         mc->refreshAttr();
         getRecorder()->log(ACTION, "User picked scene for stage: " + getTooltip().toStdString());

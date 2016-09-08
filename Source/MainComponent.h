@@ -41,7 +41,7 @@ public:
   void refreshParams();
 
   void refreshAttr();
-  void arnoldRender();
+  void arnoldRender(bool add = true);
   void arnoldRenderNoPopup();
 
   // The big search function. This function does the following:

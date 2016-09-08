@@ -43,12 +43,9 @@ void HistoryPanel::resized()
   for (auto h : _history) {
     h->setBounds(lbounds.removeFromBottom(elemHeight).reduced(2));
   }
-  for (auto r : _redo) {
-    r->setBounds(lbounds.removeFromBottom(elemHeight).reduced(2));
-  }
 }
 
-void HistoryPanel::addHistoryItem(HistoryEntry * h, int idx)
+void HistoryPanel::addHistoryItem(SearchResultContainer* h, int idx)
 {
   _history.insert(idx, h);
   addAndMakeVisible(h);
@@ -56,9 +53,9 @@ void HistoryPanel::addHistoryItem(HistoryEntry * h, int idx)
   repaint();
 }
 
-HistoryEntry * HistoryPanel::removeHistoryItem(int idx)
+SearchResultContainer* HistoryPanel::removeHistoryItem(int idx)
 {
-  HistoryEntry* h = nullptr;
+  SearchResultContainer* h = nullptr;
   if (idx < 0) {
     h = _history.remove(_history.size() - 1);
   }
@@ -73,7 +70,7 @@ HistoryEntry * HistoryPanel::removeHistoryItem(int idx)
 
 void HistoryPanel::deleteHistoryItem(int idx)
 {
-  HistoryEntry* h = nullptr;
+  SearchResultContainer* h = nullptr;
   if (idx < 0) {
     h = _history.remove(_history.size() - 1);
   }
@@ -86,68 +83,22 @@ void HistoryPanel::deleteHistoryItem(int idx)
   repaint();
 }
 
-void HistoryPanel::addRedoItem(HistoryEntry * h, int idx)
-{
-  _redo.insert(idx, h);
-  addAndMakeVisible(h);
-  setWidth(getLocalBounds().getWidth());
-  repaint();
-}
-
-HistoryEntry * HistoryPanel::removeRedoItem(int idx)
-{
-  HistoryEntry* h = nullptr;
-  if (idx < 0) {
-    h = _redo.remove(_redo.size() - 1);
-  }
-  else {
-    h = _redo.remove(idx);
-  }
-
-  setWidth(getLocalBounds().getWidth());
-  repaint();
-  return h;
-}
-
-void HistoryPanel::deleteRedoItem(int idx)
-{
-  HistoryEntry* h = nullptr;
-  if (idx < 0) {
-    h = _redo.remove(_history.size() - 1);
-  }
-  else {
-    h = _redo.remove(idx);
-  }
-
-  delete h;
-  setWidth(getLocalBounds().getWidth());
-  repaint();
-}
-
-void HistoryPanel::clearRedo()
-{
-  for (auto h : _redo) {
-    delete h;
-  }
-  _redo.clear();
-}
-
 void HistoryPanel::clearAllHistory()
 {
 	for (auto& h : _history) {
 		delete h;
 	}
 	_history.clear();
-
-	for (auto& h : _redo) {
-		delete h;
-	}
-	_redo.clear();
 }
 
 void HistoryPanel::setWidth(int width)
 {
   int elemHeight = (int) (width * (9.0 / 16.0));
-  int height = (_history.size() + _redo.size()) * elemHeight;
+  int height = (_history.size()) * elemHeight;
   setBounds(0, 0, width, height);
+}
+
+int HistoryPanel::getHistorySize()
+{
+  return _history.size();
 }
