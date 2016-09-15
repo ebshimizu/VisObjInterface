@@ -44,9 +44,11 @@ Eigen::VectorXd snapshotToVector(Snapshot * s)
     else
       features[base + 2] = 0;
 
-    features[base + 3] = d.second->getParam<LumiverseColor>("color")->getColorChannel("Red");
-    features[base + 4] = d.second->getParam<LumiverseColor>("color")->getColorChannel("Green");
-    features[base + 5] = d.second->getParam<LumiverseColor>("color")->getColorChannel("Blue");
+    if (d.second->paramExists("color")) {
+      features[base + 3] = d.second->getParam<LumiverseColor>("color")->getColorChannel("Red");
+      features[base + 4] = d.second->getParam<LumiverseColor>("color")->getColorChannel("Green");
+      features[base + 5] = d.second->getParam<LumiverseColor>("color")->getColorChannel("Blue");
+    }
 
     if (d.second->paramExists("penumbraAngle"))
       features[base + 6] = d.second->getParam<LumiverseFloat>("penumbraAngle")->asPercent();
@@ -83,9 +85,11 @@ void vectorToExistingSnapshot(Eigen::VectorXd source, Snapshot& dest)
 		if (d.second->paramExists("azimuth"))
 			d.second->getParam<LumiverseOrientation>("azimuth")->setValAsPercent((float) source[base + 2]);
 
-		d.second->getParam<LumiverseColor>("color")->setColorChannel("Red", source[base + 3]);
-		d.second->getParam<LumiverseColor>("color")->setColorChannel("Green", source[base + 4]);
-		d.second->getParam<LumiverseColor>("color")->setColorChannel("Blue", source[base + 5]);
+    if (d.second->paramExists("color")) {
+      d.second->getParam<LumiverseColor>("color")->setColorChannel("Red", source[base + 3]);
+      d.second->getParam<LumiverseColor>("color")->setColorChannel("Green", source[base + 4]);
+      d.second->getParam<LumiverseColor>("color")->setColorChannel("Blue", source[base + 5]);
+    }
 
 		if (d.second->paramExists("penumbraAngle"))
 			d.second->getParam<LumiverseFloat>("penumbraAngle")->setValAsPercent((float) source[base + 6]);
@@ -1301,7 +1305,7 @@ Eigen::VectorXd AttributeSearchThread::performLMGD(Snapshot* scene, double& fina
 
       // fix constraints, bounded at 1 and 0
       for (int i = 0; i < x.size(); i++) {
-        xnew[i] = clamp((float)xnew[i], 0, 1);
+        xnew[i] = Lumiverse::clamp((float)xnew[i], 0, 1);
       }
 
       vectorToExistingSnapshot(xnew, xs);

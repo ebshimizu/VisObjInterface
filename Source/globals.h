@@ -35,6 +35,7 @@ enum command {
   SAVE_AS = 0x0003,
   SAVE_RENDER = 0x0004,
   OPEN_MASK = 0x0005,
+  RELOAD_ATTRS = 0x0006,
 
   // Internal
   REFRESH_PARAMS = 0x2000,
@@ -162,6 +163,14 @@ enum SearchMode {
   RECENTER_MCMC_LM   // Does MCMCLMGD and recenters on reaching max depth
 };
 
+enum DrawMode {
+  NO_DRAW,
+  BRUSH_ADD,
+  RECT_ADD,
+  BRUSH_REMOVE,
+  RECT_REMOVE
+};
+
 // A container for various things that the entire application may want to access
 // TODO: at some point, have this load from a file
 class GlobalSettings
@@ -270,6 +279,10 @@ public:
 
   // Foregorund mask
   Image _fgMask;
+
+  // Freeze mask. If a pixel is non-zero, it should be held as constant as possible
+  // in resultant searches
+  Image _freeze;
 
   // Consistency constraints
   map<string, ConsistencyConstraint> _constraints;

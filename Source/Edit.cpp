@@ -498,35 +498,65 @@ void Edit::setParam(Device * d, EditParam p, double val)
     }
     case HUE:
     {
-      Eigen::Vector3d hsv = d->getColor()->getHSV();
-      d->getColor()->setHSV(val * 360, hsv[1], hsv[2]);
+      LumiverseColor* c = d->getColor();
+
+      if (c == nullptr)
+        return;
+
+      Eigen::Vector3d hsv = c->getHSV();
+      c->setHSV(val * 360, hsv[1], hsv[2]);
       return;
     }
     case SAT:
     {
-      Eigen::Vector3d hsv = d->getColor()->getHSV();
-      d->getColor()->setHSV(hsv[0], val, hsv[2]);
+      LumiverseColor* c = d->getColor();
+
+      if (c == nullptr)
+        return;
+
+      Eigen::Vector3d hsv = c->getHSV();
+      c->setHSV(hsv[0], val, hsv[2]);
       return;
     }
     case VALUE:
     {
-      Eigen::Vector3d hsv = d->getColor()->getHSV();
-      d->getColor()->setHSV(hsv[0], hsv[1], val);
+      LumiverseColor* c = d->getColor();
+
+      if (c == nullptr)
+        return;
+
+      Eigen::Vector3d hsv = c->getHSV();
+      c->setHSV(hsv[0], hsv[1], val);
       return;
     }
     case RED:
     {
-      d->getColor()->setColorChannel("Red", val);
+      LumiverseColor* c = d->getColor();
+
+      if (c == nullptr)
+        return;
+
+      c->setColorChannel("Red", val);
       return;
     }
     case BLUE:
     {
-      d->getColor()->setColorChannel("Blue", val);
+      LumiverseColor* c = d->getColor();
+
+      if (c == nullptr)
+        return;
+
+      c->setColorChannel("Blue", val);
       return;
     }
     case GREEN:
     {
-      d->getColor()->setColorChannel("Green", val);
+      LumiverseColor* c = d->getColor();
+
+      if (c == nullptr)
+        return;
+
+      c->setColorChannel("Green", val);
       return;
     }
     case POLAR:
@@ -567,30 +597,60 @@ double Edit::getParam(Device * d, EditParam p)
   }
   case HUE:
   {
-    Eigen::Vector3d hsv = d->getColor()->getHSV();
+    LumiverseColor* c = d->getColor();
+
+    if (c == nullptr)
+      return 0;
+
+    Eigen::Vector3d hsv = c->getHSV();
     return hsv[0] / 360.0;
   }
   case SAT:
   {
-    Eigen::Vector3d hsv = d->getColor()->getHSV();
+    LumiverseColor* c = d->getColor();
+
+    if (c == nullptr)
+      return 0;
+
+    Eigen::Vector3d hsv = c->getHSV();
     return hsv[1];
   }
   case VALUE:
   {
-    Eigen::Vector3d hsv = d->getColor()->getHSV();
+    LumiverseColor* c = d->getColor();
+
+    if (c == nullptr)
+      return 0;
+
+    Eigen::Vector3d hsv = c->getHSV();
     return hsv[2];
   }
   case RED:
   {
-    return d->getColor()->getColorChannel("Red");
+    LumiverseColor* c = d->getColor();
+
+    if (c == nullptr)
+      return 0;
+
+    return c->getColorChannel("Red");
   }
   case BLUE:
   {
-    return d->getColor()->getColorChannel("Blue");
+    LumiverseColor* c = d->getColor();
+
+    if (c == nullptr)
+      return 0;
+
+    return c->getColorChannel("Blue");
   }
   case GREEN:
   {
-    return d->getColor()->getColorChannel("Green");
+    LumiverseColor* c = d->getColor();
+
+    if (c == nullptr)
+      return 0;
+
+    return c->getColorChannel("Green");
   }
   case POLAR:
   {

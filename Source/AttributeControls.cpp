@@ -346,7 +346,7 @@ void AttributeControls::initAttributes()
   _container->addAttributeController(new OrangeBlueAttribute());
 
   // moonlight
-  _container->addAttributeController(new MoonlightAttribute());
+  //_container->addAttributeController(new MoonlightAttribute());
 
   // Image similarity
   // load from local folder

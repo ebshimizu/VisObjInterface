@@ -249,8 +249,8 @@ Point<float> SceneViewer::getRelativeImageCoords(const Point<float>& pt)
   float ptHeightAdjust = (float) abs((imgHeight - lbounds.getHeight()) / 2.0);
   float ptWidthAdjust = (float) abs((imgWidth - lbounds.getWidth()) / 2.0);
   
-  float x = clamp((pt.x - ptWidthAdjust) / imgWidth, 0, 1);
-  float y = clamp((pt.y - ptHeightAdjust) / imgHeight, 0, 1);
+  float x = Lumiverse::clamp((pt.x - ptWidthAdjust) / imgWidth, 0, 1);
+  float y = Lumiverse::clamp((pt.y - ptHeightAdjust) / imgHeight, 0, 1);
   
   return Point<float>(x, y);
 }

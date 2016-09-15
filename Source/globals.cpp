@@ -61,7 +61,10 @@ bool isDeviceParamLocked(string id, string param)
   Device* d = getRig()->getDevice(id);
 
   if (d == nullptr)
-    return false;
+    return true;
+
+  if (!d->paramExists(param))
+    return true;
 
   if (d->getMetadata(metadataId) == "y")
     return true;

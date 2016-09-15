@@ -105,7 +105,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::PICK_TRACE, command::OPEN_MASK, command::SAVE_CLUSTERS, command::LOAD_CLUSTERS, command::REFRESH_SETTINGS,
     command::CONSTRAINTS, command::START_AUTO, command::END_AUTO, command::LOCK_ALL_SELECTED,
     command::LOCK_SELECTED_INTENSITY, command::LOCK_SELECTED_COLOR, command::UNLOCK_ALL_SELECTED,
-    command::UNLOCK_SELECTED_COLOR, command::UNLOCK_SELECTED_INTENSITY
+    command::UNLOCK_SELECTED_COLOR, command::UNLOCK_SELECTED_INTENSITY, command::RELOAD_ATTRS
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -252,6 +252,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Unlock Selected All", "Unlock all parameters in the selected devices", "Explore", 0);
     result.addDefaultKeypress('l', ModifierKeys::commandModifier);
     break;
+  case command::RELOAD_ATTRS:
+    result.setInfo("Reload Image Attributes", "Reloads the image attributes.", "File", 0);
+    break;
   default:
     return;
   }
@@ -380,6 +383,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::UNLOCK_ALL_SELECTED:
     _params->unlockSelected({ "intensity", "color" });
+    break;
+  case command::RELOAD_ATTRS:
+    reloadImageAttrs();
     break;
   default:
     return false;
@@ -1244,6 +1250,13 @@ void MainContentComponent::createLogDirs()
 	if (!logFolder.exists()) {
 		logFolder.createDirectory();
 	}
+}
+
+void MainContentComponent::reloadImageAttrs()
+{
+  _attrs->reload();
+  resized();
+  repaint();
 }
 
 void MainContentComponent::selectBox(string metadataKey, bool inv, string title)

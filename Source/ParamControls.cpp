@@ -462,6 +462,13 @@ Component * ParamControls::refreshComponentForCell(int rowNumber, int columnId, 
     string id = _ids[rowNumber].toStdString();
     LumiverseColor* targetVal = getRig()->getDevice(id)->getColor();
 
+    if (targetVal == nullptr) {
+      if (existingComponentToUpdate != nullptr)
+        delete existingComponentToUpdate;
+
+      return nullptr;
+    }
+
     if (button == nullptr) {
       button = new ColorPickerButton(id, "color", targetVal);
     }
@@ -487,12 +494,17 @@ void ParamControls::selectedRowsChanged(int lastRowSelected)
     _recentIntens = getRig()->getDevice(recentId)->getIntensity()->asPercent();
 
     LumiverseColor* recentColor = getRig()->getDevice(recentId)->getColor();
-    Eigen::Vector3d c;
-    c[0] = recentColor->getColorChannel("Red");
-    c[1] = recentColor->getColorChannel("Green");
-    c[2] = recentColor->getColorChannel("Blue");
-    c *= 255;
-    _recentColor = Colour((uint8)c[0], (uint8)c[1], (uint8)c[2]);
+    if (recentColor != nullptr) {
+      Eigen::Vector3d c;
+      c[0] = recentColor->getColorChannel("Red");
+      c[1] = recentColor->getColorChannel("Green");
+      c[2] = recentColor->getColorChannel("Blue");
+      c *= 255;
+      _recentColor = Colour((uint8)c[0], (uint8)c[1], (uint8)c[2]);
+    }
+    else {
+      _recentColor = Colours::black;
+    }
 
     _groupColor.setColor(_recentColor);
     _groupIntens.setValue(_recentIntens * 100, dontSendNotification);

@@ -116,6 +116,9 @@ private:
 
   void createLogDirs();
 
+  // Reloads the image attributes
+  void reloadImageAttrs();
+
   // Opens a selection box presenting a dropdown consisting of the selected
   // metadata field
   void selectBox(string metadataKey, bool inv, string title);

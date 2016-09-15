@@ -291,9 +291,9 @@ Histogram3D::~Histogram3D()
 void Histogram3D::addValToBin(double x, double y, double z)
 {
   // scale x, y, z to proper values and find what bin they're in
-  int xbin = (int) clamp(((x - _xmin) / (_xmax - _xmin)) * _x, 0, _x - 1);
-  int ybin = (int) clamp(((y - _ymin) / (_ymax - _ymin)) * _y, 0, _y - 1);
-  int zbin = (int) clamp(((z - _zmin) / (_zmax - _zmin)) * _z, 0, _z - 1);
+  int xbin = (int) Lumiverse::clamp(((x - _xmin) / (_xmax - _xmin)) * _x, 0, _x - 1);
+  int ybin = (int) Lumiverse::clamp(((y - _ymin) / (_ymax - _ymin)) * _y, 0, _y - 1);
+  int zbin = (int) Lumiverse::clamp(((z - _zmin) / (_zmax - _zmin)) * _z, 0, _z - 1);
 
   addToBin(1, xbin, ybin, zbin);
 }
@@ -582,7 +582,7 @@ void LabxyHistogram::addProportional(float weight, vector<double> coord, vector<
 
   int currentDepth = bin.size();
   int idx = currentDepth * 2;
-  double binVal = clamp((coord[currentDepth] - _bounds[idx]) / ((_bounds[idx + 1] - _bounds[idx]) / (_bins[currentDepth] - 1)), 0, _bins[currentDepth] - 1);
+  double binVal = Lumiverse::clamp((coord[currentDepth] - _bounds[idx]) / ((_bounds[idx + 1] - _bounds[idx]) / (_bins[currentDepth] - 1)), 0, _bins[currentDepth] - 1);
   int high = ceil(binVal);
   int low = floor(binVal);
 
@@ -620,7 +620,7 @@ int LabxyHistogram::nearest(double val, int axis)
   int idx = axis * 2;
 
   double binVal = (val - _bounds[idx]) / ((_bounds[idx + 1] - _bounds[idx]) / (_bins[axis] - 1));
-  binVal = clamp(binVal, 0, _bins[axis] - 1);
+  binVal = Lumiverse::clamp(binVal, 0, _bins[axis] - 1);
 
   return (int) round(binVal);
 }
