@@ -78,6 +78,7 @@ public:
   void recenter(Snapshot* s = nullptr);
 
   int _phase;
+  String _statusMessage;
 
 private:
   // object to dump results into once search is complete.

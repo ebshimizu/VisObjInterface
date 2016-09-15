@@ -159,6 +159,8 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjF
 	_status = IDLE;
   _fallback = new Snapshot(*start);
   _samplesTaken = 0;
+
+  _statusMessage = "Initialized for new search. Mode: " + String(_mode);
 }
 
 void AttributeSearchThread::run()
@@ -184,12 +186,11 @@ void AttributeSearchThread::computeEditWeights(bool showStatusMessages, bool glo
 	// Here we take the starting scene and evaluate the variance of all available edits
 	// when performed on the starting scene. The idea is to measure how much each edit
 	// "matters" and use that to bias local searches towards meaningfuly different changes
-
-	// NOTE: Right now the weights are computed globally, as in for one particular scene
-	// in the future we may want to maintain separate weights for each scene
   _localEditWeights.clear();
 	Eigen::VectorXd weights;
 	weights.resize(_edits.size());
+
+  _statusMessage = "Computing " + String(_edits.size()) + " edit weights";
 
 	for (int i = 0; i < _edits.size(); i++) {
     if (threadShouldExit())
@@ -197,12 +198,13 @@ void AttributeSearchThread::computeEditWeights(bool showStatusMessages, bool glo
     if (getGlobalSettings()->_uniformEditWeights) {
       // uniform edit weight
       weights[i] = 1;
+      _statusMessage = "Precomputing Edit Weights... (" + String(i + 1) + "/" + String(_edits.size()) + ")";
     }
     else {
       if (showStatusMessages) {
         MessageManagerLock mmlock(this);
         if (mmlock.lockWasGained()) {
-          getStatusBar()->setStatusMessage("Precomputing Edit Weights... (" + String(i + 1) + "/" + String(_edits.size()) + ")");
+          getStatusBar()->setStatusMessage(_statusMessage);
         }
       }
 
@@ -213,10 +215,11 @@ void AttributeSearchThread::computeEditWeights(bool showStatusMessages, bool glo
     }
 	}
 
+  _statusMessage = "Precomputing Edit Weights... (" + String(_edits.size()) + "/" + String(_edits.size()) + ")";
   if (showStatusMessages) {
     MessageManagerLock mmlock(this);
     if (mmlock.lockWasGained()) {
-      getStatusBar()->setStatusMessage("Precomputing Edit Weights... (" + String(_edits.size()) + "/" + String(_edits.size()) + ")");
+      getStatusBar()->setStatusMessage(_statusMessage);
     }
   }
 
@@ -246,6 +249,8 @@ void AttributeSearchThread::computeEditWeights(bool showStatusMessages, bool glo
       _localEditWeights[total] = _edits[i];
     }
   }
+
+  _statusMessage = "Precompute complete";
 }
 
 void AttributeSearchThread::setStartConfig(Snapshot * start)
@@ -322,6 +327,8 @@ void AttributeSearchThread::runHybridDebug()
 
 void AttributeSearchThread::recenter(Snapshot * s)
 {
+  _statusMessage = "Recentering thread";
+
   // for now, thread id 0 can never be recentered, but it can use a larger edit depth
   if (_id >= _resampleThreads) {
     _maxDepth++;
@@ -407,6 +414,8 @@ void AttributeSearchThread::runSearch()
 }
 
 void AttributeSearchThread::runMCMCEditSearch(bool force) {
+  _statusMessage = "Running MCMC Edit Search";
+
 	double fx = _f(_original);
 
   if (getGlobalSettings()->_randomInit) {
@@ -575,6 +584,8 @@ void AttributeSearchThread::runMCMCEditSearch(bool force) {
 
 void AttributeSearchThread::runLMGDSearch(bool force)
 {
+  _statusMessage = "Running LMGD";
+
   if (getGlobalSettings()->_randomInit) {
     // switch up the very first starting scene.
     _randomInit = true;
@@ -641,6 +652,8 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 
 void AttributeSearchThread::runMCMCLMGDSearch()
 {
+  _statusMessage = "Running MCMCLMGD";
+
   double fx = _f(_original);
 
   if (getGlobalSettings()->_randomInit) {
@@ -838,6 +851,8 @@ void AttributeSearchThread::runMCMCLMGDSearch()
 
 void AttributeSearchThread::runRecenteringMCMCSearch()
 {
+  _statusMessage = "Running Recenter-Move MCMC";
+
   double fx = _f(_original);
 
   if (getGlobalSettings()->_randomInit) {
@@ -1000,6 +1015,8 @@ void AttributeSearchThread::runRecenteringMCMCSearch()
 
 void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
 {
+  _statusMessage = "Running Recenter-Move MCMCLMGD";
+
   if (_samplesTaken > _resampleTime) {
     recenter();
   }
