@@ -47,10 +47,11 @@ public:
   float variance();
   float meanVals();
   float meanDiffs();
+  float meanAccept();
 
   // given any arbitrary step, this would be the expected value of the positive steps:
   // avg(_diffs > 0) * count(_diffs > 0) / _diffs.size()
-  float expectedPositiveDiff();
+  float expectedDiff();
 
   vector<float> _diffs;  // stores the difference from the starting point obtained by the edit.
   vector<float> _vals;

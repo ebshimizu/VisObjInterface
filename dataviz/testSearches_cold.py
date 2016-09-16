@@ -5,7 +5,7 @@ import glob
 scene = sys.argv[1]
 targetsDir = sys.argv[2]
 
-editModes = [6, 8]
+editModes = [8.1, 6, 8]
 
 targetImages = glob.glob(targetsDir + "/*.png")
 
@@ -15,7 +15,10 @@ for imgPath in targetImages:
 	logDir = "../analysis/precompute/"
 
 	for editMode in editModes:
-		cmd = exe + " --preload " + scene + " --auto " + str(editMode) + " --img-attr " + imgPath + " --more --samples 1000 --out " + logDir + " --jnd 0.1 --timeout 10"
+		if editMode == 8.1:
+			cmd = exe + " --preload " + scene + " --auto 8 --editUpdateMode 1 --img-attr " + imgPath + " --more --samples 1000 --out " + logDir + " --jnd 0.1 --timeout 10 --session-name 8.1"
+		else:
+			cmd = exe + " --preload " + scene + " --auto " + str(editMode) + " --img-attr " + imgPath + " --more --samples 1000 --out " + logDir + " --jnd 0.1 --timeout 10"
 		print cmd
 		call(cmd)
 

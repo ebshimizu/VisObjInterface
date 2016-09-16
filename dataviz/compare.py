@@ -12,8 +12,7 @@ import plotLib
 # If args[3] is an int the format is: [output file name] [input directory] [folder number]
 # If args[3] is not an int the format is: [output file name] [list of directories...]
 def main(args):
-	searchModeNames = {8: 'Recenter-Move MCMC with fast start', 0: 'MCMC with Edits', 0.1 : 'MCMC with Uniform Edit Weights', 4 : 'Minimizing MCMC with Edits', 5 : 'MCMC with LMGD Refinement', 6 : 'Recentring MCMC', 7 : 'Recentering MCMC with LMGD'}
-	searchModes = [0, 0.1, 5, 6, 7, 8]
+	searchModes = [0, 0.1, 5, 6, 7, 8, 8.1]
 
 	arbitrary = False
 	try:
@@ -53,7 +52,7 @@ def main(args):
 		if os.path.isfile(filename):
 			rgb = colorsys.hsv_to_rgb(hue, 1.0, 0.7)
 			newPlots = plotLib.getPlots(filename, [str(rgb[0] *255), str(rgb[1]*255), str(rgb[2]*255)], eventData[i])
-			newPlots = plotLib.renamePlots(newPlots, searchModeNames[modeList[i]])
+			newPlots = plotLib.renamePlots(newPlots, plotLib.searchModeNames[modeList[i]])
 			plots.append(newPlots)
 			hue = hue + 0.15
 			i = i + 1

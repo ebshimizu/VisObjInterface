@@ -125,6 +125,15 @@ public:
           // this should be a number
           getGlobalSettings()->_commandLineArgs["T"] = commandLine.substring(start, end);
         }
+        else if (substr == "--editUpdateMode") {
+          start = end + 1;
+          end = commandLine.indexOf(start, " ");
+          if (end == -1)
+            end = commandLine.length();
+
+          // this should be a number
+          getGlobalSettings()->_commandLineArgs["updateMode"] = commandLine.substring(start, end);
+        }
         else if (substr == "--step-size" || substr == "-s") {
           start = end + 1;
           end = commandLine.indexOf(start, " ");

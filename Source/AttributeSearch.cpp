@@ -149,7 +149,17 @@ float EditStats::meanDiffs()
   return sum / _diffs.size();
 }
 
-float EditStats::expectedPositiveDiff()
+float EditStats::meanAccept()
+{
+  float sum = 0;
+  for (float a : _as) {
+    sum += a;
+  }
+
+  return sum / _as.size();
+}
+
+float EditStats::expectedDiff()
 {
   if (_diffs.size() == 0)
     return 0;
@@ -1617,36 +1627,33 @@ void AttributeSearchThread::updateEditWeights()
   // compute expected positive diff for each edit that's been looked at
   map<Edit*, float> expectedDiff;
   for (auto stat : _editStats) {
-    if (stat.second._diffs.size() > 0) {
-      expectedDiff[stat.first] = max(-stat.second.expectedPositiveDiff(), 0.01f);
-    }
-    else {
-      expectedDiff[stat.first] = 0.1f;
-    }
+      if (getGlobalSettings()->_commandLineArgs["updateMode"] == "1") {
+        if (stat.second._diffs.size() > 0)
+          expectedDiff[stat.first] = stat.second.meanAccept();
+        else
+          expectedDiff[stat.first] = 1;
+      }
+      else {
+        if (stat.second._diffs.size() > 0) {
+          expectedDiff[stat.first] = max(-stat.second.expectedDiff(), 0.01f);
+        }
+        else {
+          expectedDiff[stat.first] = 0.1f;
+        }
+      }
   }
 
   // question is how to balance things with unknown weight vs known weights
   // for now, minimum weight is 1
   float totalWeight = 0;
   for (auto e : _edits) {
-    if (expectedDiff.count(e) > 0) {
-      totalWeight += expectedDiff[e];
-    }
-    else {
-      totalWeight += 0.5;
-    }
+    totalWeight += expectedDiff[e];
   }
 
   map<double, Edit*> weights;
   float sum = 0;
   for (auto e : _edits) {
-    if (expectedDiff.count(e) > 0) {
-      sum += expectedDiff[e];
-    }
-    else {
-      sum += 0.5;
-    }
-
+    sum += expectedDiff[e];
     weights[sum / totalWeight] = e;
   }
 
