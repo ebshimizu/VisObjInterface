@@ -115,6 +115,59 @@ String vectorToString(Eigen::VectorXd v)
   return ret;
 }
 
+float EditStats::variance() {
+  double mean = meanVals();
+
+  Eigen::VectorXf vals;
+  vals.resize(_vals.size());
+  for (int i = 0; i < _vals.size(); i++) {
+    vals[i] = _vals[i];
+  }
+
+  Eigen::VectorXf shifted = (vals - mean * Eigen::VectorXf::Ones(_vals.size()));
+  shifted = shifted.cwiseProduct(shifted);
+  return shifted.sum() / _vals.size();
+}
+
+float EditStats::meanVals()
+{
+  float sum = 0;
+  for (float v : _vals) {
+    sum += v;
+  }
+
+  return sum / _vals.size();
+}
+
+float EditStats::meanDiffs()
+{
+  float sum = 0;
+  for (float v : _diffs) {
+    sum += v;
+  }
+
+  return sum / _diffs.size();
+}
+
+float EditStats::expectedPositiveDiff()
+{
+  if (_diffs.size() == 0)
+    return 0;
+
+  // we only want the negative differences (minimization), take the average, then mult by
+  // proportion of diffs that were actually negative
+  float sum = 0;
+  int count = 0;
+  for (float d : _diffs) {
+    if (d < 0) {
+      sum += d;
+      count++;
+    }
+  }
+
+  return sum / _diffs.size();
+}
+
 //=============================================================================
 
 AttributeSearchThread::AttributeSearchThread(String name, SearchResultsViewer* viewer, map<string, int>& sharedData) :
@@ -170,6 +223,8 @@ void AttributeSearchThread::run()
 
   if (_mode == RECENTER_MCMC_EDIT || _mode == RECENTER_MCMC_LM)
     computeEditWeights(false, false);
+  else if (_mode == COLD_RECENTER)
+    setLocalWeightsUniform();
 
   // here we basically want to run the search indefinitely until cancelled by user
   // so we just call the actual search function over and over
@@ -367,7 +422,13 @@ void AttributeSearchThread::recenter(Snapshot * s)
   }
   
   setStartConfig(s);
-  computeEditWeights(false, false);
+
+  if (_mode == COLD_RECENTER) {
+    setLocalWeightsUniform();
+  }
+  else {
+    computeEditWeights(false, false);
+  }
 
   _samplesTaken = 0;
   getRecorder()->log(SYSTEM, "Recentered thread " + String(_id).toStdString() + " to new scene");
@@ -386,6 +447,8 @@ void AttributeSearchThread::runSearch()
     runRecenteringMCMCSearch();
   else if (_mode == RECENTER_MCMC_LM)
     runRecenteringMCMCLMGDSearch();
+  else if (_mode == COLD_RECENTER)
+    runSearchNoWarmup();
 	else if (_mode == HYBRID_EXPLORE) {
 		// This search mode has multiple phases, and each thread can be on a different phase
 		// On thread creation, we should wait for further instructions
@@ -1218,6 +1281,175 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
   _samplesTaken++;
 }
 
+void AttributeSearchThread::runSearchNoWarmup()
+{
+  _statusMessage = "Running Recenter-Move MCMC with fast start";
+
+  double fx = _f(_original);
+
+  // assign start scene, initialize result
+  Snapshot* start = new Snapshot(*_original);
+  SearchResult* r = new SearchResult();
+  double orig = fx;
+
+  // RNG
+  default_random_engine gen(std::random_device{}());
+  uniform_real_distribution<double> udist(0.0, 1.0);
+
+  // do the MCMC search
+  int depth = 0;
+  Edit* e = nullptr;
+
+  // magic number alert
+  int iters = getGlobalSettings()->_standardMCMC ? getGlobalSettings()->_standardMCMCIters : getGlobalSettings()->_maxMCMCIters;
+
+  // depth increases when scenes are rejected from the viewer
+  while (depth < _maxDepth) {
+    if (threadShouldExit()) {
+      delete r;
+      delete start;
+      return;
+    }
+
+    // here we'll actually pull the lowest observed accepted sample
+    Eigen::VectorXd lowestScene;
+    double minVal = DBL_MAX;
+    bool accepted = false;
+    Edit* minEdit;
+
+    //  pick a next plausible edit
+    if (r->_editHistory.size() == 0)
+      e = _edits[0]->getNextEdit(r->_editHistory, _localEditWeights, getGlobalSettings()->_reduceRepeatEdits);
+    else {
+      e = e->getNextEdit(r->_editHistory, _localEditWeights, getGlobalSettings()->_reduceRepeatEdits);
+    }
+
+    // iterate a bit, do a little bit of searching
+    // do the adjustment until acceptance
+    for (int i = 0; i < iters; i++) {
+      if (threadShouldExit()) {
+        delete r;
+        delete start;
+        return;
+      }
+
+      //  adjust the starting scene
+      Snapshot* sp = new Snapshot(*start);
+      e->performEdit(sp, getGlobalSettings()->_editStepSize);
+
+      // check for acceptance
+      double fxp = _f(sp);
+      double a = min(exp((1 / _T) * (fx - fxp)), 1.0);
+
+      // store statistics
+      _editStats[e]._vals.push_back((float)fxp);
+      _editStats[e]._diffs.push_back((float)(fx - fxp));
+      _editStats[e]._as.push_back((float)a);
+
+      // accept if a >= 1 or with probability a
+      if (a >= 1 || udist(gen) < a) {
+        // update x
+        delete start;
+        start = sp;
+        fx = fxp;
+
+        // update result
+        r->_objFuncVal = fx;
+
+        // diagnostics
+        DebugData data;
+        auto& samples = getGlobalSettings()->_samples;
+        data._f = r->_objFuncVal;
+        data._a = a;
+        data._sampleId = (unsigned int)samples[_id].size() + 1;
+        data._editName = e->_name;
+        data._accepted = true;
+        data._scene = snapshotToVector(sp);
+        data._timeStamp = chrono::high_resolution_clock::now();
+        samples[_id].push_back(data);
+
+        if (fx < minVal) {
+          minVal = fx;
+          lowestScene = data._scene;
+          minEdit = e;
+        }
+
+        accepted = true;
+      }
+      else {
+        delete sp;
+      }
+    }
+
+    // adjust so that the min scene gets used as next starting point
+    // but check that something actually was accepted (probability may not accept everything)
+    if (accepted) {
+      r->_objFuncVal = minVal;
+      delete start;
+      start = vectorToSnapshot(lowestScene);
+      r->_editHistory.push_back(minEdit);
+    }
+    else {
+      r->_editHistory.push_back(e);
+    }
+    
+    depth++;
+  }
+
+  r->_scene = snapshotToVector(start);
+  delete start;
+
+  // diagnostics
+  DebugData data;
+  auto& samples = getGlobalSettings()->_samples;
+  data._f = r->_objFuncVal;
+  data._a = 1;
+  data._sampleId = (unsigned int)samples[_id].size() + 1;
+  data._editName = "TERMINAL";
+  data._accepted = true;
+  data._scene = r->_scene;
+  data._timeStamp = chrono::high_resolution_clock::now();
+
+  r->_extraData["Thread"] = String(_id);
+  r->_extraData["Sample"] = String(data._sampleId);
+  r->_creationTime = chrono::high_resolution_clock::now();
+
+  // add if we did better
+  // hybrid method doesn't actually care just add it anyway
+  if (r->_objFuncVal < orig) {
+    // send scene to the results area. may chose to not use the scene
+    if (!_viewer->addNewResult(r, false)) {
+      // r has been deleted by _viewer here
+      _failures++;
+      data._accepted = false;
+
+      if (_failures > getGlobalSettings()->_searchFailureLimit) {
+        _failures = 0;
+        _maxDepth++;
+      }
+    }
+    else {
+      _acceptedSamples += 1;
+    }
+  }
+  else {
+    data._accepted = false;
+    delete r;
+  }
+
+  samples[_id].push_back(data);
+  _samplesTaken++;
+
+  if (_samplesTaken > _resampleTime) {
+    // recentering resets the weights
+    recenter();
+  }
+  else {
+    // recompute edit weights
+    updateEditWeights();
+  }
+}
+
 Eigen::VectorXd AttributeSearchThread::getDerivative(Snapshot & s)
 {
 	Eigen::VectorXd x = snapshotToVector(&s);
@@ -1364,6 +1596,61 @@ Eigen::VectorXd AttributeSearchThread::performLMGD(Snapshot* scene, double& fina
 
   finalObjVal = fx;
   return x;
+}
+
+void AttributeSearchThread::setLocalWeightsUniform()
+{
+  _localEditWeights.clear();
+
+  float sum = _edits.size();
+
+  for (int i = 0; i < _edits.size(); i++) {
+    _localEditWeights[(i + 1) / sum] = _edits[i];
+    _editStats[_edits[i]] = EditStats();
+  }
+
+  _statusMessage = "Edit weights set to uniform";
+}
+
+void AttributeSearchThread::updateEditWeights()
+{
+  // compute expected positive diff for each edit that's been looked at
+  map<Edit*, float> expectedDiff;
+  for (auto stat : _editStats) {
+    if (stat.second._diffs.size() > 0) {
+      expectedDiff[stat.first] = max(-stat.second.expectedPositiveDiff(), 0.01f);
+    }
+    else {
+      expectedDiff[stat.first] = 0.1f;
+    }
+  }
+
+  // question is how to balance things with unknown weight vs known weights
+  // for now, minimum weight is 1
+  float totalWeight = 0;
+  for (auto e : _edits) {
+    if (expectedDiff.count(e) > 0) {
+      totalWeight += expectedDiff[e];
+    }
+    else {
+      totalWeight += 0.5;
+    }
+  }
+
+  map<double, Edit*> weights;
+  float sum = 0;
+  for (auto e : _edits) {
+    if (expectedDiff.count(e) > 0) {
+      sum += expectedDiff[e];
+    }
+    else {
+      sum += 0.5;
+    }
+
+    weights[sum / totalWeight] = e;
+  }
+
+  _localEditWeights = weights;  
 }
 
 AttributeSearch::AttributeSearch(SearchResultsViewer * viewer) : _viewer(viewer), Thread("Attribute Search Dispatcher")

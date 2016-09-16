@@ -13,8 +13,8 @@ import compare
 logFolder = sys.argv[1]
 
 # we specifically look for folders 0, 4, 5 (more added as needed)
-searchModes = [0, 0.1, 5, 6, 7]
-searchModeNames = {0: 'MCMC with Edits', 0.1 : 'MCMC with Uniform Edit Weights', 1 : 'LM Gradient Descent', 4 : 'Minimizing MCMC with Edits', 5 : 'MCMC with LMGD Refinement', 6 : 'Recentring MCMC', 7 : 'Recentering MCMC with LMGD'}
+searchModes = [6, 8]
+searchModeNames = {8: 'Recenter-Move MCMC with fast start', 0: 'MCMC with Edits', 0.1 : 'MCMC with Uniform Edit Weights', 1 : 'LM Gradient Descent', 4 : 'Minimizing MCMC with Edits', 5 : 'MCMC with LMGD Refinement', 6 : 'Recentring MCMC', 7 : 'Recentering MCMC with LMGD'}
 
 # collect averages of other data points of interest
 avgLab = dict()

@@ -40,6 +40,23 @@ String vectorToString(Eigen::VectorXd v);
 // updates the existing snapshot with the given vector
 void vectorToExistingSnapshot(Eigen::VectorXd source, Snapshot& dest);
 
+class EditStats {
+public:
+  EditStats() {};
+
+  float variance();
+  float meanVals();
+  float meanDiffs();
+
+  // given any arbitrary step, this would be the expected value of the positive steps:
+  // avg(_diffs > 0) * count(_diffs > 0) / _diffs.size()
+  float expectedPositiveDiff();
+
+  vector<float> _diffs;  // stores the difference from the starting point obtained by the edit.
+  vector<float> _vals;
+  vector<float> _as;     // stores the acceptance chance for each sample, clamped at 1
+};
+
 class AttributeSearchThread : public Thread
 {
 public:
@@ -97,6 +114,7 @@ private:
   int _resampleTime;
   int _samplesTaken;
   int _resampleThreads;   // number threads that get moved during search (particle filtering)
+  map<Edit*, EditStats> _editStats;      // collection of numbers for computing edit weights during runtime
 
   // this snapshot will always be the very first configuration the thread is set to.
   Snapshot* _fallback;
@@ -143,6 +161,9 @@ private:
   // Search function for doing the recentering MCMC search with the LMGD refinement step too.
   void runRecenteringMCMCLMGDSearch();
 
+  // Runs a search without precomputing weights, but learning weights as it goes.
+  void runSearchNoWarmup();
+
 	// Returns the partial numeric derivative wrt each adjustable parameter
 	// Assumes we want the derivative for the current attribute objective function
 	Eigen::VectorXd getDerivative(Snapshot& s);
@@ -155,6 +176,12 @@ private:
 
   // Performs gradient descent from the starting scene
   Eigen::VectorXd performLMGD(Snapshot* scene, double& finalObjVal);
+
+  // initializes the local weights to uniform values
+  void setLocalWeightsUniform();
+
+  // Updates the local weights with info from previous run
+  void updateEditWeights();
 };
 
 class AttributeSearch : public Thread

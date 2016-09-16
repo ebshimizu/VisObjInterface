@@ -419,7 +419,7 @@ GlobalSettings::GlobalSettings()
   _primaryDivisiveThreshold = 7.5;
   _secondaryDivisiveThreshold = 5;
 	_clusterDisplay = GRID;
-	_searchMode = RECENTER_MCMC_EDIT;
+	_searchMode = COLD_RECENTER;
 	_maxGradIters = 200;
   _reduceRepeatEdits = true;
   _autoTimeout = 30;

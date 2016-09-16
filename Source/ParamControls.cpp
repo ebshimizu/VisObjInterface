@@ -633,9 +633,11 @@ void ParamControls::changeListenerCallback(ChangeBroadcaster * source)
     for (auto& id : _selected) {
       LumiverseColor* val = getRig()->getDevice(id.toStdString())->getColor();
 
-      val->setColorChannel("Red", _recentColor.getFloatRed());
-      val->setColorChannel("Green", _recentColor.getFloatGreen());
-      val->setColorChannel("Blue", _recentColor.getFloatBlue());
+      if (val != nullptr) {
+        val->setColorChannel("Red", _recentColor.getFloatRed());
+        val->setColorChannel("Green", _recentColor.getFloatGreen());
+        val->setColorChannel("Blue", _recentColor.getFloatBlue());
+      }
     }
 
     _groupColor.setColor(_recentColor);

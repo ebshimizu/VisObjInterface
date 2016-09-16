@@ -160,7 +160,8 @@ enum SearchMode {
   MIN_MCMC_EDIT,     // Minimizing MCMC (choses minimal point when running MCMC step)
   MCMCLMGD,          // MCMC with an additional LM refinement step
   RECENTER_MCMC_EDIT,// Re-centers the search to different locations once max depth reached
-  RECENTER_MCMC_LM   // Does MCMCLMGD and recenters on reaching max depth
+  RECENTER_MCMC_LM,  // Does MCMCLMGD and recenters on reaching max depth
+  COLD_RECENTER      // No-windup recentering search. Basically calculates weights as the search runs.
 };
 
 enum DrawMode {
