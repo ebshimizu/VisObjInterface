@@ -160,6 +160,24 @@ public:
           // this should be a number
           getGlobalSettings()->_commandLineArgs["randomInit"] = "true";
         }
+        else if (substr == "--resample-time") {
+          start = end + 1;
+          end = commandLine.indexOf(start, " ");
+          if (end == -1)
+            end = commandLine.length();
+
+          // this should be a number
+          getGlobalSettings()->_commandLineArgs["resampleTime"] = commandLine.substring(start, end);
+        }
+        else if (substr == "--free-threads") {
+          start = end + 1;
+          end = commandLine.indexOf(start, " ");
+          if (end == -1)
+            end = commandLine.length();
+
+          // this should be a number
+          getGlobalSettings()->_commandLineArgs["resampleThreads"] = commandLine.substring(start, end);
+        }
 
         start = end + 1;
 

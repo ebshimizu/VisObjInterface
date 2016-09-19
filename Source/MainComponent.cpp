@@ -954,6 +954,14 @@ void MainContentComponent::startAuto()
     // configuration before running the search
   }
 
+  if (args.count("resampleTime") > 0) {
+    getGlobalSettings()->_resampleTime = args["resampleTime"].getIntValue();
+  }
+
+  if (args.count("resampleThreads") > 0) {
+    getGlobalSettings()->_resampleThreads = args["resampleThreads"].getIntValue();
+  }
+
   File logFolder;
   if (getGlobalSettings()->_commandLineArgs.count("outputFolderName") > 0) {
     getGlobalSettings()->_logRootDir = logFolder.getCurrentWorkingDirectory().

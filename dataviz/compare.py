@@ -7,52 +7,40 @@ import plotly.offline as py
 import plotly.graph_objs as go
 import plotLib
 
-# The command line args for this are totally weird but here's how it works.
-# Everything hinges off of the 3rd argument and whether or not its an integer
-# If args[3] is an int the format is: [output file name] [input directory] [folder number]
-# If args[3] is not an int the format is: [output file name] [list of directories...]
+# The command line args for this are a bit weird but should make sense
+# The args array is treated as containing tuples, so [(path + name)] and the
+# lenth of args-1 should be divisible by 2
 def main(args):
-	searchModes = [0, 0.1, 5, 6, 7, 8, 8.1]
-
-	arbitrary = False
-	try:
-		x = int(args[3])
-	except ValueError:
-		arbitrary = True
+	args = args[1:len(args)]
+	if len(args) % 2 != 1:
+		print "Error: args mush contain an odd number of elements"
+		return
 
 	dirList = []
-	modeList = []
+	nameList = []
 	eventData = []
-	if arbitrary == True:
-		dirList = args[2:-1]
-	else:
-		prefix = args[2]
-		dirNum = int(args[3])
-		for i in searchModes:
-			if os.path.exists(prefix + str(i)):
-				dirs = os.listdir(prefix + str(i))
-				if (os.path.isfile(prefix + str(i) + "/" + dirs[dirNum] + "/results.csv")):
-					dirList.append(prefix + str(i) + "/" + dirs[dirNum])
-					modeList.append(i)
-					eventData.append(prefix + str(i) + "/traces/" + dirs[dirNum] + ".csv")
-
+	for i in range(0, ((len(args)-1) / 2)):
+		path = args[i * 2].split('/')
+		dirname = path[-1]
+		containingFolder = '/'.join(path[0:-1])
+		dirList.append(args[i * 2] + "/results.csv")
+		eventData.append(containingFolder + "/traces/" + dirname + ".csv")
+		nameList.append(args[i * 2 + 1])
+	
+	reportFile = args[-1]
 	plots = []
 
-	print "comparing directories:\n" + "\n".join(dirList)
-
+	print "comparing files:\n" + "\n".join(dirList)
 	if (len(dirList) == 0):
 		return
 
 	hue = 0
 	i = 0
 	for path in dirList:
-		dirName = path.rpartition('/')[2]
-		filename = path + "/results.csv"
-		
-		if os.path.isfile(filename):
+		if os.path.isfile(path):
 			rgb = colorsys.hsv_to_rgb(hue, 1.0, 0.7)
-			newPlots = plotLib.getPlots(filename, [str(rgb[0] *255), str(rgb[1]*255), str(rgb[2]*255)], eventData[i])
-			newPlots = plotLib.renamePlots(newPlots, plotLib.searchModeNames[modeList[i]])
+			newPlots = plotLib.getPlots(path, [str(rgb[0] *255), str(rgb[1]*255), str(rgb[2]*255)], eventData[i])
+			newPlots = plotLib.renamePlots(newPlots, nameList[i])
 			plots.append(newPlots)
 			hue = hue + 0.15
 			i = i + 1
@@ -89,7 +77,6 @@ def main(args):
 		title = "Lab Value over Time"
 	)
 
-	reportFile = args[1]
 	f = open(reportFile, 'w')
 
 	f.write("<html>\n\t<head>\n\t\t<title>Comparison Report</title>")
