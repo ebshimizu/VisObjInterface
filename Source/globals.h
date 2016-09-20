@@ -284,6 +284,7 @@ public:
   // Freeze mask. If a pixel is non-zero, it should be held as constant as possible
   // in resultant searches
   Image _freeze;
+  DrawMode _freezeDrawMode;
 
   // Consistency constraints
   map<string, ConsistencyConstraint> _constraints;

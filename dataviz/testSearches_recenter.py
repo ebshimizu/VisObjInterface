@@ -26,7 +26,7 @@ for editMode in editModes:
 	logDir = "../analysis/recenter/" + str(editMode) + "/"
 	for imgPath in targetImages:
 		for rt in resampleTime:
-			cmd = exe + " --preload " + scene + " --auto " + str(editMode) + " --img-attr " + imgPath + " --more --samples 1000 --out " + logDir + " --jnd 0.1 --timeout 1 --session-name RT" + str(rt) + " --resample-time " + str(rt)
+			cmd = exe + " --preload " + scene + " --auto " + str(editMode) + " --img-attr " + imgPath + " --more --samples 1000 --out " + logDir + " --jnd 0.1 --timeout 10 --session-name RT" + str(rt) + " --resample-time " + str(rt)
 			print cmd
 			call(cmd)
 

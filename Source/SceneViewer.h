@@ -64,6 +64,12 @@ public:
 
   virtual void buttonClicked(Button* b) override;
 
+  // clears out the freeze mask
+  void clearMask();
+
+  // Draws the mask as an overlay on the current image
+  void showMask();
+
 private:
   Point<float> getRelativeImageCoords(const Point<float>& pt);
   Point<float> getWorldImageCoords(const Point<float>& pt);
@@ -75,7 +81,9 @@ private:
   Point<float> _currentPoint;
 
   // tools contains a series of buttons to lock down specified regions of the scene.
-  Array<TextButton*> _tools;
+  Array<ToggleButton*> _tools;
+  TextButton _clearMask;
+  TextButton _showMask;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SceneViewer)
 };
