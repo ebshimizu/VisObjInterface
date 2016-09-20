@@ -71,10 +71,27 @@ SceneViewer::SceneViewer()
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
   _currentRender = Image();
+
+  // initialize toolbar
+  _tools.add(new TextButton("None", "No tool selected"));
+  _tools.add(new TextButton("Paint", "Paint region tool"));
+  _tools.add(new TextButton("Select", "Rectangular area selection tool"));
+  _tools.add(new TextButton("Erase", "Erase region tool"));
+
+  for (auto b : _tools) {
+    b->addListener(this);
+    addAndMakeVisible(b);
+    b->setRadioGroupId(999);
+  }
+
+  _tools[0]->setToggleState(true, dontSendNotification);
 }
 
 SceneViewer::~SceneViewer()
 {
+  for (auto b : _tools) {
+    delete b;
+  }
 }
 
 void SceneViewer::paint (Graphics& g)
@@ -87,11 +104,14 @@ void SceneViewer::paint (Graphics& g)
   */
   g.fillAll(Colour(0xff333333));
 
+  auto lbounds = getLocalBounds();
+  auto toolbar = lbounds.removeFromTop(25);
+
   if (getGlobalSettings()->_showThumbnailImg) {
-    g.drawImageWithin(_preview, 0, 0, getWidth(), getHeight(), RectanglePlacement::centred);
+    g.drawImageWithin(_preview, 0, 0, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
   }
   else {
-    g.drawImageWithin(_currentRender, 0, 0, getWidth(), getHeight(), RectanglePlacement::centred);
+    g.drawImageWithin(_currentRender, 0, 0, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
   }
 
   g.setColour(Colours::red);
@@ -108,6 +128,12 @@ void SceneViewer::resized()
   // This method is where you should set the bounds of any child
   // components that your component contains..
 
+  auto lbounds = getLocalBounds();
+  auto toolbar = lbounds.removeFromTop(25);
+
+  for (auto& b : _tools) {
+    b->setBounds(toolbar.removeFromLeft(50).reduced(2));
+  }
 }
 
 void SceneViewer::renderScene() {
@@ -228,9 +254,16 @@ void SceneViewer::mouseDrag(const MouseEvent & event)
   repaint();
 }
 
+void SceneViewer::buttonClicked(Button * b)
+{
+
+}
+
 Point<float> SceneViewer::getRelativeImageCoords(const Point<float>& pt)
 {
   auto lbounds = getLocalBounds();
+  lbounds.removeFromTop(25);
+
   // determine the image location
   float scaleX = (float)lbounds.getWidth() / _currentRender.getWidth();
   float scaleY = (float)lbounds.getHeight() / _currentRender.getHeight();
@@ -258,6 +291,8 @@ Point<float> SceneViewer::getRelativeImageCoords(const Point<float>& pt)
 Point<float> SceneViewer::getWorldImageCoords(const Point<float>& pt)
 {
   auto lbounds = getLocalBounds();
+  lbounds.removeFromTop(25);
+
   // determine the image location
   float scaleX = (float)lbounds.getWidth() / _currentRender.getWidth();
   float scaleY = (float)lbounds.getHeight() / _currentRender.getHeight();

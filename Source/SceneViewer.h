@@ -36,7 +36,7 @@ private:
 //==============================================================================
 /*
 */
-class SceneViewer    : public Component
+class SceneViewer    : public Component, public ButtonListener
 {
 public:
   SceneViewer();
@@ -62,6 +62,8 @@ public:
   virtual void mouseUp(const MouseEvent& event);
   virtual void mouseDrag(const MouseEvent& event);
 
+  virtual void buttonClicked(Button* b) override;
+
 private:
   Point<float> getRelativeImageCoords(const Point<float>& pt);
   Point<float> getWorldImageCoords(const Point<float>& pt);
@@ -71,6 +73,9 @@ private:
 
   Point<float> _startPoint;
   Point<float> _currentPoint;
+
+  // tools contains a series of buttons to lock down specified regions of the scene.
+  Array<TextButton*> _tools;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SceneViewer)
 };
