@@ -83,6 +83,14 @@ SceneViewer::SceneViewer()
     addAndMakeVisible(b);
     b->setRadioGroupId(999);
   }
+
+  _clearMask = new TextButton("Clear Mask");
+  _showMask = new TextButton("Show Mask");
+  _clearMask->addListener(this);
+  _showMask->addListener(this);
+  addAndMakeVisible(_clearMask);
+  addAndMakeVisible(_showMask);
+
 }
 
 SceneViewer::~SceneViewer()
@@ -90,6 +98,9 @@ SceneViewer::~SceneViewer()
   for (auto b : _tools) {
     delete b;
   }
+
+  delete _clearMask;
+  delete _showMask;
 }
 
 void SceneViewer::paint (Graphics& g)
@@ -135,6 +146,9 @@ void SceneViewer::resized()
   for (auto& b : _tools) {
     b->setBounds(toolbar.removeFromLeft(60).reduced(2));
   }
+
+  _clearMask->setBounds(toolbar.removeFromRight(60).reduced(2));
+  _showMask->setBounds(toolbar.removeFromRight(60).reduced(2));
 }
 
 void SceneViewer::renderScene() {

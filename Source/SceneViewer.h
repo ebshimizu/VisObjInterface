@@ -82,8 +82,8 @@ private:
 
   // tools contains a series of buttons to lock down specified regions of the scene.
   Array<ToggleButton*> _tools;
-  TextButton _clearMask;
-  TextButton _showMask;
+  TextButton* _clearMask;
+  TextButton* _showMask;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SceneViewer)
 };
