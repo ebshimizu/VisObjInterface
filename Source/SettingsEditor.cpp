@@ -118,6 +118,8 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_resampleTime = (int)newValue;
   else if (_id == "Movable Threads")
     getGlobalSettings()->_resampleThreads = (int)newValue;
+  else if (_id == "Freeze Region Tolerance")
+    getGlobalSettings()->_maskTolerance = newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -206,6 +208,8 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_resampleTime;
   else if (_id == "Movable Threads")
     return getGlobalSettings()->_resampleThreads;
+  else if (_id == "Freeze Region Tolerance")
+    return getGlobalSettings()->_maskTolerance;
 
   return 0;
 }
@@ -430,6 +434,7 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsBoolButton("Generate Graph"));
   searchComponents.add(new SettingsSlider("Search Threads", 1, thread::hardware_concurrency(), 1));
   searchComponents.add(new SettingsBoolButton("Use Mask"));
+  searchComponents.add(new SettingsSlider("Freeze Region Tolerance", 0, 25, 0.1));
   searchComponents.add(new SettingsBoolButton("Reduce Repeat Edits"));
   searchComponents.add(new SettingsSlider("Expected Value Weight", 0, 1, 0.01));
   searchComponents.add(new SettingsBoolButton("Uniform Edit Weights"));

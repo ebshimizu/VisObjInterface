@@ -428,7 +428,7 @@ GlobalSettings::GlobalSettings()
   _randomInit = false;
   _resampleTime = 30;
   _resampleThreads = thread::hardware_concurrency();
-  _maskTolerance = 3;
+  _maskTolerance = 5;
 
   if (_searchThreads <= 0)
     _searchThreads = 1;
