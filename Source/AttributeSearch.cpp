@@ -224,6 +224,7 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjF
   _samplesTaken = 0;
   _freezeMask = freeze;
   _useMask = false;
+  _maskTolerance = getGlobalSettings()->_maskTolerance;
 
   // quick check to see if the mask is actually filled in
   for (int y = 0; y < _freezeMask.getHeight(); y++) {
@@ -1416,7 +1417,6 @@ void AttributeSearchThread::runSearchNoWarmup()
   }
 
   r->_scene = snapshotToVector(start);
-  delete start;
 
   // diagnostics
   DebugData data;
@@ -1434,8 +1434,15 @@ void AttributeSearchThread::runSearchNoWarmup()
   r->_creationTime = chrono::high_resolution_clock::now();
 
   // add if we did better
-  // hybrid method doesn't actually care just add it anyway
-  if (r->_objFuncVal < orig) {
+  // also if the mask is active, add only if the masked area doesn't change that much.
+  double maskDiff = 0;
+  if (_useMask) {
+    // need target and current images
+    maskDiff = avgLabMaskedImgDiff(renderImage(_original, 100, 100), renderImage(start, 100, 100), _freezeMask);
+  }
+  delete start;
+
+  if (r->_objFuncVal < orig && maskDiff < _maskTolerance) {
     // send scene to the results area. may chose to not use the scene
     if (!_viewer->addNewResult(r, false)) {
       // r has been deleted by _viewer here

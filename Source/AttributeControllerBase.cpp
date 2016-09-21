@@ -133,22 +133,23 @@ Image AttributeControllerBase::generateImage(Snapshot * s)
 
   getAnimationPatch()->renderSingleFrameToBuffer(devices, bufptr, _canonicalWidth * 2, _canonicalHeight * 2);
 
+  // bit obsolete now
   // if the focus region has a non-zero width, pull out the proper section of the image
-  auto rect = getGlobalSettings()->_focusBounds;
-  if (rect.getWidth() > 0) {
+  //auto rect = getGlobalSettings()->_focusBounds;
+  //if (rect.getWidth() > 0) {
     // pull subsection
-    auto topLeft = rect.getTopLeft();
-    auto botRight = rect.getBottomRight();
-    Image clipped = highRes.getClippedImage(Rectangle<int>::leftTopRightBottom(
-      (int)(topLeft.x * _canonicalWidth * 2), (int)(topLeft.y * _canonicalHeight * 2),
-      (int)(botRight.x * _canonicalWidth * 2), (int)(botRight.y * _canonicalHeight * 2)
-    ));
+  //  auto topLeft = rect.getTopLeft();
+  //  auto botRight = rect.getBottomRight();
+  //  Image clipped = highRes.getClippedImage(Rectangle<int>::leftTopRightBottom(
+  //    (int)(topLeft.x * _canonicalWidth * 2), (int)(topLeft.y * _canonicalHeight * 2),
+  //    (int)(botRight.x * _canonicalWidth * 2), (int)(botRight.y * _canonicalHeight * 2)
+  //  ));
 
-    canonical = clipped.rescaled(_canonicalWidth, _canonicalHeight);
-  }
-  else {
-    canonical = highRes.rescaled(_canonicalWidth, _canonicalHeight);
-  }
+  //  canonical = clipped.rescaled(_canonicalWidth, _canonicalHeight);
+  //}
+  //else {
+  canonical = highRes.rescaled(_canonicalWidth, _canonicalHeight);
+  //}
 
   return canonical;
 }

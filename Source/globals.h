@@ -228,6 +228,7 @@ public:
   bool _randomInit;             // If true, each thread randomizes its starting position before running the search
   int _resampleTime;            // For RECENTER_MCMC variants. Number of sample to take before resampling and moving
   int _resampleThreads;         // Number of threads to allow recentering on
+  double _maskTolerance;        // Acceptable difference in highligted regions during search
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results
@@ -370,5 +371,8 @@ float clamp(float val, float min, float max);
 Eigen::Vector3d rgbToLab(double r, double g, double b);
 
 double avgLabMaskedImgDiff(Image& a, Image& b, Image& mask);
+
+// renders the specified snapshot to an image of the specified size
+Image renderImage(Snapshot* s, int width, int height);
 
 #endif  // GLOBALS_H_INCLUDED

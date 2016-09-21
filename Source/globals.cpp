@@ -428,6 +428,7 @@ GlobalSettings::GlobalSettings()
   _randomInit = false;
   _resampleTime = 30;
   _resampleThreads = thread::hardware_concurrency();
+  _maskTolerance = 3;
 
   if (_searchThreads <= 0)
     _searchThreads = 1;
@@ -473,4 +474,23 @@ double avgLabMaskedImgDiff(Image & a, Image & b, Image & mask)
   }
 
   return sum / count;
+}
+
+Image renderImage(Snapshot * s, int width, int height)
+{
+  auto p = getAnimationPatch();
+
+  if (p == nullptr) {
+    return Image(Image::ARGB, width, height, true);
+  }
+
+  // with caching we can render at full and then scale down
+  Image img = Image(Image::ARGB, width, height, true);
+  uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+  p->setDims(width, height);
+  p->setSamples(getGlobalSettings()->_thumbnailRenderSamples);
+
+  getAnimationPatch()->renderSingleFrameToBuffer(s->getDevices(), bufptr, width, height);
+
+  return img;
 }

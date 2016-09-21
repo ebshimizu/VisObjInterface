@@ -123,6 +123,9 @@ private:
   // True if the mask has at least one non-zero pixel
   bool _useMask;
 
+  // from globals on search start, how much the pixels can differ in the highlighted regions
+  double _maskTolerance;
+
   // this snapshot will always be the very first configuration the thread is set to.
   Snapshot* _fallback;
 
