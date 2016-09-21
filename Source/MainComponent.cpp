@@ -50,6 +50,8 @@ MainContentComponent::MainContentComponent()
 	// create log directories if they don't exist
   createLogDirs();
 
+  getGlobalSettings()->_freezeDrawMode = DrawMode::NO_DRAW;
+
   _autoTimer.setWorker(_searchWorker.get());
 }
 
@@ -544,6 +546,8 @@ void MainContentComponent::openRig(String fname)
       getGlobalSettings()->_constraints.clear();
       getGlobalSettings()->generateDefaultConstraints();
       getGlobalSettings()->_showThumbnailImg = false;
+      getGlobalSettings()->_freeze = Image(Image::PixelFormat::ARGB, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight, true);
+      getGlobalSettings()->_freeze.clear(getGlobalSettings()->_freeze.getBounds(), Colour(0xff000000));
 
       getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);
     }

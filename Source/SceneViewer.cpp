@@ -77,6 +77,7 @@ SceneViewer::SceneViewer()
   _tools.add(new ToggleButton("Paint"));
   _tools.add(new ToggleButton("Select"));
   _tools.add(new ToggleButton("Erase"));
+  _tools.add(new ToggleButton("Erase Region"));
 
   for (auto b : _tools) {
     b->addListener(this);
@@ -91,6 +92,9 @@ SceneViewer::SceneViewer()
   addAndMakeVisible(_clearMask);
   addAndMakeVisible(_showMask);
 
+  _showMask->setColour(TextButton::ColourIds::buttonOnColourId, Colours::lightblue);
+  _drawMask = false;
+  _brushSize = 50;
 }
 
 SceneViewer::~SceneViewer()
@@ -114,16 +118,16 @@ void SceneViewer::paint (Graphics& g)
   g.fillAll(Colour(0xff333333));
 
   auto lbounds = getLocalBounds();
-  auto toolbar = lbounds.removeFromTop(25);
+  auto toolbar = lbounds.removeFromTop(_toolbarHeight);
 
   g.setColour(Colour(0xffa2a2a2));
   g.fillRect(toolbar);
 
   if (getGlobalSettings()->_showThumbnailImg) {
-    g.drawImageWithin(_preview, 0, 25, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
+    g.drawImageWithin(_preview, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
   }
   else {
-    g.drawImageWithin(_currentRender, 0, 25, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
+    g.drawImageWithin(_currentRender, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
   }
 
   g.setColour(Colours::red);
@@ -131,7 +135,12 @@ void SceneViewer::paint (Graphics& g)
   if (focus.getWidth() != 0 || focus.getHeight() != 0) {
     Point<float> topLeft = getWorldImageCoords(focus.getTopLeft());
     Point<float> bottomRight = getWorldImageCoords(focus.getBottomRight());
-    g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + 25, bottomRight.x, bottomRight.y + 25), 2);
+    g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
+  }
+
+  if (_drawMask) {
+    g.setOpacity(0.5);
+    g.drawImageWithin(getGlobalSettings()->_freeze, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
   }
 }
 
@@ -141,10 +150,10 @@ void SceneViewer::resized()
   // components that your component contains..
 
   auto lbounds = getLocalBounds();
-  auto toolbar = lbounds.removeFromTop(25);
+  auto toolbar = lbounds.removeFromTop(_toolbarHeight);
 
   for (auto& b : _tools) {
-    b->setBounds(toolbar.removeFromLeft(60).reduced(2));
+    b->setBounds(toolbar.removeFromLeft(80).reduced(2));
   }
 
   _clearMask->setBounds(toolbar.removeFromRight(60).reduced(2));
@@ -195,6 +204,8 @@ void SceneViewer::renderSceneNoPopup()
 
   if (p == nullptr) {
     getRecorder()->log(RENDER, "Render failed. Could not find ArnoldAnimationPatch.");
+    getGlobalSettings()->_focusBounds.setWidth(0);
+    getGlobalSettings()->_focusBounds.setHeight(0);
     return;
   }
 
@@ -234,9 +245,32 @@ void SceneViewer::mouseDown(const MouseEvent & event)
   if (_currentRender.getWidth() <= 0)
     return;
 
-  _startPoint = getRelativeImageCoords(event.position);
-  getGlobalSettings()->_focusBounds.setWidth(0);
-  getGlobalSettings()->_focusBounds.setHeight(0);
+  switch (getGlobalSettings()->_freezeDrawMode) {
+  case DrawMode::BRUSH_ADD:
+  {
+    // compute current relative coords
+    auto imgPt = getAbsImageCoords(event.position);
+    paint(imgPt, Colour(0xffffffff));
+    break;
+  }
+  case DrawMode::RECT_ADD:
+  case DrawMode::RECT_REMOVE:
+  {
+    _startPoint = getRelativeImageCoords(event.position);
+    break;
+  }
+  case DrawMode::BRUSH_REMOVE:
+  {
+    auto imgPt = getAbsImageCoords(event.position);
+    paint(imgPt, Colour(0x00000000));
+    break;
+  }
+  default:
+    getGlobalSettings()->_focusBounds.setWidth(0);
+    getGlobalSettings()->_focusBounds.setHeight(0);
+    break;
+  }
+
   repaint();
 }
 
@@ -245,12 +279,36 @@ void SceneViewer::mouseUp(const MouseEvent & event)
   if (_currentRender.getWidth() <= 0)
     return;
 
-  _currentPoint = getRelativeImageCoords(event.position);
-  Array<Point<float> > pts;
-  pts.add(_startPoint);
-  pts.add(_currentPoint);
+  if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD ||
+      getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_REMOVE) {
+    _currentPoint = getRelativeImageCoords(event.position);
+    Array<Point<float> > pts;
+    pts.add(_startPoint);
+    pts.add(_currentPoint);
 
-  getGlobalSettings()->_focusBounds = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+    getGlobalSettings()->_focusBounds = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+    
+    // fill in the focus bounds
+    Point<float> topLeft = getGlobalSettings()->_focusBounds.getTopLeft();
+    topLeft.setX(topLeft.getX() * _currentRender.getWidth());
+    topLeft.setY(topLeft.getY() * _currentRender.getHeight());
+
+    Point<float> botRight = getGlobalSettings()->_focusBounds.getBottomRight();
+    botRight.setX(botRight.getX() * _currentRender.getWidth());
+    botRight.setY(botRight.getY() * _currentRender.getHeight());
+    Rectangle<float> imgBounds = Rectangle<float>::leftTopRightBottom(topLeft.getX(), topLeft.getY(), botRight.getX(), botRight.getY());
+
+    if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD) {
+      paintRect(imgBounds, Colour(0xffffffff));
+    }
+    else {
+      paintRect(imgBounds, Colour(0xff000000));
+    }
+
+    getGlobalSettings()->_focusBounds.setWidth(0);
+    getGlobalSettings()->_focusBounds.setHeight(0);
+  }
+
   repaint();
   getApplicationCommandManager()->invokeDirectly(command::REFRESH_ATTR, true);
 }
@@ -260,12 +318,37 @@ void SceneViewer::mouseDrag(const MouseEvent & event)
   if (_currentRender.getWidth() <= 0)
     return;
 
-  _currentPoint = getRelativeImageCoords(event.position);
-  Array<Point<float> > pts;
-  pts.add(_startPoint);
-  pts.add(_currentPoint);
+  switch (getGlobalSettings()->_freezeDrawMode) {
+  case DrawMode::BRUSH_ADD:
+  {
+    // compute current relative coords
+    auto imgPt = getAbsImageCoords(event.position);
+    paint(imgPt, Colour(0xffffffff));
+    break;
+  }
+  case DrawMode::RECT_ADD:
+  case DrawMode::RECT_REMOVE:
+  {
+    _currentPoint = getRelativeImageCoords(event.position);
+    Array<Point<float> > pts;
+    pts.add(_startPoint);
+    pts.add(_currentPoint);
 
-  getGlobalSettings()->_focusBounds = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+    getGlobalSettings()->_focusBounds = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+    break;
+  }
+  case DrawMode::BRUSH_REMOVE:
+  {
+    auto imgPt = getAbsImageCoords(event.position);
+    paint(imgPt, Colour(0xff000000));
+    break;
+  }
+  default:
+    getGlobalSettings()->_focusBounds.setWidth(0);
+    getGlobalSettings()->_focusBounds.setHeight(0);
+    break;
+  }
+
   repaint();
 }
 
@@ -283,13 +366,56 @@ void SceneViewer::buttonClicked(Button * b)
   else if (b->getName() == "Erase") {
     getGlobalSettings()->_freezeDrawMode = DrawMode::BRUSH_REMOVE;
   }
+  else if (b->getName() == "Clear Mask") {
+    clearMask();
+  }
+  else if (b->getName() == "Show Mask") {
+    showMask();
+  }
+  else if (b->getName() == "Erase Region") {
+    getGlobalSettings()->_freezeDrawMode = DrawMode::RECT_REMOVE;
+  }
 
+}
+
+void SceneViewer::clearMask()
+{
+  getGlobalSettings()->_freeze.clear(getGlobalSettings()->_freeze.getBounds(), Colour(0xff000000));
+  repaint();
+}
+
+void SceneViewer::showMask()
+{
+  _drawMask = !_drawMask;
+  _showMask->setToggleState(_drawMask, dontSendNotification);
+  repaint();
+}
+
+void SceneViewer::setBrushSize(float size)
+{
+  _brushSize = size;
+}
+
+void SceneViewer::paint(Point<float> pt, Colour c)
+{
+  Graphics g(getGlobalSettings()->_freeze);
+  g.setColour(c);
+
+  g.fillEllipse(pt.getX(), pt.getY(), _brushSize, _brushSize);
+}
+
+void SceneViewer::paintRect(Rectangle<float> pt, Colour c)
+{
+  Graphics g(getGlobalSettings()->_freeze);
+  g.setColour(c);
+
+  g.fillRect(pt);
 }
 
 Point<float> SceneViewer::getRelativeImageCoords(const Point<float>& pt)
 {
   auto lbounds = getLocalBounds();
-  lbounds.removeFromTop(25);
+  lbounds.removeFromTop(_toolbarHeight);
 
   // determine the image location
   float scaleX = (float)lbounds.getWidth() / _currentRender.getWidth();
@@ -310,7 +436,7 @@ Point<float> SceneViewer::getRelativeImageCoords(const Point<float>& pt)
   float ptWidthAdjust = (float) abs((imgWidth - lbounds.getWidth()) / 2.0);
   
   float x = Lumiverse::clamp((pt.x - ptWidthAdjust) / imgWidth, 0, 1);
-  float y = Lumiverse::clamp((pt.y - 25 - ptHeightAdjust) / imgHeight, 0, 1);
+  float y = Lumiverse::clamp((pt.y - _toolbarHeight - ptHeightAdjust) / imgHeight, 0, 1);
   
   return Point<float>(x, y);
 }
@@ -318,7 +444,7 @@ Point<float> SceneViewer::getRelativeImageCoords(const Point<float>& pt)
 Point<float> SceneViewer::getWorldImageCoords(const Point<float>& pt)
 {
   auto lbounds = getLocalBounds();
-  lbounds.removeFromTop(25);
+  lbounds.removeFromTop(_toolbarHeight);
 
   // determine the image location
   float scaleX = (float)lbounds.getWidth() / _currentRender.getWidth();
@@ -342,4 +468,11 @@ Point<float> SceneViewer::getWorldImageCoords(const Point<float>& pt)
   float y = pt.y * imgHeight + ptHeightAdjust;
 
   return Point<float>(x, y);
+}
+
+Point<float> SceneViewer::getAbsImageCoords(const Point<float>& pt)
+{
+  auto relPt = getRelativeImageCoords(pt);
+  
+  return Point<float>(relPt.getX() * _currentRender.getWidth(), relPt.getY() * _currentRender.getHeight());
 }

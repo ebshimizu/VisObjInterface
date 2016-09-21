@@ -70,9 +70,23 @@ public:
   // Draws the mask as an overlay on the current image
   void showMask();
 
+  void setBrushSize(float size);
+
+  // paint in to the image. point should be in image coordinates (not relative)
+  void paint(Point<float> pt, Colour c);
+
+  // paint in the selected region of the image. coordinates of rect should be image space
+  void paintRect(Rectangle<float> pt, Colour c);
+
 private:
+  // returns image coordinates normalized between 0 and 1
   Point<float> getRelativeImageCoords(const Point<float>& pt);
+
+  // returns image coordinates in screen-space
   Point<float> getWorldImageCoords(const Point<float>& pt);
+
+  // Returns image coordinates in the image coordinate space from a screen-space mouse click
+  Point<float> getAbsImageCoords(const Point<float>& pt);
 
   Image _currentRender;
   Image _preview;
@@ -84,6 +98,10 @@ private:
   Array<ToggleButton*> _tools;
   TextButton* _clearMask;
   TextButton* _showMask;
+
+  bool _drawMask;
+  int _toolbarHeight = 25;
+  float _brushSize;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SceneViewer)
 };
