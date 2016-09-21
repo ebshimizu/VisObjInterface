@@ -445,3 +445,32 @@ Eigen::Vector3d rgbToLab(double r, double g, double b)
   Eigen::Vector3d xyz = ColorUtils::convRGBtoXYZ(r, g, b, sRGB);
   return ColorUtils::convXYZtoLab(xyz, refWhites[D65] / 100.0);
 }
+
+double avgLabMaskedImgDiff(Image & a, Image & b, Image & mask)
+{
+  // dimensions must match
+  if (a.getWidth() != b.getWidth() || a.getHeight() != b.getHeight())
+    return -1;
+
+  double sum = 0;
+  int count = 0;
+
+  for (int y = 0; y < a.getWidth(); y++) {
+    for (int x = 0; x < a.getWidth(); x++) {
+      // check if in masked set
+      if (mask.getPixelAt(x, y).getRed() > 0) {
+        count++;
+
+        auto px = a.getPixelAt(x, y);
+        Eigen::Vector3d Lab1 = rgbToLab(px.getRed() / 255.0, px.getGreen() / 255.0, px.getBlue() / 255.0);
+
+        auto px2 = b.getPixelAt(x, y);
+        Eigen::Vector3d Lab2 = rgbToLab(px2.getRed() / 255.0, px2.getGreen() / 255.0, px2.getBlue() / 255.0);
+
+        sum += (Lab1 - Lab2).norm();
+      }
+    }
+  }
+
+  return sum / count;
+}

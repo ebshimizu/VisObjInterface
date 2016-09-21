@@ -369,4 +369,6 @@ float clamp(float val, float min, float max);
 // D65 RGB to Lab conversion
 Eigen::Vector3d rgbToLab(double r, double g, double b);
 
+double avgLabMaskedImgDiff(Image& a, Image& b, Image& mask);
+
 #endif  // GLOBALS_H_INCLUDED

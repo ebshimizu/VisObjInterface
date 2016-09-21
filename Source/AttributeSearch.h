@@ -64,7 +64,7 @@ public:
   AttributeSearchThread(String name, SearchResultsViewer* viewer, map<string, int>& sharedData);
   ~AttributeSearchThread();
 
-  void setState(Snapshot* start, attrObjFunc& f, attrObjFunc& fsq, SearchMode m);
+  void setState(Snapshot* start, attrObjFunc& f, attrObjFunc& fsq, SearchMode m, Image freeze);
 
   void run() override;
 
@@ -81,7 +81,7 @@ public:
 	void computeEditWeights(bool showStatusMessages = true, bool global = true);
 
 	// Sets the starting lighting configuration
-	void setStartConfig(Snapshot* start);
+  void setStartConfig(Snapshot* start);
 
 	// Sets the thread to use random initialization for LM searches
 	void useRandomInit(bool use) { _randomInit = use; }
@@ -116,6 +116,12 @@ private:
   int _samplesTaken;
   int _resampleThreads;   // number threads that get moved during search (particle filtering)
   map<Edit*, EditStats> _editStats;      // collection of numbers for computing edit weights during runtime
+
+  // Non-zero pixels indicate the affected pixel should not change
+  Image _freezeMask;
+
+  // True if the mask has at least one non-zero pixel
+  bool _useMask;
 
   // this snapshot will always be the very first configuration the thread is set to.
   Snapshot* _fallback;
@@ -229,6 +235,7 @@ private:
   attrObjFunc _fsq; // least squares version (guaranteed to always be positive basically
   Snapshot* _start;
   set<EditParam> _lockedParams;
+  Image _freezeMask;
 };
 
 

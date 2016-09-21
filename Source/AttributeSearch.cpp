@@ -199,7 +199,7 @@ AttributeSearchThread::~AttributeSearchThread()
   //  delete e;
 }
 
-void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjFunc& fsq, SearchMode m)
+void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjFunc& fsq, SearchMode m, Image freeze)
 {
   if (_original != nullptr)
     delete _original;
@@ -222,6 +222,15 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjF
 	_status = IDLE;
   _fallback = new Snapshot(*start);
   _samplesTaken = 0;
+  _freezeMask = freeze;
+  _useMask = false;
+
+  // quick check to see if the mask is actually filled in
+  for (int y = 0; y < _freezeMask.getHeight(); y++) {
+    for (int x = 0; x < _freezeMask.getWidth(); x++) {
+      _useMask |= (_freezeMask.getPixelAt(x, y).getBrightness() > 0);
+    }
+  }
 
   _statusMessage = "Initialized for new search. Mode: " + String(_mode);
 }
@@ -1763,11 +1772,13 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
 	_sharedData["Edit Weight Status"] = 0;
 	_sharedData["Initial Scene Run"] = 0;
 
+  // MAGIC NUMBER ALERT - canonical size
+  _freezeMask = getGlobalSettings()->_freeze.rescaled(100, 100);
 
   // init all threads
   int i = 0;
   for (auto& t : _threads) {
-    t->setState(_start, _f, _fsq, getGlobalSettings()->_searchMode);
+    t->setState(_start, _f, _fsq, getGlobalSettings()->_searchMode, _freezeMask);
 
     // set up diagnostics container
     samples[i] = vector<DebugData>();
