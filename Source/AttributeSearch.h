@@ -239,6 +239,7 @@ private:
   Snapshot* _start;
   set<EditParam> _lockedParams;
   Image _freezeMask;
+  bool _useMask;
 };
 
 

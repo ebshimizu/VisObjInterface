@@ -1442,6 +1442,8 @@ void AttributeSearchThread::runSearchNoWarmup()
   }
   delete start;
 
+  Lumiverse::Logger::log(INFO, "Result with f(x) " + String(r->_objFuncVal).toStdString() + " and maskDiff " + String(maskDiff).toStdString() + " returned.");
+
   if (r->_objFuncVal < orig && maskDiff < _maskTolerance) {
     // send scene to the results area. may chose to not use the scene
     if (!_viewer->addNewResult(r, false)) {
@@ -1725,6 +1727,17 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
 
   _start = start;
 
+  // MAGIC NUMBER ALERT - canonical size
+  _freezeMask = getGlobalSettings()->_freeze.rescaled(100, 100);
+
+  // quick check to see if the mask is actually filled in
+  _useMask = false;
+  for (int y = 0; y < _freezeMask.getHeight(); y++) {
+    for (int x = 0; x < _freezeMask.getWidth(); x++) {
+      _useMask |= (_freezeMask.getPixelAt(x, y).getBrightness() > 0);
+    }
+  }
+
   // objective functions for combined set of active attributes.
   _f = [this](Snapshot* s) {
     if (_active.size() == 0)
@@ -1743,6 +1756,11 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
       else if (kvp.second.second == A_EQUAL) {
         sum += pow(kvp.second.first->evaluateScene(s, img) - kvp.second.first->evaluateScene(_start, startImg), 2);
       }
+    }
+
+    // freeze region penalty
+    if (_useMask) {
+      sum += avgLabMaskedImgDiff(img, startImg, _freezeMask);
     }
 
     return sum;
@@ -1767,6 +1785,11 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
         sum += pow(kvp.second.first->evaluateScene(s, img) - kvp.second.first->evaluateScene(_start, startImg), 2);
     }
 
+    // freeze region penalty
+    if (_useMask) {
+      sum += avgLabMaskedImgDiff(img, startImg, _freezeMask);
+    }
+
     return sum;
   };
 
@@ -1778,9 +1801,6 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
 	_sharedData.clear();
 	_sharedData["Edit Weight Status"] = 0;
 	_sharedData["Initial Scene Run"] = 0;
-
-  // MAGIC NUMBER ALERT - canonical size
-  _freezeMask = getGlobalSettings()->_freeze.rescaled(100, 100);
 
   // init all threads
   int i = 0;
