@@ -618,7 +618,6 @@ void AttributeSearchThread::runMCMCEditSearch(bool force) {
 	}
 
 	r->_scene = snapshotToVector(start);
-	delete start;
 
 	// diagnostics
 	DebugData data;
@@ -639,9 +638,16 @@ void AttributeSearchThread::runMCMCEditSearch(bool force) {
 		r->_extraData["Parent"] = String(_parent);
 	}
 
+  double maskDiff = 0;
+  if (_useMask) {
+    // need target and current images
+    maskDiff = avgLabMaskedImgDiff(renderImage(_original, 100, 100), renderImage(start, 100, 100), _freezeMask);
+  }
+	delete start;
+
 	// add if we did better
 	// hybrid method doesn't actually care just add it anyway
-	if (r->_objFuncVal < orig || _mode == HYBRID_EXPLORE || _mode == HYBRID_DEBUG) {
+	if ((r->_objFuncVal < orig || _mode == HYBRID_EXPLORE || _mode == HYBRID_DEBUG) && maskDiff < _maskTolerance) {
 		// send scene to the results area. may chose to not use the scene
 		if (!_viewer->addNewResult(r, force)) {
 			// r has been deleted by _viewer here
@@ -710,7 +716,13 @@ void AttributeSearchThread::runLMGDSearch(bool force)
   data._timeStamp = chrono::high_resolution_clock::now();
 	samples[_id].push_back(data);
 
-	if (fx < forig) {
+  double maskDiff = 0;
+  if (_useMask) {
+    // need target and current images
+    maskDiff = avgLabMaskedImgDiff(renderImage(_original, 100, 100), renderImage(&xs, 100, 100), _freezeMask);
+  }
+
+	if (fx < forig && maskDiff < _maskTolerance) {
 		SearchResult* r = new SearchResult();
 		r->_objFuncVal = _f(&xs);
 		r->_scene = x;
@@ -864,8 +876,14 @@ void AttributeSearchThread::runMCMCLMGDSearch()
   r->_extraData["Sample"] = String(data._sampleId);
   r->_creationTime = chrono::high_resolution_clock::now();
 
+  double maskDiff = 0;
+  if (_useMask) {
+    // need target and current images
+    maskDiff = avgLabMaskedImgDiff(renderImage(_original, 100, 100), renderImage(start, 100, 100), _freezeMask);
+  }
+
   // add if we did better
-  if (r->_objFuncVal < orig) {
+  if (r->_objFuncVal < orig && maskDiff < _maskTolerance) {
     // send scene to the results area. may chose to not use the scene
     if (!_viewer->addNewResult(r, false)) {
       // r has been deleted by _viewer here
@@ -1048,7 +1066,6 @@ void AttributeSearchThread::runRecenteringMCMCSearch()
 	}
 
 	r->_scene = snapshotToVector(start);
-	delete start;
 
 	// diagnostics
 	DebugData data;
@@ -1065,9 +1082,18 @@ void AttributeSearchThread::runRecenteringMCMCSearch()
   r->_extraData["Sample"] = String(data._sampleId);
   r->_creationTime = chrono::high_resolution_clock::now();
   
+  // add if we did better
+  // also if the mask is active, add only if the masked area doesn't change that much.
+  double maskDiff = 0;
+  if (_useMask) {
+    // need target and current images
+    maskDiff = avgLabMaskedImgDiff(renderImage(_original, 100, 100), renderImage(start, 100, 100), _freezeMask);
+  }
+	delete start;
+
 	// add if we did better
 	// hybrid method doesn't actually care just add it anyway
-	if (r->_objFuncVal < orig) {
+	if (r->_objFuncVal < orig && maskDiff < _maskTolerance) {
 		// send scene to the results area. may chose to not use the scene
 		if (!_viewer->addNewResult(r, false)) {
 			// r has been deleted by _viewer here
@@ -1232,7 +1258,14 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
   r->_creationTime = chrono::high_resolution_clock::now();
 
   // add if we did better
-  if (r->_objFuncVal < orig) {
+  // also if the mask is active, add only if the masked area doesn't change that much.
+  double maskDiff = 0;
+  if (_useMask) {
+    // need target and current images
+    maskDiff = avgLabMaskedImgDiff(renderImage(_original, 100, 100), renderImage(start, 100, 100), _freezeMask);
+  }
+
+  if (r->_objFuncVal < orig && maskDiff < _maskTolerance) {
     // send scene to the results area. may chose to not use the scene
     if (!_viewer->addNewResult(r, false)) {
       // r has been deleted by _viewer here
@@ -1442,7 +1475,7 @@ void AttributeSearchThread::runSearchNoWarmup()
   }
   delete start;
 
-  Lumiverse::Logger::log(INFO, "Result with f(x) " + String(r->_objFuncVal).toStdString() + " and maskDiff " + String(maskDiff).toStdString() + " returned.");
+  //Lumiverse::Logger::log(INFO, "Result with f(x) " + String(r->_objFuncVal).toStdString() + " and maskDiff " + String(maskDiff).toStdString() + " returned.");
 
   if (r->_objFuncVal < orig && maskDiff < _maskTolerance) {
     // send scene to the results area. may chose to not use the scene
