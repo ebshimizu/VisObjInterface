@@ -641,7 +641,9 @@ void AttributeSearchThread::runMCMCEditSearch(bool force) {
   double maskDiff = 0;
   if (_useMask) {
     // need target and current images
-    maskDiff = avgLabMaskedImgDiff(renderImage(_original, 100, 100), renderImage(start, 100, 100), _freezeMask);
+    Image a = renderImage(_original, 100, 100);
+    Image b = renderImage(start, 100, 100);
+    maskDiff = avgLabMaskedImgDiff(a, b, _freezeMask);
   }
 	delete start;
 
@@ -719,7 +721,9 @@ void AttributeSearchThread::runLMGDSearch(bool force)
   double maskDiff = 0;
   if (_useMask) {
     // need target and current images
-    maskDiff = avgLabMaskedImgDiff(renderImage(_original, 100, 100), renderImage(&xs, 100, 100), _freezeMask);
+    Image a = renderImage(_original, 100, 100);
+    Image b = renderImage(&xs, 100, 100);
+    maskDiff = avgLabMaskedImgDiff(a, b, _freezeMask);
   }
 
 	if (fx < forig && maskDiff < _maskTolerance) {
@@ -879,7 +883,9 @@ void AttributeSearchThread::runMCMCLMGDSearch()
   double maskDiff = 0;
   if (_useMask) {
     // need target and current images
-    maskDiff = avgLabMaskedImgDiff(renderImage(_original, 100, 100), renderImage(start, 100, 100), _freezeMask);
+    Image a = renderImage(_original, 100, 100);
+    Image b = renderImage(start, 100, 100);
+    maskDiff = avgLabMaskedImgDiff(a, b, _freezeMask);
   }
 
   // add if we did better
@@ -1087,7 +1093,9 @@ void AttributeSearchThread::runRecenteringMCMCSearch()
   double maskDiff = 0;
   if (_useMask) {
     // need target and current images
-    maskDiff = avgLabMaskedImgDiff(renderImage(_original, 100, 100), renderImage(start, 100, 100), _freezeMask);
+    Image a = renderImage(_original, 100, 100);
+    Image b = renderImage(start, 100, 100);
+    maskDiff = avgLabMaskedImgDiff(a, b, _freezeMask);
   }
 	delete start;
 
@@ -1262,7 +1270,9 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
   double maskDiff = 0;
   if (_useMask) {
     // need target and current images
-    maskDiff = avgLabMaskedImgDiff(renderImage(_original, 100, 100), renderImage(start, 100, 100), _freezeMask);
+    Image a = renderImage(_original, 100, 100);
+    Image b = renderImage(start, 100, 100);
+    maskDiff = avgLabMaskedImgDiff(a, b, _freezeMask);
   }
 
   if (r->_objFuncVal < orig && maskDiff < _maskTolerance) {
@@ -1471,7 +1481,9 @@ void AttributeSearchThread::runSearchNoWarmup()
   double maskDiff = 0;
   if (_useMask) {
     // need target and current images
-    maskDiff = avgLabMaskedImgDiff(renderImage(_original, 100, 100), renderImage(start, 100, 100), _freezeMask);
+    Image a = renderImage(_original, 100, 100);
+    Image b = renderImage(start, 100, 100);
+    maskDiff = avgLabMaskedImgDiff(a, b, _freezeMask);
   }
   delete start;
 

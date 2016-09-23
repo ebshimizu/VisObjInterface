@@ -13,6 +13,10 @@
 #include "AttributeSearch.h"
 #include "Clustering.h"
 
+#ifndef WIN32
+#include <stdio.h>
+#endif
+
 //==============================================================================
 TopLevelSorter::TopLevelSorter(AttributeSorter* s) : _sorter(s) {
 
@@ -1024,9 +1028,14 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 		ppdev /= c->clusterSize();
 
 		char fmt[1000];
+#ifndef WIN32
+        snprintf(fmt, 990, "%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\n",
+                  f1d, f2d, ppd, avg1, avg2, ppavg, dev1, dev2, ppdev, pow(dev1, 0.5), pow(dev2, 0.5), pow(ppdev, 0.5));
+#else
 		sprintf_s(fmt, 990, "%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\n",
 			f1d, f2d, ppd, avg1, avg2, ppavg, dev1, dev2, ppdev, pow(dev1, 0.5), pow(dev2, 0.5), pow(ppdev, 0.5));
-		statsFile << fmt;
+#endif
+        statsFile << fmt;
 	}
 
 	// primary clustering stats
@@ -1105,8 +1114,13 @@ void SearchResultsContainer::saveClusterStats(function<double(SearchResultContai
 		double c2sds = abs(c2d[id] - c2avg[c2id]) / c2sd[c2id];
 
 		char fmt[1000];
+#ifndef WIN32
+        snprintf(fmt, 990, "%8i%8i%8i\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f",
+                  id, c1id, c2id, d1[id], d2[id], dpp[id], c1d[id], c2d[id], csdf1, csdf2, c1sds, c2sds);
+#else
 		sprintf_s(fmt, 990, "%8i%8i%8i\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f\t%8.5f",
 			id, c1id, c2id, d1[id], d2[id], dpp[id], c1d[id], c2d[id], csdf1, csdf2, c1sds, c2sds);
+#endif
 		statsFile << fmt;
 
 		r->getSearchResult()->_extraData["Distance to Primary Center"] = String(d1[id]);
