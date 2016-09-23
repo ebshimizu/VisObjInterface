@@ -2175,6 +2175,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\EditParams.h">
+      <Filter>AttributesInterface\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\FastSimplex\chrono.h">
       <Filter>AttributesInterface\Source\third_party\FastSimplex</Filter>
     </ClInclude>

@@ -12,6 +12,7 @@
 #define ATTRIBUTECONTROLS_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "globals.h"
 #include "AttributeControllerBase.h"
 
 class DeviceSelector : public Component, public ListBoxModel

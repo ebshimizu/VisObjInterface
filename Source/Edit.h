@@ -17,8 +17,6 @@
 using namespace Lumiverse;
 using namespace Lumiverse::ShowControl;
 
-enum EditParam;
-
 enum ConsistencyScope
 {
   LOCAL,  // Within edit. Parameters in affected devices must be the same within an edit.

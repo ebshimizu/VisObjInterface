@@ -1712,6 +1712,7 @@
     <ClCompile Include="..\..\JuceLibraryCode\juce_video.cpp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\EditParams.h"/>
     <ClInclude Include="..\..\Source\FastSimplex\chrono.h"/>
     <ClInclude Include="..\..\Source\FastSimplex\core.h"/>
     <ClInclude Include="..\..\Source\FastSimplex\full_bipartitegraph.h"/>

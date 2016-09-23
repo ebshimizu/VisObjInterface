@@ -12,6 +12,7 @@
 #define GLOBALS_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "EditParams.h"
 #include "LumiverseCore.h"
 #include "LumiverseShowControl/LumiverseShowControl.h"
 #include "StatusBar.h"
@@ -90,22 +91,6 @@ enum AttributeConstraint {
   A_EQUAL,
   A_MORE,
   A_EXPLORE
-};
-
-// Search data structures
-// controllable lighting parameters. Split here since don't want to waste time
-// parsing strings for things like color.hue
-enum EditParam {
-  INTENSITY,
-  HUE,
-  SAT,
-  VALUE,
-  POLAR,
-  AZIMUTH,
-  SOFT,
-  RED,
-  GREEN,
-  BLUE
 };
 
 struct DebugData {
