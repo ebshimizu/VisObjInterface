@@ -33,7 +33,7 @@ void SearchResultList::addResult(shared_ptr<SearchResultContainer> result)
 
 void SearchResultList::removeResult(int index)
 {
-  auto r = _contents.remove(index);
+  auto r = _contents.removeAndReturn(index);
   removeChildComponent(getIndexOfChildComponent(r.get()));
 }
 

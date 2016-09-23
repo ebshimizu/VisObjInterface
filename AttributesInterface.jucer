@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="eoLPJP" name="AttributesInterface" projectType="guiapp" version="0.07"
               bundleIdentifier="edu.cmu.cs.AttributeInterface" includeBinaryInAppConfig="1"
-              jucerVersion="4.2.3" companyName="Carnegie Mellon University"
+              jucerVersion="4.2.4" companyName="Carnegie Mellon University"
               companyWebsite="cs.cmu.edu" companyEmail="eshimizu@cs.cmu.edu">
   <MAINGROUP id="upFVKV" name="AttributesInterface">
     <GROUP id="{E33A23C0-94A8-8A6D-0624-83F1C8438329}" name="Source">

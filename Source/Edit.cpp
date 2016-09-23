@@ -769,7 +769,7 @@ void Edit::constructConsistencySets()
         for (int i = 0; i < relevantSets[p].size(); ) {
           if (relevantSets[p][i].contains(d->getId())) {
             // remove from relevantSets and add to merge list
-            mergeList.push_back(relevantSets[p].remove(i));
+            mergeList.push_back(relevantSets[p].removeAndReturn(i));
           }
           else {
             i++;

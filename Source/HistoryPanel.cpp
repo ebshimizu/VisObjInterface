@@ -57,10 +57,10 @@ SearchResultContainer* HistoryPanel::removeHistoryItem(int idx)
 {
   SearchResultContainer* h = nullptr;
   if (idx < 0) {
-    h = _history.remove(_history.size() - 1);
+    h = _history.removeAndReturn(_history.size() - 1);
   }
   else {
-    h = _history.remove(idx);
+    h = _history.removeAndReturn(idx);
   }
 
   setWidth(getLocalBounds().getWidth());
@@ -72,10 +72,10 @@ void HistoryPanel::deleteHistoryItem(int idx)
 {
   SearchResultContainer* h = nullptr;
   if (idx < 0) {
-    h = _history.remove(_history.size() - 1);
+    h = _history.removeAndReturn(_history.size() - 1);
   }
   else {
-    h = _history.remove(idx);
+    h = _history.removeAndReturn(idx);
   }
 
   delete h;
