@@ -41,6 +41,7 @@ SearchResultsContainer::SearchResultsContainer()
   _sampleId = 0;
   _elemsPerRow = getGlobalSettings()->_clusterElemsPerRow;
   _columnSize = 250;
+  _notYetClustered = true;
 
   _unclusteredResults = new SearchResultList();
   _unclusteredViewer = new Viewport();
@@ -63,31 +64,42 @@ void SearchResultsContainer::resized()
   // the search results container is organized in columns. The leftmost column
   // is unclustered results, and every column to the right is a cluster.
   auto lbounds = getLocalBounds();
-  auto viewPt = _unclusteredViewer->getViewPosition();
-  _unclusteredResults->setWidth(_columnSize - _unclusteredViewer->getScrollBarThickness());
-  _unclusteredViewer->setBounds(lbounds.removeFromLeft(_columnSize));
-  _unclusteredViewer->setViewPosition(viewPt);
+  if (_notYetClustered) {
+    auto viewPt = _unclusteredViewer->getViewPosition();
 
-  // clusters
-	if (getGlobalSettings()->_clusterDisplay == COLUMNS) {
-		for (int i = 0; i < _clusters.size(); i++) {
-			_clusters[i]->setBounds(lbounds.removeFromLeft(_columnSize));
-		}
-	}
-	else if (getGlobalSettings()->_clusterDisplay == GRID) {
-		int width = lbounds.getWidth() / getGlobalSettings()->_numPrimaryClusters;
-		int height = lbounds.getHeight() / getGlobalSettings()->_numSecondaryClusters;
+    _unclusteredResults->setCols(max(1, (int)(lbounds.getWidth() / 250)));
+    _unclusteredResults->setWidth(lbounds.getWidth() - _unclusteredViewer->getScrollBarThickness());
+    _unclusteredViewer->setBounds(lbounds);
+    _unclusteredViewer->setViewPosition(viewPt);
+  }
+  else {
+    auto viewPt = _unclusteredViewer->getViewPosition();
+    _unclusteredResults->setCols(1);
+    _unclusteredResults->setWidth(_columnSize - _unclusteredViewer->getScrollBarThickness());
+    _unclusteredViewer->setBounds(lbounds.removeFromLeft(_columnSize));
+    _unclusteredViewer->setViewPosition(viewPt);
 
-		for (int i = 0; i < getGlobalSettings()->_numSecondaryClusters; i++) {
-			auto row = lbounds.removeFromTop(height);
-			for (int j = 0; j < getGlobalSettings()->_numPrimaryClusters; j++) {
-				int idx = i * getGlobalSettings()->_numPrimaryClusters + j;
-				if (idx < _clusters.size()) {
-					_clusters[idx]->setBounds(row.removeFromLeft(width));
-				}
-			}
-		}
-	}
+    // clusters
+    if (getGlobalSettings()->_clusterDisplay == COLUMNS) {
+      for (int i = 0; i < _clusters.size(); i++) {
+        _clusters[i]->setBounds(lbounds.removeFromLeft(_columnSize));
+      }
+    }
+    else if (getGlobalSettings()->_clusterDisplay == GRID) {
+      int width = lbounds.getWidth() / getGlobalSettings()->_numPrimaryClusters;
+      int height = lbounds.getHeight() / getGlobalSettings()->_numSecondaryClusters;
+
+      for (int i = 0; i < getGlobalSettings()->_numSecondaryClusters; i++) {
+        auto row = lbounds.removeFromTop(height);
+        for (int j = 0; j < getGlobalSettings()->_numPrimaryClusters; j++) {
+          int idx = i * getGlobalSettings()->_numPrimaryClusters + j;
+          if (idx < _clusters.size()) {
+            _clusters[idx]->setBounds(row.removeFromLeft(width));
+          }
+        }
+      }
+    }
+  }
 }
 
 void SearchResultsContainer::updateSize(int height, int width)
@@ -361,6 +373,7 @@ void SearchResultsContainer::clear()
   resized();
   repaint();
   _sampleId = 0;
+  _notYetClustered = true;
 }
 
 bool SearchResultsContainer::isFull()
@@ -579,6 +592,7 @@ void SearchResultsContainer::cluster()
   resized();
   repaint();
 
+  _notYetClustered = false;
   getStatusBar()->setStatusMessage("Clustering Complete.");
 }
 

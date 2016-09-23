@@ -233,6 +233,27 @@
         <MODULEPATH id="juce_audio_basics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_audio_basics"/>
       </MODULEPATHS>
     </VS2015>
+    <XCODE_MAC targetFolder="Builds/MacOSX">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="AttributesInterface"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="AttributesInterface"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_video" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_video"/>
+        <MODULEPATH id="juce_opengl" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_opengl"/>
+        <MODULEPATH id="juce_gui_extra" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_gui_extra"/>
+        <MODULEPATH id="juce_gui_basics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_gui_basics"/>
+        <MODULEPATH id="juce_graphics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_graphics"/>
+        <MODULEPATH id="juce_events" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_events"/>
+        <MODULEPATH id="juce_data_structures" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_data_structures"/>
+        <MODULEPATH id="juce_cryptography" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_cryptography"/>
+        <MODULEPATH id="juce_core" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_core"/>
+        <MODULEPATH id="juce_audio_processors" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_audio_processors"/>
+        <MODULEPATH id="juce_audio_formats" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_audio_formats"/>
+        <MODULEPATH id="juce_audio_devices" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_basics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_audio_basics"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="1"/>

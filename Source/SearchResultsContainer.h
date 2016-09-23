@@ -160,6 +160,7 @@ private:
 	// Count of how many local samples came from each terminal scene
 	map<int, int> _localSampleCounts;
 
+  bool _notYetClustered;
 
   // Viewport for unclustered results
   Viewport* _unclusteredViewer;
