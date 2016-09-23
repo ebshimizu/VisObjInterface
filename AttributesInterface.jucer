@@ -234,11 +234,11 @@
         <MODULEPATH id="juce_audio_basics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_audio_basics"/>
       </MODULEPATHS>
     </VS2015>
-    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="libLumiverseCore.a&#10;libLumiverseShowControl.a&#10;libjson.a&#10;libclp.a&#10;libpng.dylib&#10;libz.dylib&#10;IlmImf-2_2.dylib&#10;Iex-2_2.dylib&#10;IlmThread-2_2.dylib&#10;Imath-2_2.dylib&#10;IexMath-2_2.dylib&#10;Half.dylib">
+    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="LumiverseCore&#10;LumiverseShowControl&#10;libjson&#10;clp&#10;png&#10;z&#10;IlmImf-2_2&#10;Iex-2_2&#10;IlmThread-2_2&#10;Imath-2_2&#10;IexMath-2_2&#10;Half">
       <CONFIGURATIONS>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="AttributesInterface"
                        headerPath="/Users/rutad/Desktop/eshimizu_lighting/lib/Lumiverse/include&#10;/Users/rutad/Desktop/eshimizu_lighting/lib/include&#10;/usr/X11R6/include&#10;"
-                       libraryPath="/Users/rutad/Desktop/eshimizu_lighting/lib/lib&#10;/Users/rutad/Desktop/eshimizu_lighting/lib/Lumiverse/Release/lib"
+                       libraryPath="/Users/rutad/Desktop/eshimizu_lighting/lib/lib&#10;/Users/rutad/Desktop/eshimizu_lighting/lib/Lumiverse/Release/lib&#10;/usr/X11R6/lib"
                        osxSDK="10.10 SDK" osxCompatibility="10.10 SDK"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
