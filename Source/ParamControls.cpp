@@ -11,6 +11,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "ParamControls.h"
 #include "MainComponent.h"
+#include "hsvPicker.h"
 #include <sstream>
 
 //==============================================================================
@@ -208,7 +209,7 @@ void ColorPickerButton::paint(Graphics & g)
 
 void ColorPickerButton::changeListenerCallback(ChangeBroadcaster * source)
 {
-  ColourSelector* cs = dynamic_cast<ColourSelector*>(source);
+  HSVPicker* cs = dynamic_cast<HSVPicker*>(source);
   if (!isDeviceParamLocked(_id, _param) && cs != nullptr) {
     Colour current = cs->getCurrentColour();
     _val->setColorChannel("Red", current.getFloatRed());
@@ -252,7 +253,7 @@ void ColorPickerButton::buttonClicked(Button* /* b */)
   c[2] = _val->getColorChannel("Blue");
   c *= 255;
 
-  ColourSelector* cs = new ColourSelector(ColourSelector::showColourAtTop|ColourSelector::showSliders|ColourSelector::showColourspace);
+  HSVPicker* cs = new HSVPicker();
   cs->setName(_id + " " + _param);
   cs->setCurrentColour(Colour((uint8)c[0], (uint8)c[1], (uint8)c[2]));
   cs->setSize(300, 400);

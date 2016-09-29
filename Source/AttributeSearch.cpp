@@ -1487,7 +1487,7 @@ void AttributeSearchThread::runSearchNoWarmup()
   }
   delete start;
 
-  Lumiverse::Logger::log(INFO, "Result with f(x) " + String(r->_objFuncVal).toStdString() + " and maskDiff " + String(maskDiff).toStdString() + " returned.");
+  //Lumiverse::Logger::log(INFO, "Result with f(x) " + String(r->_objFuncVal).toStdString() + " and maskDiff " + String(maskDiff).toStdString() + " returned.");
 
   if (r->_objFuncVal < orig && maskDiff < _maskTolerance) {
     // send scene to the results area. may chose to not use the scene

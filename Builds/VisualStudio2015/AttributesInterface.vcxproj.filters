@@ -400,6 +400,9 @@
     <ClCompile Include="..\..\Source\HistoryPanel.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\hsvPicker.cpp">
+      <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\MainMenu.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
@@ -2227,6 +2230,9 @@
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\HistoryPanel.h">
+      <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\hsvPicker.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\MainMenu.h">
