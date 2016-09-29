@@ -2881,17 +2881,17 @@
 					"_NDEBUG=1",
 					"NDEBUG=1",
 					"JUCER_XCODE_MAC_F6D2F4CF=1",
-					"JUCE_APP_VERSION=0.07",
-					"JUCE_APP_VERSION_HEX=0x700", );
+					"JUCE_APP_VERSION=0.08",
+					"JUCE_APP_VERSION_HEX=0x800", );
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				HEADER_SEARCH_PATHS = ("../../JuceLibraryCode", "../../JuceLibraryCode/modules", "/Users/rutad/Desktop/eshimizu_lighting/lib/Lumiverse/include", "/Users/rutad/Desktop/eshimizu_lighting/lib/include", "/usr/X11R6/include", "$(inherited)");
 				INFOPLIST_FILE = Info-App.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = ("$(inherited)", "\"/Users/rutad/Desktop/eshimizu_lighting/lib/lib\"", "\"/Users/rutad/Desktop/eshimizu_lighting/lib/Lumiverse/Release/lib\"");
+				LIBRARY_SEARCH_PATHS = ("$(inherited)", "\"/Users/rutad/Desktop/eshimizu_lighting/lib/lib\"", "\"/Users/rutad/Desktop/eshimizu_lighting/lib/Lumiverse/Release/lib\"", "\"/usr/X11R6/lib\"");
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.4;
-				OTHER_LDFLAGS = "-llibLumiverseCore.a -llibLumiverseShowControl.a -llibjson.a -llibclp.a -llibpng.dylib -llibz.dylib -lIlmImf-2_2.dylib -lIex-2_2.dylib -lIlmThread-2_2.dylib -lImath-2_2.dylib -lIexMath-2_2.dylib -lHalf.dylib";
+				OTHER_LDFLAGS = "-lLumiverseCore -lLumiverseShowControl -llibjson -lclp -lpng -lz -lIlmImf-2_2 -lIex-2_2 -lIlmThread-2_2 -lImath-2_2 -lIexMath-2_2 -lHalf";
 				PRODUCT_BUNDLE_IDENTIFIER = edu.cmu.cs.AttributeInterface;
 				SDKROOT = macosx10.10;
 				SDKROOT_ppc = macosx10.5; }; name = Release; };

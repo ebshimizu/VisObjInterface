@@ -65,8 +65,8 @@ public:
     {
         if (colours.isNull())
         {
-            const int width = getWidth() / 2;
-            const int height = getHeight() / 2;
+            const int width = getWidth();
+            const int height = getHeight();
             colours = Image (Image::RGB, width, height, false);
 
             Image::BitmapData pixels (colours, Image::BitmapData::writeOnly);
@@ -82,17 +82,19 @@ public:
                 Eigen::Vector2d pt(centerX - x, centerY - y);
 
                 // out of bounds
-                if (pt.norm() > radius)
-                  continue;
+                if (pt.norm() > radius) {
+                  pixels.setPixelColour(x, y, Colours::white);
+                }
+                else {
+                  // calculate angle
+                  double angle = acos(pt.dot(vert) / (pt.norm() * vert.norm()));
+                  if (x < centerX)
+                    angle = M_PI * 2 - angle;
 
-                // calculate angle
-                double angle = acos(pt.dot(vert) / (pt.norm() * vert.norm()));
-                if (x < centerX)
-                  angle = M_PI * 2 - angle;
-
-                // calculate color
-                double sat = (pt.norm() / radius);
-                pixels.setPixelColour(x, y, Colour(angle / (M_PI * 2), sat, v, 1.0f));
+                  // calculate color
+                  double sat = (pt.norm() / radius);
+                  pixels.setPixelColour(x, y, Colour(angle / (M_PI * 2), sat, v, 1.0f));
+                }
               }
             }
         }
@@ -465,7 +467,8 @@ void HSVPicker::paint (Graphics& g)
 
     g.setColour (Colours::white.overlaidWith (currentColour).contrasting());
     g.setFont (Font (14.0f, Font::bold));
-    g.drawText (currentColour.toDisplayString(false),
+    String colorDisp = "H: " + String(currentColour.getHue() * 360.0) + " S: " + String(currentColour.getSaturation() * 100) + " V: " + String(currentColour.getBrightness() * 100);
+    g.drawText (colorDisp,
                 previewArea, Justification::centred, false);
 
     g.setColour (findColour (labelTextColourId));

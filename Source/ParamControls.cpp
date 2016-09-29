@@ -549,7 +549,7 @@ void ParamControls::sliderValueChanged(Slider * s)
 void ParamControls::buttonClicked(Button * b)
 {
   if (b->getName() == "Group Color") {
-    ColourSelector* cs = new ColourSelector(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace);
+    HSVPicker* cs = new HSVPicker();
     cs->setName("Group Color");
     cs->setCurrentColour(_recentColor);
     cs->setSize(300, 400);
@@ -627,7 +627,7 @@ void ParamControls::buttonClicked(Button * b)
 
 void ParamControls::changeListenerCallback(ChangeBroadcaster * source)
 {
-  ColourSelector* cs = dynamic_cast<ColourSelector*>(source);
+  HSVPicker* cs = dynamic_cast<HSVPicker*>(source);
   if (cs != nullptr) {
     _recentColor = cs->getCurrentColour();
 

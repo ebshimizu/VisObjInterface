@@ -38,6 +38,8 @@ void ColoredTextButton::setColor(Colour newColor)
 {
 	_buttonColor = newColor;
 
-  if (_useColorNameAsText)
-    setButtonText(_buttonColor.toDisplayString(false));
+  if (_useColorNameAsText) {
+    String colorDisp = "H: " + String((int)(_buttonColor.getHue() * 360.0)) + " S: " + String((int)(_buttonColor.getSaturation() * 100)) + " V: " + String((int)(_buttonColor.getBrightness() * 100));
+    setButtonText(colorDisp);
+  }
 }
