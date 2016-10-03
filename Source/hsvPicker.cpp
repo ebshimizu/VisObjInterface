@@ -114,8 +114,8 @@ public:
 
     void mouseDrag (const MouseEvent& e) override
     {
-      float centerX = getWidth() / 2;
-      float centerY = getHeight() / 2;
+      float centerX = (getWidth() - edge * 2) / 2;
+      float centerY = (getHeight() - edge * 2) / 2;
 
       // this is a radial map of the HSV color space
       float radius = centerX;
@@ -124,16 +124,18 @@ public:
       // set the hue and sat here.
       Eigen::Vector2d pt(centerX - (e.x - edge), centerY - (e.y - edge));
 
-      // out of bounds
-      if (pt.norm() > radius)
-        return;
-
       // calculate angle
       double angle = acos(pt.dot(vert) / (pt.norm() * vert.norm()));
       if ((e.x - edge) < centerX)
         angle = M_PI * 2 - angle;
 
-      owner.setHS(angle / (M_PI * 2), pt.norm() / radius);
+      // out of bounds
+      if (pt.norm() > radius) {
+        owner.setHS(angle / (M_PI * 2), 1);
+      }
+      else {
+        owner.setHS(angle / (M_PI * 2), pt.norm() / radius);
+      }
     }
 
     void updateIfNeeded()
@@ -174,8 +176,8 @@ private:
       Eigen::Vector2d center(width, height);
       Eigen::Vector2d pt = center + angle * (s * center[0]);
 
-      marker.setBounds (roundToInt (pt[0]) + edge,
-                        roundToInt (pt[1]) + edge,
+      marker.setBounds (roundToInt (pt[0]),
+                        roundToInt (pt[1]),
                         edge * 2, edge * 2);
     }
 
