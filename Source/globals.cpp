@@ -308,6 +308,17 @@ void GlobalSettings::generateDefaultConstraints()
   }
 }
 
+void GlobalSettings::exportSettings()
+{
+  File f = File::getCurrentWorkingDirectory().getChildFile("settings.json");
+
+  JSONNode settings;
+  settings.push_back(JSONNode("thumbnailRenderSamples", _thumbnailRenderSamples));
+  settings.push_back(JSONNode("stageRenderSamples", _stageRenderSamples));
+  settings.push_back(JSONNode("searchDerivDelta", _searchDerivDelta));
+  settings.push_back(JSONNode("renderWidth", _renderWidth));
+}
+
 Rig* getRig() {
   if (_rig == nullptr) {
     _rig = new Rig();

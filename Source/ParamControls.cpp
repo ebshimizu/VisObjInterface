@@ -322,6 +322,11 @@ ParamControls::ParamControls() : _groupColor("Group Color", true)
   _qsAll.setName("qsAll");
   _qsAll.setButtonText("All");
   addAndMakeVisible(_qsAll);
+
+  _render.addListener(this);
+  _render.setName("render");
+  _render.setButtonText("Render");
+  addAndMakeVisible(_render);
 }
 
 ParamControls::~ParamControls()
@@ -367,6 +372,7 @@ void ParamControls::resized()
   _qsSystem.setBounds(bot.removeFromLeft(60).reduced(2));
   _qsAll.setBounds(bot.removeFromLeft(60).reduced(2));
   _qsNone.setBounds(bot.removeFromLeft(60).reduced(2));
+  _render.setBounds(bot.removeFromRight(60).reduced(2));
 
   _table.setBounds(b);
 }
@@ -622,6 +628,9 @@ void ParamControls::buttonClicked(Button * b)
 
     _table.updateContent();
     _table.repaint();
+  }
+  else if (b->getName() == "render") {
+    getApplicationCommandManager()->invokeDirectly(ARNOLD_RENDER, true);
   }
 }
 

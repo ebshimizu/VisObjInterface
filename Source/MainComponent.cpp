@@ -41,7 +41,7 @@ MainContentComponent::MainContentComponent()
   _vertResizer.setItemLayout(3, 5, 5, 5);
   _vertResizer.setItemLayout(4, -0.2, -0.5, -0.25);
 
-  setSize (1280, 720);
+  setSize (1600, 900);
 
   if (getGlobalSettings()->_commandLineArgs.count("preload") > 0) {
     openRig(getGlobalSettings()->_commandLineArgs["preload"]);

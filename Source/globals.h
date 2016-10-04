@@ -292,6 +292,13 @@ public:
   chrono::time_point<chrono::high_resolution_clock> _searchStartTime;
   chrono::time_point<chrono::high_resolution_clock> _searchEndTime;
   chrono::time_point<chrono::system_clock> _searchAbsStartTime;
+
+  // Save settings to a file in the same directory as the application
+  void exportSettings();
+
+  // Load settings from a file, which is typically in the same
+  // directory as the application
+  void loadSettings(string file = "");
 };
 
 // Results that eventually get returned to the UI layer

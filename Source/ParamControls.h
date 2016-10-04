@@ -124,6 +124,7 @@ private:
   TextButton _qsSystem;
   TextButton _qsNone;
   TextButton _qsAll;
+  TextButton _render;
 
   // stores the most recently clicked on device's color
   Colour _recentColor;

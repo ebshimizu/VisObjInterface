@@ -9,6 +9,7 @@
 */
 
 #include "TintAttribute.h"
+#include "hsvPicker.h"
 
 TintAttribute::TintAttribute(int w, int h) : HistogramAttribute("Tint", w, h)
 {
@@ -88,7 +89,7 @@ void TintAttribute::mouseDown(const MouseEvent & e)
   auto pos = e.getPosition();
   if (_colorSelect.contains(pos)) {
     // trigger color selector
-    ColourSelector* cs = new ColourSelector(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace);
+    HSVPicker* cs = new HSVPicker();
     cs->setName("Tint Color");
     cs->setCurrentColour(_targetColor);
     cs->setSize(300, 400);
@@ -99,7 +100,7 @@ void TintAttribute::mouseDown(const MouseEvent & e)
 
 void TintAttribute::changeListenerCallback(ChangeBroadcaster * source)
 {
-  ColourSelector* cs = dynamic_cast<ColourSelector*>(source);
+  HSVPicker* cs = dynamic_cast<HSVPicker*>(source);
   _targetColor = cs->getCurrentColour();
   repaint();
 }
