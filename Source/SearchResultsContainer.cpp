@@ -61,6 +61,10 @@ SearchResultsContainer::~SearchResultsContainer()
 void SearchResultsContainer::paint(Graphics & g)
 {
   g.fillAll(Colour(0xff333333));
+
+  if (_resultsSinceLastSort > 0) {
+    getStatusBar()->setStatusMessage(String(_resultsSinceLastSort) + " New Unsorted Results", false, true);
+  }
 }
 
 void SearchResultsContainer::resized()
@@ -139,6 +143,7 @@ void SearchResultsContainer::sort()
 void SearchResultsContainer::sort(AttributeSorter* s)
 {
   _unclusteredResults->sort(s);
+  _resultsSinceLastSort = 0;
 	
 	if (_clusters.size() == 0)
 		return;
@@ -331,6 +336,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r, bool force)
 			}
 
       Lumiverse::Logger::log(INFO, "Adding new result. In queue: " + String(_newResults.size()).toStdString());
+      _resultsSinceLastSort += 1;
     }
   }
   return true;
@@ -378,6 +384,7 @@ void SearchResultsContainer::clear()
   repaint();
   _sampleId = 0;
   _notYetClustered = true;
+  _resultsSinceLastSort = 0;
 }
 
 bool SearchResultsContainer::isFull()
@@ -592,6 +599,7 @@ void SearchResultsContainer::cluster()
 		saveClusterStats(f, f2, currentState, centers, centers2);
 	}
 
+  _resultsSinceLastSort = 0;
   updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
   resized();
   repaint();

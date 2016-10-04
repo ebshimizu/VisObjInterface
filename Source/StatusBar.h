@@ -24,13 +24,14 @@ public:
 
   void paint(Graphics&);
   void resized();
-  void setStatusMessage(String msg, bool error = false);
+  void setStatusMessage(String msg, bool error = false, bool warning = false);
   String getStatusMessage();
   bool isError();
 
 private:
   String _currentText;
   bool _error;
+  bool _warning;
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StatusBar)

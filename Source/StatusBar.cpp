@@ -27,10 +27,12 @@ StatusBar::~StatusBar()
 
 void StatusBar::paint (Graphics& g)
 {
-  if (!_error)
-    g.fillAll(Colour(0xff333333));
-  else
+  if (_error)
     g.fillAll(Colour(0xff8C0000));
+  else if (_warning)
+    g.fillAll(Colour(Colours::darkgoldenrod));
+  else
+    g.fillAll(Colour(0xff333333));
 
   g.setColour(Colours::white);
   g.drawHorizontalLine(0, 0.0, (float) getLocalBounds().getWidth());
@@ -44,12 +46,13 @@ void StatusBar::resized()
 {
 }
 
-void StatusBar::setStatusMessage(String msg, bool error)
+void StatusBar::setStatusMessage(String msg, bool error, bool warning)
 {
   _error = error;
+  _warning = warning;
   _currentText = msg;
 
-  Lumiverse::Logger::log((error) ? ERR : LDEBUG, msg.toStdString());
+  Lumiverse::Logger::log((error) ? ERR : (warning) ? WARN : LDEBUG, msg.toStdString());
   repaint();
 }
 

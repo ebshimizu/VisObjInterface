@@ -191,6 +191,8 @@ private:
 	// calculates the per-pixel standard deviation
 	void ppsd(String prefix);
 
+  int _resultsSinceLastSort;
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SearchResultsContainer)
 };
 
