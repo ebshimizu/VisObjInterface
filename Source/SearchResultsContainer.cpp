@@ -12,6 +12,7 @@
 #include "AttributeSorting.h"
 #include "AttributeSearch.h"
 #include "Clustering.h"
+#include "MainComponent.h"
 
 #ifndef WIN32
 #include <stdio.h>
@@ -62,8 +63,14 @@ void SearchResultsContainer::paint(Graphics & g)
 {
   g.fillAll(Colour(0xff333333));
 
-  if (_resultsSinceLastSort > 0) {
-    getStatusBar()->setStatusMessage(String(_resultsSinceLastSort) + " New Unsorted Results", false, true);
+  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+  if (mc->isSearchRunning()) {
+    if (_resultsSinceLastSort > 0) {
+      getStatusBar()->setStatusMessage(String(_resultsSinceLastSort) + " New Unsorted Result" + ((_resultsSinceLastSort > 1) ? "s" : ""), false, true);
+    }
+    else {
+      getStatusBar()->setStatusMessage("Attribute Search Running...");
+    }
   }
 }
 
@@ -145,8 +152,10 @@ void SearchResultsContainer::sort(AttributeSorter* s)
   _unclusteredResults->sort(s);
   _resultsSinceLastSort = 0;
 	
-	if (_clusters.size() == 0)
-		return;
+  if (_clusters.size() == 0) {
+    repaint();
+    return;
+  }
 
 	// for columns, should be fairly easy, just reorder the columns
 	if (getGlobalSettings()->_clusterDisplay == COLUMNS) {

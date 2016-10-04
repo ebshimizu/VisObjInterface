@@ -492,6 +492,11 @@ void MainContentComponent::transferSelected(Snapshot * source, DeviceSet devices
   arnoldRender();
 }
 
+bool MainContentComponent::isSearchRunning()
+{
+  return _searchWorker->isThreadRunning();
+}
+
 void MainContentComponent::openRig() {
   FileChooser fc("Load Show (pick a .rig.json or .playback.json file)", File::getCurrentWorkingDirectory(),
     "*.rig.json;*.playback.json", true);

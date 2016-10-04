@@ -76,6 +76,8 @@ public:
   void transferSelected(Snapshot* source);
   void transferSelected(Snapshot* source, DeviceSet devices);
 
+  bool isSearchRunning();
+
 private:
   // Open a Lumiverse file
   void openRig();
