@@ -231,27 +231,27 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Stop Automatic Command", "Internal: Runs the final code for the automatic search", "Internal", 0);
     break;
   case command::LOCK_SELECTED_COLOR:
-    result.setInfo("Lock Selected Color", "Lock the selected devices' color parameter", "Explore", 0);
+    result.setInfo("Lock Color", "Lock the selected devices' color parameter", "Explore", 0);
     result.addDefaultKeypress('j', ModifierKeys::noModifiers);
     break;
   case command::LOCK_SELECTED_INTENSITY:
-    result.setInfo("Lock Selected Intensity", "Lock the selected devices' intensity parameter", "Explore", 0);
+    result.setInfo("Lock Intensity", "Lock the selected devices' intensity parameter", "Explore", 0);
     result.addDefaultKeypress('k', ModifierKeys::noModifiers);
     break;
   case command::LOCK_ALL_SELECTED:
-    result.setInfo("Lock Selected All", "Lock all parameters in the selected devices", "Explore", 0);
+    result.setInfo("Lock All", "Lock all parameters in the selected devices", "Explore", 0);
     result.addDefaultKeypress('l', ModifierKeys::noModifiers);
     break;
   case command::UNLOCK_SELECTED_COLOR:
-    result.setInfo("Unlock Selected Color", "Unlock the selected devices' color parameter", "Explore", 0);
+    result.setInfo("Unlock Color", "Unlock the selected devices' color parameter", "Explore", 0);
     result.addDefaultKeypress('j', ModifierKeys::commandModifier);
     break;
   case command::UNLOCK_SELECTED_INTENSITY:
-    result.setInfo("Unlock Selected Intensity", "Unlock the selected devices' intensity parameter", "Explore", 0);
+    result.setInfo("Unlock Intensity", "Unlock the selected devices' intensity parameter", "Explore", 0);
     result.addDefaultKeypress('k', ModifierKeys::commandModifier);
     break;
   case command::UNLOCK_ALL_SELECTED:
-    result.setInfo("Unlock Selected All", "Unlock all parameters in the selected devices", "Explore", 0);
+    result.setInfo("Unlock All", "Unlock all parameters in the selected devices", "Explore", 0);
     result.addDefaultKeypress('l', ModifierKeys::commandModifier);
     break;
   case command::RELOAD_ATTRS:

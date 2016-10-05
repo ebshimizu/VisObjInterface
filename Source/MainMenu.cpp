@@ -61,12 +61,22 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& /* menu
 		menu.addCommandItem(cm, command::LOAD_CLUSTERS);
     menu.addSeparator();
     menu.addCommandItem(cm, command::UNLOCK_ALL);
-    menu.addCommandItem(cm, command::LOCK_ALL_AREAS_EXCEPT);
-    menu.addCommandItem(cm, command::LOCK_AREA);
-    menu.addCommandItem(cm, command::LOCK_ALL_SYSTEMS_EXCEPT);
-    menu.addCommandItem(cm, command::LOCK_SYSTEM);
-    menu.addCommandItem(cm, command::LOCK_ALL_COLOR);
-    menu.addCommandItem(cm, command::LOCK_ALL_INTENSITY);
+    menu.addCommandItem(cm, command::LOCK_ALL_SELECTED);
+    menu.addCommandItem(cm, command::LOCK_SELECTED_INTENSITY);
+    menu.addCommandItem(cm, command::LOCK_SELECTED_COLOR);
+    menu.addCommandItem(cm, command::UNLOCK_ALL_SELECTED);
+    menu.addCommandItem(cm, command::UNLOCK_SELECTED_INTENSITY);
+    menu.addCommandItem(cm, command::UNLOCK_SELECTED_COLOR);
+
+    PopupMenu lockSubmenu;
+    lockSubmenu.addCommandItem(cm, command::LOCK_ALL_AREAS_EXCEPT);
+    lockSubmenu.addCommandItem(cm, command::LOCK_AREA);
+    lockSubmenu.addCommandItem(cm, command::LOCK_ALL_SYSTEMS_EXCEPT);
+    lockSubmenu.addCommandItem(cm, command::LOCK_SYSTEM);
+    lockSubmenu.addCommandItem(cm, command::LOCK_ALL_COLOR);
+    lockSubmenu.addCommandItem(cm, command::LOCK_ALL_INTENSITY);
+
+    menu.addSubMenu("Lock Groups", lockSubmenu);
   }
   else if (topLevelMenuIndex == 3) {
     menu.addCommandItem(cm, command::SAVE_RESULTS);
