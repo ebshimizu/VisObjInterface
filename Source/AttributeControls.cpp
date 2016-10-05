@@ -160,6 +160,24 @@ void AttributeControlsList::runPreprocess()
   }
 }
 
+void AttributeControlsList::lockImageAttrs()
+{
+  for (auto a : _controls) {
+    if (ImageAttribute* ia = dynamic_cast<ImageAttribute*>(a.second)) {
+      ia->lockMode();
+    }
+  }
+}
+
+void AttributeControlsList::unlockImageAttrs()
+{
+  for (auto a : _controls) {
+    if (ImageAttribute* ia = dynamic_cast<ImageAttribute*>(a.second)) {
+      ia->unlockMode();
+    }
+  }
+}
+
 map<string, AttributeControllerBase*> AttributeControlsList::getActiveAttribues()
 {
   map<string, AttributeControllerBase*> active;
@@ -323,6 +341,16 @@ void AttributeControls::addAttributeController(AttributeControllerBase * control
 {
   controller->preProcess();
   _container->addAttributeController(controller);
+}
+
+void AttributeControls::lockAttributeModes()
+{
+  _container->lockImageAttrs();
+}
+
+void AttributeControls::unlockAttributeModes()
+{
+  _container->unlockImageAttrs();
 }
 
 void AttributeControls::initAttributes()

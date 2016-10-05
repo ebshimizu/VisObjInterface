@@ -27,7 +27,7 @@ void ImageDrawer::paint(Graphics & g)
 }
 
 ImageAttribute::ImageAttribute(string name, string filepath, float weight) : HistogramAttribute(name),
-  _sourceHist(5, {}), _weight(weight), _mode()
+  _fullSource(5, {}), _LSource(1, {}), _abSource(2, {}), _LabSource(3, {}), _weight(weight)
 {
   File img(filepath);
   FileInputStream in(img);
@@ -44,38 +44,49 @@ ImageAttribute::ImageAttribute(string name, string filepath, float weight) : His
     getRecorder()->log(SYSTEM, "Failed to load image for attribute " + name);
   }
 
-  _showImgButton.setButtonText("Show Image");
-  _showImgButton.setName("Show Image");
-  _showImgButton.addListener(this);
-  addAndMakeVisible(_showImgButton);
+  initUI();
 }
 
 ImageAttribute::ImageAttribute(string name, Image img, float weight) : HistogramAttribute(name),
-  _sourceHist(5, {}), _weight(weight)
+  _fullSource(5, {}), _LSource(1, {}), _abSource(2, {}), _LabSource(3, {}), _weight(weight)
 {
   _originalImg = img;
   _sourceImg = img.rescaled(_canonicalWidth, _canonicalHeight);
 
-  _showImgButton.setButtonText("Show Image");
-  _showImgButton.setName("Show Image");
-  _showImgButton.addListener(this);
-  addAndMakeVisible(_showImgButton);
+  initUI();
 }
 
 ImageAttribute::ImageAttribute(string name, Snapshot * s, float weight) : HistogramAttribute(name),
-  _sourceHist(5, {}), _weight(weight)
+  _fullSource(5, {}), _LSource(1, {}), _abSource(2, {}), _LabSource(3, {}), _weight(weight)
 {
   _originalImg = generateImage(s, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
   _sourceImg = _originalImg.rescaled(_canonicalWidth, _canonicalHeight);
 
-  _showImgButton.setButtonText("Show Image");
-  _showImgButton.setName("Show Image");
-  _showImgButton.addListener(this);
-  addAndMakeVisible(_showImgButton);
+  initUI();
 }
 
 ImageAttribute::~ImageAttribute()
 {
+}
+
+void ImageAttribute::initUI()
+{
+  _showImgButton.setButtonText("Show Image");
+  _showImgButton.setName("Show Image");
+  _showImgButton.addListener(this);
+  addAndMakeVisible(_showImgButton);
+
+  _mode = FULL;
+  StringArray modes;
+  modes.add("All Properties");
+  modes.add("Brightness");
+  modes.add("Hue");
+  modes.add("Brightness and Hue");
+
+  _modeSelect.addListener(this);
+  _modeSelect.addItemList(modes, 1);
+  _modeSelect.setSelectedId(FULL + 1, dontSendNotification);
+  addAndMakeVisible(_modeSelect);
 }
 
 double ImageAttribute::evaluateScene(Snapshot * s, Image& img)
@@ -89,36 +100,52 @@ double ImageAttribute::evaluateScene(Snapshot * s, Image& img)
     img = generateImage(s);
   }
 
+  switch (_mode) {
+  case(FULL): {
 #ifdef SPARSE5D
-  SparseHistogram currentHist = getLabxyHist(img, _weight);
-  double diff = currentHist.EMD(_sourceHist);
+    SparseHistogram currentHist = getLabxyHist(img, _weight);
+    double diff = currentHist.EMD(_fullSource);
 #endif
 #ifdef LABXYHIST
-  LabxyHistogram currentHist = getLabxyHist2(img, _n, _n, _n, 3, 3);
-  double diff = currentHist.EMD(_sourceHist, _metric);
+    LabxyHistogram currentHist = getLabxyHist2(img, _n, _n, _n, 3, 3);
+    double diff = currentHist.EMD(_fullSource, _metric);
 #endif
-
-  return (100 - diff);
+    return (100 - diff);
+  }
+  case (L): {
+    SparseHistogram currentHist = getLHist(img);
+    double diff = currentHist.EMD(_LSource);
+    return (100 - diff);
+  }
+  case (AB): {
+    SparseHistogram currentHist = getabHist(img);
+    double diff = currentHist.EMD(_abSource);
+    return (100 - diff);
+  }
+  case(LAB): {
+    SparseHistogram currentHist = getLabHist(img);
+    double diff = currentHist.EMD(_LabSource);
+    return (100 - diff);
+  }
+  default:
+    return 0;
+  }
 }
 
 void ImageAttribute::preProcess()
 {
 #ifdef SPARSE5D
-  _sourceHist = getLabxyHist(_sourceImg, _weight);
+  _fullSource = getLabxyHist(_sourceImg, _weight);
 #endif
 #ifdef LABXYHIST
-  _sourceHist = getLabxyHist2(_sourceImg, _n, _n, _n, 3, 3);
+  _fullSource = getLabxyHist2(_sourceImg, _n, _n, _n, 3, 3);
 #endif
 
-  _metric = getGlobalSettings()->_metric;
+  _LSource = getLHist(_sourceImg);
+  _abSource = getabHist(_sourceImg);
+  _LabSource = getLabHist(_sourceImg);
 
-  // sanity check
-#ifdef SPARSE5D
-  double selfDist = _sourceHist.EMD(_sourceHist);
-#endif
-#ifdef LABXYHIST
-  double selfDist = _sourceHist.EMD(_sourceHist, _metric);
-#endif
+  // _metric = getGlobalSettings()->_metric;
 }
 
 void ImageAttribute::resized()
@@ -130,6 +157,7 @@ void ImageAttribute::resized()
 
   top.removeFromRight(80);
   _showImgButton.setBounds(top.removeFromRight(80).reduced(2));
+  _modeSelect.setBounds(top.removeFromRight(100).reduced(2));
 }
 
 void ImageAttribute::buttonClicked(Button * b)
@@ -171,4 +199,22 @@ double ImageAttribute::avgLabDistance(Snapshot * s)
   }
 
   return sum / (_canonicalWidth * _canonicalHeight);
+}
+
+void ImageAttribute::comboBoxChanged(ComboBox * box)
+{
+  if (_mode != (Mode)(box->getSelectedId() - 1)) {
+    _mode = (Mode)(box->getSelectedId() - 1);
+    repaint();
+  }
+}
+
+void ImageAttribute::lockMode()
+{
+  _modeSelect.setEnabled(false);
+}
+
+void ImageAttribute::unlockMode()
+{
+  _modeSelect.setEnabled(true);
 }

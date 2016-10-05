@@ -297,16 +297,12 @@ public:
   Eigen::Vector3d getAverageColor(Image i);
   double getAverageHue(Image i);
 
-  // Returns a n x n x n histogram of Lab pixel values
-  // Lab histogram has L on x, a on y, and b on z
-  Histogram3D getLabHist(Image& canonical, int n);
-  
-  // Returns a x x y x z histogram of Lab pixel values
-  // Lab histogram has L on x, a on y, and b on z
-  Histogram3D getLabHist(Image& canonical, int x, int y, int z);
-
   // Returns the color and position histogram for the given image.
   SparseHistogram getLabxyHist(Image& canonical, float lambda = 50);
+
+  SparseHistogram getLHist(Image& canonical);
+  SparseHistogram getabHist(Image& canonical);
+  SparseHistogram getLabHist(Image& canonical);
 
   LabxyHistogram getLabxyHist2(Image& canonical, int n);
   LabxyHistogram getLabxyHist2(Image& canonical, int l, int a, int b, int x, int y);

@@ -1340,6 +1340,7 @@ void MainContentComponent::search()
     return;
   }
 
+  _attrs->lockAttributeModes();
   _searchWorker->setState(new Snapshot(getRig()), _attrs->getActiveAttributes());
   _searchWorker->startThread(9);
   _searchWasStopped = false;
@@ -1353,6 +1354,7 @@ void MainContentComponent::stopSearch()
   getStatusBar()->setStatusMessage("Stopping current search operation...");
   _searchWorker->stop();
   _search->showNewResults();
+  _attrs->unlockAttributeModes();
   getStatusBar()->setStatusMessage("Search stopped.");
 
   if (getGlobalSettings()->_exportTraces) {

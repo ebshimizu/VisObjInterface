@@ -947,30 +947,9 @@ double HistogramAttribute::getAverageHue(Image i)
   return hue / (i.getHeight() * i.getWidth());
 }
 
-Histogram3D HistogramAttribute::getLabHist(Image& canonical, int n)
-{
-  return getLabHist(canonical, n, n, n);
-}
-
-Histogram3D HistogramAttribute::getLabHist(Image& canonical, int x, int y, int z)
-{
-  Histogram3D lab(x, y, z, 0, 100, -100, 100, -100, 100);
-
-  for (int y2 = 0; y2 < canonical.getHeight(); y2++) {
-    for (int x2 = 0; x2 < canonical.getWidth(); x2++) {
-      auto color = canonical.getPixelAt(x2, y2);
-      Eigen::Vector3d labColor = RGBtoLab(color.getRed() / 255.0, color.getGreen() / 255.0, color.getBlue() / 255.0);
-
-      lab.addValToBin(labColor[0], labColor[1], labColor[2]);
-    }
-  }
-
-  return lab;
-}
-
 SparseHistogram HistogramAttribute::getLabxyHist(Image & canonical, float lambda)
 {
-  SparseHistogram hist(5, { 0, 20, -5, 25, -5, 25, 0, 0.25f, 0, 0.25f }, lambda);
+  SparseHistogram hist(5, { 0, 20, -12.5, 25, -12.5, 25, 0, 0.25f, 0, 0.25f }, lambda);
 
   for (int y2 = 0; y2 < canonical.getHeight(); y2++) {
     for (int x2 = 0; x2 < canonical.getWidth(); x2++) {
@@ -980,6 +959,54 @@ SparseHistogram HistogramAttribute::getLabxyHist(Image & canonical, float lambda
       float ynrm = y2 / (float)canonical.getHeight();
 
       hist.add({ (float)labColor[0], (float)labColor[1], (float)labColor[2], xnrm, ynrm });
+    }
+  }
+
+  return hist;
+}
+
+SparseHistogram HistogramAttribute::getLHist(Image & canonical)
+{
+  SparseHistogram hist(1, { 0, 5 });
+
+  for (int y2 = 0; y2 < canonical.getHeight(); y2++) {
+    for (int x2 = 0; x2 < canonical.getWidth(); x2++) {
+      auto color = canonical.getPixelAt(x2, y2);
+      Eigen::Vector3d labColor = RGBtoLab(color.getRed() / 255.0, color.getGreen() / 255.0, color.getBlue() / 255.0);
+
+      hist.add({ (float)labColor[0] });
+    }
+  }
+
+  return hist;
+}
+
+SparseHistogram HistogramAttribute::getabHist(Image & canonical)
+{
+  SparseHistogram hist(2, { -5, 10, -5, 10 });
+
+  for (int y2 = 0; y2 < canonical.getHeight(); y2++) {
+    for (int x2 = 0; x2 < canonical.getWidth(); x2++) {
+      auto color = canonical.getPixelAt(x2, y2);
+      Eigen::Vector3d labColor = RGBtoLab(color.getRed() / 255.0, color.getGreen() / 255.0, color.getBlue() / 255.0);
+
+      hist.add({ (float)labColor[1], (float)labColor[2] });
+    }
+  }
+
+  return hist;
+}
+
+SparseHistogram HistogramAttribute::getLabHist(Image & canonical)
+{
+  SparseHistogram hist(3, { 0, 5, -5, 10, -5, 10 });
+
+  for (int y2 = 0; y2 < canonical.getHeight(); y2++) {
+    for (int x2 = 0; x2 < canonical.getWidth(); x2++) {
+      auto color = canonical.getPixelAt(x2, y2);
+      Eigen::Vector3d labColor = RGBtoLab(color.getRed() / 255.0, color.getGreen() / 255.0, color.getBlue() / 255.0);
+
+      hist.add({ (float)labColor[0], (float)labColor[1], (float)labColor[2] });
     }
   }
 

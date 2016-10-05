@@ -30,13 +30,23 @@ private:
   Image _img;
 };
 
-class ImageAttribute : public HistogramAttribute
+class ImageAttribute : public HistogramAttribute, public ComboBoxListener
 {
 public:
+  enum Mode {
+    FULL,
+    L,
+    AB,
+    LAB
+  };
+
   ImageAttribute(string name, string filepath, float weight = 50);
   ImageAttribute(string name, Image img, float weight = 50);
   ImageAttribute(string name, Snapshot* s, float weight = 50);
   ~ImageAttribute();
+
+  // intializes UI components and common initialization
+  void initUI();
 
   virtual double evaluateScene(Snapshot* s, Image& img);
 
@@ -51,22 +61,32 @@ public:
   // histogram image
   double avgLabDistance(Snapshot* s);
   
+  virtual void comboBoxChanged(ComboBox* box) override;
+
+  void lockMode();
+  void unlockMode();
+
 private:
   float _weight;
 
 #ifdef SPARSE5D
-  SparseHistogram _sourceHist;
+  SparseHistogram _fullSource;  // 5D
 #endif
 #ifdef LABXYHIST
-  LabxyHistogram _sourceHist;
+  LabxyHistogram _fullSource;
 #endif
+
+  SparseHistogram _LSource;     // 1D
+  SparseHistogram _abSource;    // 2D
+  SparseHistogram _LabSource;   // 3D
 
   Image _sourceImg;
   Image _originalImg;
   vector<vector<double> > _metric;
 
   TextButton _showImgButton;
-  ComboBox _mode;
+  ComboBox _modeSelect;
+  Mode _mode;
 };
 
 #endif  // IMAGEATTRIBUTE_H_INCLUDED

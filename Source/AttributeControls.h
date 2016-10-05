@@ -49,6 +49,9 @@ public:
   void removeAllControllers();
   void runPreprocess();
 
+  void lockImageAttrs();
+  void unlockImageAttrs();
+
   map<string, AttributeControllerBase*> getActiveAttribues();
 
 private:
@@ -86,6 +89,10 @@ public:
   
   // Adds a new controller to the container.
   void addAttributeController(AttributeControllerBase* controller);
+  
+  // When the search is running, the image attribute mode controls should be disabled
+  void lockAttributeModes();
+  void unlockAttributeModes();
 
 private:
   void initAttributes();
