@@ -55,16 +55,18 @@ private:
   float _weight;
 
 #ifdef SPARSE5D
-  Sparse5DHistogram _sourceHist;
+  SparseHistogram _sourceHist;
 #endif
 #ifdef LABXYHIST
   LabxyHistogram _sourceHist;
 #endif
+
   Image _sourceImg;
   Image _originalImg;
   vector<vector<double> > _metric;
 
   TextButton _showImgButton;
+  ComboBox _mode;
 };
 
 #endif  // IMAGEATTRIBUTE_H_INCLUDED

@@ -645,61 +645,74 @@ HistogramFeature::HistogramFeature()
 {
 }
 
-HistogramFeature::HistogramFeature(float L, float a, float b, float x, float y)
+HistogramFeature::HistogramFeature(vector<float> pt)
 {
-  _data._L = L;
-  _data._a = a;
-  _data._b = b;
-  _data._x = x;
-  _data._y = y;
+  _data._v = pt;
 }
 
 bool HistogramFeature::operator==(const HistogramFeature & other) const
 {
-  return (other._data._L == _data._L &&
-    other._data._a == _data._a &&
-    other._data._b == _data._b &&
-    other._data._x == _data._x &&
-    other._data._y == _data._y
-  );
+  if (other._data._v.size() != _data._v.size())
+    return false;
+
+  for (int i = 0; i < _data._v.size(); i++) {
+    if (other._data._v[i] != _data._v[i])
+      return false;
+  }
+
+  return true;
 }
 
-Sparse5DHistogram::Sparse5DHistogram(vector<float> bounds, float lambda) : _bounds(bounds), _lambda(lambda)
-{
-  _totalWeight = 0;
+SparseHistogram::SparseHistogram(int dims, vector<float> bounds, float lambda) :
+  _n(dims), _bounds(bounds), _lambda(lambda), _totalWeight(0) {
+  
 }
 
-Sparse5DHistogram::~Sparse5DHistogram()
-{
+SparseHistogram::~SparseHistogram() {
 }
 
-void Sparse5DHistogram::add(float l, float a, float b, float x, float y)
+void SparseHistogram::add(vector<float> pt)
 {
-  addToBin(1, l, a, b, x, y);
+  addToBin(1, pt);
 }
 
-void Sparse5DHistogram::addToBin(float amt, float l, float a, float b, float x, float y)
+void SparseHistogram::addToBin(float amt, vector<float> pt)
 {
-  _histData[closestBin(l, a, b, x, y)] += amt;
+  _histData[closestBin(pt)] += amt;
   _totalWeight += amt;
 }
 
-void Sparse5DHistogram::removeFromBin(float amt, float l, float a, float b, float x, float y)
+void SparseHistogram::removeFromBind(float amt, vector<float> pt)
 {
-  _histData[closestBin(l, a, b, x, y)] -= amt;
+  _histData[closestBin(pt)] -= amt;
   _totalWeight -= amt;
 }
 
-float Sparse5DHistogram::getBin(float l, float a, float b, float x, float y)
+float SparseHistogram::getBin(vector<float> pt)
 {
-  return _histData[closestBin(l, a, b, x, y)];
+  return _histData[closestBin(pt)];
 }
 
-float Sparse5DHistogram::EMD(Sparse5DHistogram & other)
+float SparseHistogram::EMD(SparseHistogram & other)
 {
   function<float(feature_tt*, feature_tt*)> dist = [this](feature_tt* f1, feature_tt* f2) {
-    return sqrt(pow(f1->_L - f2->_L, 2) + pow(f1->_a - f2->_a, 2) + pow(f1->_b - f2->_b, 2) +
-      _lambda * (pow(f1->_x - f2->_x, 2) + pow(f1->_y - f2->_y, 2)));
+    float sum = 0;
+
+    for (int i = 0; i < f1->_v.size(); i++) {
+      if (_lambda < 0) {
+        sum += pow(f1->_v[i] - f2->_v[i], 2);
+      }
+      else {
+        if (i >= f1->_v.size() - 2) {
+          sum += _lambda * pow(f1->_v[i] - f2->_v[i], 2);
+        }
+        else {
+          sum += pow(f1->_v[i] - f2->_v[i], 2);
+        }
+      }
+    }
+
+    return sqrt(sum);
   };
 
   // construct stuctures for FastSimplex
@@ -725,10 +738,10 @@ float Sparse5DHistogram::EMD(Sparse5DHistogram & other)
   int ret = net.run();
 
   double resultDist = net.totalCost();
-  return (float) resultDist;
+  return (float)resultDist;
 }
 
-vector<int> Sparse5DHistogram::weights(vector<feature_tt>& out)
+vector<int> SparseHistogram::weights(vector<feature_tt>& out)
 {
   out.clear();
   vector<int> weights;
@@ -740,7 +753,7 @@ vector<int> Sparse5DHistogram::weights(vector<feature_tt>& out)
   return weights;
 }
 
-vector<int> Sparse5DHistogram::negWeights(vector<feature_tt>& out)
+vector<int> SparseHistogram::negWeights(vector<feature_tt>& out)
 {
   out.clear();
   vector<int> weights;
@@ -752,7 +765,7 @@ vector<int> Sparse5DHistogram::negWeights(vector<feature_tt>& out)
   return weights;
 }
 
-vector<float> Sparse5DHistogram::normalizedWeights(vector<feature_tt>& out)
+vector<float> SparseHistogram::normalizedWeights(vector<feature_tt>& out)
 {
   out.clear();
   vector<float> nrmWeights;
@@ -764,7 +777,7 @@ vector<float> Sparse5DHistogram::normalizedWeights(vector<feature_tt>& out)
   return nrmWeights;
 }
 
-vector<float> Sparse5DHistogram::negNormalizedWeights(vector<feature_tt>& out)
+vector<float> SparseHistogram::negNormalizedWeights(vector<feature_tt>& out)
 {
   out.clear();
   vector<float> nrmWeights;
@@ -777,48 +790,29 @@ vector<float> Sparse5DHistogram::negNormalizedWeights(vector<feature_tt>& out)
   return nrmWeights;
 }
 
-vector<vector<float>> Sparse5DHistogram::getGroundDistance(vector<HistogramFeature>& f1, vector<HistogramFeature>& f2)
-{
-  vector<vector<float> > gd;
-
-  gd.resize(f1.size());
-  for (int i = 0; i < gd.size(); i++) {
-    gd[i].resize(f2.size());
-  }
-
-  for (int i = 0; i < f1.size(); i++) {
-    for (int j = 0; j < f2.size(); j++) {
-      float dist = sqrt(pow(f1[i]._data._L - f2[j]._data._L, 2) + pow(f1[i]._data._a - f2[j]._data._a, 2) +
-        pow(f1[i]._data._b - f2[j]._data._b, 2) +
-        _lambda * (pow(f1[i]._data._x - f2[j]._data._x, 2) + pow(f1[i]._data._y - f2[j]._data._y, 2)));
-
-      // distances are symmetric
-      gd[i][j] = dist;
-    }
-  }
-
-  return gd;
-}
-
-void Sparse5DHistogram::setLambda(double lambda)
+void SparseHistogram::setLambda(double lambda)
 {
   _lambda = lambda;
 }
 
-HistogramFeature Sparse5DHistogram::closestBin(float l, float a, float b, float x, float y)
+int SparseHistogram::getDims()
 {
-  // bins are aligned in multiples of bin size starting at bin base
-  // ex: L base = 5, L size = 10. Bin centers at 5, 15, 25... ranges at [0,10),[10,20)...
-  float lcenter = closest(l, 0);
-  float acenter = closest(a, 2);
-  float bcenter = closest(b, 4);
-  float xcenter = closest(x, 6);
-  float ycenter = closest(y, 8);
-
-  return HistogramFeature(lcenter, acenter, bcenter, xcenter, ycenter);
+  return _n;
 }
 
-float Sparse5DHistogram::closest(float val, int boundsIndex)
+HistogramFeature SparseHistogram::closestBin(vector<float> pt)
+{
+  vector<float> bin;
+  bin.resize(pt.size());
+
+  for (int i = 0; i < pt.size(); i++) {
+    bin[i] = closest(pt[i], i * 2);
+  }
+
+  return HistogramFeature(bin);
+}
+
+float SparseHistogram::closest(float val, int boundsIndex)
 {
   float bin = (int)((abs(val) - _bounds[boundsIndex]) / _bounds[boundsIndex + 1]) *
     _bounds[boundsIndex + 1] + _bounds[boundsIndex] + (_bounds[boundsIndex + 1] / 2);
@@ -974,9 +968,9 @@ Histogram3D HistogramAttribute::getLabHist(Image& canonical, int x, int y, int z
   return lab;
 }
 
-Sparse5DHistogram HistogramAttribute::getLabxyHist(Image & canonical, float lambda)
+SparseHistogram HistogramAttribute::getLabxyHist(Image & canonical, float lambda)
 {
-  Sparse5DHistogram hist({ 0, 20, -5, 25, -5, 25, 0, 0.25f, 0, 0.25f }, lambda);
+  SparseHistogram hist(5, { 0, 20, -5, 25, -5, 25, 0, 0.25f, 0, 0.25f }, lambda);
 
   for (int y2 = 0; y2 < canonical.getHeight(); y2++) {
     for (int x2 = 0; x2 < canonical.getWidth(); x2++) {
@@ -985,7 +979,7 @@ Sparse5DHistogram HistogramAttribute::getLabxyHist(Image & canonical, float lamb
       float xnrm = x2 / (float)canonical.getWidth();
       float ynrm = y2 / (float)canonical.getHeight();
 
-      hist.add(labColor[0], labColor[1], labColor[2], xnrm, ynrm);
+      hist.add({ (float)labColor[0], (float)labColor[1], (float)labColor[2], xnrm, ynrm });
     }
   }
 

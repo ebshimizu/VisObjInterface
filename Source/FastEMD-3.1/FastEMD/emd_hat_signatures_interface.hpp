@@ -41,11 +41,7 @@
 /*****************************************************************************/
 /* feature_tt SHOULD BE MODIFIED BY THE USER TO REFLECT THE FEATURE TYPE      */
 typedef struct {
-  float _L;
-  float _a;
-  float _b;
-  float _x;
-  float _y;
+  vector<float> _v;
 } feature_tt;
 /*****************************************************************************/
 

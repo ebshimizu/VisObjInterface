@@ -135,7 +135,7 @@ class HistogramFeature
 {
 public:
   HistogramFeature();
-  HistogramFeature(float L, float a, float b, float x, float y);
+  HistogramFeature(vector<float> pt);
   bool operator==(const HistogramFeature& other) const;
 
   feature_tt _data;
@@ -148,7 +148,13 @@ namespace std {
     std::size_t operator()(const HistogramFeature& f) const
     {
       // potentially lots of collisions idk
-      return ((size_t)f._data._L | ((size_t)f._data._a) << 8 | ((size_t)f._data._b) << 16 | ((size_t)f._data._x << 20 | ((size_t)f._data._y) << 24));
+      size_t hash = 0;
+
+      for (int i = 0; i < f._data._v.size(); i++) {
+        hash |= (size_t)f._data._v[i] << (32 / f._data._v.size());
+      }
+
+      return hash;
     }
   };
 }
@@ -216,19 +222,21 @@ private:
 // you do not need to specify bounds, just bin size and starting offset.
 // histogram bins are centered around 0. So a bin size of 10 would result in a
 // bin with range [-5, 5] and so on.
-class Sparse5DHistogram {
+// Note that if lambda < 0 then we don't use it in the distance metric
+// otherwise we then assume the last two dimensions are weighted by this lambda (weighted labxy histogram)
+class SparseHistogram {
 public:
-  Sparse5DHistogram(vector<float> bounds, float lambda = 1);
-  ~Sparse5DHistogram();
+  SparseHistogram(int dims, vector<float> bounds, float lambda = -1);
+  ~SparseHistogram();
 
-  void add(float l, float a, float b, float x, float y);
-  void addToBin(float amt, float l, float a, float b, float x, float y);
-  void removeFromBin(float amt, float l, float a, float b, float x, float y);
+  void add(vector<float> pt);
+  void addToBin(float amt, vector<float> pt);
+  void removeFromBind(float amt, vector<float> pt);
 
-  float getBin(float l, float a, float b, float x, float y);
+  float getBin(vector<float> pt);
 
   // Returns the EMD between this histogram and the given other histogram.
-  float EMD(Sparse5DHistogram& other);
+  float EMD(SparseHistogram& other);
 
   // Retrieves a vector of the histogram weights and the corresponding features
   vector<int> weights(vector<feature_tt>& out);
@@ -237,15 +245,16 @@ public:
   // Returns the normalized weights of the histogram and the corresponding features
   vector<float> normalizedWeights(vector<feature_tt>& out);
   vector<float> negNormalizedWeights(vector<feature_tt>& out);
-
-  vector<vector<float> > getGroundDistance(vector<HistogramFeature>& f1, vector<HistogramFeature>& f2);
-
+  
   // Sets the weight for the pixel location
   void setLambda(double lambda);
 
+  // Returns the dimensionality of this histogram
+  int getDims();
+
 private:
   // Retrieves the closest bin center to the specified point
-  HistogramFeature closestBin(float l, float a, float b, float x, float y);
+  HistogramFeature closestBin(vector<float> pt);
 
   float closest(float val, int boundsIndex);
 
@@ -257,6 +266,9 @@ private:
 
   // format: Lbase, Lsize...
   vector<float> _bounds;
+
+  // dimensionality of the histogram
+  int _n;
 };
 
 // This is the base class for attribute which use histograms created in the pixel
@@ -294,7 +306,7 @@ public:
   Histogram3D getLabHist(Image& canonical, int x, int y, int z);
 
   // Returns the color and position histogram for the given image.
-  Sparse5DHistogram getLabxyHist(Image& canonical, float lambda = 50);
+  SparseHistogram getLabxyHist(Image& canonical, float lambda = 50);
 
   LabxyHistogram getLabxyHist2(Image& canonical, int n);
   LabxyHistogram getLabxyHist2(Image& canonical, int l, int a, int b, int x, int y);

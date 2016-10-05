@@ -27,7 +27,7 @@ void ImageDrawer::paint(Graphics & g)
 }
 
 ImageAttribute::ImageAttribute(string name, string filepath, float weight) : HistogramAttribute(name),
-  _sourceHist({}), _weight(weight)
+  _sourceHist(5, {}), _weight(weight), _mode()
 {
   File img(filepath);
   FileInputStream in(img);
@@ -51,7 +51,7 @@ ImageAttribute::ImageAttribute(string name, string filepath, float weight) : His
 }
 
 ImageAttribute::ImageAttribute(string name, Image img, float weight) : HistogramAttribute(name),
-  _sourceHist({}), _weight(weight)
+  _sourceHist(5, {}), _weight(weight)
 {
   _originalImg = img;
   _sourceImg = img.rescaled(_canonicalWidth, _canonicalHeight);
@@ -63,7 +63,7 @@ ImageAttribute::ImageAttribute(string name, Image img, float weight) : Histogram
 }
 
 ImageAttribute::ImageAttribute(string name, Snapshot * s, float weight) : HistogramAttribute(name),
-  _sourceHist({}), _weight(weight)
+  _sourceHist(5, {}), _weight(weight)
 {
   _originalImg = generateImage(s, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
   _sourceImg = _originalImg.rescaled(_canonicalWidth, _canonicalHeight);
@@ -90,7 +90,7 @@ double ImageAttribute::evaluateScene(Snapshot * s, Image& img)
   }
 
 #ifdef SPARSE5D
-  Sparse5DHistogram currentHist = getLabxyHist(img, _weight);
+  SparseHistogram currentHist = getLabxyHist(img, _weight);
   double diff = currentHist.EMD(_sourceHist);
 #endif
 #ifdef LABXYHIST
