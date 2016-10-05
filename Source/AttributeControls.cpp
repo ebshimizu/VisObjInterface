@@ -350,7 +350,7 @@ void AttributeControls::initAttributes()
 
   // Image similarity
   // load from local folder
-  File imageDir = File::getCurrentWorkingDirectory().getChildFile("image_attributes");
+  File imageDir = getGlobalSettings()->_imageAttrLoc;
   Array<File> imagesToLoad;
   int numImage = imageDir.findChildFiles(imagesToLoad, 2, false, "*.png");
 
@@ -361,4 +361,6 @@ void AttributeControls::initAttributes()
     String name = imagesToLoad[i].getFileNameWithoutExtension();
     _container->addAttributeController(new ImageAttribute(name.toStdString(), imagesToLoad[i].getFullPathName().toStdString(), 50));
   }
+
+  getStatusBar()->setStatusMessage("Loaded " + String(numImage) + " images from " + imageDir.getFullPathName());
 }

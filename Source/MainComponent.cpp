@@ -107,7 +107,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::PICK_TRACE, command::OPEN_MASK, command::SAVE_CLUSTERS, command::LOAD_CLUSTERS, command::REFRESH_SETTINGS,
     command::CONSTRAINTS, command::START_AUTO, command::END_AUTO, command::LOCK_ALL_SELECTED,
     command::LOCK_SELECTED_INTENSITY, command::LOCK_SELECTED_COLOR, command::UNLOCK_ALL_SELECTED,
-    command::UNLOCK_SELECTED_COLOR, command::UNLOCK_SELECTED_INTENSITY, command::RELOAD_ATTRS
+    command::UNLOCK_SELECTED_COLOR, command::UNLOCK_SELECTED_INTENSITY, command::RELOAD_ATTRS, command::LOAD_ATTRS
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -257,6 +257,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::RELOAD_ATTRS:
     result.setInfo("Reload Image Attributes", "Reloads the image attributes.", "File", 0);
     break;
+  case command::LOAD_ATTRS:
+    result.setInfo("Load Image Attributes", "Select a folder to load images from", "File", 0);
+    break;
   default:
     return;
   }
@@ -388,6 +391,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::RELOAD_ATTRS:
     reloadImageAttrs();
+    break;
+  case command::LOAD_ATTRS:
+    loadImageAttrsFromDir();
     break;
   default:
     return false;
@@ -1274,6 +1280,17 @@ void MainContentComponent::reloadImageAttrs()
   _attrs->reload();
   resized();
   repaint();
+}
+
+void MainContentComponent::loadImageAttrsFromDir()
+{
+  FileChooser fc("Choose Image Attributes Folder", File::getCurrentWorkingDirectory());
+
+  if (fc.browseForDirectory())
+  {
+    getGlobalSettings()->_imageAttrLoc = fc.getResult();
+    reloadImageAttrs();
+  }
 }
 
 void MainContentComponent::selectBox(string metadataKey, bool inv, string title)

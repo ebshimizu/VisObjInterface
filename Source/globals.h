@@ -36,7 +36,8 @@ enum command {
   SAVE_AS = 0x0003,
   SAVE_RENDER = 0x0004,
   OPEN_MASK = 0x0005,
-  RELOAD_ATTRS = 0x0006,
+  LOAD_ATTRS = 0x0006,
+  RELOAD_ATTRS = 0x0007,
 
   // Internal
   REFRESH_PARAMS = 0x2000,
@@ -299,6 +300,9 @@ public:
   // Load settings from a file, which is typically in the same
   // directory as the application
   void loadSettings(string file = "");
+
+  // folder containing the image attributes to load
+  File _imageAttrLoc;
 };
 
 // Results that eventually get returned to the UI layer

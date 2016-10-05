@@ -441,6 +441,8 @@ GlobalSettings::GlobalSettings()
   _resampleThreads = thread::hardware_concurrency();
   _maskTolerance = 5;
 
+  _imageAttrLoc = File::getCurrentWorkingDirectory().getChildFile("image_attributes");
+
   if (_searchThreads <= 0)
     _searchThreads = 1;
 }

@@ -120,6 +120,7 @@ private:
 
   // Reloads the image attributes
   void reloadImageAttrs();
+  void loadImageAttrsFromDir();
 
   // Opens a selection box presenting a dropdown consisting of the selected
   // metadata field
