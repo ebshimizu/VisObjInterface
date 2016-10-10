@@ -121,7 +121,9 @@ void SearchResultsContainer::updateSize(int height, int width)
 {
   // fixed sized, maximum visible area, width defined by number of clusters
 	if (getGlobalSettings()->_clusterDisplay == COLUMNS) {
-		width = (1 + _clusters.size()) * _columnSize;
+    if (!_notYetClustered) {
+      width = (1 + _clusters.size()) * _columnSize;
+    }
 	}
 	else if (getGlobalSettings()->_clusterDisplay == GRID) {
 		resized();
