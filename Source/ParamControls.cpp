@@ -323,6 +323,11 @@ ParamControls::ParamControls() : _groupColor("Group Color", true)
   _qsAll.setButtonText("All");
   addAndMakeVisible(_qsAll);
 
+  _invert.addListener(this);
+  _invert.setName("invert");
+  _invert.setButtonText("Invert");
+  addAndMakeVisible(_invert);
+
   _render.addListener(this);
   _render.setName("render");
   _render.setButtonText("Render");
@@ -372,6 +377,7 @@ void ParamControls::resized()
   _qsSystem.setBounds(bot.removeFromLeft(60).reduced(2));
   _qsAll.setBounds(bot.removeFromLeft(60).reduced(2));
   _qsNone.setBounds(bot.removeFromLeft(60).reduced(2));
+  _invert.setBounds(bot.removeFromLeft(60).reduced(2));
   _render.setBounds(bot.removeFromRight(60).reduced(2));
 
   _table.setBounds(b);
@@ -624,6 +630,17 @@ void ParamControls::buttonClicked(Button * b)
     set<Device*> devices = selected.getDevices();
     for (auto d : devices) {
       _table.selectRow(_ids.indexOf(String(d->getId())), true, false);
+    }
+
+    _table.updateContent();
+    _table.repaint();
+  }
+  else if (b->getName() == "invert") {
+    for (int i = 0; i < _table.getNumRows(); i++) {
+      if (_table.isRowSelected(i))
+        _table.deselectRow(i);
+      else
+        _table.selectRow(i, false, false);
     }
 
     _table.updateContent();
