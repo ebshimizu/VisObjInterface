@@ -356,7 +356,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId,
       p->renderSingleFrameToBuffer(s->getDevices(), fullBufptr, width, height);
       getGlobalSettings()->_timings[callingThreadId]._addResultRenderTime += chrono::duration<float>(chrono::high_resolution_clock::now() - renderStart).count();
 
-      newResult->setImage(img);
+      newResult->setImage(fullSizeImg);
       {
         lock_guard<mutex> lock(_resultsLock);
         _newResults.add(newResult);
@@ -418,11 +418,11 @@ void SearchResultsContainer::clear()
   _clusters.clear();
 	_savedResults.clear();
 
+  _notYetClustered = true;
   updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
   resized();
   repaint();
   _sampleId = 0;
-  _notYetClustered = true;
   _resultsSinceLastSort = 0;
 }
 

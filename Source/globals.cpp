@@ -400,7 +400,7 @@ GlobalSettings::GlobalSettings()
   _editStepSize = 0.1;
   _maxMCMCIters = 10;
   _numDisplayClusters = 1;
-  _jndThreshold = 2;
+  _jndThreshold = 3;
   _standardMCMC = false;
   _currentSortMode = "Attribute Default";
   _clusterElemsPerRow = 6;

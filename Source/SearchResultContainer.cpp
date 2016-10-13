@@ -183,7 +183,7 @@ void SearchResultContainer::setImage(Image img)
 void SearchResultContainer::computeGradient()
 {
   // magic number warning wow
-	int dim = 64;
+	int dim = 100;
 
 	// compute luminance gradient (x, y, magnitude)
 	for (int y = 0; y < dim; y++) {
@@ -448,7 +448,7 @@ double SearchResultContainer::avgPixDist(SearchResultContainer * y, bool overrid
 
     double maskFactor = 1;
     if (!overrideMask && getGlobalSettings()->_useFGMask) {
-      maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+      maskFactor = _mask.getPixelAt(i % 100, (int)(i / 100)).getBrightness();
 
       if (invert)
         maskFactor = 1 - maskFactor;
@@ -479,7 +479,7 @@ double SearchResultContainer::l2dist(SearchResultContainer * y, bool overrideMas
 
     double maskFactor = 1;
     if (!overrideMask && getGlobalSettings()->_useFGMask) {
-      maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+      maskFactor = _mask.getPixelAt(i % 100, (int)(i / 100)).getBrightness();
 
       if (invert)
         maskFactor = 1 - maskFactor;
@@ -504,7 +504,7 @@ double SearchResultContainer::maxPixDist(SearchResultContainer * y, bool overrid
 
     double maskFactor = 1;
     if (!overrideMask && getGlobalSettings()->_useFGMask) {
-      maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+      maskFactor = _mask.getPixelAt(i % 100, (int)(i / 100)).getBrightness();
       
       if (invert)
         maskFactor = 1 - maskFactor;
@@ -532,7 +532,7 @@ double SearchResultContainer::pctPixDist(SearchResultContainer * y, bool overrid
 
     double maskFactor = 1;
     if (!overrideMask && getGlobalSettings()->_useFGMask) {
-      maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+      maskFactor = _mask.getPixelAt(i % 100, (int)(i / 100)).getBrightness();
 
       if (invert)
         maskFactor = 1 - maskFactor;
@@ -653,7 +653,7 @@ double SearchResultContainer::l2LuminanceDist(SearchResultContainer * y, bool ov
   for (int i = 0; i < _features.size() / 6; i++) {
     double maskFactor = 1;
     if (!overrideMask && getGlobalSettings()->_useFGMask) {
-      maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+      maskFactor = _mask.getPixelAt(i % 100, (int)(i / 100)).getBrightness();
 
       if (invert)
         maskFactor = 1 - maskFactor;
@@ -682,7 +682,7 @@ double SearchResultContainer::directedAvgPixDist(SearchResultContainer * y, bool
 
 		double maskFactor = 1;
 		if (!overrideMask && getGlobalSettings()->_useFGMask) {
-			maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+			maskFactor = _mask.getPixelAt(i % 100, (int)(i / 100)).getBrightness();
 
 			if (invert)
 				maskFactor = 1 - maskFactor;
@@ -717,7 +717,7 @@ double SearchResultContainer::directedOnlyAvgPixDist(SearchResultContainer * y, 
 
 		double maskFactor = 1;
 		if (!overrideMask && getGlobalSettings()->_useFGMask) {
-			maskFactor = _mask.getPixelAt(i % 64, (int)(i / 64)).getBrightness();
+			maskFactor = _mask.getPixelAt(i % 100, (int)(i / 100)).getBrightness();
 
 			if (invert)
 				maskFactor = 1 - maskFactor;
@@ -782,6 +782,6 @@ void SearchResultContainer::sort(AttributeSorter * s)
 void SearchResultContainer::updateMask()
 {
 	if (getGlobalSettings()->_useFGMask) {
-		_mask = getGlobalSettings()->_fgMask.rescaled(64, 64);
+		_mask = getGlobalSettings()->_fgMask.rescaled(100, 100);
 	}
 }
