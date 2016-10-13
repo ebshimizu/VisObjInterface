@@ -125,13 +125,12 @@ Image AttributeControllerBase::generateImage(Snapshot * s)
   }
 
   // with caching we can render at full and then scale down
-  Image highRes = Image(Image::ARGB, _canonicalWidth * 2, _canonicalHeight * 2, true);
-  Image canonical;
+  Image highRes = Image(Image::ARGB, _canonicalWidth, _canonicalHeight, true);
   uint8* bufptr = Image::BitmapData(highRes, Image::BitmapData::readWrite).getPixelPointer(0, 0);
-  p->setDims(_canonicalWidth * 2, _canonicalHeight * 2);
+  p->setDims(_canonicalWidth, _canonicalHeight);
   p->setSamples(getGlobalSettings()->_thumbnailRenderSamples);
 
-  getAnimationPatch()->renderSingleFrameToBuffer(devices, bufptr, _canonicalWidth * 2, _canonicalHeight * 2);
+  getAnimationPatch()->renderSingleFrameToBuffer(devices, bufptr, _canonicalWidth, _canonicalHeight);
 
   // bit obsolete now
   // if the focus region has a non-zero width, pull out the proper section of the image
@@ -148,10 +147,10 @@ Image AttributeControllerBase::generateImage(Snapshot * s)
   //  canonical = clipped.rescaled(_canonicalWidth, _canonicalHeight);
   //}
   //else {
-  canonical = highRes.rescaled(_canonicalWidth, _canonicalHeight);
+  // canonical = highRes.rescaled(_canonicalWidth, _canonicalHeight);
   //}
 
-  return canonical;
+  return highRes;
 }
 
 Image AttributeControllerBase::generateImage(Snapshot * s, int w, int h)

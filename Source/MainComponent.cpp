@@ -1068,7 +1068,7 @@ void MainContentComponent::endAuto()
   file << "Search Duration: " << chrono::duration<float>(getGlobalSettings()->_searchEndTime - getGlobalSettings()->_searchStartTime).count() << "s\n\n";
 
   file << "Search Mode: " << getGlobalSettings()->_searchMode << "\n";
-  file << "Starting Edit Depth: " << getGlobalSettings()->_editDepth << "\n";
+  file << "Starting Edit Depth: " << getGlobalSettings()->_startChainLength << "\n";
   file << "Edit Step Size: " << getGlobalSettings()->_editStepSize << "\n";
   file << "Max MCMC Iterations: " << getGlobalSettings()->_maxMCMCIters << "\n";
   file << "Max Displayed Results: " << getGlobalSettings()->_maxReturnedScenes << "\n";
@@ -1356,6 +1356,36 @@ void MainContentComponent::stopSearch()
   _search->showNewResults();
   _attrs->unlockAttributeModes();
   getStatusBar()->setStatusMessage("Search stopped.");
+
+  // calculate per-thread stats, ignore thread id -1
+  float avgSamples;
+  int count = 0;
+  int totalSamples = 0;
+  for (auto threadData : getGlobalSettings()->_timings) {
+    if (threadData.first < 0)
+      continue;
+
+    string logMsg = "Thread: " + String(threadData.first).toStdString() + "\n";
+    float avg = (threadData.second._sampleTime / threadData.second._numSamples) * 1000;
+    avgSamples += avg;
+
+    logMsg += "Avg Sample Time: " + String(avg).toStdString() + "ms\n";
+    logMsg += "Avg Sample Render Time: " + String((threadData.second._sampleRenderTime / threadData.second._numSamples) * 1000).toStdString() + "ms\n";
+    logMsg += "Avg Sample Eval Time: " + String((threadData.second._sampleEvalTime / threadData.second._numSamples) * 1000).toStdString() + "ms\n";
+    logMsg += "Avg Result Time: " + String((threadData.second._addResultTime / threadData.second._numResults) * 1000).toStdString() + "ms\n";
+    logMsg += "Avg Result Render Time: " + String((threadData.second._addResultRenderTime / threadData.second._numResults) * 1000).toStdString() + "ms\n";
+    logMsg += "Avg Result Eval Time: " + String((threadData.second._addResultEvalTime / threadData.second._numResults) * 1000).toStdString() + "ms\n";
+
+    getRecorder()->log(SYSTEM, logMsg);
+    count++;
+    totalSamples += threadData.second._numSamples;
+  }
+
+  avgSamples /= count;
+  float sps = totalSamples / chrono::duration<float>(getGlobalSettings()->_searchEndTime - getGlobalSettings()->_searchStartTime).count();
+  String status = "Avg. Sample Run Time: " + String(avgSamples) + "ms, Samples Per Second: " + String(sps);
+  getStatusBar()->setStatusMessage(status);
+  getRecorder()->log(SYSTEM, status.toStdString());
 
   if (getGlobalSettings()->_exportTraces) {
     getGlobalSettings()->dumpDiagnosticData();

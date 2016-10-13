@@ -233,7 +233,7 @@ Eigen::VectorXd Edit::numericDeriv(Snapshot * s, attrObjFunc f, double fx)
     }
 
     // record the new function value
-    fx = f(&dx);
+    fx = f(&dx, -1);
 
     // set the values
     for (const auto& d : devices) {
@@ -243,7 +243,7 @@ Eigen::VectorXd Edit::numericDeriv(Snapshot * s, attrObjFunc f, double fx)
     }
 
     // get new function val
-    double fxp = f(&dx);
+    double fxp = f(&dx, -1);
 
     // calculate deriv
     deriv[0] = (fxp - fx) / h;
@@ -260,7 +260,7 @@ Eigen::VectorXd Edit::numericDeriv(Snapshot * s, attrObjFunc f, double fx)
     }
 
     // get new function val
-    double fxp = f(&dx);
+    double fxp = f(&dx, -1);
 
     // calculate deriv
     deriv[0] = (fxp - fx) / h;
@@ -275,7 +275,7 @@ Eigen::VectorXd Edit::numericDeriv(Snapshot * s, attrObjFunc f, double fx)
         applyParamEdit(tempRigDevices[d->getId()], p, h);
 
         // get new function val
-        double fxp = f(&dx);
+        double fxp = f(&dx, -1);
 
         // calculate deriv
         deriv[i] = (fxp - fx) / h;
@@ -300,7 +300,7 @@ double Edit::variance(Snapshot * s, attrObjFunc f, double radius, int n)
 	// do the edit n times, record value
 	for (int i = 0; i < n; i++) {
 		performEdit(s, radius);
-		samples[i] = f(s);
+		samples[i] = f(s, -1);
 		vectorToExistingSnapshot(start, *s); // loading from vector probably faster than reallocating a new one
 	}
 
@@ -313,7 +313,7 @@ double Edit::variance(Snapshot * s, attrObjFunc f, double radius, int n)
 
 double Edit::expected(Snapshot * s, attrObjFunc f, double radius, int n)
 {
-  double fstart = f(s);
+  double fstart = f(s, -1);
 
 	// take n samples using step size radius
 	Eigen::VectorXd samples;
@@ -326,7 +326,7 @@ double Edit::expected(Snapshot * s, attrObjFunc f, double radius, int n)
 	// do the edit n times, record difference from starting value
 	for (int i = 0; i < n; i++) {
 		performEdit(s, radius);
-		samples[i] = fstart - f(s);
+		samples[i] = fstart - f(s, -1);
 		
     if (samples[i] > 0) {
       numPos++;
@@ -359,7 +359,7 @@ double Edit::proportionGood(Snapshot * s, attrObjFunc f, double startVal, double
 
   for (int i = 0; i < n; i++) {
     performEdit(s, radius);
-    double fx = f(s);
+    double fx = f(s, -1);
 
     if (fx < minVal) {
       minVal = fx;

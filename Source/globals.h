@@ -158,6 +158,17 @@ enum DrawMode {
   RECT_REMOVE
 };
 
+struct Timing {
+  float _sampleTime;
+  float _sampleRenderTime;
+  float _sampleEvalTime;
+  float _addResultTime;
+  float _addResultRenderTime;
+  float _addResultEvalTime;
+  int _numSamples;
+  int _numResults;
+};
+
 // A container for various things that the entire application may want to access
 // TODO: at some point, have this load from a file
 class GlobalSettings
@@ -173,7 +184,7 @@ public:
   int _renderWidth;             // Render width
   int _renderHeight;            // Render height
   double _thumbnailRenderScale; // Thumbnail size 
-  int _editDepth;               // Initial edit depth
+  int _startChainLength;               // Initial edit depth
   double _clusterDistThreshold; // Required average distance from every element to the cluster center
   double _editStepSize;         // MCMC: Std dev of gaussian sample 
   int _maxMCMCIters;            // MCMC: Max number of iterations
@@ -226,6 +237,7 @@ public:
 
   // Diagnostic storage for search
   map<int, vector<DebugData> > _samples;
+  map<int, Timing> _timings;
 
   // Diagnostic storage for loaded traces
   map<int, vector<DebugData> > _loadedTraces;

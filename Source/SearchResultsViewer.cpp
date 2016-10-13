@@ -225,7 +225,7 @@ shared_ptr<SearchResultContainer> SearchResultsViewer::getLastSample()
 	return _results->getLastSample();
 }
 
-bool SearchResultsViewer::addNewResult(SearchResult * r, bool force)
+bool SearchResultsViewer::addNewResult(SearchResult * r, int callingThreadId, bool force)
 {
-  return _results->addNewResult(r, force);
+  return _results->addNewResult(r, callingThreadId, force);
 }

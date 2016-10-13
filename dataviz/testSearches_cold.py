@@ -8,7 +8,8 @@ import os
 scene = sys.argv[1]
 targetsDir = sys.argv[2]
 
-editModes = [8.1, 6, 8]
+editModes = [8]
+stepSizes = [0.1, 0.25, 0.5, 1]
 
 targetImages = glob.glob(targetsDir + "/*.png")
 
@@ -19,17 +20,14 @@ compareDirs = dict()
 for editMode in editModes:
 	compareDirs[editMode] = []
 
-logDir = "../analysis/precompute/"
+logDir = "../analysis/stepsize/"
 for imgPath in targetImages:
-	for editMode in editModes:
-		if editMode == 8.1:
-			cmd = exe + " --preload " + scene + " --auto 8 --editUpdateMode 1 --img-attr " + imgPath + " --more --samples 1000 --out " + logDir + " --jnd 0.1 --timeout 10 --session-name 8.1"
-		else:
-			cmd = exe + " --preload " + scene + " --auto " + str(editMode) + " --img-attr " + imgPath + " --more --samples 1000 --out " + logDir + " --jnd 0.1 --timeout 10"
+	for stepSize in stepSizes:
+		cmd = exe + " --preload " + scene + " --auto 8 --img-attr " + imgPath + " --more --step-size " + str(stepSize) + " --samples 1000 --out " + logDir + " --jnd 2 --timeout 3 --session-name " + str(stepSize)
 		print cmd
 		call(cmd)
 
-		compareDirs[editMode].append(logDir + str(editMode) + "/" + os.listdir(logDir + str(editMode))[-2])
+		compareDirs[editMode].append(logDir + str(stepSize) + "/" + os.listdir(logDir + str(stepSize))[-2])
 
 	call("python processData.py " + logDir)
 

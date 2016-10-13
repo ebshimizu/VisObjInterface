@@ -210,7 +210,7 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjF
   _edits.clear();
   _edits = getGlobalSettings()->_edits;
   _T = getGlobalSettings()->_T;
-  _maxDepth = (getGlobalSettings()->_standardMCMC) ? 1 : getGlobalSettings()->_editDepth;
+  _maxDepth = (getGlobalSettings()->_standardMCMC) ? 1 : getGlobalSettings()->_startChainLength;
   _failures = 0;
   _resampleTime = getGlobalSettings()->_resampleTime;
   _resampleThreads = getGlobalSettings()->_resampleThreads;
@@ -437,7 +437,7 @@ void AttributeSearchThread::recenter(Snapshot * s)
       data._timeStamp = chrono::high_resolution_clock::now();
       samples[_id].push_back(data);
 
-      _maxDepth = getGlobalSettings()->_editDepth;
+      _maxDepth = getGlobalSettings()->_startChainLength;
     }
   }
   
@@ -499,7 +499,7 @@ void AttributeSearchThread::runSearch()
 void AttributeSearchThread::runMCMCEditSearch(bool force) {
   _statusMessage = "Running MCMC Edit Search";
 
-	double fx = _f(_original);
+	double fx = _f(_original, _id);
 
   if (getGlobalSettings()->_randomInit) {
     // switch up the very first starting scene.
@@ -559,7 +559,7 @@ void AttributeSearchThread::runMCMCEditSearch(bool force) {
 			e->performEdit(sp, getGlobalSettings()->_editStepSize);
 
 			// check for acceptance
-			double fxp = _f(sp);
+			double fxp = _f(sp, _id);
 			double a = 0;
 			
 			if (_mode == MCMC_EDIT || _mode == MIN_MCMC_EDIT) {
@@ -651,7 +651,7 @@ void AttributeSearchThread::runMCMCEditSearch(bool force) {
 	// hybrid method doesn't actually care just add it anyway
 	if ((r->_objFuncVal < orig || _mode == HYBRID_EXPLORE || _mode == HYBRID_DEBUG) && maskDiff < _maskTolerance) {
 		// send scene to the results area. may chose to not use the scene
-		if (!_viewer->addNewResult(r, force)) {
+		if (!_viewer->addNewResult(r, _id, force)) {
 			// r has been deleted by _viewer here
 			_failures++;
 			data._accepted = false;
@@ -702,7 +702,7 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 	}
 
   double fx = 0;
-  double forig = _fsq(&xs);
+  double forig = _fsq(&xs, _id);
 	x = performLMGD(&xs, fx);
   vectorToExistingSnapshot(x, xs);
 
@@ -728,7 +728,7 @@ void AttributeSearchThread::runLMGDSearch(bool force)
 
 	if (fx < forig && maskDiff < _maskTolerance) {
 		SearchResult* r = new SearchResult();
-		r->_objFuncVal = _f(&xs);
+		r->_objFuncVal = _f(&xs, _id);
 		r->_scene = x;
 		r->_extraData["LM Terminal"] = "True";
 		r->_extraData["Thread"] = String(_id);
@@ -736,7 +736,7 @@ void AttributeSearchThread::runLMGDSearch(bool force)
     r->_creationTime = chrono::high_resolution_clock::now();
 		// r->_extraData["Parent"]
 
-		data._accepted = _viewer->addNewResult(r, true);
+		data._accepted = _viewer->addNewResult(r, _id, true);
 	}
 	else {
 		data._accepted = false;
@@ -753,7 +753,7 @@ void AttributeSearchThread::runMCMCLMGDSearch()
 {
   _statusMessage = "Running MCMCLMGD";
 
-  double fx = _f(_original);
+  double fx = _f(_original, _id);
 
   if (getGlobalSettings()->_randomInit) {
     // switch up the very first starting scene.
@@ -813,7 +813,7 @@ void AttributeSearchThread::runMCMCLMGDSearch()
       e->performEdit(sp, getGlobalSettings()->_editStepSize);
 
       // check for acceptance
-      double fxp = _f(sp);
+      double fxp = _f(sp, _id);
       double a = 0;
 
       a = min(exp((1 / _T) * (fx - fxp)), 1.0);
@@ -891,7 +891,7 @@ void AttributeSearchThread::runMCMCLMGDSearch()
   // add if we did better
   if (r->_objFuncVal < orig && maskDiff < _maskTolerance) {
     // send scene to the results area. may chose to not use the scene
-    if (!_viewer->addNewResult(r, false)) {
+    if (!_viewer->addNewResult(r, _id, false)) {
       // r has been deleted by _viewer here
       _failures++;
       data._accepted = false;
@@ -921,7 +921,7 @@ void AttributeSearchThread::runMCMCLMGDSearch()
   // (for now) add that to the results set.
 
   // Levenberg-Marquardt
-  double forig = _fsq(start);
+  double forig = _fsq(start, _id);
   Eigen::VectorXd x = performLMGD(start, fx);
   Snapshot* xs = vectorToSnapshot(x);
 
@@ -936,7 +936,7 @@ void AttributeSearchThread::runMCMCLMGDSearch()
 
   if (fx < forig) {
     SearchResult* r = new SearchResult();
-    r->_objFuncVal = _f(xs);
+    r->_objFuncVal = _f(xs, _id);
     r->_scene = x;
     r->_creationTime = chrono::high_resolution_clock::now();
     r->_extraData["Sample"] = String(data2._sampleId);
@@ -944,7 +944,7 @@ void AttributeSearchThread::runMCMCLMGDSearch()
     r->_extraData["LM Terminal"] = "True";
     r->_extraData["Thread"] = String(_id);
 
-    data2._accepted = _viewer->addNewResult(r, true);
+    data2._accepted = _viewer->addNewResult(r, _id, true);
   }
   else {
     data2._accepted = false;
@@ -960,7 +960,7 @@ void AttributeSearchThread::runRecenteringMCMCSearch()
 {
   _statusMessage = "Running Recenter-Move MCMC";
 
-  double fx = _f(_original);
+  double fx = _f(_original, _id);
 
   if (getGlobalSettings()->_randomInit) {
     // switch up the very first starting scene.
@@ -1018,7 +1018,7 @@ void AttributeSearchThread::runRecenteringMCMCSearch()
 			e->performEdit(sp, getGlobalSettings()->_editStepSize);
 
 			// check for acceptance
-			double fxp = _f(sp);
+			double fxp = _f(sp, _id);
       double a = min(exp((1 / _T) * (fx - fxp)), 1.0);
 
 			// accept if a >= 1 or with probability a
@@ -1103,7 +1103,7 @@ void AttributeSearchThread::runRecenteringMCMCSearch()
 	// hybrid method doesn't actually care just add it anyway
 	if (r->_objFuncVal < orig && maskDiff < _maskTolerance) {
 		// send scene to the results area. may chose to not use the scene
-		if (!_viewer->addNewResult(r, false)) {
+		if (!_viewer->addNewResult(r, _id, false)) {
 			// r has been deleted by _viewer here
 			_failures++;
 			data._accepted = false;
@@ -1138,7 +1138,7 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
     recenter();
   }
 
-  double fx = _f(_original);
+  double fx = _f(_original, _id);
 
   if (getGlobalSettings()->_randomInit) {
     // switch up the very first starting scene.
@@ -1198,7 +1198,7 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
       e->performEdit(sp, getGlobalSettings()->_editStepSize);
 
       // check for acceptance
-      double fxp = _f(sp);
+      double fxp = _f(sp, _id);
       double a = 0;
 
       a = min(exp((1 / _T) * (fx - fxp)), 1.0);
@@ -1277,7 +1277,7 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
 
   if (r->_objFuncVal < orig && maskDiff < _maskTolerance) {
     // send scene to the results area. may chose to not use the scene
-    if (!_viewer->addNewResult(r, false)) {
+    if (!_viewer->addNewResult(r, _id, false)) {
       // r has been deleted by _viewer here
       _failures++;
       data._accepted = false;
@@ -1308,7 +1308,7 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
   // (for now) add that to the results set.
 
   // Levenberg-Marquardt
-  double forig = _fsq(start);
+  double forig = _fsq(start, _id);
   Eigen::VectorXd x = performLMGD(start, fx);
   Snapshot* xs = vectorToSnapshot(x);
 
@@ -1323,7 +1323,7 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
 
   if (fx < forig) {
     SearchResult* r = new SearchResult();
-    r->_objFuncVal = _f(xs);
+    r->_objFuncVal = _f(xs, _id);
     r->_scene = x;
     r->_creationTime = chrono::high_resolution_clock::now();
     r->_extraData["Sample"] = String(data2._sampleId);
@@ -1331,7 +1331,7 @@ void AttributeSearchThread::runRecenteringMCMCLMGDSearch()
     r->_extraData["LM Terminal"] = "True";
     r->_extraData["Thread"] = String(_id);
 
-    data2._accepted = _viewer->addNewResult(r, true);
+    data2._accepted = _viewer->addNewResult(r, _id, true);
   }
   else {
     data2._accepted = false;
@@ -1348,7 +1348,7 @@ void AttributeSearchThread::runSearchNoWarmup()
 {
   _statusMessage = "Running Recenter-Move MCMC with fast start";
 
-  double fx = _f(_original);
+  double fx = _f(_original, _id);
 
   // assign start scene, initialize result
   Snapshot* start = new Snapshot(*_original);
@@ -1401,7 +1401,7 @@ void AttributeSearchThread::runSearchNoWarmup()
       e->performEdit(sp, getGlobalSettings()->_editStepSize);
 
       // check for acceptance
-      double fxp = _f(sp);
+      double fxp = _f(sp, _id);
       double a = min(exp((1 / _T) * (fx - fxp)), 1.0);
 
       // store statistics
@@ -1491,7 +1491,7 @@ void AttributeSearchThread::runSearchNoWarmup()
 
   if (r->_objFuncVal < orig && maskDiff < _maskTolerance) {
     // send scene to the results area. may chose to not use the scene
-    if (!_viewer->addNewResult(r, false)) {
+    if (!_viewer->addNewResult(r, _id, false)) {
       // r has been deleted by _viewer here
       _failures++;
       data._accepted = false;
@@ -1528,7 +1528,7 @@ Eigen::VectorXd AttributeSearchThread::getDerivative(Snapshot & s)
 	Eigen::VectorXd x = snapshotToVector(&s);
 	Eigen::VectorXd dx;
 	dx.resizeLike(x);
-	double fx = _fsq(&s);
+	double fx = _fsq(&s, _id);
 
 	// adjust each parameter in order
 	double h = 1e-3;
@@ -1539,14 +1539,14 @@ Eigen::VectorXd AttributeSearchThread::getDerivative(Snapshot & s)
     if (x[i] >= 1) {
       x[i] -= h;
       vectorToExistingSnapshot(x, s);
-      double fxp = _fsq(&s);
+      double fxp = _fsq(&s, _id);
       dx[i] = (fx - fxp) / h;
       x[i] += h;
     }
     else {
       x[i] += h;
       vectorToExistingSnapshot(x, s);
-      double fxp = _fsq(&s);
+      double fxp = _fsq(&s, _id);
       dx[i] = (fxp - fx) / h;
       x[i] -= h;
     }
@@ -1597,12 +1597,12 @@ Eigen::VectorXd AttributeSearchThread::performLMGD(Snapshot* scene, double& fina
   double eps = 1e-3;
   double eps2 = 1e-6;
   double tau = 1e-3;
-  double fx = _fsq(&xs);
+  double fx = _fsq(&xs, _id);
   double forig = fx;
 
   Eigen::MatrixXd J = getJacobian(xs);
   Eigen::MatrixXd H = J.transpose() * J;		// may need to replace with actual calculation of Hessian
-  Eigen::MatrixXd g = J.transpose() * _fsq(&xs);
+  Eigen::MatrixXd g = J.transpose() * _fsq(&xs, _id);
 
   double mu = tau * H.diagonal().maxCoeff();
 
@@ -1631,7 +1631,7 @@ Eigen::VectorXd AttributeSearchThread::performLMGD(Snapshot* scene, double& fina
       }
 
       vectorToExistingSnapshot(xnew, xs);
-      double fnew = _fsq(&xs);
+      double fnew = _fsq(&xs, _id);
       Eigen::MatrixXd denom = (0.5 * hlm.transpose() * (mu * hlm - g));
       double rhoval = (fx * fx / 2 - fnew * fnew / 2) / denom(0);
 
@@ -1784,39 +1784,66 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
   }
 
   // objective functions for combined set of active attributes.
-  _f = [this](Snapshot* s) {
+  _f = [this](Snapshot* s, int callingThreadId) {
+    auto start = chrono::high_resolution_clock::now();
     if (_active.size() == 0)
       return 0.0;
 
     // for multiple attributes, we generate the image here first
     Image img = _active.begin()->second.first->generateImage(s);
-    Image startImg = _active.begin()->second.first->generateImage(_start);
+    getGlobalSettings()->_timings[callingThreadId]._sampleRenderTime += chrono::duration<float>(chrono::high_resolution_clock::now() - start).count();
+
+    // compute this image on demand
+    Image startImg;
     double sum = 0;
     for (const auto& kvp : _active) {
-      if (kvp.second.second == A_LESS)
+      if (kvp.second.second == A_LESS) {
+        auto evalStart = chrono::high_resolution_clock::now();
         sum += kvp.second.first->evaluateScene(s, img);
+        getGlobalSettings()->_timings[callingThreadId]._sampleEvalTime += chrono::duration<float>(chrono::high_resolution_clock::now() - evalStart).count();
+      }
       else if (kvp.second.second == A_MORE) {
+        auto evalStart = chrono::high_resolution_clock::now();
         sum -= kvp.second.first->evaluateScene(s, img);
+        getGlobalSettings()->_timings[callingThreadId]._sampleEvalTime += chrono::duration<float>(chrono::high_resolution_clock::now() - evalStart).count();
       }
       else if (kvp.second.second == A_EQUAL) {
+        if (startImg.getWidth() == 0) {
+          auto renderStart = chrono::high_resolution_clock::now();
+          Image startImg = _active.begin()->second.first->generateImage(_start);
+          getGlobalSettings()->_timings[callingThreadId]._sampleRenderTime += chrono::duration<float>(chrono::high_resolution_clock::now() - renderStart).count();
+        }
+        auto evalStart = chrono::high_resolution_clock::now();
         sum += pow(kvp.second.first->evaluateScene(s, img) - kvp.second.first->evaluateScene(_start, startImg), 2);
+        getGlobalSettings()->_timings[callingThreadId]._sampleRenderTime += chrono::duration<float>(chrono::high_resolution_clock::now() - evalStart).count();
       }
     }
 
     // freeze region penalty
     if (_useMask) {
+      if (startImg.getWidth() == 0) {
+        auto renderStart = chrono::high_resolution_clock::now();
+        Image startImg = _active.begin()->second.first->generateImage(_start);
+        getGlobalSettings()->_timings[callingThreadId]._sampleRenderTime += chrono::duration<float>(chrono::high_resolution_clock::now() - renderStart).count();
+      }
       sum += avgLabMaskedImgDiff(img, startImg, _freezeMask);
     }
 
+    getGlobalSettings()->_timings[callingThreadId]._sampleTime += chrono::duration<float>(chrono::high_resolution_clock::now() - start).count();
+    getGlobalSettings()->_timings[callingThreadId]._numSamples += 1;
     return sum;
   };
 
-  _fsq = [this](Snapshot* s) {
+  // this function is not instrumented at the moment due it it only being used in LMGD, which is not
+  // actively being looked at.
+  _fsq = [this](Snapshot* s, int callingThreadId) {
     if (_active.size() == 0)
       return 0.0;
 
     Image img = _active.begin()->second.first->generateImage(s);
-    Image startImg = _active.begin()->second.first->generateImage(_start);
+
+    // compute this on demand
+    Image startImg;
     double sum = 0;
     for (const auto& kvp : _active) {
       if (kvp.second.second == A_LESS)
@@ -1826,12 +1853,19 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
         // which are all positive functions
         sum += (100 - kvp.second.first->evaluateScene(s, img));
       }
-      else if (kvp.second.second == A_EQUAL)
+      else if (kvp.second.second == A_EQUAL) {
+        if (startImg.getWidth() == 0) {
+          Image startImg = _active.begin()->second.first->generateImage(_start);
+        }
         sum += pow(kvp.second.first->evaluateScene(s, img) - kvp.second.first->evaluateScene(_start, startImg), 2);
+      }
     }
 
     // freeze region penalty
     if (_useMask) {
+      if (startImg.getWidth() == 0) {
+        Image startImg = _active.begin()->second.first->generateImage(_start);
+      }
       sum += avgLabMaskedImgDiff(img, startImg, _freezeMask);
     }
 
@@ -1854,12 +1888,13 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
 
     // set up diagnostics container
     samples[i] = vector<DebugData>();
+    getGlobalSettings()->_timings[i] = { 0,0,0,0,0,0,0,0 };
     t->setInternalID(i);
     i++;
   }
 
   DebugData data;
-  data._f = _f(start);
+  data._f = _f(start, -1);
   data._a = 1;
   data._sampleId = (unsigned int) samples[-1].size() + 1;
   data._editName = "START";

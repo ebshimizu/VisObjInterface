@@ -40,7 +40,7 @@ public:
 };
 
 // Objective function type to be passed to performEdit.
-typedef function<double(Snapshot*)> attrObjFunc;
+typedef function<double(Snapshot*, int)> attrObjFunc;
 
 /*
 An edit contains logic for manipulating one scene according to particular rules.

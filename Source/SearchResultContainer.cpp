@@ -160,8 +160,8 @@ void SearchResultContainer::setImage(Image img)
 
   // create feature vector
   // consists of Lab image (0-2) and per-channel Lab gradient direction (3-5)
-	Image scaled = _render.rescaled(64, 64);
-  _features.resize(64 * 64 * 6);
+	Image scaled = _render.rescaled(100, 100);
+  _features.resize(100 * 100 * 6);
 
 	updateMask();
 

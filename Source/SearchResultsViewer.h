@@ -50,7 +50,7 @@ public:
   HistoryPanel* getHistory() { return _history; }
 
   // adds a new search result to the display area. Thread safe.
-  bool addNewResult(SearchResult* r, bool force = false);
+  bool addNewResult(SearchResult* r, int callingThreadId, bool force = false);
 
   // tells the search result container to update itself
   void showNewResults();

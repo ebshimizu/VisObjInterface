@@ -53,7 +53,7 @@ void SettingsSlider::setValue(double newValue)
   else if (_id == "Thumbnail Scale")
     getGlobalSettings()->_thumbnailRenderScale = newValue;
   else if (_id == "Initial Edit Depth")
-    getGlobalSettings()->_editDepth = (int)newValue;
+    getGlobalSettings()->_startChainLength = (int)newValue;
   else if (_id == "Cluster Distance Threshold")
     getGlobalSettings()->_clusterDistThreshold = newValue;
   else if (_id == "MCMC Step Size")
@@ -143,7 +143,7 @@ double SettingsSlider::getValue() const
   else if (_id == "Thumbnail Scale")
     return getGlobalSettings()->_thumbnailRenderScale;
   else if (_id == "Initial Edit Depth")
-    return getGlobalSettings()->_editDepth;
+    return getGlobalSettings()->_startChainLength;
   else if (_id == "Cluster Distance Threshold")
     return getGlobalSettings()->_clusterDistThreshold;
   else if (_id == "MCMC Step Size")
@@ -423,7 +423,7 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 25, 1));
   searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 10, 0.01));
   searchComponents.add(new SettingsSlider("Max Results", 1, 1000, 1));
-  searchComponents.add(new SettingsSlider("MCMC Step Size", 0, 0.25, 0.001));
+  searchComponents.add(new SettingsSlider("MCMC Step Size", 0, 1, 0.001));
   searchComponents.add(new SettingsSlider("MCMC Max Iterations", 1, 100, 1));
 	searchComponents.add(new SettingsSlider("L-M Max Iterations", 1, 1000, 1));
   //searchComponents.add(new SettingsSlider("Mean Shift Epsilon", 0, 0.01, 1e-6));

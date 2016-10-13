@@ -156,7 +156,7 @@ void GlobalSettings::dumpDiagnosticData()
     file << _sessionSearchSettings;
 
     // write out search specific settings
-    file << "Starting Edit Depth: " << _editDepth << "\n";
+    file << "Starting Edit Depth: " << _startChainLength << "\n";
     file << "Edit Step Size: " << _editStepSize << "\n";
     file << "Max MCMC Iterations: " << _maxMCMCIters << "\n";
     file << "Max Displayed Results: " << _maxReturnedScenes << "\n";
@@ -395,10 +395,10 @@ GlobalSettings::GlobalSettings()
   _renderWidth = 0;
   _renderHeight = 0;
   _thumbnailRenderScale = 0.50;
-  _editDepth = 3;
+  _startChainLength = 3;
   _clusterDistThreshold = 0.30;
   _editStepSize = 0.1;
-  _maxMCMCIters = 30;
+  _maxMCMCIters = 10;
   _numDisplayClusters = 1;
   _jndThreshold = 2;
   _standardMCMC = false;

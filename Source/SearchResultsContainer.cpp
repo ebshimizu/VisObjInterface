@@ -284,8 +284,11 @@ Array<shared_ptr<SearchResultContainer> > SearchResultsContainer::getResults()
   return _allResults;
 }
 
-bool SearchResultsContainer::addNewResult(SearchResult * r, bool force)
+bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId, bool force)
 {
+  auto start = chrono::high_resolution_clock::now();
+  getGlobalSettings()->_timings[callingThreadId]._numResults += 1;
+
   {
     // limit number of total results
     if (isFull()) {
@@ -297,10 +300,10 @@ bool SearchResultsContainer::addNewResult(SearchResult * r, bool force)
     // Create new result container
     shared_ptr<SearchResultContainer> newResult = shared_ptr<SearchResultContainer>(new SearchResultContainer(r));
 
-    // render
+    // render the comparison image
     auto p = getAnimationPatch();
-    int width = getGlobalSettings()->_renderWidth;
-    int height = getGlobalSettings()->_renderHeight;
+    int width = 100;
+    int height = 100;
     p->setDims(width, height);
     p->setSamples(getGlobalSettings()->_stageRenderSamples);
 
@@ -308,49 +311,74 @@ bool SearchResultsContainer::addNewResult(SearchResult * r, bool force)
     uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
 
     Snapshot* s = vectorToSnapshot(r->_scene);
+    
+    auto renderStart = chrono::high_resolution_clock::now();
     p->renderSingleFrameToBuffer(s->getDevices(), bufptr, width, height);
-    delete s;
+    getGlobalSettings()->_timings[callingThreadId]._addResultRenderTime += chrono::duration<float>(chrono::high_resolution_clock::now() - renderStart).count();
+
     newResult->setImage(img);
 
     // new results get placed into the new results queue
+    bool earlyExit = false;
     if (!force) {
+      auto evalStart = chrono::high_resolution_clock::now();
       lock_guard<mutex> lock(_resultsLock);
       for (auto& res : _allResults) {
         if (newResult->avgPixDist(res.get(), true) < getGlobalSettings()->_jndThreshold) {
-          return false;
+          earlyExit = true;
         }
       }
 
       // also check things in the waiting queue
       for (auto& res : _newResults) {
         if (newResult->avgPixDist(res.get(), true) < getGlobalSettings()->_jndThreshold) {
-          return false;
+          earlyExit = true;
         }
+      }
+      getGlobalSettings()->_timings[callingThreadId]._addResultEvalTime += chrono::duration<float>(chrono::high_resolution_clock::now() - evalStart).count();
+    }
+
+    if (!earlyExit) {
+      r->_sampleNo = _sampleId;
+      _sampleId++;
+
+      // add result to new results queue
+
+      // do the fullsize render here
+      width = getGlobalSettings()->_renderWidth;
+      height = getGlobalSettings()->_renderHeight;
+      p->setDims(width, height);
+
+      Image fullSizeImg = Image(Image::ARGB, width, height, true);
+      uint8* fullBufptr = Image::BitmapData(fullSizeImg, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+
+      auto renderStart = chrono::high_resolution_clock::now();
+      p->renderSingleFrameToBuffer(s->getDevices(), fullBufptr, width, height);
+      getGlobalSettings()->_timings[callingThreadId]._addResultRenderTime += chrono::duration<float>(chrono::high_resolution_clock::now() - renderStart).count();
+
+      newResult->setImage(img);
+      {
+        lock_guard<mutex> lock(_resultsLock);
+        _newResults.add(newResult);
+
+        // some results have some extra info we have to deal with here
+        if (r->_extraData.count("LM Terminal") > 0) {
+          _terminalScenes[(int)_terminalScenes.size() + 1] = newResult;
+        }
+        if (r->_extraData.count("Local Sample") > 0) {
+          // Local sample has the parent terminal scene id as the value
+          _localSampleCounts[r->_extraData["Local Sample"].getIntValue()] += 1;
+        }
+
+        Lumiverse::Logger::log(INFO, "Adding new result. In queue: " + String(_newResults.size()).toStdString());
+        _resultsSinceLastSort += 1;
       }
     }
 
-    r->_sampleNo = _sampleId;
-    _sampleId++;
-
-    // add result to new results queue
-    {
-      lock_guard<mutex> lock(_resultsLock);
-      _newResults.add(newResult);
-
-			// some results have some extra info we have to deal with here
-			if (r->_extraData.count("LM Terminal") > 0) {
-				_terminalScenes[(int)_terminalScenes.size() + 1] = newResult;
-			}
-			if (r->_extraData.count("Local Sample") > 0) {
-				// Local sample has the parent terminal scene id as the value
-				_localSampleCounts[r->_extraData["Local Sample"].getIntValue()] += 1;
-			}
-
-      Lumiverse::Logger::log(INFO, "Adding new result. In queue: " + String(_newResults.size()).toStdString());
-      _resultsSinceLastSort += 1;
-    }
+    getGlobalSettings()->_timings[callingThreadId]._addResultTime += chrono::duration<float>(chrono::high_resolution_clock::now() - start).count();
+    delete s;
+    return !earlyExit;
   }
-  return true;
 }
 
 void SearchResultsContainer::showNewResults()
