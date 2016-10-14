@@ -192,6 +192,9 @@ private:
 
   // Updates the local weights with info from previous run
   void updateEditWeights();
+
+  // Initialize the edit weights
+  void initEditWeights();
 };
 
 class AttributeSearch : public Thread

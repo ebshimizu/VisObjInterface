@@ -150,6 +150,11 @@ enum SearchMode {
   COLD_RECENTER      // No-windup recentering search. Basically calculates weights as the search runs.
 };
 
+enum EditSelectMode {
+  DEFAULT_CHOICE,     // the default edit selection mode that's been in this application forever
+  SIMPLE_BANDIT       // a multi-armed bandit that count successes and failures as weights
+};
+
 enum DrawMode {
   NO_DRAW,
   BRUSH_ADD,
@@ -226,6 +231,7 @@ public:
   int _resampleTime;            // For RECENTER_MCMC variants. Number of sample to take before resampling and moving
   int _resampleThreads;         // Number of threads to allow recentering on
   double _maskTolerance;        // Acceptable difference in highligted regions during search
+  EditSelectMode _editSelectMode;         // Edit selection mode
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

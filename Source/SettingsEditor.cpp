@@ -326,6 +326,10 @@ int SettingsChoice::getIndex() const
 		SearchMode mode = getGlobalSettings()->_searchMode;
 		return (int)mode;
 	}
+  else if (getName() == "Edit Selection Mode") {
+    EditSelectMode mode = getGlobalSettings()->_editSelectMode;
+    return (int)mode;
+  }
 
   return 0;
 }
@@ -365,6 +369,9 @@ void SettingsChoice::setIndex(int newIndex)
 	else if (getName() == "Search Mode") {
 		getGlobalSettings()->_searchMode = (SearchMode)newIndex;
 	}
+  else if (getName() == "Edit Selection Mode") {
+    getGlobalSettings()->_editSelectMode = (EditSelectMode)newIndex;
+  }
 }
 
 
@@ -420,6 +427,7 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsChoice("Search Mode", { "MCMC with Edits", "Levenberg-Marquardt", "Hybrid Explore",
     "Hybrid Debug", "Minimizing MCMC with Edits", "MCMC with Edits and Levenberg-Marquardt Refinement", "Recentering MCMC with Edits",
     "Recentering MCMC with Edits and L-M Refinement", "Fast Start Recentering MCMC" }));
+  searchComponents.add(new SettingsChoice("Edit Selection Mode", { "Default", "Simple Bandit" }));
   searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 25, 1));
   searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 10, 0.01));
   searchComponents.add(new SettingsSlider("Max Results", 1, 1000, 1));

@@ -440,6 +440,7 @@ GlobalSettings::GlobalSettings()
   _resampleTime = 30;
   _resampleThreads = thread::hardware_concurrency();
   _maskTolerance = 5;
+  _editSelectMode = DEFAULT_CHOICE;
 
   _imageAttrLoc = File::getCurrentWorkingDirectory().getChildFile("image_attributes");
 

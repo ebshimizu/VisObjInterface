@@ -320,12 +320,15 @@ bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId,
 
     // new results get placed into the new results queue
     bool earlyExit = false;
+    shared_ptr<SearchResultContainer> duplicate;
     if (!force) {
       auto evalStart = chrono::high_resolution_clock::now();
       lock_guard<mutex> lock(_resultsLock);
       for (auto& res : _allResults) {
         if (newResult->avgPixDist(res.get(), true) < getGlobalSettings()->_jndThreshold) {
           earlyExit = true;
+          duplicate = res;
+          break;
         }
       }
 
@@ -333,6 +336,8 @@ bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId,
       for (auto& res : _newResults) {
         if (newResult->avgPixDist(res.get(), true) < getGlobalSettings()->_jndThreshold) {
           earlyExit = true;
+          duplicate = res;
+          break;
         }
       }
       getGlobalSettings()->_timings[callingThreadId]._addResultEvalTime += chrono::duration<float>(chrono::high_resolution_clock::now() - evalStart).count();
@@ -373,6 +378,12 @@ bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId,
         Lumiverse::Logger::log(INFO, "Adding new result. In queue: " + String(_newResults.size()).toStdString());
         _resultsSinceLastSort += 1;
       }
+    }
+    else {
+      lock_guard<mutex> lock(_resultsLock);
+      int numDupes = String(duplicate->getSearchResult()->_extraData["duplicates"]).getIntValue();
+      duplicate->getSearchResult()->_extraData["duplicates"] = String(numDupes + 1);
+      duplicate->regenToolTip();
     }
 
     getGlobalSettings()->_timings[callingThreadId]._addResultTime += chrono::duration<float>(chrono::high_resolution_clock::now() - start).count();

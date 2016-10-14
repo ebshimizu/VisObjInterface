@@ -467,8 +467,10 @@ void AttributeSearchThread::runSearch()
     runRecenteringMCMCSearch();
   else if (_mode == RECENTER_MCMC_LM)
     runRecenteringMCMCLMGDSearch();
-  else if (_mode == COLD_RECENTER)
+  else if (_mode == COLD_RECENTER) {
+    initEditWeights();
     runSearchNoWarmup();
+  }
 	else if (_mode == HYBRID_EXPLORE) {
 		// This search mode has multiple phases, and each thread can be on a different phase
 		// On thread creation, we should wait for further instructions
@@ -1690,20 +1692,20 @@ void AttributeSearchThread::updateEditWeights()
   // compute expected positive diff for each edit that's been looked at
   map<Edit*, float> expectedDiff;
   for (auto stat : _editStats) {
-      if (getGlobalSettings()->_commandLineArgs["updateMode"] == "1") {
-        if (stat.second._diffs.size() > 0)
-          expectedDiff[stat.first] = stat.second.meanAccept();
-        else
-          expectedDiff[stat.first] = 1;
+    if (getGlobalSettings()->_commandLineArgs["updateMode"] == "1") {
+      if (stat.second._diffs.size() > 0)
+        expectedDiff[stat.first] = stat.second.meanAccept();
+      else
+        expectedDiff[stat.first] = 1;
+    }
+    else {
+      if (stat.second._diffs.size() > 0) {
+        expectedDiff[stat.first] = max(-stat.second.expectedDiff(), 0.01f);
       }
       else {
-        if (stat.second._diffs.size() > 0) {
-          expectedDiff[stat.first] = max(-stat.second.expectedDiff(), 0.01f);
-        }
-        else {
-          expectedDiff[stat.first] = 0.1f;
-        }
+        expectedDiff[stat.first] = 0.1f;
       }
+    }
   }
 
   // question is how to balance things with unknown weight vs known weights
@@ -1721,6 +1723,11 @@ void AttributeSearchThread::updateEditWeights()
   }
 
   _localEditWeights = weights;  
+}
+
+void AttributeSearchThread::initEditWeights()
+{
+  // update the edit weights
 }
 
 AttributeSearch::AttributeSearch(SearchResultsViewer * viewer) : _viewer(viewer), Thread("Attribute Search Dispatcher")
