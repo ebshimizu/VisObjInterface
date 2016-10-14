@@ -139,15 +139,8 @@ enum ClusterDisplayMode {
 };
 
 enum SearchMode {
-	MCMC_EDIT,				 // Markov-Chain Monte Carlo with Metropolis-Hastings criteria + edit system
-	LM_GRAD_DESCENT,	 // Levenberg-Marquardt Method
-	HYBRID_EXPLORE,		 // Hybrid explore/exploit method using both MCMC Edits and LM
-	HYBRID_DEBUG,			 // Single-threaded mode that investigates certain properties of the LM/MCMC methods. Not a real search.
-  MIN_MCMC_EDIT,     // Minimizing MCMC (choses minimal point when running MCMC step)
-  MCMCLMGD,          // MCMC with an additional LM refinement step
-  RECENTER_MCMC_EDIT,// Re-centers the search to different locations once max depth reached
-  RECENTER_MCMC_LM,  // Does MCMCLMGD and recenters on reaching max depth
-  COLD_RECENTER      // No-windup recentering search. Basically calculates weights as the search runs.
+  COLD_RECENTER,     // No-windup recentering search. Basically calculates weights as the search runs.
+  STANDARD_MCMC
 };
 
 enum EditSelectMode {
@@ -194,7 +187,6 @@ public:
   double _editStepSize;         // MCMC: Std dev of gaussian sample 
   int _maxMCMCIters;            // MCMC: Max number of iterations
   double _jndThreshold;         // For two feature vectors, how far apart they can be to be considered equivalent
-  bool _standardMCMC;           // A mode where the search ignores all edits and runs a standard MCMC search
   int _standardMCMCIters;       // Iterations for a normal MCMC search
   int _clusterElemsPerRow;      // Number of elements to show in a cluster detail view
   int _maxReturnedScenes;       // Limiter for how many scenes get returned from a search, primarily limited by memory 

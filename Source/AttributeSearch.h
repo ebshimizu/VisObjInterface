@@ -153,24 +153,6 @@ private:
   // it in to the SearchResultsViewer object
   void runSearch();
 
-	// Runs the MCMC edit sampling search
-	void runMCMCEditSearch(bool force = false);
-
-	// Runs the Levenberg-Marquardt Method. Gradient descent, does not use the edits generated
-	// during setup. Intended as a reference.
-	void runLMGDSearch(bool force = false);
-
-  // Runs the MCMC edit sampling + LM refinement search.
-  // there's a lot of code duplication here but that's mostly to easily isolate changes
-  // between different search approaches.
-  void runMCMCLMGDSearch();
-
-  // Minimizing MCMC with recentering. Moves to good result once max depth hit.
-  void runRecenteringMCMCSearch();
-
-  // Search function for doing the recentering MCMC search with the LMGD refinement step too.
-  void runRecenteringMCMCLMGDSearch();
-
   // Runs a search without precomputing weights, but learning weights as it goes.
   void runSearchNoWarmup();
 

@@ -232,9 +232,7 @@ SettingsBoolButton::~SettingsBoolButton()
 
 void SettingsBoolButton::setState(bool newState)
 {
-  if (_id == "Exhaustive Search")
-    getGlobalSettings()->_standardMCMC = newState;
-  else if (_id == "Export Traces")
+  if (_id == "Export Traces")
     getGlobalSettings()->_exportTraces = newState;
   else if (_id == "Grayscale Mode")
     getGlobalSettings()->_grayscaleMode = newState;
@@ -260,9 +258,7 @@ void SettingsBoolButton::setState(bool newState)
 
 bool SettingsBoolButton::getState() const
 {
-  if (_id == "Exhaustive Search")
-    return getGlobalSettings()->_standardMCMC;
-  else if (_id == "Export Traces")
+  if (_id == "Export Traces")
     return getGlobalSettings()->_exportTraces;
   else if (_id == "Grayscale Mode")
     return getGlobalSettings()->_grayscaleMode;
@@ -424,9 +420,7 @@ String SettingsButton::getButtonText() const
 SettingsEditor::SettingsEditor()
 {
   Array<PropertyComponent*> searchComponents;
-  searchComponents.add(new SettingsChoice("Search Mode", { "MCMC with Edits", "Levenberg-Marquardt", "Hybrid Explore",
-    "Hybrid Debug", "Minimizing MCMC with Edits", "MCMC with Edits and Levenberg-Marquardt Refinement", "Recentering MCMC with Edits",
-    "Recentering MCMC with Edits and L-M Refinement", "Fast Start Recentering MCMC" }));
+  searchComponents.add(new SettingsChoice("Search Mode", { "Fast Start Recentering MCMC" }));
   searchComponents.add(new SettingsChoice("Edit Selection Mode", { "Default", "Simple Bandit" }));
   searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 25, 1));
   searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 10, 0.01));
@@ -437,7 +431,6 @@ SettingsEditor::SettingsEditor()
   //searchComponents.add(new SettingsSlider("Mean Shift Epsilon", 0, 0.01, 1e-6));
   searchComponents.add(new SettingsSlider("Temperature", 0, 25, 0.01));
   //searchComponents.add(new SettingsSlider("Finite Difference Window", 1e-7, 1e-3, 1e-7));
-  searchComponents.add(new SettingsBoolButton("Exhaustive Search"));
   searchComponents.add(new SettingsBoolButton("Export Traces"));
   searchComponents.add(new SettingsBoolButton("Generate Graph"));
   searchComponents.add(new SettingsSlider("Search Threads", 1, thread::hardware_concurrency(), 1));
