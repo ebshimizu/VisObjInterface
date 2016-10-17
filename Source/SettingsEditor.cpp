@@ -420,9 +420,9 @@ String SettingsButton::getButtonText() const
 SettingsEditor::SettingsEditor()
 {
   Array<PropertyComponent*> searchComponents;
-  searchComponents.add(new SettingsChoice("Search Mode", { "Fast Start Recentering MCMC" }));
-  searchComponents.add(new SettingsChoice("Edit Selection Mode", { "Default", "Simple Bandit" }));
-  searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 25, 1));
+  searchComponents.add(new SettingsChoice("Search Mode", { "Fast Start Recentering MCMC", "MCMC with no inner loop" }));
+  searchComponents.add(new SettingsChoice("Edit Selection Mode", { "Default", "Simple Bandit", "Uniform Random" }));
+  searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 250, 1));
   searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 10, 0.01));
   searchComponents.add(new SettingsSlider("Max Results", 1, 1000, 1));
   searchComponents.add(new SettingsSlider("MCMC Step Size", 0, 1, 0.001));

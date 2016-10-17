@@ -8,8 +8,8 @@ import os
 scene = sys.argv[1]
 targetsDir = sys.argv[2]
 
-editModes = [8]
-stepSizes = [0.1, 0.25, 0.5, 1]
+searchTypes = [0,1]
+editTypes = [0,1]
 
 targetImages = glob.glob(targetsDir + "/*.png")
 
@@ -17,26 +17,35 @@ exe = "../Builds/VisualStudio2015NoArnold/x64/Release/AttributesInterface.exe"
 
 compareDirs = dict()
 
-for editMode in editModes:
-	compareDirs[editMode] = []
+for editType in editTypes:
+	for searchType in searchTypes:
+		compareDirs[str(searchType) +"_" + str(editType)] = []
 
-logDir = "../analysis/stepsize/"
+logDir = "../analysis/editModes/"
 for imgPath in targetImages:
-	for stepSize in stepSizes:
-		cmd = exe + " --preload " + scene + " --auto 8 --img-attr " + imgPath + " --more --step-size " + str(stepSize) + " --samples 1000 --out " + logDir + " --jnd 2 --timeout 3 --session-name " + str(stepSize)
-		print cmd
-		call(cmd)
+	for editType in editTypes:
+		for searchType in searchTypes:
+			sessionName = str(searchType) +"_" + str(editType)
+			cmd = ""
+			if searchType == 0:
+				cmd = exe + " --preload " + scene + " --auto " + str(searchType) + " --edit-mode " + str(editType) + " --img-attr " + imgPath + " --more --samples 1000 --out " + logDir + " --jnd 3 --timeout 3 --session-name " + sessionName
+			elif searchType == 1:
+				cmd = exe + " --preload " + scene + " --auto " + str(searchType) + " --edit-mode " + str(editType) + " --img-attr " + imgPath + " --more --samples 1000 --step-size 0.25 --chain-length 30 --out " + logDir + " --jnd 3 --timeout 3 --session-name " + sessionName
+			print cmd
+			call(cmd)
 
-		compareDirs[editMode].append(logDir + str(stepSize) + "/" + os.listdir(logDir + str(stepSize))[-2])
+			compareDirs[sessionName].append(logDir + sessionName + "/" + os.listdir(logDir + sessionName)[-2])
 
-	call("python processData.py " + logDir)
+		call("python processData.py " + logDir)
 
 # compare things we just tested
 for i in range(0, len(targetImages)):
 	compareArgs = ['compare.py']
-	for editMode in editModes:
-		compareArgs.append(compareDirs[editMode][i])
-		compareArgs.append(plotLib.searchModeNames[editMode])
+	for editType in editTypes:
+		for searchType in searchTypes:
+			sessionName = str(searchType) +"_" + str(editType)
+			compareArgs.append(compareDirs[sessionName][i])
+			compareArgs.append(plotLib.searchModeNames[searchType] + ": " + plotLib.editModeNames[editType])
 	compareArgs.append(logDir + targetImages[i].split('\\')[-1] + ".html")
 	compare.main(compareArgs)
 

@@ -56,6 +56,8 @@ public:
   vector<float> _diffs;  // stores the difference from the starting point obtained by the edit.
   vector<float> _vals;
   vector<float> _as;     // stores the acceptance chance for each sample, clamped at 1
+  int _success;
+  int _failure;
 };
 
 class AttributeSearchThread : public Thread
@@ -95,6 +97,9 @@ public:
   // also recomputes edit weights as needed, etc.
   void recenter(Snapshot* s = nullptr);
 
+  // select the next edit, maybe based on edit history, maybe not
+  Edit* getNextEdit(vector<Edit*>& editHistory, bool useHistory = false);
+
   int _phase;
   String _statusMessage;
 
@@ -116,6 +121,10 @@ private:
   int _samplesTaken;
   int _resampleThreads;   // number threads that get moved during search (particle filtering)
   map<Edit*, EditStats> _editStats;      // collection of numbers for computing edit weights during runtime
+  EditSelectMode _editMode;
+
+  default_random_engine _gen;
+  uniform_real_distribution<double> _udist;
 
   // Non-zero pixels indicate the affected pixel should not change
   Image _freezeMask;
@@ -155,6 +164,9 @@ private:
 
   // Runs a search without precomputing weights, but learning weights as it goes.
   void runSearchNoWarmup();
+
+  // Runs a search without using an inner iteration loop
+  void runSearchNoInnerLoop();
 
 	// Returns the partial numeric derivative wrt each adjustable parameter
 	// Assumes we want the derivative for the current attribute objective function

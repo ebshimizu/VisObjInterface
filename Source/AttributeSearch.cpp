@@ -186,6 +186,9 @@ AttributeSearchThread::AttributeSearchThread(String name, SearchResultsViewer* v
   _original = nullptr;
   _fallback = nullptr;
   _samplesTaken = 0;
+
+  _gen = default_random_engine(std::random_device{}());
+  _udist = uniform_real_distribution<double>(0.0, 1.0);
 }
 
 AttributeSearchThread::~AttributeSearchThread()
@@ -218,6 +221,7 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjF
   _f = f;
   _fsq = fsq;
 	_mode = m;
+  _editMode = getGlobalSettings()->_editSelectMode;
 	_randomInit = false;
 	_status = IDLE;
   _fallback = new Snapshot(*start);
@@ -350,8 +354,8 @@ void AttributeSearchThread::recenter(Snapshot * s)
     if (container == nullptr) {
       // if there's nothing left to exploit, reset back to the beginning for a bit
       setStartConfig(_fallback);
-      computeEditWeights(false, false);
       getRecorder()->log(SYSTEM, "Recentered thread " + String(_id).toStdString() + " to original config");
+      updateEditWeights();
       return;
     }
     else {
@@ -375,11 +379,14 @@ void AttributeSearchThread::recenter(Snapshot * s)
   
   setStartConfig(s);
 
-  if (_mode == COLD_RECENTER) {
+  if (_editMode == DEFAULT_CHOICE) {
     setLocalWeightsUniform();
   }
-  else {
-    computeEditWeights(false, false);
+  else if (_editMode == SIMPLE_BANDIT) {
+    updateEditWeights();
+  }
+  else if (_editMode == UNIFORM_RANDOM) {
+    initEditWeights();
   }
 
   _samplesTaken = 0;
@@ -387,11 +394,53 @@ void AttributeSearchThread::recenter(Snapshot * s)
   delete s;
 }
 
+Edit * AttributeSearchThread::getNextEdit(vector<Edit*>& editHistory, bool useHistory)
+{
+  // weighted selection
+  if (!useHistory || editHistory.size() == 0) {
+    return _localEditWeights.lower_bound(_udist(_gen))->second;
+  }
+  else {
+    // decrease likelihood of edits being repeated.
+    // reconstruct original weights
+    map<Edit*, double> w;
+    double prev = 0;
+    for (auto it = _localEditWeights.begin(); it != _localEditWeights.end(); it++) {
+      w[it->second] = it->first - prev;
+      prev = it->first;
+    }
+
+    // decrease probability of selection each time edit is encountered in history
+    for (auto& e : editHistory) {
+      w[e] = w[e] / 2;
+      w[e] = (w[e] < 1e-3) ? 1e-3 : w[e];
+    }
+
+    // recompute weights
+    double sum = 0;
+    for (auto& kvp : w) {
+      sum += kvp.second;
+    }
+
+    map<double, Edit*> reweights;
+    double total = 0;
+    for (auto& kvp : w) {
+      total += kvp.second / sum;
+      reweights[total] = kvp.first;
+    }
+
+    return reweights.lower_bound(_udist(_gen))->second;
+  }
+}
+
 void AttributeSearchThread::runSearch()
 {
+  initEditWeights();
   if (_mode == COLD_RECENTER) {
-    initEditWeights();
     runSearchNoWarmup();
+  }
+  else if (_mode == REDUCE_REDUNDANCY) {
+    runSearchNoInnerLoop();
   }
 }
 
@@ -432,10 +481,11 @@ void AttributeSearchThread::runSearchNoWarmup()
     Edit* minEdit;
 
     //  pick a next plausible edit
-    if (r->_editHistory.size() == 0)
-      e = _edits[0]->getNextEdit(r->_editHistory, _localEditWeights, getGlobalSettings()->_reduceRepeatEdits);
+    if (getGlobalSettings()->_editSelectMode == DEFAULT_CHOICE) {
+      e = getNextEdit(r->_editHistory, getGlobalSettings()->_reduceRepeatEdits);
+    }
     else {
-      e = e->getNextEdit(r->_editHistory, _localEditWeights, getGlobalSettings()->_reduceRepeatEdits);
+      e = getNextEdit(r->_editHistory);
     }
 
     // iterate a bit, do a little bit of searching
@@ -488,9 +538,11 @@ void AttributeSearchThread::runSearchNoWarmup()
           minEdit = e;
         }
 
+        _editStats[e]._success += 1;
         accepted = true;
       }
       else {
+        _editStats[e]._failure += 1;
         delete sp;
       }
     }
@@ -571,6 +623,151 @@ void AttributeSearchThread::runSearchNoWarmup()
   else {
     // recompute edit weights
     updateEditWeights();
+  }
+}
+
+void AttributeSearchThread::runSearchNoInnerLoop()
+{
+  _statusMessage = "Running Recenter-Move MCMC with fast start";
+
+  double fx = _f(_original, _id);
+
+  // assign start scene, initialize result
+  Snapshot* start = new Snapshot(*_original);
+  SearchResult* r = new SearchResult();
+  double orig = fx;
+
+  // RNG
+  default_random_engine gen(std::random_device{}());
+  uniform_real_distribution<double> udist(0.0, 1.0);
+
+  // do the MCMC search
+  int depth = 0;
+  Edit* e = nullptr;
+
+  // magic number alert
+  int iters = getGlobalSettings()->_maxMCMCIters;
+
+  // depth increases when scenes are rejected from the viewer
+  while (depth < _maxDepth) {
+    if (threadShouldExit()) {
+      delete r;
+      delete start;
+      return;
+    }
+
+    //  pick a next plausible edit
+    if (getGlobalSettings()->_editSelectMode == DEFAULT_CHOICE) {
+      e = getNextEdit(r->_editHistory, getGlobalSettings()->_reduceRepeatEdits);
+    }
+    else {
+      e = getNextEdit(r->_editHistory);
+    }
+
+    //  adjust the starting scene
+    Snapshot* sp = new Snapshot(*start);
+    e->performEdit(sp, getGlobalSettings()->_editStepSize);
+
+    // check for acceptance
+    double fxp = _f(sp, _id);
+    double a = min(exp((1 / _T) * (fx - fxp)), 1.0);
+
+    // store statistics
+    _editStats[e]._vals.push_back((float)fxp);
+    _editStats[e]._diffs.push_back((float)(fx - fxp));
+    _editStats[e]._as.push_back((float)a);
+
+    // accept if a >= 1 or with probability a
+    if (a >= 1 || udist(gen) < a) {
+      // update x
+      delete start;
+      start = sp;
+      fx = fxp;
+
+      // update result
+      r->_objFuncVal = fx;
+
+      // diagnostics
+      DebugData data;
+      auto& samples = getGlobalSettings()->_samples;
+      data._f = r->_objFuncVal;
+      data._a = a;
+      data._sampleId = (unsigned int)samples[_id].size() + 1;
+      data._editName = e->_name;
+      data._accepted = true;
+      data._scene = snapshotToVector(sp);
+      data._timeStamp = chrono::high_resolution_clock::now();
+      samples[_id].push_back(data);
+
+      _editStats[e]._success += 1;
+      r->_editHistory.push_back(e);
+    }
+    else {
+      _editStats[e]._failure += 1;
+      delete sp;
+    }
+
+    updateEditWeights();
+    depth++;
+  }
+
+  r->_scene = snapshotToVector(start);
+
+  // diagnostics
+  DebugData data;
+  auto& samples = getGlobalSettings()->_samples;
+  data._f = r->_objFuncVal;
+  data._a = 1;
+  data._sampleId = (unsigned int)samples[_id].size() + 1;
+  data._editName = "TERMINAL";
+  data._accepted = true;
+  data._scene = r->_scene;
+  data._timeStamp = chrono::high_resolution_clock::now();
+
+  r->_extraData["Thread"] = String(_id);
+  r->_extraData["Sample"] = String(data._sampleId);
+  r->_creationTime = chrono::high_resolution_clock::now();
+
+  // add if we did better
+  // also if the mask is active, add only if the masked area doesn't change that much.
+  double maskDiff = 0;
+  if (_useMask) {
+    // need target and current images
+    Image a = renderImage(_original, 100, 100);
+    Image b = renderImage(start, 100, 100);
+    maskDiff = avgLabMaskedImgDiff(a, b, _freezeMask);
+  }
+  delete start;
+
+  //Lumiverse::Logger::log(INFO, "Result with f(x) " + String(r->_objFuncVal).toStdString() + " and maskDiff " + String(maskDiff).toStdString() + " returned.");
+
+  if (r->_objFuncVal < orig && maskDiff < _maskTolerance) {
+    // send scene to the results area. may chose to not use the scene
+    if (!_viewer->addNewResult(r, _id, false)) {
+      // r has been deleted by _viewer here
+      _failures++;
+      data._accepted = false;
+
+      if (_failures > getGlobalSettings()->_searchFailureLimit) {
+        _failures = 0;
+        _maxDepth++;
+      }
+    }
+    else {
+      _acceptedSamples += 1;
+    }
+  }
+  else {
+    data._accepted = false;
+    delete r;
+  }
+
+  samples[_id].push_back(data);
+  _samplesTaken++;
+
+  if (_samplesTaken > _resampleTime) {
+    // recentering resets the weights
+    recenter();
   }
 }
 
@@ -738,16 +935,10 @@ void AttributeSearchThread::setLocalWeightsUniform()
 
 void AttributeSearchThread::updateEditWeights()
 {
-  // compute expected positive diff for each edit that's been looked at
-  map<Edit*, float> expectedDiff;
-  for (auto stat : _editStats) {
-    if (getGlobalSettings()->_commandLineArgs["updateMode"] == "1") {
-      if (stat.second._diffs.size() > 0)
-        expectedDiff[stat.first] = stat.second.meanAccept();
-      else
-        expectedDiff[stat.first] = 1;
-    }
-    else {
+  if (_editMode == DEFAULT_CHOICE) {
+    // compute expected positive diff for each edit that's been looked at
+    map<Edit*, float> expectedDiff;
+    for (auto stat : _editStats) {
       if (stat.second._diffs.size() > 0) {
         expectedDiff[stat.first] = max(-stat.second.expectedDiff(), 0.01f);
       }
@@ -755,35 +946,66 @@ void AttributeSearchThread::updateEditWeights()
         expectedDiff[stat.first] = 0.1f;
       }
     }
-  }
 
-  // question is how to balance things with unknown weight vs known weights
-  // for now, minimum weight is 1
-  float totalWeight = 0;
-  for (auto e : _edits) {
-    totalWeight += expectedDiff[e];
-  }
+    // question is how to balance things with unknown weight vs known weights
+    // for now, minimum weight is 1
+    float totalWeight = 0;
+    for (auto e : _edits) {
+      totalWeight += expectedDiff[e];
+    }
 
-  map<double, Edit*> weights;
-  float sum = 0;
-  for (auto e : _edits) {
-    sum += expectedDiff[e];
-    weights[sum / totalWeight] = e;
-  }
+    map<double, Edit*> weights;
+    float sum = 0;
+    for (auto e : _edits) {
+      sum += expectedDiff[e];
+      weights[sum / totalWeight] = e;
+    }
 
-  _localEditWeights = weights;  
+    _localEditWeights = weights;
+  }
+  else if (_editMode == SIMPLE_BANDIT) {
+    // initial weights are the ratio of success to failure
+    map<double, Edit*> weights;
+    float sum = 0;
+    double totalWeight = 0;
+
+    for (auto data : _editStats) {
+      totalWeight += (double)data.second._success / (data.second._failure + data.second._success);
+    }
+
+    // then the weights are normalized
+    for (auto e : _edits) {
+      sum += (double)_editStats[e]._success / (_editStats[e]._success + _editStats[e]._failure);
+      weights[sum / totalWeight] = e;
+    }
+
+    _localEditWeights = weights;
+  }
+  else if (_editMode == UNIFORM_RANDOM) {
+    // nothing, its uniform all the time i hope the compiler catches this
+  }
 }
 
 void AttributeSearchThread::initEditWeights()
 {
   _localEditWeights.clear();
+  _editStats.clear();
 
   // update the edit weights
-  if (getGlobalSettings()->_searchMode == COLD_RECENTER) {
+  if (_editMode == DEFAULT_CHOICE || _editMode == UNIFORM_RANDOM) {
     double weight = 1.0 / _edits.size();
     for (int i = 0; i < _edits.size(); i++) {
       _localEditWeights[weight * (i + 1)] = _edits[i];
     }
+  }
+  else if (_editMode == SIMPLE_BANDIT) {
+    for (auto e : _edits) {
+      // some default weights for this thing
+      _editStats[e]._success = 5;
+      _editStats[e]._failure = 10;
+    }
+
+    updateEditWeights();
   }
 }
 

@@ -140,12 +140,14 @@ enum ClusterDisplayMode {
 
 enum SearchMode {
   COLD_RECENTER,     // No-windup recentering search. Basically calculates weights as the search runs.
+  REDUCE_REDUNDANCY, // No inner edit iteration loop
   STANDARD_MCMC
 };
 
 enum EditSelectMode {
   DEFAULT_CHOICE,     // the default edit selection mode that's been in this application forever
-  SIMPLE_BANDIT       // a multi-armed bandit that count successes and failures as weights
+  SIMPLE_BANDIT,      // a multi-armed bandit that count successes and failures as weights
+  UNIFORM_RANDOM      // all edits are chosen at random all the time
 };
 
 enum DrawMode {

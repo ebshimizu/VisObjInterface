@@ -125,14 +125,14 @@ public:
           // this should be a number
           getGlobalSettings()->_commandLineArgs["T"] = commandLine.substring(start, end);
         }
-        else if (substr == "--editUpdateMode") {
+        else if (substr == "--chain-length" || substr == "-c") {
           start = end + 1;
           end = commandLine.indexOf(start, " ");
           if (end == -1)
             end = commandLine.length();
 
           // this should be a number
-          getGlobalSettings()->_commandLineArgs["updateMode"] = commandLine.substring(start, end);
+          getGlobalSettings()->_commandLineArgs["chainLength"] = commandLine.substring(start, end);
         }
         else if (substr == "--step-size" || substr == "-s") {
           start = end + 1;
@@ -177,6 +177,15 @@ public:
 
           // this should be a number
           getGlobalSettings()->_commandLineArgs["resampleThreads"] = commandLine.substring(start, end);
+        }
+        else if (substr == "--edit-mode" || substr == "-em") {
+          start = end + 1;
+          end = commandLine.indexOf(start, " ");
+          if (end == -1)
+            end = commandLine.length();
+
+          // this should be a number
+          getGlobalSettings()->_commandLineArgs["editMode"] = commandLine.substring(start, end);
         }
 
         start = end + 1;

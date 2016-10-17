@@ -964,6 +964,9 @@ void MainContentComponent::startAuto()
   if (args.count("uniformEdits") > 0)
     getGlobalSettings()->_uniformEditWeights = true;
 
+  if (args.count("chainLength") > 0)
+    getGlobalSettings()->_startChainLength = args["chainLength"].getIntValue();
+
   if (args.count("randomInit") > 0) {
     // signals that each thread should do a random initialization of its starting
     // configuration before running the search
@@ -975,6 +978,10 @@ void MainContentComponent::startAuto()
 
   if (args.count("resampleThreads") > 0) {
     getGlobalSettings()->_resampleThreads = args["resampleThreads"].getIntValue();
+  }
+
+  if (args.count("editMode") > 0) {
+    getGlobalSettings()->_editSelectMode = (EditSelectMode)args["editMode"].getIntValue();
   }
 
   File logFolder;

@@ -8,14 +8,13 @@ import plotly.offline as py
 import plotly.graph_objs as go
 
 searchModeNames = {
-	8.1: 'Recenter-Move MCMC with fast start (a)',
-	8: 'Recenter-Move MCMC with fast start (ev)',
-	0: 'MCMC with Edits',
-	0.1 : 'MCMC with Uniform Edit Weights',
-	4 : 'Minimizing MCMC with Edits',
-	5 : 'MCMC with LMGD Refinement',
-	6 : 'Recentring MCMC',
-	7 : 'Recentering MCMC with LMGD'
+	0: 'Recentering MCMC with Inner Loop',
+	1 : 'Recentering MCMC with no Inner Loop',
+}
+
+editModeNames = {
+	0 : 'Default',
+	1 : 'Simple Bandit'
 }
 
 def getPlots(resultsFile, baseColor, rawTrace = ''):
