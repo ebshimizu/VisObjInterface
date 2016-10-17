@@ -147,7 +147,8 @@ enum SearchMode {
 enum EditSelectMode {
   DEFAULT_CHOICE,     // the default edit selection mode that's been in this application forever
   SIMPLE_BANDIT,      // a multi-armed bandit that count successes and failures as weights
-  UNIFORM_RANDOM      // all edits are chosen at random all the time
+  UNIFORM_RANDOM,     // all edits are chosen at random all the time
+  ADVERSARIAL_BANDIT  // adversarial bandit approach, see Auer et al. 1998
 };
 
 enum DrawMode {
@@ -226,6 +227,7 @@ public:
   int _resampleThreads;         // Number of threads to allow recentering on
   double _maskTolerance;        // Acceptable difference in highligted regions during search
   EditSelectMode _editSelectMode;         // Edit selection mode
+  bool _continuousSort;         // Continuously sort the results
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

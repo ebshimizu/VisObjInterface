@@ -32,7 +32,7 @@ for imgPath in targetImages:
 			elif searchType == 1:
 				cmd = exe + " --preload " + scene + " --auto " + str(searchType) + " --edit-mode " + str(editType) + " --img-attr " + imgPath + " --more --samples 1000 --step-size 0.25 --chain-length 30 --out " + logDir + " --jnd 3 --timeout 3 --session-name " + sessionName
 			print cmd
-			call(cmd)
+			#call(cmd)
 
 			compareDirs[sessionName].append(logDir + sessionName + "/" + os.listdir(logDir + sessionName)[-2])
 

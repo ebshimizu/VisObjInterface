@@ -252,6 +252,9 @@ void SettingsBoolButton::setState(bool newState)
   else if (_id == "Randomize Starts") {
     getGlobalSettings()->_randomInit = newState;
   }
+  else if (_id == "Continuous Sort") {
+    getGlobalSettings()->_continuousSort = newState;
+  }
 
   refresh();
 }
@@ -272,6 +275,8 @@ bool SettingsBoolButton::getState() const
     return getGlobalSettings()->_uniformEditWeights;
   else if (_id == "Randomize Starts")
     return getGlobalSettings()->_randomInit;
+  else if (_id == "Continuous Sort")
+    return getGlobalSettings()->_continuousSort;
 
   return false;
 }
@@ -421,7 +426,7 @@ SettingsEditor::SettingsEditor()
 {
   Array<PropertyComponent*> searchComponents;
   searchComponents.add(new SettingsChoice("Search Mode", { "Fast Start Recentering MCMC", "MCMC with no inner loop" }));
-  searchComponents.add(new SettingsChoice("Edit Selection Mode", { "Default", "Simple Bandit", "Uniform Random" }));
+  searchComponents.add(new SettingsChoice("Edit Selection Mode", { "Default", "Simple Bandit", "Uniform Random", "Adversarial Bandit" }));
   searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 250, 1));
   searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 10, 0.01));
   searchComponents.add(new SettingsSlider("Max Results", 1, 1000, 1));
@@ -442,6 +447,7 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsBoolButton("Randomzie Starts"));
   searchComponents.add(new SettingsSlider("Switching Time", 1, 500, 1));
   searchComponents.add(new SettingsSlider("Movable Threads", 0, thread::hardware_concurrency(), 1));
+  searchComponents.add(new SettingsBoolButton("Continuous Sort"));
   _settings.addSection("Search", searchComponents);
 
 

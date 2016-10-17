@@ -409,6 +409,10 @@ void SearchResultsContainer::showNewResults()
       _allResults.add(r);
     }
     _newResults.clear();
+
+    if (getGlobalSettings()->_continuousSort) {
+      sort();
+    }
   }
 
   updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
