@@ -40,10 +40,19 @@ public:
     LAB
   };
 
+  enum Style {
+    SIDE_LIGHT,
+    DIRECTIONAL
+  };
+
   ImageAttribute(string name, string filepath, float weight = 50);
   ImageAttribute(string name, Image img, float weight = 50);
   ImageAttribute(string name, Snapshot* s, float weight = 50);
+  ImageAttribute(ImageAttribute& other);
   ~ImageAttribute();
+
+  // Sets style to specified.
+  void setStyle(Style style);
 
   // intializes UI components and common initialization
   void initUI();
@@ -66,7 +75,14 @@ public:
   void lockMode();
   void unlockMode();
 
+  void setName(string name);
+
 private:
+  // Penalty term for having other lights on that aren't side lights
+  double sideLightStyle(Snapshot* s, Image& img);
+
+  double directionalLightStyle(Snapshot* s, Image& img);
+
   float _weight;
 
 #ifdef SPARSE5D
@@ -87,6 +103,9 @@ private:
   TextButton _showImgButton;
   ComboBox _modeSelect;
   Mode _mode;
+
+  // additional style function 
+  function<double(Snapshot*, Image&)> _styleFunction;
 };
 
 #endif  // IMAGEATTRIBUTE_H_INCLUDED

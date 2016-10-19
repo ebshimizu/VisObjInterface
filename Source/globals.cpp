@@ -395,9 +395,9 @@ GlobalSettings::GlobalSettings()
   _renderWidth = 0;
   _renderHeight = 0;
   _thumbnailRenderScale = 0.50;
-  _startChainLength = 3;
+  _startChainLength = 30;
   _clusterDistThreshold = 0.30;
-  _editStepSize = 0.1;
+  _editStepSize = 0.25;
   _maxMCMCIters = 10;
   _numDisplayClusters = 1;
   _jndThreshold = 3;
@@ -429,7 +429,7 @@ GlobalSettings::GlobalSettings()
   _primaryDivisiveThreshold = 7.5;
   _secondaryDivisiveThreshold = 5;
 	_clusterDisplay = COLUMNS;
-	_searchMode = COLD_RECENTER;
+	_searchMode = REDUCE_REDUNDANCY;
 	_maxGradIters = 200;
   _reduceRepeatEdits = true;
   _autoTimeout = 30;
@@ -439,7 +439,7 @@ GlobalSettings::GlobalSettings()
   _resampleTime = 30;
   _resampleThreads = thread::hardware_concurrency();
   _maskTolerance = 5;
-  _editSelectMode = DEFAULT_CHOICE;
+  _editSelectMode = SIMPLE_BANDIT;
   _continuousSort = false;
 
   _imageAttrLoc = File::getCurrentWorkingDirectory().getChildFile("image_attributes");

@@ -228,6 +228,7 @@ public:
   double _maskTolerance;        // Acceptable difference in highligted regions during search
   EditSelectMode _editSelectMode;         // Edit selection mode
   bool _continuousSort;         // Continuously sort the results
+  bool _useSearchStyles;        // Adds style-based searches into the search process
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

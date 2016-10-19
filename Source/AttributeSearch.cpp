@@ -355,7 +355,7 @@ void AttributeSearchThread::recenter(Snapshot * s)
       // if there's nothing left to exploit, reset back to the beginning for a bit
       setStartConfig(_fallback);
       getRecorder()->log(SYSTEM, "Recentered thread " + String(_id).toStdString() + " to original config");
-      updateEditWeights();
+      updateEditWeights(nullptr, 0);
       return;
     }
     else {
@@ -382,8 +382,8 @@ void AttributeSearchThread::recenter(Snapshot * s)
   if (_editMode == DEFAULT_CHOICE) {
     setLocalWeightsUniform();
   }
-  else if (_editMode == SIMPLE_BANDIT) {
-    updateEditWeights();
+  else if (_editMode == SIMPLE_BANDIT || _editMode == ADVERSARIAL_BANDIT) {
+    updateEditWeights(nullptr, 0);
   }
   else if (_editMode == UNIFORM_RANDOM) {
     initEditWeights();
@@ -397,7 +397,7 @@ void AttributeSearchThread::recenter(Snapshot * s)
 Edit * AttributeSearchThread::getNextEdit(vector<Edit*>& editHistory, bool useHistory)
 {
   // weighted selection
-  if (!useHistory || editHistory.size() == 0) {
+  if (!useHistory || editHistory.size() == 0 || _editMode == UNIFORM_RANDOM) {
     return _localEditWeights.lower_bound(_udist(_gen))->second;
   }
   else {
@@ -622,7 +622,7 @@ void AttributeSearchThread::runSearchNoWarmup()
   }
   else {
     // recompute edit weights
-    updateEditWeights();
+    updateEditWeights(nullptr, 0);
   }
 }
 
@@ -670,6 +670,7 @@ void AttributeSearchThread::runSearchNoInnerLoop()
 
     // check for acceptance
     double fxp = _f(sp, _id);
+    double diff = fxp - fx;
     double a = min(exp((1 / _T) * (fx - fxp)), 1.0);
 
     // store statistics
@@ -707,7 +708,7 @@ void AttributeSearchThread::runSearchNoInnerLoop()
       delete sp;
     }
 
-    updateEditWeights();
+    updateEditWeights(e, diff);
     depth++;
   }
 
@@ -933,7 +934,7 @@ void AttributeSearchThread::setLocalWeightsUniform()
   _statusMessage = "Edit weights set to uniform";
 }
 
-void AttributeSearchThread::updateEditWeights()
+void AttributeSearchThread::updateEditWeights(Edit* lastUsed, double gain)
 {
   if (_editMode == DEFAULT_CHOICE) {
     // compute expected positive diff for each edit that's been looked at
@@ -984,6 +985,38 @@ void AttributeSearchThread::updateEditWeights()
   else if (_editMode == UNIFORM_RANDOM) {
     // nothing, its uniform all the time i hope the compiler catches this
   }
+  else if (_editMode == ADVERSARIAL_BANDIT) {
+    // update G based on previous edit, if it exists
+    if (lastUsed != nullptr) {
+      if (gain <= 0) {
+        // note: negative gain good, since this is a minimization
+        gain = -gain;
+
+        _editStats[lastUsed]._G += gain / _editStats[lastUsed]._p;
+      }
+    }
+
+    // probability dist from hedge
+    Eigen::VectorXd pt;
+    pt.resize(_edits.size());
+
+    for (int i = 0; i < _edits.size(); i++) {
+      pt[i] = _n * _editStats[_edits[i]]._G;
+    }
+
+    pt /= pt.sum();
+
+    map<double, Edit*> weights;
+    double sum = 0;
+    for (int i = 0; i < _edits.size(); i++) {
+      double weight = pt[i] * (1 - _g) * pt[i] + (_g / _edits.size());
+      weights[sum] = _edits[i];
+      _editStats[_edits[i]]._p = weight;
+      sum += weight;
+    }
+
+    _localEditWeights = weights;
+  }
 }
 
 void AttributeSearchThread::initEditWeights()
@@ -1005,7 +1038,14 @@ void AttributeSearchThread::initEditWeights()
       _editStats[e]._failure = 10;
     }
 
-    updateEditWeights();
+    updateEditWeights(nullptr, 0);
+  }
+  else if (_editMode == ADVERSARIAL_BANDIT) {
+    for (auto e : _edits) {
+      _editStats[e]._G = 0;
+    }
+
+    updateEditWeights(nullptr, 0);
   }
 }
 

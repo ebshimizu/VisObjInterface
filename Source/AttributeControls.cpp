@@ -388,6 +388,11 @@ void AttributeControls::initAttributes()
   for (int i = 0; i < numImage; i++) {
     String name = imagesToLoad[i].getFileNameWithoutExtension();
     _container->addAttributeController(new ImageAttribute(name.toStdString(), imagesToLoad[i].getFullPathName().toStdString(), 50));
+
+    // TEST
+    ImageAttribute* mod = new ImageAttribute(name.toStdString() + "_sideStyle", imagesToLoad[i].getFullPathName().toStdString(), 50);
+    mod->setStyle(ImageAttribute::Style::DIRECTIONAL);
+    _container->addAttributeController(mod);
   }
 
   getStatusBar()->setStatusMessage("Loaded " + String(numImage) + " images from " + imageDir.getFullPathName());

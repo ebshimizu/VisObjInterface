@@ -58,6 +58,8 @@ public:
   vector<float> _as;     // stores the acceptance chance for each sample, clamped at 1
   int _success;
   int _failure;
+  double _G;
+  double _p;
 };
 
 class AttributeSearchThread : public Thread
@@ -158,6 +160,10 @@ private:
   // however it uniquely identifies this particular object.
   int _id;
 
+  // temporarily magic numbers
+  double _n = 1;
+  double _g = 0.5;
+
   // Starts up one search path. Run multiple times to get multiple results. Each run returns one result and puts
   // it in to the SearchResultsViewer object
   void runSearch();
@@ -185,7 +191,7 @@ private:
   void setLocalWeightsUniform();
 
   // Updates the local weights with info from previous run
-  void updateEditWeights();
+  void updateEditWeights(Edit* lastUsed, double gain);
 
   // Initialize the edit weights
   void initEditWeights();

@@ -65,8 +65,32 @@ ImageAttribute::ImageAttribute(string name, Snapshot * s, float weight) : Histog
   initUI();
 }
 
+ImageAttribute::ImageAttribute(ImageAttribute & other) : HistogramAttribute(other._name.toStdString()),
+  _fullSource(other._fullSource), _LSource(other._LSource), _abSource(other._abSource), _LabSource(other._LabSource)
+{
+  _originalImg = other._originalImg;
+  _sourceImg = other._sourceImg;
+  _metric = other._metric;
+  _weight = other._weight;
+}
+
 ImageAttribute::~ImageAttribute()
 {
+}
+
+void ImageAttribute::setStyle(Style style)
+{
+  switch (style)
+  {
+  case SIDE_LIGHT:
+    _styleFunction = std::bind(&ImageAttribute::sideLightStyle, this, std::placeholders::_1, std::placeholders::_2);
+    break;
+  case DIRECTIONAL:
+    _styleFunction = std::bind(&ImageAttribute::directionalLightStyle, this, std::placeholders::_1, std::placeholders::_2);
+    break;
+  default:
+    break;
+  }
 }
 
 void ImageAttribute::initUI()
@@ -100,6 +124,8 @@ double ImageAttribute::evaluateScene(Snapshot * s, Image& img)
     img = generateImage(s);
   }
 
+  double score = 0;
+
   switch (_mode) {
   case(FULL): {
 #ifdef SPARSE5D
@@ -110,26 +136,36 @@ double ImageAttribute::evaluateScene(Snapshot * s, Image& img)
     LabxyHistogram currentHist = getLabxyHist2(img, _n, _n, _n, 3, 3);
     double diff = currentHist.EMD(_fullSource, _metric);
 #endif
-    return (100 - diff);
+    score = (100 - diff);
+    break;
   }
   case (L): {
     SparseHistogram currentHist = getLHist(img);
     double diff = currentHist.EMD(_LSource);
-    return (100 - diff);
+    score = (100 - diff);
+    break;
   }
   case (AB): {
     SparseHistogram currentHist = getabHist(img);
     double diff = currentHist.EMD(_abSource);
-    return (100 - diff);
+    score = (100 - diff);
+    break;
   }
   case(LAB): {
     SparseHistogram currentHist = getLabHist(img);
     double diff = currentHist.EMD(_LabSource);
-    return (100 - diff);
+    score = (100 - diff);
+    break;
   }
   default:
     return 0;
   }
+
+  if (_styleFunction) {
+    score += _styleFunction(s, img);
+  }
+
+  return score;
 }
 
 void ImageAttribute::preProcess()
@@ -217,4 +253,55 @@ void ImageAttribute::lockMode()
 void ImageAttribute::unlockMode()
 {
   _modeSelect.setEnabled(true);
+}
+
+void ImageAttribute::setName(string name)
+{
+  _name = name;
+}
+
+double ImageAttribute::sideLightStyle(Snapshot * s, Image & img)
+{
+  double sideIntens = 0;
+  double otherIntens = 0;
+
+  for (auto d : s->getDevices()) {
+    string sys = d->getMetadata("system");
+    if (sys == "side left" || sys == "side right" || sys == "side") {
+      sideIntens += d->getIntensity()->asPercent();
+    }
+    else {
+      otherIntens += d->getIntensity()->asPercent();
+    }
+  }
+
+  double r = sideIntens / (sideIntens + otherIntens);
+
+  // basically the larger the diff between side and other the better
+  return r * 20;
+}
+
+double ImageAttribute::directionalLightStyle(Snapshot * s, Image & img)
+{
+  map<string, double> sysIntens;
+
+  for (auto d : s->getDevices()) {
+    string sys = d->getMetadata("system");
+    sysIntens[sys] += d->getIntensity()->asPercent();
+  }
+
+  double maxIntens = 0;
+  double totalIntens = 0;
+
+  for (auto i : sysIntens) {
+    if (i.second > maxIntens)
+      maxIntens = i.second;
+
+    totalIntens += i.second;
+  }
+
+  if (totalIntens == 0)
+    return 0;
+
+  return (maxIntens / totalIntens) * 20;
 }

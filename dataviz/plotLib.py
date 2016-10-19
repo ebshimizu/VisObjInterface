@@ -14,7 +14,8 @@ searchModeNames = {
 
 editModeNames = {
 	0 : 'Default',
-	1 : 'Simple Bandit'
+	1 : 'Simple Bandit',
+	2 : 'Uniform Random'
 }
 
 def getPlots(resultsFile, baseColor, rawTrace = ''):
