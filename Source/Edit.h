@@ -12,10 +12,14 @@
 #define ATTRIBUTEEDIT_H_INCLUDED
 
 #include "globals.h"
+#include "AttributeStyles.h"
 #include <random>
 
 using namespace Lumiverse;
 using namespace Lumiverse::ShowControl;
+
+// Objective function type to be passed to performEdit.
+typedef function<double(Snapshot*, int, Style)> attrObjFunc;
 
 enum ConsistencyScope
 {
@@ -38,9 +42,6 @@ public:
   set<EditParam> _params;
   ConsistencyScope _scope;
 };
-
-// Objective function type to be passed to performEdit.
-typedef function<double(Snapshot*, int)> attrObjFunc;
 
 /*
 An edit contains logic for manipulating one scene according to particular rules.

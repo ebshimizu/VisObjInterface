@@ -11,6 +11,7 @@
 #include "AttributeSearch.h"
 #include "MeanShift.h"
 #include "MainComponent.h"
+#include "AttributeStyles.h"
 #include <list>
 #include <algorithm>
 
@@ -217,6 +218,7 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjF
   _failures = 0;
   _resampleTime = getGlobalSettings()->_resampleTime;
   _resampleThreads = getGlobalSettings()->_resampleThreads;
+  _currentStyle = NO_STYLE;
 
   _f = f;
   _fsq = fsq;
@@ -448,7 +450,7 @@ void AttributeSearchThread::runSearchNoWarmup()
 {
   _statusMessage = "Running Recenter-Move MCMC with fast start";
 
-  double fx = _f(_original, _id);
+  double fx = _f(_original, _id, _currentStyle);
 
   // assign start scene, initialize result
   Snapshot* start = new Snapshot(*_original);
@@ -502,7 +504,7 @@ void AttributeSearchThread::runSearchNoWarmup()
       e->performEdit(sp, getGlobalSettings()->_editStepSize);
 
       // check for acceptance
-      double fxp = _f(sp, _id);
+      double fxp = _f(sp, _id, _currentStyle);
       double a = min(exp((1 / _T) * (fx - fxp)), 1.0);
 
       // store statistics
@@ -630,7 +632,7 @@ void AttributeSearchThread::runSearchNoInnerLoop()
 {
   _statusMessage = "Running Recenter-Move MCMC with fast start";
 
-  double fx = _f(_original, _id);
+  double fx = _f(_original, _id, _currentStyle);
 
   // assign start scene, initialize result
   Snapshot* start = new Snapshot(*_original);
@@ -669,7 +671,7 @@ void AttributeSearchThread::runSearchNoInnerLoop()
     e->performEdit(sp, getGlobalSettings()->_editStepSize);
 
     // check for acceptance
-    double fxp = _f(sp, _id);
+    double fxp = _f(sp, _id, _currentStyle);
     double diff = fxp - fx;
     double a = min(exp((1 / _T) * (fx - fxp)), 1.0);
 
@@ -777,7 +779,7 @@ Eigen::VectorXd AttributeSearchThread::getDerivative(Snapshot & s)
 	Eigen::VectorXd x = snapshotToVector(&s);
 	Eigen::VectorXd dx;
 	dx.resizeLike(x);
-	double fx = _fsq(&s, _id);
+	double fx = _fsq(&s, _id, _currentStyle);
 
 	// adjust each parameter in order
 	double h = 1e-3;
@@ -788,14 +790,14 @@ Eigen::VectorXd AttributeSearchThread::getDerivative(Snapshot & s)
     if (x[i] >= 1) {
       x[i] -= h;
       vectorToExistingSnapshot(x, s);
-      double fxp = _fsq(&s, _id);
+      double fxp = _fsq(&s, _id, _currentStyle);
       dx[i] = (fx - fxp) / h;
       x[i] += h;
     }
     else {
       x[i] += h;
       vectorToExistingSnapshot(x, s);
-      double fxp = _fsq(&s, _id);
+      double fxp = _fsq(&s, _id, _currentStyle);
       dx[i] = (fxp - fx) / h;
       x[i] -= h;
     }
@@ -846,12 +848,12 @@ Eigen::VectorXd AttributeSearchThread::performLMGD(Snapshot* scene, double& fina
   double eps = 1e-3;
   double eps2 = 1e-6;
   double tau = 1e-3;
-  double fx = _fsq(&xs, _id);
+  double fx = _fsq(&xs, _id, _currentStyle);
   double forig = fx;
 
   Eigen::MatrixXd J = getJacobian(xs);
   Eigen::MatrixXd H = J.transpose() * J;		// may need to replace with actual calculation of Hessian
-  Eigen::MatrixXd g = J.transpose() * _fsq(&xs, _id);
+  Eigen::MatrixXd g = J.transpose() * _fsq(&xs, _id, _currentStyle);
 
   double mu = tau * H.diagonal().maxCoeff();
 
@@ -880,7 +882,7 @@ Eigen::VectorXd AttributeSearchThread::performLMGD(Snapshot* scene, double& fina
       }
 
       vectorToExistingSnapshot(xnew, xs);
-      double fnew = _fsq(&xs, _id);
+      double fnew = _fsq(&xs, _id, _currentStyle);
       Eigen::MatrixXd denom = (0.5 * hlm.transpose() * (mu * hlm - g));
       double rhoval = (fx * fx / 2 - fnew * fnew / 2) / denom(0);
 
@@ -1110,7 +1112,7 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
   }
 
   // objective functions for combined set of active attributes.
-  _f = [this](Snapshot* s, int callingThreadId) {
+  _f = [this](Snapshot* s, int callingThreadId, Style st) {
     auto start = chrono::high_resolution_clock::now();
     if (_active.size() == 0)
       return 0.0;
@@ -1155,6 +1157,9 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
       sum += avgLabMaskedImgDiff(img, startImg, _freezeMask);
     }
 
+    // style term
+    sum += getStyleTerm(st, s, img);
+
     getGlobalSettings()->_timings[callingThreadId]._sampleTime += chrono::duration<float>(chrono::high_resolution_clock::now() - start).count();
     getGlobalSettings()->_timings[callingThreadId]._numSamples += 1;
     return sum;
@@ -1162,7 +1167,7 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
 
   // this function is not instrumented at the moment due it it only being used in LMGD, which is not
   // actively being looked at.
-  _fsq = [this](Snapshot* s, int callingThreadId) {
+  _fsq = [this](Snapshot* s, int callingThreadId, Style st) {
     if (_active.size() == 0)
       return 0.0;
 
@@ -1195,6 +1200,8 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
       sum += avgLabMaskedImgDiff(img, startImg, _freezeMask);
     }
 
+    sum += getStyleTerm(st, s, img);
+
     return sum;
   };
 
@@ -1220,7 +1227,7 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
   }
 
   DebugData data;
-  data._f = _f(start, -1);
+  data._f = _f(start, -1, NO_STYLE);
   data._a = 1;
   data._sampleId = (unsigned int) samples[-1].size() + 1;
   data._editName = "START";

@@ -27,4 +27,12 @@ enum EditParam {
   BLUE
 };
 
+// style enumeration
+enum Style {
+  NO_STYLE,
+  SIDE_LIGHT,     // side lights should be brightest
+  DIRECTIONAL,    // one system should be brightest
+  FLAT            // ratio between front and back lights should be 2:1 at least
+};
+
 #endif  // EDITPARAMS_H_INCLUDED

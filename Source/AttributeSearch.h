@@ -124,6 +124,7 @@ private:
   int _resampleThreads;   // number threads that get moved during search (particle filtering)
   map<Edit*, EditStats> _editStats;      // collection of numbers for computing edit weights during runtime
   EditSelectMode _editMode;
+  Style _currentStyle;
 
   default_random_engine _gen;
   uniform_real_distribution<double> _udist;

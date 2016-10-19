@@ -83,10 +83,13 @@ void ImageAttribute::setStyle(Style style)
   switch (style)
   {
   case SIDE_LIGHT:
-    _styleFunction = std::bind(&ImageAttribute::sideLightStyle, this, std::placeholders::_1, std::placeholders::_2);
+    _styleFunction = std::bind(&sideLightStyle, std::placeholders::_1, std::placeholders::_2);
     break;
   case DIRECTIONAL:
-    _styleFunction = std::bind(&ImageAttribute::directionalLightStyle, this, std::placeholders::_1, std::placeholders::_2);
+    _styleFunction = std::bind(&directionalLightStyle, std::placeholders::_1, std::placeholders::_2);
+    break;
+  case FLAT:
+    _styleFunction = std::bind(&flatLightStyle, std::placeholders::_1, std::placeholders::_2);
     break;
   default:
     break;
@@ -258,50 +261,4 @@ void ImageAttribute::unlockMode()
 void ImageAttribute::setName(string name)
 {
   _name = name;
-}
-
-double ImageAttribute::sideLightStyle(Snapshot * s, Image & img)
-{
-  double sideIntens = 0;
-  double otherIntens = 0;
-
-  for (auto d : s->getDevices()) {
-    string sys = d->getMetadata("system");
-    if (sys == "side left" || sys == "side right" || sys == "side") {
-      sideIntens += d->getIntensity()->asPercent();
-    }
-    else {
-      otherIntens += d->getIntensity()->asPercent();
-    }
-  }
-
-  double r = sideIntens / (sideIntens + otherIntens);
-
-  // basically the larger the diff between side and other the better
-  return r * 20;
-}
-
-double ImageAttribute::directionalLightStyle(Snapshot * s, Image & img)
-{
-  map<string, double> sysIntens;
-
-  for (auto d : s->getDevices()) {
-    string sys = d->getMetadata("system");
-    sysIntens[sys] += d->getIntensity()->asPercent();
-  }
-
-  double maxIntens = 0;
-  double totalIntens = 0;
-
-  for (auto i : sysIntens) {
-    if (i.second > maxIntens)
-      maxIntens = i.second;
-
-    totalIntens += i.second;
-  }
-
-  if (totalIntens == 0)
-    return 0;
-
-  return (maxIntens / totalIntens) * 20;
 }

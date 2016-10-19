@@ -12,6 +12,7 @@
 #define IMAGEATTRIBUTE_H_INCLUDED
 
 #include "HistogramAttribute.h"
+#include "AttributeStyles.h"
 
 #define SPARSE5D
 //#define LABXYHIST
@@ -38,11 +39,6 @@ public:
     L,
     AB,
     LAB
-  };
-
-  enum Style {
-    SIDE_LIGHT,
-    DIRECTIONAL
   };
 
   ImageAttribute(string name, string filepath, float weight = 50);
@@ -78,11 +74,6 @@ public:
   void setName(string name);
 
 private:
-  // Penalty term for having other lights on that aren't side lights
-  double sideLightStyle(Snapshot* s, Image& img);
-
-  double directionalLightStyle(Snapshot* s, Image& img);
-
   float _weight;
 
 #ifdef SPARSE5D

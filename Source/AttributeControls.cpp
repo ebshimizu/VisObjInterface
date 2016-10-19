@@ -391,7 +391,7 @@ void AttributeControls::initAttributes()
 
     // TEST
     ImageAttribute* mod = new ImageAttribute(name.toStdString() + "_sideStyle", imagesToLoad[i].getFullPathName().toStdString(), 50);
-    mod->setStyle(ImageAttribute::Style::DIRECTIONAL);
+    mod->setStyle(Style::FLAT);
     _container->addAttributeController(mod);
   }
 
