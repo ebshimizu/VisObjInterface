@@ -126,8 +126,12 @@ private:
   EditSelectMode _editMode;
   Style _currentStyle;
 
+  // Note: this variable should probably change to an array of allowed style types at some point
+  bool _useStyles;
+
   default_random_engine _gen;
   uniform_real_distribution<double> _udist;
+  uniform_int_distribution<int> _styleDist;
 
   // Non-zero pixels indicate the affected pixel should not change
   Image _freezeMask;

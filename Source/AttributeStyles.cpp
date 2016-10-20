@@ -45,7 +45,7 @@ double sideLightStyle(Snapshot * s, Image & img)
   double r = sideIntens / (sideIntens + otherIntens);
 
   // basically the larger the diff between side and other the better
-  return r * 20;
+  return r * 30;
 }
 
 double directionalLightStyle(Snapshot * s, Image & img)
@@ -70,7 +70,7 @@ double directionalLightStyle(Snapshot * s, Image & img)
   if (totalIntens == 0)
     return 0;
 
-  return (maxIntens / totalIntens) * 20;
+  return (maxIntens / totalIntens) * 30;
 }
 
 double flatLightStyle(Snapshot* s, Image& img) {
@@ -94,5 +94,5 @@ double flatLightStyle(Snapshot* s, Image& img) {
   double r = frontIntens / backIntens - 2;
 
   // add bonus up to a limit
-  return min(r * 20, 50.0);
+  return min(r * 30, 50.0);
 }

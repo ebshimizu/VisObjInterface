@@ -255,6 +255,9 @@ void SettingsBoolButton::setState(bool newState)
   else if (_id == "Continuous Sort") {
     getGlobalSettings()->_continuousSort = newState;
   }
+  else if (_id == "Use Styles") {
+    getGlobalSettings()->_useSearchStyles = newState;
+  }
 
   refresh();
 }
@@ -277,6 +280,8 @@ bool SettingsBoolButton::getState() const
     return getGlobalSettings()->_randomInit;
   else if (_id == "Continuous Sort")
     return getGlobalSettings()->_continuousSort;
+  else if (_id == "Use Styles")
+    return getGlobalSettings()->_useSearchStyles;
 
   return false;
 }
@@ -448,13 +453,14 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Switching Time", 1, 500, 1));
   searchComponents.add(new SettingsSlider("Movable Threads", 0, thread::hardware_concurrency(), 1));
   searchComponents.add(new SettingsBoolButton("Continuous Sort"));
+  searchComponents.add(new SettingsBoolButton("Use Styles"));
   _settings.addSection("Search", searchComponents);
 
 
   Array<PropertyComponent*> clusterComponents;
 	clusterComponents.add(new SettingsChoice("Cluster Display Mode", { "Columns", "Grid" }));
   clusterComponents.add(new SettingsChoice("Primary Clustering Method", { "K-Means", "Mean Shift", "Spectral Clustering",
-    "Divisive K-Means", "Thresholded Devisive" }));
+    "Divisive K-Means", "Thresholded Devisive", "Styles" }));
   clusterComponents.add(new SettingsChoice("Primary Distance Metric", { "Per-Pixel Average Lab Difference",
     "Per-Pixel Maximum Lab Difference", "Per-Pixel 90th Percentile Difference", "Lab L2 Norm", "Luminance L2 Norm",
     "Parameter L2 Norm", "Softmax Parameter L2 Norm", "Attribute Function Distance", "Directed Per-Pixel Average Lab Difference",
@@ -463,7 +469,7 @@ SettingsEditor::SettingsEditor()
   clusterComponents.add(new SettingsSlider("Primary Divisive Threshold", 1e-3, 25, 0.001));
   clusterComponents.add(new SettingsChoice("Primary Focus Region", { "All", "Foreground", "Background" }));
   clusterComponents.add(new SettingsChoice("Secondary Clustering Method", { "K-Means", "Mean Shift", "Spectral Clustering",
-    "Divisive K-Means", "Thresholded Devisive" }));
+    "Divisive K-Means", "Thresholded Devisive", "Styles" }));
   clusterComponents.add(new SettingsChoice("Secondary Distance Metric", { "Per-Pixel Average Lab Difference",
     "Per-Pixel Maximum Lab Difference", "Per-Pixel 90th Percentile Difference", "Lab L2 Norm", "Luminance L2 Norm",
     "Parameter L2 Norm", "Softmax Parameter L2 Norm", "Attribute Function Distance", "Directed Per-Pixel Average Lab Difference",

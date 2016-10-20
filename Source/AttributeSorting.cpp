@@ -81,3 +81,22 @@ int AvgBrightSorter::compareElements(shared_ptr<SearchResultContainer> first, sh
   else
     return 0;
 }
+
+int StyleSorter::compareElements(shared_ptr<SearchResultContainer> first, shared_ptr<SearchResultContainer> second)
+{
+  Snapshot* s1 = vectorToSnapshot(first->getSearchResult()->_scene);
+  Snapshot* s2 = vectorToSnapshot(second->getSearchResult()->_scene);
+
+  double sv1 = getStyleTerm(_s, s1, first->getImage());
+  double sv2 = getStyleTerm(_s, s2, second->getImage());
+
+  delete s1;
+  delete s2;
+
+  if (sv1 < sv2)
+    return -1;
+  if (sv1 > sv2)
+    return 1;
+  else
+    return 0;
+}

@@ -51,5 +51,15 @@ public:
   virtual int compareElements(shared_ptr<SearchResultContainer> first, shared_ptr<SearchResultContainer> second);
 };
 
+class StyleSorter : public AttributeSorter
+{
+public:
+  StyleSorter(Style s) : _s(s) { }
+  ~StyleSorter() {}
+
+  virtual int compareElements(shared_ptr<SearchResultContainer> first, shared_ptr<SearchResultContainer> second);
+
+  Style _s;
+};
 
 #endif  // ATTRIBUTESORTING_H_INCLUDED

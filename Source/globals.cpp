@@ -441,6 +441,7 @@ GlobalSettings::GlobalSettings()
   _maskTolerance = 5;
   _editSelectMode = SIMPLE_BANDIT;
   _continuousSort = false;
+  _useSearchStyles = false;
 
   _imageAttrLoc = File::getCurrentWorkingDirectory().getChildFile("image_attributes");
 

@@ -227,6 +227,7 @@ AttributeControls::AttributeControls()
   _sort->addItem("Average Hue", 2);
   //_sort->addItem("Key Hue", 3);
   _sort->addItem("Average Intensity", 3);
+  _sort->addItem("Side Light Style", 4);
   //_sort->addItem("Key Intensity", 5);
   //_sort->addItem("Key Azimuth Angle", 6);
   _sort->setSelectedId(1);
@@ -390,9 +391,9 @@ void AttributeControls::initAttributes()
     _container->addAttributeController(new ImageAttribute(name.toStdString(), imagesToLoad[i].getFullPathName().toStdString(), 50));
 
     // TEST
-    ImageAttribute* mod = new ImageAttribute(name.toStdString() + "_sideStyle", imagesToLoad[i].getFullPathName().toStdString(), 50);
-    mod->setStyle(Style::FLAT);
-    _container->addAttributeController(mod);
+    //ImageAttribute* mod = new ImageAttribute(name.toStdString() + "_sideStyle", imagesToLoad[i].getFullPathName().toStdString(), 50);
+    //mod->setStyle(Style::FLAT);
+    //_container->addAttributeController(mod);
   }
 
   getStatusBar()->setStatusMessage("Loaded " + String(numImage) + " images from " + imageDir.getFullPathName());

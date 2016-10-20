@@ -190,6 +190,7 @@ AttributeSearchThread::AttributeSearchThread(String name, SearchResultsViewer* v
 
   _gen = default_random_engine(std::random_device{}());
   _udist = uniform_real_distribution<double>(0.0, 1.0);
+  _styleDist = uniform_int_distribution<int>(0, 3);
 }
 
 AttributeSearchThread::~AttributeSearchThread()
@@ -231,6 +232,7 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjF
   _freezeMask = freeze;
   _useMask = false;
   _maskTolerance = getGlobalSettings()->_maskTolerance;
+  _useStyles = getGlobalSettings()->_useSearchStyles;
 
   // quick check to see if the mask is actually filled in
   for (int y = 0; y < _freezeMask.getHeight(); y++) {
@@ -444,6 +446,11 @@ void AttributeSearchThread::runSearch()
   else if (_mode == REDUCE_REDUNDANCY) {
     runSearchNoInnerLoop();
   }
+
+  if (_useStyles) {
+    // pick new random style
+    _currentStyle = (Style)_styleDist(_gen);
+  }
 }
 
 void AttributeSearchThread::runSearchNoWarmup()
@@ -579,6 +586,7 @@ void AttributeSearchThread::runSearchNoWarmup()
 
   r->_extraData["Thread"] = String(_id);
   r->_extraData["Sample"] = String(data._sampleId);
+  r->_extraData["Style"] = String(_currentStyle);
   r->_creationTime = chrono::high_resolution_clock::now();
 
   // add if we did better
@@ -729,6 +737,7 @@ void AttributeSearchThread::runSearchNoInnerLoop()
 
   r->_extraData["Thread"] = String(_id);
   r->_extraData["Sample"] = String(data._sampleId);
+  r->_extraData["Style"] = String(_currentStyle);
   r->_creationTime = chrono::high_resolution_clock::now();
 
   // add if we did better

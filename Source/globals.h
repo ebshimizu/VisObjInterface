@@ -110,7 +110,8 @@ enum ClusterMethod {
   MEAN_SHIFT, // "Mean Shift"
   SPECTRAL,   // "Spectral Clustering"
   DIVISIVE,   // "Divisive K-Means"
-  TDIVISIVE   // "Thresholdede Devisive"
+  TDIVISIVE,  // "Thresholdede Devisive"
+  STYLE       // Cluster based on style types
 };
 
 enum DistanceMetric {

@@ -147,6 +147,10 @@ void SearchResultsContainer::sort()
     AvgBrightSorter sorter;
     sort(&sorter);
   }
+  else if (id == "Side Light Style") {
+    StyleSorter sorter(SIDE_LIGHT);
+    sort(&sorter);
+  }
 }
 
 void SearchResultsContainer::sort(AttributeSorter* s)
