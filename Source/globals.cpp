@@ -403,7 +403,7 @@ GlobalSettings::GlobalSettings()
   _jndThreshold = 3;
   _currentSortMode = "Attribute Default";
   _clusterElemsPerRow = 6;
-  _maxReturnedScenes = 250;
+  _maxReturnedScenes = 500;
   _showThumbnailImg = false;
   _T = 1;
   _exportTraces = false;
@@ -442,6 +442,7 @@ GlobalSettings::GlobalSettings()
   _editSelectMode = SIMPLE_BANDIT;
   _continuousSort = false;
   _useSearchStyles = false;
+  _searchFrontierSize = 4;
 
   _imageAttrLoc = File::getCurrentWorkingDirectory().getChildFile("image_attributes");
 

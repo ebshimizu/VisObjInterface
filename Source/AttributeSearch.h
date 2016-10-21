@@ -87,9 +87,6 @@ public:
 	// Sets the starting lighting configuration
   void setStartConfig(Snapshot* start);
 
-	// Sets the thread to use random initialization for LM searches
-	void useRandomInit(bool use) { _randomInit = use; }
-
 	void setParent(int p) { _parent = p; }
 
 	// Special function for computing statistics about the hybrid search mode.
@@ -117,7 +114,6 @@ private:
   attrObjFunc _fsq;
   double _T;
 	SearchMode _mode;	// set before launching to prevent issues when switching mid-run
-	bool _randomInit;	// For L-M descent, indicates if the starting position should be randomized
 	ThreadState _status;
   int _resampleTime;
   int _samplesTaken;
@@ -125,6 +121,8 @@ private:
   map<Edit*, EditStats> _editStats;      // collection of numbers for computing edit weights during runtime
   EditSelectMode _editMode;
   Style _currentStyle;
+  Array<shared_ptr<Snapshot> > _frontier;
+  int _k;
 
   // Note: this variable should probably change to an array of allowed style types at some point
   bool _useStyles;
@@ -173,11 +171,17 @@ private:
   // it in to the SearchResultsViewer object
   void runSearch();
 
-  // Runs a search without precomputing weights, but learning weights as it goes.
-  void runSearchNoWarmup();
-
   // Runs a search without using an inner iteration loop
   void runSearchNoInnerLoop();
+
+  // Runs a search using a randomly selected starting point
+  void runRandomStartSearch();
+
+  // Maintains a frontier of elements and uses a random start to mix things up
+  void runKRandomStartSearch();
+
+  // Run frontier based search with no random init
+  void runKSearch();
 
 	// Returns the partial numeric derivative wrt each adjustable parameter
 	// Assumes we want the derivative for the current attribute objective function

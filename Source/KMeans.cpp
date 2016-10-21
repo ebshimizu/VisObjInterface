@@ -22,7 +22,7 @@ KMeans::KMeans(distFuncType distFunc) : _distFunc(distFunc)
 {
 }
 
-Array<shared_ptr<TopLevelCluster> >KMeans::cluster(int k, Array<shared_ptr<SearchResultContainer> >& points, InitMode init)
+Array<shared_ptr<TopLevelCluster> >KMeans::cluster(int k, Array<shared_ptr<SearchResultContainer> >& points, InitMode init, bool addToCenters)
 {
   // initialize points
   Array<shared_ptr<TopLevelCluster> > centers;
@@ -32,10 +32,10 @@ Array<shared_ptr<TopLevelCluster> >KMeans::cluster(int k, Array<shared_ptr<Searc
   if (init == RND_PART)
     centers = rndpart(k, points);
 
-  return cluster(points, centers);
+  return cluster(points, centers, addToCenters);
 }
 
-Array<shared_ptr<TopLevelCluster> > KMeans::cluster(Array<shared_ptr<SearchResultContainer>>& points, Array<shared_ptr<TopLevelCluster>>& centers)
+Array<shared_ptr<TopLevelCluster> > KMeans::cluster(Array<shared_ptr<SearchResultContainer>>& points, Array<shared_ptr<TopLevelCluster>>& centers, bool addToCenters)
 {
   // assign each point to closest center
   // stop when no changes happen
@@ -81,9 +81,11 @@ Array<shared_ptr<TopLevelCluster> > KMeans::cluster(Array<shared_ptr<SearchResul
     }
   }
 
-  // add points to proper centers
-  for (auto& p : points) {
-    centers[p->getSearchResult()->_cluster]->addToCluster(p);
+  if (addToCenters) {
+    // add points to proper centers
+    for (auto& p : points) {
+      centers[p->getSearchResult()->_cluster]->addToCluster(p);
+    }
   }
 
   return centers;

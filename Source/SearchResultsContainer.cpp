@@ -546,6 +546,9 @@ void SearchResultsContainer::cluster()
   case TDIVISIVE:
     centers = Clustering::thresholdedKMeansClustering(_allResults, getGlobalSettings()->_primaryDivisiveThreshold, f);
     break;
+  case STYLE:
+    centers = Clustering::styleClustering(_allResults);
+    break;
   default:
     break;
   }
@@ -618,6 +621,9 @@ void SearchResultsContainer::cluster()
 		case TDIVISIVE:
 			centers2 = Clustering::thresholdedKMeansClustering(_allResults, getGlobalSettings()->_secondaryDivisiveThreshold, f2);
 			break;
+    case STYLE:
+      centers2 = Clustering::styleClustering(_allResults);
+      break;
 		default:
 			break;
 		}
@@ -1378,6 +1384,28 @@ shared_ptr<SearchResultContainer> SearchResultsContainer::getBestUnexploitedResu
   }
 
   return nullptr;
+}
+
+Array<shared_ptr<Snapshot>> SearchResultsContainer::getKCenters(int k)
+{
+  // lock it, adjustments could happen to all results array during this process
+  lock_guard<mutex> lock(_resultsLock);
+
+  distFuncType f = [](SearchResultContainer* x, SearchResultContainer* y) {
+    return x->dist(y, DistanceMetric::DIRPPAVGLAB, false, false);
+  };
+
+  // theoretically running this shouldn't affect the current clustering that much?
+  Array<shared_ptr<TopLevelCluster> > centers = Clustering::kmeansClustering(_allResults, k, f, false);
+
+  // extract snapshots from centers
+  Array<shared_ptr<Snapshot> > sc;
+  for (auto c : centers) {
+    c->setRepresentativeResult();
+    sc.add(shared_ptr<Snapshot>(vectorToSnapshot(c->getContainer()->getSearchResult()->_scene)));
+  }
+
+  return sc;
 }
 
 void SearchResultsContainer::writeMetadata(std::ofstream &statsFile, SearchMetadata &md)

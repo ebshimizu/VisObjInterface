@@ -31,10 +31,10 @@ public:
   KMeans(distFuncType distFunc);
 
   // cluster, let alg determine starting center points
-  Array<shared_ptr<TopLevelCluster> > cluster(int k, Array<shared_ptr<SearchResultContainer> >& points, InitMode init);
+  Array<shared_ptr<TopLevelCluster> > cluster(int k, Array<shared_ptr<SearchResultContainer> >& points, InitMode init, bool addToCenters = true);
 
   // cluster with a preset set of center points. k = centers.size()
-  Array<shared_ptr<TopLevelCluster> > cluster(Array<shared_ptr<SearchResultContainer> >& points, Array<shared_ptr<TopLevelCluster> >& centers);
+  Array<shared_ptr<TopLevelCluster> > cluster(Array<shared_ptr<SearchResultContainer> >& points, Array<shared_ptr<TopLevelCluster> >& centers, bool addToCenters = true);
 
   // top-down hierarchical clustering
   Array<shared_ptr<TopLevelCluster> > divisive(int maxK, Array<shared_ptr<SearchResultContainer> >& points);

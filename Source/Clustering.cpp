@@ -12,7 +12,7 @@
 
 namespace Clustering {
 
-Array<shared_ptr<TopLevelCluster> > kmeansClustering(Array<shared_ptr<SearchResultContainer> >& elems, int k, distFuncType f)
+Array<shared_ptr<TopLevelCluster> > kmeansClustering(Array<shared_ptr<SearchResultContainer> >& elems, int k, distFuncType f, bool addToCenters)
 {
   // mostly this function is a debug one to test that we can place things in
   // the proper GUI components
@@ -20,7 +20,7 @@ Array<shared_ptr<TopLevelCluster> > kmeansClustering(Array<shared_ptr<SearchResu
     return Array<shared_ptr<TopLevelCluster> >();
 
   KMeans clusterer(f);
-  return clusterer.cluster(k, elems, InitMode::FORGY);
+  return clusterer.cluster(k, elems, InitMode::FORGY, addToCenters);
 }
 
 Array<shared_ptr<TopLevelCluster> > meanShiftClustering(Array<shared_ptr<SearchResultContainer> >& elems, double bandwidth)
@@ -98,6 +98,30 @@ Array<shared_ptr<TopLevelCluster>> thresholdedKMeansClustering(Array<shared_ptr<
 {
   KMeans clusterer(f);
   return clusterer.divisive(t, elems);
+}
+
+Array<shared_ptr<TopLevelCluster>> styleClustering(Array<shared_ptr<SearchResultContainer>>& elems)
+{
+  Array<shared_ptr<TopLevelCluster> > centerContainers;
+
+  for (int i = 0; i < 4; i++) {
+    centerContainers.add(shared_ptr<TopLevelCluster>(new TopLevelCluster()));
+    centerContainers[i]->setClusterId(i);
+  }
+
+  for (auto elem : elems) {
+    String style = elem->getSearchResult()->_extraData["Style"];
+    centerContainers[style.getIntValue()]->addToCluster(elem);
+    elem->getSearchResult()->_cluster = style.getIntValue();
+  }
+  
+  for (auto c : centerContainers) {
+    c->setRepresentativeResult();
+    c->getContainer()->setFeatures(c->getRepresentativeResult()->getFeatures());
+    c->getContainer()->getSearchResult()->_scene = c->getRepresentativeResult()->getSearchResult()->_scene;
+  }
+
+  return centerContainers;
 }
 
 }

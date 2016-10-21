@@ -391,9 +391,9 @@ void AttributeControls::initAttributes()
     _container->addAttributeController(new ImageAttribute(name.toStdString(), imagesToLoad[i].getFullPathName().toStdString(), 50));
 
     // TEST
-    //ImageAttribute* mod = new ImageAttribute(name.toStdString() + "_sideStyle", imagesToLoad[i].getFullPathName().toStdString(), 50);
-    //mod->setStyle(Style::FLAT);
-    //_container->addAttributeController(mod);
+    ImageAttribute* mod = new ImageAttribute(name.toStdString() + "_directed", imagesToLoad[i].getFullPathName().toStdString(), 50);
+    mod->setStyle(Style::DIRECTIONAL);
+    _container->addAttributeController(mod);
   }
 
   getStatusBar()->setStatusMessage("Loaded " + String(numImage) + " images from " + imageDir.getFullPathName());

@@ -140,6 +140,9 @@ public:
   // that doesn't have the "Exploited" extra attribute set
   shared_ptr<SearchResultContainer> getBestUnexploitedResult();
 
+  // returns k center points from clusters created from the current set of results
+  Array<shared_ptr<Snapshot> > getKCenters(int k);
+
 private:
   // All results contains every result in the container. It should only be deleted at the top
   // level of the container hierarchy, which looks like:

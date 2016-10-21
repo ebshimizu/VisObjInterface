@@ -112,7 +112,7 @@ void ImageAttribute::initUI()
 
   _modeSelect.addListener(this);
   _modeSelect.addItemList(modes, 1);
-  _modeSelect.setSelectedId(FULL + 1, dontSendNotification);
+  _modeSelect.setSelectedId(LAB + 1, dontSendNotification);
   addAndMakeVisible(_modeSelect);
 }
 

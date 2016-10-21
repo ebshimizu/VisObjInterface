@@ -140,9 +140,10 @@ enum ClusterDisplayMode {
 };
 
 enum SearchMode {
-  COLD_RECENTER,     // No-windup recentering search. Basically calculates weights as the search runs.
   REDUCE_REDUNDANCY, // No inner edit iteration loop
-  STANDARD_MCMC
+  RANDOM_START,      // Starting points of the search are randomized
+  KRANDOM_START,     // Random start with k-means clustering used to select a frontier
+  KMCMC              // Standard search with a k-size frontier
 };
 
 enum EditSelectMode {
@@ -230,6 +231,7 @@ public:
   EditSelectMode _editSelectMode;         // Edit selection mode
   bool _continuousSort;         // Continuously sort the results
   bool _useSearchStyles;        // Adds style-based searches into the search process
+  int _searchFrontierSize;      // Size of the search frontier for k-means based search versions
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

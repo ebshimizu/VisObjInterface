@@ -206,6 +206,9 @@ void TopLevelCluster::cluster()
   case TDIVISIVE:
     centers = Clustering::thresholdedKMeansClustering(results, getGlobalSettings()->_secondaryDivisiveThreshold, f);
     break;
+  case STYLE:
+    centers = Clustering::styleClustering(results);
+    break;
   default:
     break;
   }

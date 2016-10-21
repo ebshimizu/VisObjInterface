@@ -200,6 +200,11 @@ void SearchResultsViewer::clearHistory()
 	_history->clearAllHistory();
 }
 
+Array<shared_ptr<Snapshot>> SearchResultsViewer::getKCenters(int k)
+{
+  return _results->getKCenters(k);
+}
+
 shared_ptr<SearchResultContainer> SearchResultsViewer::getBestUnexploitedResult()
 {
   return _results->getBestUnexploitedResult();

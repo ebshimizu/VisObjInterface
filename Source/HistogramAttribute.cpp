@@ -999,7 +999,7 @@ SparseHistogram HistogramAttribute::getabHist(Image & canonical)
 
 SparseHistogram HistogramAttribute::getLabHist(Image & canonical)
 {
-  SparseHistogram hist(3, { 0, 5, -5, 10, -5, 10 });
+  SparseHistogram hist(3, { 0, 10, -5, 10, -5, 10 });
 
   for (int y2 = 0; y2 < canonical.getHeight(); y2++) {
     for (int x2 = 0; x2 < canonical.getWidth(); x2++) {

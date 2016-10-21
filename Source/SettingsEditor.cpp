@@ -344,6 +344,10 @@ void SettingsChoice::setIndex(int newIndex)
 {
   if (getName() == "Primary Clustering Method") {
     getGlobalSettings()->_primaryClusterMethod = (ClusterMethod)newIndex;
+
+    if (newIndex == (int)STYLE) {
+      getGlobalSettings()->_numPrimaryClusters = 4;
+    }
   }
   else if (getName() == "Primary Distance Metric") {
     getGlobalSettings()->_primaryClusterMetric = (DistanceMetric)newIndex;
@@ -353,6 +357,10 @@ void SettingsChoice::setIndex(int newIndex)
   }
   else if (getName() == "Secondary Clustering Method") {
     getGlobalSettings()->_secondaryClusterMethod = (ClusterMethod)newIndex;
+
+    if (newIndex == (int)STYLE) {
+      getGlobalSettings()->_numSecondaryClusters = 4;
+    }
   }
   else if (getName() == "Secondary Distance Metric") {
     getGlobalSettings()->_secondaryClusterMetric = (DistanceMetric)newIndex;
@@ -430,7 +438,6 @@ String SettingsButton::getButtonText() const
 SettingsEditor::SettingsEditor()
 {
   Array<PropertyComponent*> searchComponents;
-  searchComponents.add(new SettingsChoice("Search Mode", { "Fast Start Recentering MCMC", "MCMC with no inner loop" }));
   searchComponents.add(new SettingsChoice("Edit Selection Mode", { "Default", "Simple Bandit", "Uniform Random", "Adversarial Bandit" }));
   searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 250, 1));
   searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 10, 0.01));
