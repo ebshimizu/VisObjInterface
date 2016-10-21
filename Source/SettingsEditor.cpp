@@ -438,6 +438,7 @@ String SettingsButton::getButtonText() const
 SettingsEditor::SettingsEditor()
 {
   Array<PropertyComponent*> searchComponents;
+  searchComponents.add(new SettingsChoice("Search Mode", { "MCMC with no inner loop", "MCMC with Random Starting Points", "K-Frontier Random Start", "K-Frontier MCMC" }));
   searchComponents.add(new SettingsChoice("Edit Selection Mode", { "Default", "Simple Bandit", "Uniform Random", "Adversarial Bandit" }));
   searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 250, 1));
   searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 10, 0.01));
