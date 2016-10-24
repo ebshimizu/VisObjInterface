@@ -183,6 +183,12 @@ private:
   // Run frontier based search with no random init
   void runKSearch();
 
+  // Run the CMA-ES search method
+  void runCMAES();
+
+  // internal helper functino for CMAES
+  Eigen::VectorXd CMAESHelper(const Eigen::VectorXd &startingPoint, int lambda, int maxIters, vector<Eigen::VectorXd> *candidates);
+
 	// Returns the partial numeric derivative wrt each adjustable parameter
 	// Assumes we want the derivative for the current attribute objective function
 	Eigen::VectorXd getDerivative(Snapshot& s);

@@ -12,6 +12,7 @@
 #include "MeanShift.h"
 #include "MainComponent.h"
 #include "AttributeStyles.h"
+#include "CMAES/src/cmaes_interface.h"
 #include <list>
 #include <algorithm>
 
@@ -486,6 +487,9 @@ void AttributeSearchThread::runSearch()
   else if (_mode == KMCMC) {
     runKSearch();
   }
+  else if (_mode == CMAES) {
+    runCMAES();
+  }
 
   if (_useStyles) {
     // pick new random style
@@ -667,6 +671,121 @@ void AttributeSearchThread::runKSearch()
   setStartConfig(_frontier[rng(_gen)].get());
 
   runSearchNoInnerLoop();
+}
+
+void AttributeSearchThread::runCMAES()
+{
+  _statusMessage = "Running CMAES";
+
+  const int baseLambda = 100;
+  Eigen::VectorXd startX = snapshotToVector(_original);
+  vector<Eigen::VectorXd> results;
+
+  Eigen::VectorXd x = CMAESHelper(startX, baseLambda, 20, nullptr);
+  x = CMAESHelper(x, baseLambda, 20, nullptr);
+  x = CMAESHelper(x, baseLambda, 20, nullptr);
+  x = CMAESHelper(x, baseLambda, 20, nullptr);
+  x = CMAESHelper(x, baseLambda, 50, nullptr);
+  x = CMAESHelper(x, baseLambda, 50, nullptr);
+  x = CMAESHelper(x, baseLambda, 50, &results);
+  x = CMAESHelper(x, baseLambda, 200, &results);
+
+  // insert results
+  for (auto s : results) {
+    // create result container
+    SearchResult* r = new SearchResult();
+    r->_scene = s;
+    
+    Snapshot* sn = vectorToSnapshot(s);
+    r->_objFuncVal = _f(sn, _id, NO_STYLE);
+    delete sn;
+
+    // diagnostics
+    DebugData data;
+    auto& samples = getGlobalSettings()->_samples;
+    data._f = r->_objFuncVal;
+    data._sampleId = (unsigned int)samples[_id].size() + 1;
+    data._editName = "CMA-ES";
+    data._accepted = true;
+    data._scene = r->_scene;
+    data._timeStamp = chrono::high_resolution_clock::now();
+
+    r->_extraData["Thread"] = String(_id);
+    r->_extraData["Sample"] = String(data._sampleId);
+    r->_creationTime = chrono::high_resolution_clock::now();
+
+    // force add all results for CMA-ES
+    if (!_viewer->addNewResult(r, _id, true)) {
+      data._accepted = false;
+    }
+  }
+}
+
+Eigen::VectorXd AttributeSearchThread::CMAESHelper(const Eigen::VectorXd & startingPoint, int lambda, int maxIters, vector<Eigen::VectorXd>* candidates)
+{
+  const float baseStdDev = 0.01f;
+  cmaes_t opt;
+
+  const int dimension = startingPoint.size();
+  vector<double> xStart, stdDev;
+  for (int i = 0; i < startingPoint.size(); i++) {
+    stdDev.push_back(baseStdDev);
+    xStart.push_back(startingPoint(i));
+  }
+
+  double *arFunVals = cmaes_init(&opt, dimension, xStart.data(), stdDev.data(), 0, lambda, nullptr);
+
+  int iter = 0;
+
+  while (!cmaes_TestForTermination(&opt) && iter <= maxIters) {
+    double* const* pop = cmaes_SamplePopulation(&opt);
+
+    int bestPopIndex = 0;
+    double bestPopValue = std::numeric_limits<double>::max();
+
+    for (int i = 0; i < lambda; i++) {
+      Eigen::VectorXd x;
+      x.resizeLike(startingPoint);
+
+      for (int j = 0; j < dimension; j++) {
+        x[j] = pop[i][j];
+      }
+
+      Snapshot* s = vectorToSnapshot(x);
+      arFunVals[i] = _f(s, _id, NO_STYLE);
+      delete s;
+
+      if (arFunVals[i] < bestPopValue) {
+        bestPopIndex = i;
+        bestPopValue = arFunVals[i];
+      }
+    }
+
+    if (candidates != nullptr) {
+      Eigen::VectorXd x;
+      x.resizeLike(startingPoint);
+
+      for (int j = 0; j < dimension; j++) {
+        x[j] = pop[bestPopIndex][j];
+      }
+      candidates->push_back(x);
+    }
+
+    iter++;
+    cmaes_UpdateDistribution(&opt, arFunVals);
+  }
+
+  double* xFinal = cmaes_GetNew(&opt, "xbestever");
+  cmaes_exit(&opt);
+
+  Eigen::VectorXd result;
+  result.resizeLike(startingPoint);
+  for (int j = 0; j < dimension; j++) {
+    result[j] = xFinal[j];
+  }
+  free(xFinal);
+
+  return result;
 }
 
 Eigen::VectorXd AttributeSearchThread::getDerivative(Snapshot & s)

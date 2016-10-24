@@ -8,6 +8,16 @@
     <GROUP id="{E33A23C0-94A8-8A6D-0624-83F1C8438329}" name="Source">
       <FILE id="gbxVqZ" name="EditParams.h" compile="0" resource="0" file="Source/EditParams.h"/>
       <GROUP id="{87E6B34E-AD15-F89C-D590-669F122FB46E}" name="third_party">
+        <GROUP id="{A17287C1-697A-F8EF-7E4B-DB6F94C74EDF}" name="CMAES">
+          <FILE id="f0Qc2w" name="boundary_transformation.c" compile="1" resource="0"
+                file="Source/CMAES/src/boundary_transformation.c"/>
+          <FILE id="sMNqW1" name="boundary_transformation.h" compile="0" resource="0"
+                file="Source/CMAES/src/boundary_transformation.h"/>
+          <FILE id="lmlWAi" name="cmaes.c" compile="1" resource="0" file="Source/CMAES/src/cmaes.c"/>
+          <FILE id="tnKJZY" name="cmaes.h" compile="0" resource="0" file="Source/CMAES/src/cmaes.h"/>
+          <FILE id="vz3prp" name="cmaes_interface.h" compile="0" resource="0"
+                file="Source/CMAES/src/cmaes_interface.h"/>
+        </GROUP>
         <GROUP id="{70A0E653-4B0A-8B11-B024-D6A6B2C5910C}" name="FastSimplex">
           <FILE id="tUcbKv" name="chrono.h" compile="0" resource="0" file="Source/FastSimplex/chrono.h"/>
           <FILE id="qQ8au8" name="core.h" compile="0" resource="0" file="Source/FastSimplex/core.h"/>

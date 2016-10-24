@@ -143,7 +143,8 @@ enum SearchMode {
   REDUCE_REDUNDANCY, // No inner edit iteration loop
   RANDOM_START,      // Starting points of the search are randomized
   KRANDOM_START,     // Random start with k-means clustering used to select a frontier
-  KMCMC              // Standard search with a k-size frontier
+  KMCMC,             // Standard search with a k-size frontier
+  CMAES              // Gradient free opt
 };
 
 enum EditSelectMode {

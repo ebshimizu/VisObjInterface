@@ -134,6 +134,8 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\CMAES\src\boundary_transformation.c"/>
+    <ClCompile Include="..\..\Source\CMAES\src\cmaes.c"/>
     <ClCompile Include="..\..\Source\Clustering.cpp"/>
     <ClCompile Include="..\..\Source\KMeans.cpp"/>
     <ClCompile Include="..\..\Source\MeanShift.cpp"/>
@@ -1718,6 +1720,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\EditParams.h"/>
+    <ClInclude Include="..\..\Source\CMAES\src\boundary_transformation.h"/>
+    <ClInclude Include="..\..\Source\CMAES\src\cmaes.h"/>
+    <ClInclude Include="..\..\Source\CMAES\src\cmaes_interface.h"/>
     <ClInclude Include="..\..\Source\FastSimplex\chrono.h"/>
     <ClInclude Include="..\..\Source\FastSimplex\core.h"/>
     <ClInclude Include="..\..\Source\FastSimplex\full_bipartitegraph.h"/>
