@@ -293,3 +293,5 @@ Builds/VisualStudio2015/traces/*
 Builds/VisualStudio2015NoArnold/AttributesInterface.exe
 *.pyc
 analysis/*
+*.par
+Builds/VisualStudio2015NoArnold/errcmaes.err
