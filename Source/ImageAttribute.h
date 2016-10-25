@@ -99,4 +99,12 @@ private:
   function<double(Snapshot*, Image&)> _styleFunction;
 };
 
+class DirectionalTestAttribute : public ImageAttribute {
+public:
+  DirectionalTestAttribute(string name, Image img, float weight = 50);
+  ~DirectionalTestAttribute();
+
+  virtual double evaluateScene(Snapshot* s, Image& img) override;
+};
+
 #endif  // IMAGEATTRIBUTE_H_INCLUDED

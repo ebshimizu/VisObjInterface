@@ -262,3 +262,17 @@ void ImageAttribute::setName(string name)
 {
   _name = name;
 }
+
+DirectionalTestAttribute::DirectionalTestAttribute(string name, Image img, float weight) :
+  ImageAttribute(name, img, weight)
+{
+}
+
+DirectionalTestAttribute::~DirectionalTestAttribute()
+{
+}
+
+double DirectionalTestAttribute::evaluateScene(Snapshot * s, Image & img)
+{
+  return directionalLightStyle(s, img);
+}

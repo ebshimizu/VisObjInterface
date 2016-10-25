@@ -386,6 +386,10 @@ void AttributeControls::initAttributes()
   //LabxyHistogram gen(5, 5, 5, 3, 3, { 0, 100, -70, 70, -70, 70, 0, 1, 0, 1 }, 100);
   //getGlobalSettings()->_metric = gen.getGroundDistances();
 
+  // Directional test for diversity
+  DirectionalTestAttribute* dt = new DirectionalTestAttribute("Directional", Image(), 0);
+  _container->addAttributeController(dt);
+
   for (int i = 0; i < numImage; i++) {
     String name = imagesToLoad[i].getFileNameWithoutExtension();
     _container->addAttributeController(new ImageAttribute(name.toStdString(), imagesToLoad[i].getFullPathName().toStdString(), 50));
