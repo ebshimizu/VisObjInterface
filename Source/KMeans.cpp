@@ -35,6 +35,14 @@ Array<shared_ptr<TopLevelCluster> >KMeans::cluster(int k, Array<shared_ptr<Searc
   return cluster(points, centers, addToCenters);
 }
 
+Array<shared_ptr<SearchResultContainer>> KMeans::clusterBestCenters(int k, Array<shared_ptr<SearchResultContainer>>& points)
+{
+  // initialize points
+  Array<shared_ptr<SearchResultContainer> > centers = forgy2(k, points);
+
+  return clusterBestCenters(points, centers);
+}
+
 Array<shared_ptr<TopLevelCluster> > KMeans::cluster(Array<shared_ptr<SearchResultContainer>>& points, Array<shared_ptr<TopLevelCluster>>& centers, bool addToCenters)
 {
   // assign each point to closest center
@@ -89,6 +97,79 @@ Array<shared_ptr<TopLevelCluster> > KMeans::cluster(Array<shared_ptr<SearchResul
   }
 
   return centers;
+}
+
+Array<shared_ptr<SearchResultContainer>> KMeans::clusterBestCenters(Array<shared_ptr<SearchResultContainer>>& points, Array<shared_ptr<SearchResultContainer>>& centers)
+{
+  // assign each point to closest center
+  // stop when no changes happen
+  bool noChangeHappened = false;
+  while (!noChangeHappened) {
+    noChangeHappened = true;
+
+    for (auto& p : points) {
+      // find closest center
+      int closest = closestCenter2(p, centers);
+
+      // assign center, mark if change
+      if ((unsigned long)closest != p->getSearchResult()->_cluster)
+      {
+        noChangeHappened = false;
+        p->getSearchResult()->_cluster = closest;
+      }
+    }
+
+    // reset centers
+    map<int, int> counts;
+    map<int, Eigen::VectorXd> feats;
+    map<int, Eigen::VectorXd> scenes;
+    for (auto& c : centers) {
+      int clusterId = c->getSearchResult()->_cluster;
+      feats[clusterId] = c->getFeatures();
+      feats[clusterId].setZero();
+      scenes[clusterId] = c->getSearchResult()->_scene;
+      scenes[clusterId].setZero();
+      counts[clusterId] = 0;
+    }
+
+    // update centers
+    for (auto& p : points) {
+      SearchResult* r = p->getSearchResult();
+      feats[r->_cluster] += p->getFeatures();
+      scenes[r->_cluster] += r->_scene;
+      counts[r->_cluster] += 1;
+    }
+
+    for (auto& c : centers) {
+      int clusterId = c->getSearchResult()->_cluster;
+      c->setFeatures(feats[clusterId] / counts[clusterId]);
+      c->getSearchResult()->_scene = scenes[clusterId] / counts[clusterId];
+    }
+  }
+
+  vector<shared_ptr<SearchResultContainer> > best;
+  best.resize(centers.size());
+
+  // add points to proper centers
+  for (auto p : points) {
+    int cluster = p->getSearchResult()->_cluster;
+
+    if (best[cluster] == nullptr) {
+      best[cluster] = p;
+      continue;
+    }
+
+    if (best[cluster]->getSearchResult()->_objFuncVal > p->getSearchResult()->_objFuncVal) {
+      best[cluster] = p;
+    }
+  }
+
+  Array<shared_ptr<SearchResultContainer> > abest;
+  for (auto b : best) {
+    abest.add(b);
+  }
+
+  return abest;
 }
 
 Array<shared_ptr<TopLevelCluster>> KMeans::divisive(int maxK, Array<shared_ptr<SearchResultContainer>>& points)
@@ -333,6 +414,34 @@ Array<shared_ptr<TopLevelCluster> > KMeans::rndpart(int k, Array<shared_ptr<Sear
   return centers;
 }
 
+Array<shared_ptr<SearchResultContainer>> KMeans::forgy2(int k, Array<shared_ptr<SearchResultContainer>>& points)
+{
+  // pick k random elements for centers, no repeats
+  // we'll do this by removing random elements until the number remaining is <= k.
+  Array<shared_ptr<SearchResultContainer> > tempPoints(points);
+
+  while (tempPoints.size() > k) {
+    // select random element to remove
+    tempPoints.remove(rand() % tempPoints.size());
+  }
+
+  // create containers for centers
+  Array<shared_ptr<SearchResultContainer> > centers;
+
+  int i = 0;
+  for (auto& p : tempPoints) {
+    auto src = shared_ptr<SearchResultContainer>(new SearchResultContainer(new SearchResult()));
+    src->getSearchResult()->_cluster = i;
+    src->getSearchResult()->_scene = p->getSearchResult()->_scene;
+    src->setFeatures(p->getFeatures());
+    centers.add(src);
+
+    i++;
+  }
+
+  return centers;
+}
+
 int KMeans::closestCenter(shared_ptr<SearchResultContainer> point, Array<shared_ptr<TopLevelCluster> >& centers)
 {
   int minCenter = -1;
@@ -340,6 +449,23 @@ int KMeans::closestCenter(shared_ptr<SearchResultContainer> point, Array<shared_
 
   for (int i = 0; i < centers.size(); i++) {
     auto centerContainer = centers[i]->getContainer();
+    double dist = _distFunc(point.get(), centerContainer.get());
+    if (dist < minDist) {
+      minCenter = i;
+      minDist = dist;
+    }
+  }
+
+  return minCenter;
+}
+
+int KMeans::closestCenter2(shared_ptr<SearchResultContainer> point, Array<shared_ptr<SearchResultContainer>>& centers)
+{
+  int minCenter = -1;
+  double minDist = DBL_MAX;
+
+  for (int i = 0; i < centers.size(); i++) {
+    auto centerContainer = centers[i];
     double dist = _distFunc(point.get(), centerContainer.get());
     if (dist < minDist) {
       minCenter = i;

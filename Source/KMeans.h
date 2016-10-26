@@ -32,9 +32,12 @@ public:
 
   // cluster, let alg determine starting center points
   Array<shared_ptr<TopLevelCluster> > cluster(int k, Array<shared_ptr<SearchResultContainer> >& points, InitMode init, bool addToCenters = true);
+  Array<shared_ptr<SearchResultContainer> > clusterBestCenters(int k, Array<shared_ptr<SearchResultContainer> >& points);
 
   // cluster with a preset set of center points. k = centers.size()
   Array<shared_ptr<TopLevelCluster> > cluster(Array<shared_ptr<SearchResultContainer> >& points, Array<shared_ptr<TopLevelCluster> >& centers, bool addToCenters = true);
+
+  Array<shared_ptr<SearchResultContainer> > clusterBestCenters(Array<shared_ptr<SearchResultContainer> >& points, Array<shared_ptr<SearchResultContainer> >& centers);
 
   // top-down hierarchical clustering
   Array<shared_ptr<TopLevelCluster> > divisive(int maxK, Array<shared_ptr<SearchResultContainer> >& points);
@@ -46,8 +49,11 @@ private:
   Array<shared_ptr<TopLevelCluster> > forgy(int k, Array<shared_ptr<SearchResultContainer> >& points);
   Array<shared_ptr<TopLevelCluster> > rndpart(int k, Array<shared_ptr<SearchResultContainer> >& points);
 
+  Array<shared_ptr<SearchResultContainer> > forgy2(int k, Array<shared_ptr<SearchResultContainer> >& points);
+
   // Returns the closest center to the specified point
   int closestCenter(shared_ptr<SearchResultContainer> point, Array<shared_ptr<TopLevelCluster> >& centers);
+  int closestCenter2(shared_ptr<SearchResultContainer> point, Array<shared_ptr<SearchResultContainer> >& centers);
 
   distFuncType _distFunc;
 };

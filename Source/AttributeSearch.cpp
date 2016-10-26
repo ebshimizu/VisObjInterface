@@ -256,11 +256,7 @@ void AttributeSearchThread::run()
     }
   }
 
-  if (_mode == KRANDOM_START) {
-    _frontier.add(shared_ptr<Snapshot>(new Snapshot(*_original)));
-  }
-
-  if (_mode == KMCMC) {
+  if (_mode == KRANDOM_START || _mode == KMCMC) {
     _frontier.add(shared_ptr<Snapshot>(new Snapshot(*_original)));
   }
 
@@ -372,13 +368,30 @@ void AttributeSearchThread::recenter(Snapshot * s)
     }
     else if (_mode == KRANDOM_START || _mode == KMCMC) {
       // Select a k-sized fontier based off of a clustering of the current result set.
-      _frontier = _viewer->getKCenters(_k);
+      Array<shared_ptr<SearchResultContainer> > fc = _viewer->getKCenters(_k);
 
       uniform_int_distribution<int> rng(0, _frontier.size() - 1);
       setStartConfig(_frontier[rng(_gen)].get());
 
       _samplesTaken = 0;
       getRecorder()->log(SYSTEM, "Recentered thread " + String(_id).toStdString() + " to new scene");
+
+      // log the new frontier
+      for (auto r : fc) {
+        _frontier.add(shared_ptr<Snapshot>(vectorToSnapshot(r->getSearchResult()->_scene)));
+
+        // log it
+        DebugData data;
+        auto& samples = getGlobalSettings()->_samples;
+        data._f = r->getSearchResult()->_objFuncVal;
+        data._sampleId = r->getSearchResult()->_sampleNo;
+        data._editName = "FRONTIER ELEMENT";
+        data._accepted = true;
+        data._scene = r->getSearchResult()->_scene;
+        data._timeStamp = chrono::high_resolution_clock::now();
+        samples[_id].push_back(data);
+      }
+
       return;
     }
     else {

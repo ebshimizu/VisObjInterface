@@ -23,6 +23,15 @@ Array<shared_ptr<TopLevelCluster> > kmeansClustering(Array<shared_ptr<SearchResu
   return clusterer.cluster(k, elems, InitMode::FORGY, addToCenters);
 }
 
+Array<shared_ptr<SearchResultContainer>> kmeansBestClustering(Array<shared_ptr<SearchResultContainer>>& elems, int k, distFuncType f)
+{
+  if (elems.size() == 0)
+    return Array<shared_ptr<SearchResultContainer> >();
+
+  KMeans clusterer(f);
+  return clusterer.clusterBestCenters(k, elems);
+}
+
 Array<shared_ptr<TopLevelCluster> > meanShiftClustering(Array<shared_ptr<SearchResultContainer> >& elems, double bandwidth)
 {
   // place feature vecs into a vector

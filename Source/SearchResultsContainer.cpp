@@ -1386,26 +1386,22 @@ shared_ptr<SearchResultContainer> SearchResultsContainer::getBestUnexploitedResu
   return nullptr;
 }
 
-Array<shared_ptr<Snapshot>> SearchResultsContainer::getKCenters(int k)
+Array<shared_ptr<SearchResultContainer>> SearchResultsContainer::getKCenters(int k)
 {
   // lock it, adjustments could happen to all results array during this process
   lock_guard<mutex> lock(_resultsLock);
 
   distFuncType f = [](SearchResultContainer* x, SearchResultContainer* y) {
-    return x->dist(y, DistanceMetric::DIRPPAVGLAB, false, false);
+    return x->dist(y, DistanceMetric::L2PARAM, false, false);
   };
 
   // theoretically running this shouldn't affect the current clustering that much?
-  Array<shared_ptr<TopLevelCluster> > centers = Clustering::kmeansClustering(_allResults, k, f, false);
+  // correction: using this form won't affect current clusters. when the actual clustering happens
+  // the results are added as children to TopLevelContainers which makes the heirarchy get all
+  // sorts of confused. ths version of clustering prevents that
+  Array<shared_ptr<SearchResultContainer> > centers = Clustering::kmeansBestClustering(_allResults, k, f);
 
-  // extract snapshots from centers
-  Array<shared_ptr<Snapshot> > sc;
-  for (auto c : centers) {
-    c->setRepresentativeResult();
-    sc.add(shared_ptr<Snapshot>(vectorToSnapshot(c->getContainer()->getSearchResult()->_scene)));
-  }
-
-  return sc;
+  return centers;
 }
 
 void SearchResultsContainer::writeMetadata(std::ofstream &statsFile, SearchMetadata &md)

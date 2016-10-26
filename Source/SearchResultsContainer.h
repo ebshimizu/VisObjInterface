@@ -141,7 +141,7 @@ public:
   shared_ptr<SearchResultContainer> getBestUnexploitedResult();
 
   // returns k center points from clusters created from the current set of results
-  Array<shared_ptr<Snapshot> > getKCenters(int k);
+  Array<shared_ptr<SearchResultContainer> > getKCenters(int k);
 
 private:
   // All results contains every result in the container. It should only be deleted at the top

@@ -574,17 +574,21 @@ double SearchResultContainer::l2paramDist(SearchResultContainer * y)
     LumiverseColor* xcolor = d.second->getColor();
     LumiverseColor* ycolor = dy->getColor();
 
-    Eigen::Vector3d xc = xcolor->getRGB() * xintens;
-    Eigen::Vector3d yc = ycolor->getRGB() * yintens;
+    Eigen::Vector3d xc(1, 1, 1);
+    Eigen::Vector3d yc(1, 1, 1);    
+
+    if (xcolor != nullptr)
+      xc = xcolor->getRGB() * xintens;
+
+    if (ycolor != nullptr)
+      yc = ycolor->getRGB() * yintens;
 
     sum += (xc - yc).norm();
   }
 
-  int count = (int) xdevices.size();
-
   delete ys;
   delete xs;
-  return sum / count;
+  return sqrt(sum);
 }
 
 double SearchResultContainer::l2paramDistSoftmax(SearchResultContainer * y)

@@ -429,7 +429,7 @@ GlobalSettings::GlobalSettings()
   _primaryDivisiveThreshold = 7.5;
   _secondaryDivisiveThreshold = 5;
 	_clusterDisplay = COLUMNS;
-	_searchMode = REDUCE_REDUNDANCY;
+	_searchMode = KRANDOM_START;
 	_maxGradIters = 200;
   _reduceRepeatEdits = true;
   _autoTimeout = 30;
@@ -440,7 +440,7 @@ GlobalSettings::GlobalSettings()
   _resampleThreads = thread::hardware_concurrency();
   _maskTolerance = 5;
   _editSelectMode = SIMPLE_BANDIT;
-  _continuousSort = false;
+  _continuousSort = true;
   _useSearchStyles = false;
   _searchFrontierSize = 4;
 
