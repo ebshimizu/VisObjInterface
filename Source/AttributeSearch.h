@@ -18,6 +18,7 @@
 #include "SearchResultsViewer.h"
 
 class SearchResultsViewer;
+class SearchResultContainer;
 
 // Flag indicating thread status for the dispatch thread
 enum ThreadState {
@@ -123,6 +124,14 @@ private:
   Style _currentStyle;
   Array<shared_ptr<Snapshot> > _frontier;
   int _k;
+  Array<shared_ptr<SearchResultContainer> > _currentResults;
+
+  // repulsion terms
+  double _coneK;
+  double _costScale;
+  double _coneRadius;
+  int _previousResultsSize;
+  int _numPairs;
 
   // Note: this variable should probably change to an array of allowed style types at some point
   bool _useStyles;
@@ -186,6 +195,9 @@ private:
   // Run the CMA-ES search method
   void runCMAES();
 
+  // repulsion term added to normal objective function
+  void runRepulsionKMCMC();
+
   // internal helper functino for CMAES
   Eigen::VectorXd CMAESHelper(const Eigen::VectorXd &startingPoint, int lambda, int maxIters, vector<Eigen::VectorXd> *candidates);
 
@@ -210,6 +222,14 @@ private:
 
   // Initialize the edit weights
   void initEditWeights();
+
+  // Repulsion penalty term based on how similar current config is to other existing results
+  double repulsion(Snapshot* s);
+
+  // updates the relevant variables for the repulsion term
+  // also since we know the results set is constantly increasing, if there's nothing new,
+  // we can skip this step
+  void updateRepulsionVars();
 };
 
 class AttributeSearch : public Thread

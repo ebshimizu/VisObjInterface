@@ -234,3 +234,8 @@ bool SearchResultsViewer::addNewResult(SearchResult * r, int callingThreadId, bo
 {
   return _results->addNewResult(r, callingThreadId, force);
 }
+
+bool SearchResultsViewer::addNewResult(SearchResult * r, int callingThreadId, bool force, Array<shared_ptr<SearchResultContainer>>& _currentResults)
+{
+  return _results->addNewResult(r, callingThreadId, force, _currentResults);
+}

@@ -51,6 +51,7 @@ public:
 
   // adds a new search result to the display area. Thread safe.
   bool addNewResult(SearchResult* r, int callingThreadId, bool force = false);
+  bool addNewResult(SearchResult* r, int callingThreadId, bool force, Array<shared_ptr<SearchResultContainer> >& _currentResults);
 
   // tells the search result container to update itself
   void showNewResults();

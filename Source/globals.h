@@ -144,7 +144,8 @@ enum SearchMode {
   RANDOM_START,      // Starting points of the search are randomized
   KRANDOM_START,     // Random start with k-means clustering used to select a frontier
   KMCMC,             // Standard search with a k-size frontier
-  CMAES              // Gradient free opt
+  CMAES,             // Gradient free opt
+  REPULSION_KMCMC    // K-Frontier MCMC with a repulsion term added to configs that have already been seen.
 };
 
 enum EditSelectMode {
@@ -233,6 +234,9 @@ public:
   bool _continuousSort;         // Continuously sort the results
   bool _useSearchStyles;        // Adds style-based searches into the search process
   int _searchFrontierSize;      // Size of the search frontier for k-means based search versions
+  double _repulsionConeK;       // Repulsion radius factor
+  double _repulsionCostK;       // Repulsion cost strength
+  int _numPairs;                // Number of pairs to estimate cone radius
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

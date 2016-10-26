@@ -443,6 +443,9 @@ GlobalSettings::GlobalSettings()
   _continuousSort = true;
   _useSearchStyles = false;
   _searchFrontierSize = 4;
+  _repulsionConeK = 0.5;
+  _repulsionCostK = 0.5;
+  _numPairs = 100;
 
   _imageAttrLoc = File::getCurrentWorkingDirectory().getChildFile("image_attributes");
 

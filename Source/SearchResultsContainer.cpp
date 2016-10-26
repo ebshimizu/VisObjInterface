@@ -396,6 +396,21 @@ bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId,
   }
 }
 
+bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId, bool force, Array<shared_ptr<SearchResultContainer>>& _currentResult)
+{
+  bool res = addNewResult(r, callingThreadId, force);
+
+  _currentResult.clear();
+
+  // copy current all results to current result
+  {
+    lock_guard<mutex> lock(_resultsLock);
+    _currentResult.addArray(_allResults);
+  }
+
+  return res;
+}
+
 void SearchResultsContainer::showNewResults()
 {
   {
@@ -1388,8 +1403,18 @@ shared_ptr<SearchResultContainer> SearchResultsContainer::getBestUnexploitedResu
 
 Array<shared_ptr<SearchResultContainer>> SearchResultsContainer::getKCenters(int k)
 {
-  // lock it, adjustments could happen to all results array during this process
-  lock_guard<mutex> lock(_resultsLock);
+  // Copy the results array to have a local copy to cluster since
+  // adjustments could happen to all results array
+  Array<shared_ptr<SearchResultContainer> > all;
+  {
+    lock_guard<mutex> lock(_resultsLock);
+    all.addArray(_allResults);
+  }
+
+  // cluster on top 30%
+  DefaultSorter sorter;
+  all.sort(sorter);
+  all.removeRange(all.size() * 0.30, all.size());
 
   distFuncType f = [](SearchResultContainer* x, SearchResultContainer* y) {
     return x->dist(y, DistanceMetric::L2PARAM, false, false);
@@ -1399,7 +1424,7 @@ Array<shared_ptr<SearchResultContainer>> SearchResultsContainer::getKCenters(int
   // correction: using this form won't affect current clusters. when the actual clustering happens
   // the results are added as children to TopLevelContainers which makes the heirarchy get all
   // sorts of confused. ths version of clustering prevents that
-  Array<shared_ptr<SearchResultContainer> > centers = Clustering::kmeansBestClustering(_allResults, k, f);
+  Array<shared_ptr<SearchResultContainer> > centers = Clustering::kmeansBestClustering(all, k, f);
 
   return centers;
 }

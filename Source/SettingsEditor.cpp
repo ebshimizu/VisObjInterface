@@ -120,6 +120,12 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_resampleThreads = (int)newValue;
   else if (_id == "Freeze Region Tolerance")
     getGlobalSettings()->_maskTolerance = newValue;
+  else if (_id == "Repulsion Cone K")
+    getGlobalSettings()->_repulsionConeK = newValue;
+  else if (_id == "Repulsion Cost K")
+    getGlobalSettings()->_repulsionCostK = newValue;
+  else if (_id == "Repulsion Num Pairs")
+    getGlobalSettings()->_numPairs = (int)newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -210,6 +216,12 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_resampleThreads;
   else if (_id == "Freeze Region Tolerance")
     return getGlobalSettings()->_maskTolerance;
+  else if (_id == "Repulsion Cone K")
+    return getGlobalSettings()->_repulsionConeK;
+  else if (_id == "Repulsion Cost K")
+    return getGlobalSettings()->_repulsionCostK;
+  else if (_id == "Repulsion Num Pairs")
+    return getGlobalSettings()->_numPairs;
 
   return 0;
 }
@@ -439,7 +451,7 @@ SettingsEditor::SettingsEditor()
 {
   Array<PropertyComponent*> searchComponents;
   searchComponents.add(new SettingsChoice("Search Mode", { "MCMC with no inner loop", "MCMC with Random Starting Points",
-    "K-Frontier Random Start", "K-Frontier MCMC", "CMA-ES" }));
+    "K-Frontier Random Start", "K-Frontier MCMC", "CMA-ES", "K-Frontier MCMC with Repulsion" }));
   searchComponents.add(new SettingsChoice("Edit Selection Mode", { "Default", "Simple Bandit", "Uniform Random", "Adversarial Bandit" }));
   searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 250, 1));
   searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 10, 0.01));
@@ -463,6 +475,9 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Movable Threads", 0, thread::hardware_concurrency(), 1));
   searchComponents.add(new SettingsBoolButton("Continuous Sort"));
   searchComponents.add(new SettingsBoolButton("Use Styles"));
+  searchComponents.add(new SettingsSlider("Repulsion Cone K", 0, 2, 0.01));
+  searchComponents.add(new SettingsSlider("Repulsion Cost K", 0, 5, 0.01));
+  searchComponents.add(new SettingsSlider("Repulsion Num Pairs", 1, 200, 1));
   _settings.addSection("Search", searchComponents);
 
 

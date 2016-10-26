@@ -69,6 +69,7 @@ public:
 	// Setting force to true will automatically add the result to the container, disregarding
 	// similarity requirements, but respecting limit on number of elements in the container
   bool addNewResult(SearchResult* r, int callingThreadId, bool force = false);
+  bool addNewResult(SearchResult* r, int callingThreadId, bool force, Array<shared_ptr<SearchResultContainer> >& _currentResult);
 
   // integrate new results and display
   void showNewResults();

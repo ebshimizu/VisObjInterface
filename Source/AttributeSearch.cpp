@@ -235,6 +235,12 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjF
   _useStyles = getGlobalSettings()->_useSearchStyles;
   _k = getGlobalSettings()->_searchFrontierSize;
   _frontier.clear();
+  _previousResultsSize = 0;
+
+  _coneK = getGlobalSettings()->_repulsionConeK;
+  _costScale = getGlobalSettings()->_repulsionCostK;
+  _numPairs = getGlobalSettings()->_numPairs;
+  _coneRadius = 0;
 
   // quick check to see if the mask is actually filled in
   for (int y = 0; y < _freezeMask.getHeight(); y++) {
@@ -250,13 +256,13 @@ void AttributeSearchThread::run()
 {
   initEditWeights();
 
-  if (_mode == RANDOM_START || _mode == KRANDOM_START) {
+  if (_mode == RANDOM_START || _mode == KRANDOM_START || _mode == REPULSION_KMCMC) {
     if (_id != 0) {
       randomizeStart();
     }
   }
 
-  if (_mode == KRANDOM_START || _mode == KMCMC) {
+  if (_mode == KRANDOM_START || _mode == KMCMC || _mode == REPULSION_KMCMC) {
     _frontier.add(shared_ptr<Snapshot>(new Snapshot(*_original)));
   }
 
@@ -378,6 +384,9 @@ void AttributeSearchThread::recenter(Snapshot * s)
 
       // log the new frontier
       for (auto r : fc) {
+        if (r == nullptr)
+          continue;
+
         _frontier.add(shared_ptr<Snapshot>(vectorToSnapshot(r->getSearchResult()->_scene)));
 
         // log it
@@ -390,6 +399,12 @@ void AttributeSearchThread::recenter(Snapshot * s)
         data._scene = r->getSearchResult()->_scene;
         data._timeStamp = chrono::high_resolution_clock::now();
         samples[_id].push_back(data);
+      }
+
+      if (_frontier.size() == 0)
+      {
+        // fallback if the frontier is empty for some reason
+        _frontier.add(shared_ptr<Snapshot>(new Snapshot(*_fallback)));
       }
 
       return;
@@ -502,6 +517,9 @@ void AttributeSearchThread::runSearch()
   }
   else if (_mode == CMAES) {
     runCMAES();
+  }
+  else if (_mode == REPULSION_KMCMC) {
+    runRepulsionKMCMC();
   }
 
   if (_useStyles) {
@@ -731,6 +749,160 @@ void AttributeSearchThread::runCMAES()
     if (!_viewer->addNewResult(r, _id, true)) {
       data._accepted = false;
     }
+  }
+}
+
+void AttributeSearchThread::runRepulsionKMCMC()
+{
+  _statusMessage = "Running K-Frontier MCMC with repulsion term";
+
+  // randomize start location based on what's in the frontier
+  uniform_int_distribution<int> rng(0, _frontier.size() - 1);
+  setStartConfig(_frontier[rng(_gen)].get());
+
+  double fx = _f(_original, _id, _currentStyle);
+
+  // assign start scene, initialize result
+  Snapshot* start = new Snapshot(*_original);
+  SearchResult* r = new SearchResult();
+  double orig = fx;
+
+  // RNG
+  default_random_engine gen(std::random_device{}());
+  uniform_real_distribution<double> udist(0.0, 1.0);
+
+  // do the MCMC search
+  int depth = 0;
+  Edit* e = nullptr;
+
+  // magic number alert
+  int iters = getGlobalSettings()->_maxMCMCIters;
+
+  // depth increases when scenes are rejected from the viewer
+  while (depth < _maxDepth) {
+    if (threadShouldExit()) {
+      delete r;
+      delete start;
+      return;
+    }
+
+    //  pick a next plausible edit
+    if (getGlobalSettings()->_editSelectMode == DEFAULT_CHOICE) {
+      e = getNextEdit(r->_editHistory, getGlobalSettings()->_reduceRepeatEdits);
+    }
+    else {
+      e = getNextEdit(r->_editHistory);
+    }
+
+    //  adjust the starting scene
+    Snapshot* sp = new Snapshot(*start);
+    e->performEdit(sp, getGlobalSettings()->_editStepSize);
+
+    // check for acceptance
+    double fxp = _f(sp, _id, _currentStyle) + repulsion(sp);
+    double diff = fxp - fx;
+    double a = min(exp((1 / _T) * (fx - fxp)), 1.0);
+
+    // store statistics
+    _editStats[e]._vals.push_back((float)fxp);
+    _editStats[e]._diffs.push_back((float)(fx - fxp));
+    _editStats[e]._as.push_back((float)a);
+
+    // accept if a >= 1 or with probability a
+    if (a >= 1 || udist(gen) < a) {
+      // update x
+      delete start;
+      start = sp;
+      fx = fxp;
+
+      // update result
+      r->_objFuncVal = fx;
+
+      // diagnostics
+      DebugData data;
+      auto& samples = getGlobalSettings()->_samples;
+      data._f = r->_objFuncVal;
+      data._a = a;
+      data._sampleId = (unsigned int)samples[_id].size() + 1;
+      data._editName = e->_name;
+      data._accepted = true;
+      data._scene = snapshotToVector(sp);
+      data._timeStamp = chrono::high_resolution_clock::now();
+      samples[_id].push_back(data);
+
+      _editStats[e]._success += 1;
+      r->_editHistory.push_back(e);
+    }
+    else {
+      _editStats[e]._failure += 1;
+      delete sp;
+    }
+
+    updateEditWeights(e, diff);
+    depth++;
+  }
+
+  r->_scene = snapshotToVector(start);
+
+  // diagnostics
+  DebugData data;
+  auto& samples = getGlobalSettings()->_samples;
+  data._f = r->_objFuncVal;
+  data._a = 1;
+  data._sampleId = (unsigned int)samples[_id].size() + 1;
+  data._editName = "TERMINAL";
+  data._accepted = true;
+  data._scene = r->_scene;
+  data._timeStamp = chrono::high_resolution_clock::now();
+
+  r->_extraData["Thread"] = String(_id);
+  r->_extraData["Sample"] = String(data._sampleId);
+  r->_extraData["Style"] = String(_currentStyle);
+  r->_creationTime = chrono::high_resolution_clock::now();
+
+  // add if we did better
+  // also if the mask is active, add only if the masked area doesn't change that much.
+  double maskDiff = 0;
+  if (_useMask) {
+    // need target and current images
+    Image a = renderImage(_original, 100, 100);
+    Image b = renderImage(start, 100, 100);
+    maskDiff = avgLabMaskedImgDiff(a, b, _freezeMask);
+  }
+  delete start;
+
+  //Lumiverse::Logger::log(INFO, "Result with f(x) " + String(r->_objFuncVal).toStdString() + " and maskDiff " + String(maskDiff).toStdString() + " returned.");
+
+  if (r->_objFuncVal < orig && maskDiff < _maskTolerance) {
+    // send scene to the results area. may chose to not use the scene
+    if (!_viewer->addNewResult(r, _id, false, _currentResults)) {
+      // r has been deleted by _viewer here
+      _failures++;
+      data._accepted = false;
+
+      if (_failures > getGlobalSettings()->_searchFailureLimit) {
+        _failures = 0;
+        _maxDepth++;
+      }
+    }
+    else {
+      _acceptedSamples += 1;
+    }
+
+    // update stats for repulsion term 
+    updateRepulsionVars();
+  }
+  else {
+    data._accepted = false;
+    delete r;
+  }
+
+  samples[_id].push_back(data);
+  _samplesTaken++;
+
+  if (_samplesTaken > _resampleTime) {
+    // recentering resets the weights
+    recenter();
   }
 }
 
@@ -1076,6 +1248,60 @@ void AttributeSearchThread::initEditWeights()
 
     updateEditWeights(nullptr, 0);
   }
+}
+
+double AttributeSearchThread::repulsion(Snapshot * s)
+{
+  double sum = 0;
+  SearchResult* t = new SearchResult();
+  t->_scene = snapshotToVector(s);
+  SearchResultContainer* temp = new SearchResultContainer(t, false);
+  temp->setImage(renderImage(s, 100, 100));
+
+  for (auto r : _currentResults) {
+    double dist = r->dist(temp, DistanceMetric::L2PARAM, false, false);
+
+    if (dist > _coneRadius)
+      continue;
+
+    double ratio = dist / _coneRadius;
+    sum += _costScale * (1 - ratio);
+  }
+
+  delete temp;
+  return sum * _costScale;
+}
+
+void AttributeSearchThread::updateRepulsionVars()
+{
+  // If the size is the same, the results are the same and we should be updated.
+  if (_previousResultsSize == _currentResults.size())
+    return;
+
+  _previousResultsSize = _currentResults.size();
+
+  if (_previousResultsSize == 1) {
+    _coneRadius = 0;
+    return;
+  }
+
+  uniform_int_distribution<int> rng(0, _currentResults.size() - 1);
+  double avgDist = 0;
+
+  // pull n random pairs
+  for (int i = 0; i < _numPairs; i++) {
+    int idx1 = rng(_gen);
+    int idx2 = rng(_gen);
+
+    while (idx2 == idx1) {
+      idx2 = rng(_gen);
+    }
+
+    avgDist += _currentResults[idx1]->dist(_currentResults[idx2].get(), DistanceMetric::L2PARAM, false, false);
+  }
+
+  _coneRadius = avgDist / _numPairs;
+  return;
 }
 
 AttributeSearch::AttributeSearch(SearchResultsViewer * viewer) : _viewer(viewer), Thread("Attribute Search Dispatcher")
