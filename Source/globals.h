@@ -125,7 +125,8 @@ enum DistanceMetric {
   ATTRDIST,         // Attribute Function Distance
 	DIRPPAVGLAB,			// Directed Per-Pixel Average Lab Difference
 	DIRPPAVG,					// Per-Pixel Average Gradient Direction Difference
-  KEYPARAM          // User selected Key light parameter L2 norm
+  KEYPARAM,         // User selected Key light parameter L2 norm
+  L2GRAYPARAM       // L2 norm over paramter values converted to grayscale (basically ignore color)
 };
 
 enum FocusArea {
@@ -237,6 +238,8 @@ public:
   double _repulsionConeK;       // Repulsion radius factor
   double _repulsionCostK;       // Repulsion cost strength
   int _numPairs;                // Number of pairs to estimate cone radius
+  DistanceMetric _searchDistMetric;   // Metric to use for determining how the frontier is selected during a search
+  DistanceMetric _searchDispMetric;   // Metric to use for determining if a result should be displayed during a search
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

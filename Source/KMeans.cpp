@@ -159,7 +159,7 @@ Array<shared_ptr<SearchResultContainer>> KMeans::clusterBestCenters(Array<shared
       continue;
     }
 
-    if (best[cluster]->getSearchResult()->_objFuncVal > p->getSearchResult()->_objFuncVal) {
+    if (p->getSearchResult()->_objFuncVal < best[cluster]->getSearchResult()->_objFuncVal) {
       best[cluster] = p;
     }
   }

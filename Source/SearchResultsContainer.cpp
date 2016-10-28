@@ -288,7 +288,7 @@ Array<shared_ptr<SearchResultContainer> > SearchResultsContainer::getResults()
   return _allResults;
 }
 
-bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId, bool force)
+bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId, DistanceMetric metric, bool force)
 {
   auto start = chrono::high_resolution_clock::now();
   getGlobalSettings()->_timings[callingThreadId]._numResults += 1;
@@ -329,7 +329,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId,
       auto evalStart = chrono::high_resolution_clock::now();
       lock_guard<mutex> lock(_resultsLock);
       for (auto& res : _allResults) {
-        if (newResult->avgPixDist(res.get(), true) < getGlobalSettings()->_jndThreshold) {
+        if (newResult->dist(res.get(), metric) < getGlobalSettings()->_jndThreshold) {
           earlyExit = true;
           duplicate = res;
           break;
@@ -338,7 +338,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId,
 
       // also check things in the waiting queue
       for (auto& res : _newResults) {
-        if (newResult->avgPixDist(res.get(), true) < getGlobalSettings()->_jndThreshold) {
+        if (newResult->dist(res.get(), metric) < getGlobalSettings()->_jndThreshold) {
           earlyExit = true;
           duplicate = res;
           break;
@@ -396,9 +396,10 @@ bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId,
   }
 }
 
-bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId, bool force, Array<shared_ptr<SearchResultContainer>>& _currentResult)
+bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId, DistanceMetric metric,
+  bool force, Array<shared_ptr<SearchResultContainer>>& _currentResult)
 {
-  bool res = addNewResult(r, callingThreadId, force);
+  bool res = addNewResult(r, callingThreadId, metric, force);
 
   _currentResult.clear();
 
@@ -1411,10 +1412,10 @@ Array<shared_ptr<SearchResultContainer>> SearchResultsContainer::getKCenters(int
     all.addArray(_allResults);
   }
 
-  // cluster on top 30%
+  // cluster on top 25%
   DefaultSorter sorter;
   all.sort(sorter);
-  all.removeRange(all.size() * 0.30, all.size());
+  all.removeRange(all.size() * 0.25, all.size());
 
   distFuncType f = [](SearchResultContainer* x, SearchResultContainer* y) {
     return x->dist(y, DistanceMetric::L2PARAM, false, false);

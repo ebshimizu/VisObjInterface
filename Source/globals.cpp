@@ -446,6 +446,8 @@ GlobalSettings::GlobalSettings()
   _repulsionConeK = 0.5;
   _repulsionCostK = 0.5;
   _numPairs = 100;
+  _searchDistMetric = L2PARAM;
+  _searchDispMetric = PPAVGLAB;
 
   _imageAttrLoc = File::getCurrentWorkingDirectory().getChildFile("image_attributes");
 

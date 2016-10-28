@@ -105,6 +105,8 @@ public:
 
 private:
   // object to dump results into once search is complete.
+  // most of these variables capture the current search settings so user interference
+  // doesn't affect how the current search is running
   SearchResultsViewer* _viewer;
   int _maxDepth;
   Snapshot* _original;
@@ -125,6 +127,8 @@ private:
   Array<shared_ptr<Snapshot> > _frontier;
   int _k;
   Array<shared_ptr<SearchResultContainer> > _currentResults;
+  DistanceMetric _distMetric;
+  DistanceMetric _dispMetric;
 
   // repulsion terms
   double _coneK;

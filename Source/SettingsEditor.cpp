@@ -348,6 +348,14 @@ int SettingsChoice::getIndex() const
     EditSelectMode mode = getGlobalSettings()->_editSelectMode;
     return (int)mode;
   }
+  else if (getName() == "Search Distance Metric") {
+    DistanceMetric metric = getGlobalSettings()->_searchDistMetric;
+    return (int)metric;
+  }
+  else if (getName() == "Search Threshold Metric") {
+    DistanceMetric metric = getGlobalSettings()->_searchDispMetric;
+    return (int)metric;
+  }
 
   return 0;
 }
@@ -397,6 +405,12 @@ void SettingsChoice::setIndex(int newIndex)
 	}
   else if (getName() == "Edit Selection Mode") {
     getGlobalSettings()->_editSelectMode = (EditSelectMode)newIndex;
+  }
+  else if (getName() == "Search Distance Metric") {
+    getGlobalSettings()->_searchDistMetric = (DistanceMetric)newIndex;
+  }
+  else if (getName() == "Search Threshold Metrid") {
+    getGlobalSettings()->_searchDispMetric = (DistanceMetric)newIndex;
   }
 }
 
@@ -452,9 +466,17 @@ SettingsEditor::SettingsEditor()
   Array<PropertyComponent*> searchComponents;
   searchComponents.add(new SettingsChoice("Search Mode", { "MCMC with no inner loop", "MCMC with Random Starting Points",
     "K-Frontier Random Start", "K-Frontier MCMC", "CMA-ES", "K-Frontier MCMC with Repulsion" }));
+  searchComponents.add(new SettingsChoice("Search Distance Metric", { "Per-Pixel Average Lab Difference",
+    "Per-Pixel Maximum Lab Difference", "Per-Pixel 90th Percentile Difference", "Lab L2 Norm", "Luminance L2 Norm",
+    "Parameter L2 Norm", "Softmax Parameter L2 Norm", "Attribute Function Distance", "Directed Per-Pixel Average Lab Difference",
+    "Per-Pixel Average Gradient Direction Difference", "Selected Key Light Parameter L2 Norm", "Grayscale Paramter L2" }));
   searchComponents.add(new SettingsChoice("Edit Selection Mode", { "Default", "Simple Bandit", "Uniform Random", "Adversarial Bandit" }));
   searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 250, 1));
   searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 10, 0.01));
+  searchComponents.add(new SettingsChoice("Search Threshold Metric", { "Per-Pixel Average Lab Difference",
+    "Per-Pixel Maximum Lab Difference", "Per-Pixel 90th Percentile Difference", "Lab L2 Norm", "Luminance L2 Norm",
+    "Parameter L2 Norm", "Softmax Parameter L2 Norm", "Attribute Function Distance", "Directed Per-Pixel Average Lab Difference",
+    "Per-Pixel Average Gradient Direction Difference", "Selected Key Light Parameter L2 Norm", "Grayscale Paramter L2" }));
   searchComponents.add(new SettingsSlider("Max Results", 1, 1000, 1));
   searchComponents.add(new SettingsSlider("MCMC Step Size", 0, 1, 0.001));
   searchComponents.add(new SettingsSlider("MCMC Max Iterations", 1, 100, 1));
@@ -488,7 +510,7 @@ SettingsEditor::SettingsEditor()
   clusterComponents.add(new SettingsChoice("Primary Distance Metric", { "Per-Pixel Average Lab Difference",
     "Per-Pixel Maximum Lab Difference", "Per-Pixel 90th Percentile Difference", "Lab L2 Norm", "Luminance L2 Norm",
     "Parameter L2 Norm", "Softmax Parameter L2 Norm", "Attribute Function Distance", "Directed Per-Pixel Average Lab Difference",
-		"Per-Pixel Average Gradient Direction Difference", "Selected Key Light Parameter L2 Norm" })); //, "Whitened Parameter L2 Norm"
+		"Per-Pixel Average Gradient Direction Difference", "Selected Key Light Parameter L2 Norm", "Grayscale Paramter L2" })); //, "Whitened Parameter L2 Norm"
   clusterComponents.add(new SettingsSlider("Number of Primary Clusters", 1, 30, 1));
   clusterComponents.add(new SettingsSlider("Primary Divisive Threshold", 1e-3, 25, 0.001));
   clusterComponents.add(new SettingsChoice("Primary Focus Region", { "All", "Foreground", "Background" }));
@@ -497,7 +519,7 @@ SettingsEditor::SettingsEditor()
   clusterComponents.add(new SettingsChoice("Secondary Distance Metric", { "Per-Pixel Average Lab Difference",
     "Per-Pixel Maximum Lab Difference", "Per-Pixel 90th Percentile Difference", "Lab L2 Norm", "Luminance L2 Norm",
     "Parameter L2 Norm", "Softmax Parameter L2 Norm", "Attribute Function Distance", "Directed Per-Pixel Average Lab Difference",
-		"Per-Pixel Average Gradient Direction Difference", "Selected Key Light Parameter L2 Norm" })); //, "Whitened Parameter L2 Norm"
+		"Per-Pixel Average Gradient Direction Difference", "Selected Key Light Parameter L2 Norm", "Grayscale Paramter L2" })); //, "Whitened Parameter L2 Norm"
   clusterComponents.add(new SettingsSlider("Number of Secondary Clusters", 1, 30, 1));
   clusterComponents.add(new SettingsSlider("Secondary Divisive Threshold", 1e-3, 25, 0.001));
   clusterComponents.add(new SettingsChoice("Secondary Focus Region", { "All", "Foreground", "Background" }));

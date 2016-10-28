@@ -130,6 +130,9 @@ public:
   // L2 norm of selected lighting parameters (selected list found in globals)
   double l2SelectedParamDist(SearchResultContainer* y);
 
+  // Since each light is basically a color, this treats each param as a brightness and calculates L2 norm
+  double l2GrayParamDist(SearchResultContainer* y);
+
   // sort cluster, if it exists.
   void sort(AttributeSorter* s);
 

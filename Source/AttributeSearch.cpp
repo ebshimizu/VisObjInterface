@@ -236,6 +236,8 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjF
   _k = getGlobalSettings()->_searchFrontierSize;
   _frontier.clear();
   _previousResultsSize = 0;
+  _distMetric = getGlobalSettings()->_searchDistMetric;
+  _dispMetric = getGlobalSettings()->_searchDispMetric;
 
   _coneK = getGlobalSettings()->_repulsionConeK;
   _costScale = getGlobalSettings()->_repulsionCostK;
@@ -372,15 +374,10 @@ void AttributeSearchThread::recenter(Snapshot * s)
     if (_mode == RANDOM_START) {
       s = new Snapshot(*_fallback);
     }
-    else if (_mode == KRANDOM_START || _mode == KMCMC) {
+    else if (_mode == KRANDOM_START || _mode == KMCMC || _mode == REPULSION_KMCMC) {
       // Select a k-sized fontier based off of a clustering of the current result set.
+      _frontier.clear();
       Array<shared_ptr<SearchResultContainer> > fc = _viewer->getKCenters(_k);
-
-      uniform_int_distribution<int> rng(0, _frontier.size() - 1);
-      setStartConfig(_frontier[rng(_gen)].get());
-
-      _samplesTaken = 0;
-      getRecorder()->log(SYSTEM, "Recentered thread " + String(_id).toStdString() + " to new scene");
 
       // log the new frontier
       for (auto r : fc) {
@@ -406,6 +403,12 @@ void AttributeSearchThread::recenter(Snapshot * s)
         // fallback if the frontier is empty for some reason
         _frontier.add(shared_ptr<Snapshot>(new Snapshot(*_fallback)));
       }
+
+      uniform_int_distribution<int> rng(0, _frontier.size() - 1);
+      setStartConfig(_frontier[rng(_gen)].get());
+
+      _samplesTaken = 0;
+      getRecorder()->log(SYSTEM, "Recentered thread " + String(_id).toStdString() + " to new scene");
 
       return;
     }
@@ -647,7 +650,7 @@ void AttributeSearchThread::runSearchNoInnerLoop()
 
   if (r->_objFuncVal < orig && maskDiff < _maskTolerance) {
     // send scene to the results area. may chose to not use the scene
-    if (!_viewer->addNewResult(r, _id, false)) {
+    if (!_viewer->addNewResult(r, _id, _dispMetric)) {
       // r has been deleted by _viewer here
       _failures++;
       data._accepted = false;
@@ -746,7 +749,7 @@ void AttributeSearchThread::runCMAES()
     r->_creationTime = chrono::high_resolution_clock::now();
 
     // force add all results for CMA-ES
-    if (!_viewer->addNewResult(r, _id, true)) {
+    if (!_viewer->addNewResult(r, _id, _dispMetric, true)) {
       data._accepted = false;
     }
   }
@@ -875,7 +878,7 @@ void AttributeSearchThread::runRepulsionKMCMC()
 
   if (r->_objFuncVal < orig && maskDiff < _maskTolerance) {
     // send scene to the results area. may chose to not use the scene
-    if (!_viewer->addNewResult(r, _id, false, _currentResults)) {
+    if (!_viewer->addNewResult(r, _id, _dispMetric, false, _currentResults)) {
       // r has been deleted by _viewer here
       _failures++;
       data._accepted = false;
@@ -1297,7 +1300,7 @@ void AttributeSearchThread::updateRepulsionVars()
       idx2 = rng(_gen);
     }
 
-    avgDist += _currentResults[idx1]->dist(_currentResults[idx2].get(), DistanceMetric::L2PARAM, false, false);
+    avgDist += _currentResults[idx1]->dist(_currentResults[idx2].get(), _distMetric, false, false);
   }
 
   _coneRadius = avgDist / _numPairs;

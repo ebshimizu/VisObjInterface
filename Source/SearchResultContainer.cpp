@@ -431,6 +431,8 @@ double SearchResultContainer::dist(SearchResultContainer * y, DistanceMetric met
 		return directedOnlyAvgPixDist(y, overrideMask, invert);
   case KEYPARAM:
     return l2SelectedParamDist(y);
+  case L2GRAYPARAM:
+    return l2GrayParamDist(y);
   default:
     return avgPixDist(y, overrideMask, invert);
   }
@@ -774,6 +776,49 @@ double SearchResultContainer::l2SelectedParamDist(SearchResultContainer * y)
   delete ys;
 
   return (xfeats - yfeats).norm();
+}
+
+double SearchResultContainer::l2GrayParamDist(SearchResultContainer * y)
+{
+  // the scene is stored as a vector in the SearchResult of each container.
+  Snapshot* ys = vectorToSnapshot(y->getSearchResult()->_scene);
+  Snapshot* xs = vectorToSnapshot(_result->_scene);
+
+  auto xdevices = xs->getRigData();
+  auto ydevices = ys->getRigData();
+
+  double sum = 0;
+
+  for (auto& d : xdevices) {
+    // get relevant parameters (color and intensity)
+    Device* dy = ydevices[d.first];
+
+    float xintens = d.second->getIntensity()->asPercent();
+    float yintens = dy->getIntensity()->asPercent();
+
+    LumiverseColor* xcolor = d.second->getColor();
+    LumiverseColor* ycolor = dy->getColor();
+
+    Eigen::Vector3d xc(1, 1, 1);
+    Eigen::Vector3d yc(1, 1, 1);
+
+    if (xcolor != nullptr)
+      xc = xcolor->getRGB() * xintens;
+
+    if (ycolor != nullptr)
+      yc = ycolor->getRGB() * yintens;
+
+    xintens = xc.mean() * xintens;
+    yintens = yc.mean() * yintens;
+
+    float diff = xintens - yintens;
+
+    sum += diff * diff;
+  }
+
+  delete ys;
+  delete xs;
+  return sqrt(sum);
 }
 
 void SearchResultContainer::sort(AttributeSorter * s)

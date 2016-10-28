@@ -230,12 +230,12 @@ shared_ptr<SearchResultContainer> SearchResultsViewer::getLastSample()
 	return _results->getLastSample();
 }
 
-bool SearchResultsViewer::addNewResult(SearchResult * r, int callingThreadId, bool force)
+bool SearchResultsViewer::addNewResult(SearchResult * r, int callingThreadId, DistanceMetric metric, bool force)
 {
-  return _results->addNewResult(r, callingThreadId, force);
+  return _results->addNewResult(r, callingThreadId, metric, force);
 }
 
-bool SearchResultsViewer::addNewResult(SearchResult * r, int callingThreadId, bool force, Array<shared_ptr<SearchResultContainer>>& _currentResults)
+bool SearchResultsViewer::addNewResult(SearchResult * r, int callingThreadId, DistanceMetric metric, bool force, Array<shared_ptr<SearchResultContainer>>& _currentResults)
 {
-  return _results->addNewResult(r, callingThreadId, force, _currentResults);
+  return _results->addNewResult(r, callingThreadId, metric, force, _currentResults);
 }

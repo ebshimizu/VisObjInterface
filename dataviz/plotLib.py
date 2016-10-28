@@ -287,33 +287,34 @@ def getRawPlots(rawTrace, baseColor):
 	events = []
 
 	# gather data
+	totalRows = sum(1 for line in open(rawTrace))
+	currentRow = 1
+
 	with open(rawTrace, 'rb') as csvfile:
 		freader = csv.reader(csvfile, delimiter=",")
 		for row in freader:
+			if (currentRow % 1000 == 0):
+				pct = "{0:>4.0%}".format(float(currentRow) / float(totalRows))
+				print "[" + pct + "] Reading Row " + str(currentRow) + " / " + str(totalRows)
+			
 			threadId.append(int(row[1]))
 			sampleId.append(int(row[2]))
 			time.append(float(row[0]))
 			attrVal.append(float(row[3]))
 			desc.append('Score: ' + row[3] + '<br>Display ID:' + str(startid) + ' Thread: ' + row[1] + '<br>Edit: ' + row[5])
 
-			# minimum attribute scores
-			if attrVal[-1] < minScene:
-				minScene = attrVal[-1]
-
-			minSceneVals.append(minScene)
-			medianVals.append(numpy.median(attrVal))
-			pct25.append(numpy.percentile(attrVal, 25))
-			pct75.append(numpy.percentile(attrVal, 75))
+			#minSceneVals.append(minScene)
+			#medianVals.append(numpy.median(attrVal))
+			#pct25.append(numpy.percentile(attrVal, 25))
+			#pct75.append(numpy.percentile(attrVal, 75))
 
 			# mean attribute score
-			attrMean = attrMean + attrVal[-1]
-			attrMeanVals.append(attrMean / len(attrVal))
+			#attrMean = attrMean + attrVal[-1]
+			#attrMeanVals.append(attrMean / len(attrVal))
 
-			sortedVals = sorted(attrVal)
-			sortedVals = sortedVals[0:25]
-			avgTop25.append(sum(sortedVals) / len(sortedVals))
-
-			startid = startid + 1
+			#sortedVals = sorted(attrVal)
+			#sortedVals = sortedVals[0:25]
+			#avgTop25.append(sum(sortedVals) / len(sortedVals))
 
 			if row[5] == "MOVE TARGET":
 				resId = int(row[2]) + 1
@@ -324,13 +325,47 @@ def getRawPlots(rawTrace, baseColor):
 					thread = int(row[1])
 				))
 			if row[5] == "FRONTIER ELEMENT":
-				resId = int(row[2]) + 1
 				events.append(dict(
 					time = float(row[0]),
-					attrVal = attrVal[resId],
-					kind = "Frontier Element " + str(resId),
+					attrVal = float(row[3]),
+					kind = "Frontier Element " + row[2],
 					thread = int(row[1])
 				))
+
+			startid = startid + 1
+			currentRow = currentRow + 1
+
+	print "[----] Processing Graph Data..."
+
+	sequentialAttrs = zip(time, attrVal)
+	sequentialAttrs = sorted(sequentialAttrs, key = lambda pt: pt[0])
+
+	# calculate stats
+	tmpAttrs = []
+	currentRow = 1
+	for pt in sequentialAttrs:
+		if (currentRow % 1000 == 0):
+			pct = "{0:>4.0%}".format(float(currentRow) / float(totalRows))
+			print "[" + pct + "] Calculating Stats for Point " + str(currentRow) + " / " + str(totalRows)
+
+		tmpAttrs.append(pt[1])
+		if pt[1] < minScene:
+			minScene = pt[1]
+
+		minSceneVals.append(minScene)
+		medianVals.append(numpy.median(tmpAttrs))
+		pct25.append(numpy.percentile(tmpAttrs, 25))
+		pct75.append(numpy.percentile(tmpAttrs, 75))
+		attrMean = attrMean + pt[1]
+		attrMeanVals.append(attrMean / len(tmpAttrs))
+
+		sortedVals = sorted(tmpAttrs)
+		sortedVals = sortedVals[0:25]
+		avgTop25.append(sum(sortedVals) / len(sortedVals))
+
+		currentRow = currentRow + 1
+
+	print "[100%] Collecting Graph Data..."
 
 	# collect events data
 	eventText = []
@@ -377,9 +412,11 @@ def getRawPlots(rawTrace, baseColor):
 		line = dict(color=colorStr)
 	)
 	
+	sortedTime = [x[0] for x in sequentialAttrs]
+
 	# minimum attribute value
 	minAttrVal = go.Scatter(
-		x = time,
+		x = sortedTime,
 		y = minSceneVals,
 		mode = 'lines',
 		name = 'Minimum Attribute Value',
@@ -388,7 +425,7 @@ def getRawPlots(rawTrace, baseColor):
 
 	# mean attribute value
 	meanAttrVal = go.Scatter(
-		x = time,
+		x = sortedTime,
 		y = attrMeanVals,
 		mode = 'lines',
 		name = 'Mean Attribute Value',
@@ -397,7 +434,7 @@ def getRawPlots(rawTrace, baseColor):
 
 	# median attribute value
 	medianAttrVal = go.Scatter(
-		x = time,
+		x = sortedTime,
 		y = medianVals,
 		mode = 'lines',
 		name = 'Median Attribute Value',
@@ -406,7 +443,7 @@ def getRawPlots(rawTrace, baseColor):
 
 	#percentiles
 	pct25Plot = go.Scatter(
-		x = time,
+		x = sortedTime,
 		y = pct25,
 		mode = 'lines',
 		name = '25th Percentile',
@@ -414,7 +451,7 @@ def getRawPlots(rawTrace, baseColor):
 	)
 
 	pct75Plot = go.Scatter(
-		x = time,
+		x = sortedTime,
 		y = pct75,
 		mode = 'lines',
 		name = '75th Percentile',
@@ -423,7 +460,7 @@ def getRawPlots(rawTrace, baseColor):
 
 	# error fill
 	innerFill = go.Scatter(
-		x = time + time[::-1],
+		x = sortedTime + sortedTime[::-1],
 		y = pct75 + pct25[::-1],
 		mode = 'lines',
 		fill = 'tozerox',
@@ -433,7 +470,7 @@ def getRawPlots(rawTrace, baseColor):
 	)
 
 	outerFill = go.Scatter(
-		x = time + time[::-1],
+		x = sortedTime + sortedTime[::-1],
 		y = pct25 + minSceneVals[::-1],
 		mode = 'lines',
 		fill = 'tozerox',
@@ -444,12 +481,14 @@ def getRawPlots(rawTrace, baseColor):
 
 	# Top 25
 	top25Plot = go.Scatter(
-		x = time,
+		x = sortedTime,
 		y = avgTop25,
 		mode = 'lines',
 		name = 'Avg 25',
 		line = dict(color=colorStr)
 	)
+
+	print "[100%] Graph Generation Complete"
 
 	return dict(
 		attributePoints = attrPoints,
