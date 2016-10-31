@@ -452,6 +452,7 @@ void SearchResultsContainer::clear()
   _unclusteredResults->removeAllResults();
   _clusters.clear();
 	_savedResults.clear();
+  _recentered.clear();
 
   _notYetClustered = true;
   updateSize(getLocalBounds().getHeight(), getLocalBounds().getWidth());
@@ -1402,7 +1403,7 @@ shared_ptr<SearchResultContainer> SearchResultsContainer::getBestUnexploitedResu
   return nullptr;
 }
 
-Array<shared_ptr<SearchResultContainer>> SearchResultsContainer::getKCenters(int k)
+Array<shared_ptr<SearchResultContainer>> SearchResultsContainer::getKCenters(int k, DistanceMetric metric)
 {
   // Copy the results array to have a local copy to cluster since
   // adjustments could happen to all results array
@@ -1412,20 +1413,54 @@ Array<shared_ptr<SearchResultContainer>> SearchResultsContainer::getKCenters(int
     all.addArray(_allResults);
   }
 
-  // cluster on top 25%
+  // cluster on top 50%
   DefaultSorter sorter;
   all.sort(sorter);
-  all.removeRange(all.size() * 0.25, all.size());
+  all.removeRange(all.size() * 0.50, all.size());
 
-  distFuncType f = [](SearchResultContainer* x, SearchResultContainer* y) {
-    return x->dist(y, DistanceMetric::L2PARAM, false, false);
+  distFuncType f = [metric](SearchResultContainer* x, SearchResultContainer* y) {
+    return x->dist(y, metric, false, false);
+  };
+
+  Array<shared_ptr<SearchResultContainer> > tmpSeenPts;
+  {
+    lock_guard<mutex> lock(_resultsLock);
+    tmpSeenPts.addArray(_recentered);
+  }
+
+  // calculate stats for cost scaling and cone radius terms
+  // calculate average pairwise distance
+  double c = 4;
+  double r = 0;
+  int count = 0;
+
+  for (int i = 0; i < tmpSeenPts.size(); i++) {
+    for (int j = i + 1; j < tmpSeenPts.size(); j++) {
+      r += tmpSeenPts[i]->dist(tmpSeenPts[j].get(), metric, false, false);
+      count++;
+    }
+  }
+
+  if (count != 0)
+    r /= count;
+
+  function<double(shared_ptr<SearchResultContainer>)> rep = [&tmpSeenPts, r, c, metric](shared_ptr<SearchResultContainer> s) {
+    return repulsionTerm(s.get(), tmpSeenPts, c, r, metric);
   };
 
   // theoretically running this shouldn't affect the current clustering that much?
   // correction: using this form won't affect current clusters. when the actual clustering happens
   // the results are added as children to TopLevelContainers which makes the heirarchy get all
   // sorts of confused. ths version of clustering prevents that
-  Array<shared_ptr<SearchResultContainer> > centers = Clustering::kmeansBestClustering(all, k, f);
+  Array<shared_ptr<SearchResultContainer> > centers = Clustering::kmeansBestRepClustering(all, k, f, rep);
+
+  {
+    lock_guard<mutex> lock(_resultsLock);
+
+    for (auto center : centers) {
+      _recentered.addIfNotAlreadyThere(center);
+    }
+  }
 
   return centers;
 }

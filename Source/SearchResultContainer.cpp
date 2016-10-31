@@ -834,3 +834,25 @@ void SearchResultContainer::updateMask()
 		_mask = getGlobalSettings()->_fgMask.rescaled(100, 100);
 	}
 }
+
+// ======================================================================
+// i need this in multiple places so i'll just leave it here
+double repulsionTerm(SearchResultContainer * s, Array<shared_ptr<SearchResultContainer>>& pts, double c, double r, DistanceMetric metric)
+{
+  double sum = 0;
+
+  for (auto p : pts) {
+    if (p == nullptr)
+      continue;
+
+    double dist = p->dist(s, metric, false, false);
+
+    if (dist > r)
+      continue;
+
+    double ratio = dist / r;
+    sum += (1 - ratio);
+  }
+
+  return sum * c;
+}

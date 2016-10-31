@@ -142,7 +142,7 @@ public:
   shared_ptr<SearchResultContainer> getBestUnexploitedResult();
 
   // returns k center points from clusters created from the current set of results
-  Array<shared_ptr<SearchResultContainer> > getKCenters(int k);
+  Array<shared_ptr<SearchResultContainer> > getKCenters(int k, DistanceMetric metric);
 
 private:
   // All results contains every result in the container. It should only be deleted at the top
@@ -157,6 +157,9 @@ private:
   SearchResultList* _unclusteredResults;
   Array<shared_ptr<SearchResultContainer> > _newResults;
   Array<shared_ptr<TopLevelCluster> > _clusters;
+
+  // list of things that have been chosen as recenter scenes at some point
+  Array<shared_ptr<SearchResultContainer> > _recentered;
 	
 	// Scenes that originated as a final step from the LM algorithm
 	map<int, shared_ptr<SearchResultContainer> > _terminalScenes;

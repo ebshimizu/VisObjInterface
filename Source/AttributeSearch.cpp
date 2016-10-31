@@ -377,7 +377,7 @@ void AttributeSearchThread::recenter(Snapshot * s)
     else if (_mode == KRANDOM_START || _mode == KMCMC || _mode == REPULSION_KMCMC) {
       // Select a k-sized fontier based off of a clustering of the current result set.
       _frontier.clear();
-      Array<shared_ptr<SearchResultContainer> > fc = _viewer->getKCenters(_k);
+      Array<shared_ptr<SearchResultContainer> > fc = _viewer->getKCenters(_k, _distMetric);
 
       // log the new frontier
       for (auto r : fc) {
@@ -1255,24 +1255,15 @@ void AttributeSearchThread::initEditWeights()
 
 double AttributeSearchThread::repulsion(Snapshot * s)
 {
-  double sum = 0;
   SearchResult* t = new SearchResult();
   t->_scene = snapshotToVector(s);
   SearchResultContainer* temp = new SearchResultContainer(t, false);
   temp->setImage(renderImage(s, 100, 100));
 
-  for (auto r : _currentResults) {
-    double dist = r->dist(temp, DistanceMetric::L2PARAM, false, false);
-
-    if (dist > _coneRadius)
-      continue;
-
-    double ratio = dist / _coneRadius;
-    sum += _costScale * (1 - ratio);
-  }
+  double sum = repulsionTerm(temp, _currentResults, _costScale, _coneRadius, _distMetric);
 
   delete temp;
-  return sum * _costScale;
+  return sum;
 }
 
 void AttributeSearchThread::updateRepulsionVars()

@@ -162,5 +162,6 @@ private:
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SearchResultContainer)
 };
 
+double repulsionTerm(SearchResultContainer * s, Array<shared_ptr<SearchResultContainer>>& pts, double c, double r, DistanceMetric metric);
 
 #endif  // ATTRIBUTESEARCHRESULT_H_INCLUDED

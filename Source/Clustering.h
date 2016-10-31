@@ -23,6 +23,7 @@ namespace Clustering {
   // Returns the centers.
   Array<shared_ptr<TopLevelCluster> > kmeansClustering(Array<shared_ptr<SearchResultContainer> >& elems, int k, distFuncType f, bool addToCenters = true);
   Array<shared_ptr<SearchResultContainer> > kmeansBestClustering(Array<shared_ptr<SearchResultContainer> >& elems, int k, distFuncType f);
+  Array<shared_ptr<SearchResultContainer> > kmeansBestRepClustering(Array<shared_ptr<SearchResultContainer> >& elems, int k, distFuncType f, function<double(shared_ptr<SearchResultContainer>)> repTerm);
 
   // Mean Shift clustering
   Array<shared_ptr<TopLevelCluster> > meanShiftClustering(Array<shared_ptr<SearchResultContainer> >& elems, double bandwidth);

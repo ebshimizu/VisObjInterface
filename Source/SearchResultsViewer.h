@@ -89,7 +89,7 @@ public:
 	// Clears the history container
 	void clearHistory();
 
-  Array<shared_ptr<SearchResultContainer> > getKCenters(int k);
+  Array<shared_ptr<SearchResultContainer> > getKCenters(int k, DistanceMetric metric);
 
   // returns the best result in the database that hasn't been used as a
   // recentering scene for the search functions

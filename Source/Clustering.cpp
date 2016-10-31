@@ -32,6 +32,15 @@ Array<shared_ptr<SearchResultContainer>> kmeansBestClustering(Array<shared_ptr<S
   return clusterer.clusterBestCenters(k, elems);
 }
 
+Array<shared_ptr<SearchResultContainer>> kmeansBestRepClustering(Array<shared_ptr<SearchResultContainer>>& elems, int k, distFuncType f, function<double(shared_ptr<SearchResultContainer>)> repTerm)
+{
+  if (elems.size() == 0)
+    return Array<shared_ptr<SearchResultContainer> >();
+
+  KMeans clusterer(f);
+  return clusterer.clusterBestRepCenters(k, elems, repTerm);
+}
+
 Array<shared_ptr<TopLevelCluster> > meanShiftClustering(Array<shared_ptr<SearchResultContainer> >& elems, double bandwidth)
 {
   // place feature vecs into a vector

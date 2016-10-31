@@ -360,7 +360,7 @@ def getRawPlots(rawTrace, baseColor):
 		attrMeanVals.append(attrMean / len(tmpAttrs))
 
 		sortedVals = sorted(tmpAttrs)
-		sortedVals = sortedVals[0:25]
+		sortedVals = sortedVals[0:100]
 		avgTop25.append(sum(sortedVals) / len(sortedVals))
 
 		currentRow = currentRow + 1

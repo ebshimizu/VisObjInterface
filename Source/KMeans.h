@@ -33,11 +33,13 @@ public:
   // cluster, let alg determine starting center points
   Array<shared_ptr<TopLevelCluster> > cluster(int k, Array<shared_ptr<SearchResultContainer> >& points, InitMode init, bool addToCenters = true);
   Array<shared_ptr<SearchResultContainer> > clusterBestCenters(int k, Array<shared_ptr<SearchResultContainer> >& points);
+  Array<shared_ptr<SearchResultContainer> > clusterBestRepCenters(int k, Array<shared_ptr<SearchResultContainer> >& points, function<double(shared_ptr<SearchResultContainer>)> repTerm);
 
   // cluster with a preset set of center points. k = centers.size()
   Array<shared_ptr<TopLevelCluster> > cluster(Array<shared_ptr<SearchResultContainer> >& points, Array<shared_ptr<TopLevelCluster> >& centers, bool addToCenters = true);
 
   Array<shared_ptr<SearchResultContainer> > clusterBestCenters(Array<shared_ptr<SearchResultContainer> >& points, Array<shared_ptr<SearchResultContainer> >& centers);
+  Array<shared_ptr<SearchResultContainer> > clusterBestRepCenters(Array<shared_ptr<SearchResultContainer> >& points, Array<shared_ptr<SearchResultContainer> >& centers, function<double(shared_ptr<SearchResultContainer>)> repTerm);
 
   // top-down hierarchical clustering
   Array<shared_ptr<TopLevelCluster> > divisive(int maxK, Array<shared_ptr<SearchResultContainer> >& points);

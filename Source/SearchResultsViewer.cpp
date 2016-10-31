@@ -200,9 +200,9 @@ void SearchResultsViewer::clearHistory()
 	_history->clearAllHistory();
 }
 
-Array<shared_ptr<SearchResultContainer>> SearchResultsViewer::getKCenters(int k)
+Array<shared_ptr<SearchResultContainer>> SearchResultsViewer::getKCenters(int k, DistanceMetric metric)
 {
-  return _results->getKCenters(k);
+  return _results->getKCenters(k, metric);
 }
 
 shared_ptr<SearchResultContainer> SearchResultsViewer::getBestUnexploitedResult()
