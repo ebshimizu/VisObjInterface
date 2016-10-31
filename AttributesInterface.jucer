@@ -77,6 +77,10 @@
               file="Source/TopComponentContainer.h"/>
       </GROUP>
       <GROUP id="{2AE89FBF-419D-C3BF-F7EF-2317DD7C267B}" name="attributes">
+        <FILE id="w3I9NJ" name="GibbsEdit.cpp" compile="1" resource="0" file="Source/GibbsEdit.cpp"/>
+        <FILE id="XqvCCE" name="GibbsEdit.h" compile="0" resource="0" file="Source/GibbsEdit.h"/>
+        <FILE id="KzrdVc" name="gibbs_with_gaussian_mixture.h" compile="0"
+              resource="0" file="Source/gibbs_with_gaussian_mixture.h"/>
         <FILE id="roidQC" name="AttributeStyles.cpp" compile="1" resource="0"
               file="Source/AttributeStyles.cpp"/>
         <FILE id="cpyQHo" name="AttributeStyles.h" compile="0" resource="0"

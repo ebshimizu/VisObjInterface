@@ -15,6 +15,7 @@
 #include "AttributeControllerBase.h"
 #include <random>
 #include "Edit.h"
+#include "GibbsEdit.h"
 #include "SearchResultsViewer.h"
 
 class SearchResultsViewer;

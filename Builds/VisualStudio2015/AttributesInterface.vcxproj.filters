@@ -427,6 +427,9 @@
     <ClCompile Include="..\..\Source\StatusBar.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\GibbsEdit.cpp">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\AttributeStyles.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
@@ -2273,6 +2276,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\TopComponentContainer.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\GibbsEdit.h">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\gibbs_with_gaussian_mixture.h">
+      <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\AttributeStyles.h">
       <Filter>AttributesInterface\Source\attributes</Filter>
