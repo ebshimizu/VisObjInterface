@@ -453,7 +453,7 @@ void AttributeSearchThread::recenter(Snapshot * s)
   if (_editMode == DEFAULT_CHOICE) {
     setLocalWeightsUniform();
   }
-  else if (_editMode == SIMPLE_BANDIT || _editMode == ADVERSARIAL_BANDIT) {
+  else if (_editMode == SIMPLE_BANDIT || _editMode == ADVERSARIAL_BANDIT || _editMode == DIRECTED_SAMPLING) {
     updateEditWeights(nullptr, 0);
   }
   else if (_editMode == UNIFORM_RANDOM) {
@@ -467,41 +467,59 @@ void AttributeSearchThread::recenter(Snapshot * s)
 
 Edit * AttributeSearchThread::getNextEdit(vector<Edit*>& editHistory, bool useHistory)
 {
+  if (_editMode == DIRECTED_SAMPLING) {
+    if (editHistory.size() == 0) {
+      // if we haven't done an edit, lets just start with the gibbs sampler
+      for (Edit* e : _edits) {
+        if (dynamic_cast<GibbsEdit*>(e)) {
+          return e;
+        }
+      }
+    }
+    else {
+      Edit* selected = _localEditWeights.lower_bound(_udist(_gen))->second;
+      while (dynamic_cast<GibbsEdit*>(selected) != nullptr) {
+        selected = _localEditWeights.lower_bound(_udist(_gen))->second;
+      }
+      return selected;
+    }
+  }
+
   // weighted selection
   if (!useHistory || editHistory.size() == 0 || _editMode == UNIFORM_RANDOM) {
     return _localEditWeights.lower_bound(_udist(_gen))->second;
   }
-  else {
-    // decrease likelihood of edits being repeated.
-    // reconstruct original weights
-    map<Edit*, double> w;
-    double prev = 0;
-    for (auto it = _localEditWeights.begin(); it != _localEditWeights.end(); it++) {
-      w[it->second] = it->first - prev;
-      prev = it->first;
-    }
 
-    // decrease probability of selection each time edit is encountered in history
-    for (auto& e : editHistory) {
-      w[e] = w[e] / 2;
-      w[e] = (w[e] < 1e-3) ? 1e-3 : w[e];
-    }
-
-    // recompute weights
-    double sum = 0;
-    for (auto& kvp : w) {
-      sum += kvp.second;
-    }
-
-    map<double, Edit*> reweights;
-    double total = 0;
-    for (auto& kvp : w) {
-      total += kvp.second / sum;
-      reweights[total] = kvp.first;
-    }
-
-    return reweights.lower_bound(_udist(_gen))->second;
+  // decrease likelihood of edits being repeated.
+  // reconstruct original weights
+  map<Edit*, double> w;
+  double prev = 0;
+  for (auto it = _localEditWeights.begin(); it != _localEditWeights.end(); it++) {
+    w[it->second] = it->first - prev;
+    prev = it->first;
   }
+
+  // decrease probability of selection each time edit is encountered in history
+  for (auto& e : editHistory) {
+    w[e] = w[e] / 2;
+    w[e] = (w[e] < 1e-3) ? 1e-3 : w[e];
+  }
+
+  // recompute weights
+  double sum = 0;
+  for (auto& kvp : w) {
+    sum += kvp.second;
+  }
+
+  map<double, Edit*> reweights;
+  double total = 0;
+  for (auto& kvp : w) {
+    total += kvp.second / sum;
+    reweights[total] = kvp.first;
+  }
+
+  // if this is the directed sampler, we never want to run the gibbs sampler again in a chain
+  return reweights.lower_bound(_udist(_gen))->second;
 }
 
 void AttributeSearchThread::runSearch()
@@ -1168,7 +1186,7 @@ void AttributeSearchThread::updateEditWeights(Edit* lastUsed, double gain)
 
     _localEditWeights = weights;
   }
-  else if (_editMode == SIMPLE_BANDIT) {
+  else if (_editMode == SIMPLE_BANDIT || _editMode == DIRECTED_SAMPLING) {
     // initial weights are the ratio of success to failure
     map<double, Edit*> weights;
     float sum = 0;
@@ -1235,7 +1253,7 @@ void AttributeSearchThread::initEditWeights()
       _localEditWeights[weight * (i + 1)] = _edits[i];
     }
   }
-  else if (_editMode == SIMPLE_BANDIT) {
+  else if (_editMode == SIMPLE_BANDIT || _editMode == DIRECTED_SAMPLING) {
     for (auto e : _edits) {
       // some default weights for this thing
       _editStats[e]._success = 5;
@@ -1624,6 +1642,16 @@ void AttributeSearch::generateEdits(bool /* explore */)
     // generateColorEdits(a);
   }
 
+  // if we're doing the experimental gibbs sampler, add the gibbs edit
+  if (getGlobalSettings()->_editSelectMode == DIRECTED_SAMPLING) {
+    GibbsEdit* g = new GibbsEdit(_lockedParams);
+    g->setAffected("system", INTENSITY);
+    if (g->canDoEdit()) {
+      g->_name = "Directed Gibbs Sample";
+      edits.push_back(g);
+    }
+  }
+
   // pivot edits (all lights except specified system)?
   // not sure if necessary
 
@@ -1658,25 +1686,28 @@ void AttributeSearch::generateDefaultEdits(string select, int editType)
       e->initWithSystem(select, joint, uniform);
   };
 
+  Edit* e;
   // all parameters
-  Edit* e = new Edit(_lockedParams);
-  e->setParams({ INTENSITY, HUE, SAT, VALUE });
-  e->_name = select + "_all";
-  initfunc(e, false, false);
-  if (e->canDoEdit() && !isDuplicateEdit(e))
-    edits.push_back(e);
-  else
-    delete e;
+  if (getGlobalSettings()->_editSelectMode != DIRECTED_SAMPLING) {
+    e = new Edit(_lockedParams);
+    e->setParams({ INTENSITY, HUE, SAT, VALUE });
+    e->_name = select + "_all";
+    initfunc(e, false, false);
+    if (e->canDoEdit() && !isDuplicateEdit(e))
+      edits.push_back(e);
+    else
+      delete e;
 
-  // intensity/brightness only
-  e = new Edit(_lockedParams);
-  e->setParams({ INTENSITY });
-  e->_name = select + "_intensity";
-  initfunc(e, false, false);
-  //if (e->canDoEdit())
-  //  edits.push_back(e);
-  //else
+    // intensity/brightness only
+    e = new Edit(_lockedParams);
+    e->setParams({ INTENSITY });
+    e->_name = select + "_intensity";
+    initfunc(e, false, false);
+    //if (e->canDoEdit())
+    //  edits.push_back(e);
+    //else
     delete e;
+  }
 
   // hue only
   e = new Edit(_lockedParams);

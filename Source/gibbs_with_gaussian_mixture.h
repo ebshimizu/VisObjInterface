@@ -1,4 +1,6 @@
 #pragma once
+#ifndef _GIBBS_WITH_GAUSSIAN_MIXTURE_H_
+#define _GIBBS_WITH_GAUSSIAN_MIXTURE_H_
 
 #include <iostream>
 #include <vector>
@@ -166,3 +168,5 @@ void GibbsSamplingGaussianMixture(std::vector<float>& result,
     }
   }
 }
+
+#endif

@@ -9,6 +9,7 @@
 */
 
 #include "GibbsEdit.h"
+#include "gibbs_with_gaussian_mixture.h"
 
 GibbsEdit::GibbsEdit(set<EditParam> lockedParams) : Edit(lockedParams)
 {
@@ -28,13 +29,15 @@ void GibbsEdit::setAffected(string field, EditParam param)
   // tells this Edit to manipulate all systems
   _affectedSets.clear();
   _affectedDevices = DeviceSet();
+  _affectedParams.clear();
+  _affectedParams.insert(param);
 
   Rig* rig = getRig();
   auto systems =  rig->getMetadataValues(field);
   for (auto system : systems) {
     DeviceSet s = rig->select("$" + field + "=" + system);
     _affectedSets.push_back(pair<DeviceSet, EditParam>(s, param));
-    _affectedDevices.add(s);
+    _affectedDevices = _affectedDevices.add(s);
   }
 }
 
@@ -50,10 +53,10 @@ void GibbsEdit::performEdit(Snapshot * s, double stepSize)
 
   vector<int> constraint;
   for (auto s : _affectedSets) {
-    constraint.push_back(1);
+    constraint.push_back(0);
   }
 
-  GibbsSamplingGaussianMixture(results, constraint, results.size(), 1, 0.9, 0.2);
+  GibbsSamplingGaussianMixture(results, constraint, results.size(), 1, 0.9, 0.1);
 
   auto data = s->getRigData();
 

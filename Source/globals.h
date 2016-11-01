@@ -153,7 +153,8 @@ enum EditSelectMode {
   DEFAULT_CHOICE,     // the default edit selection mode that's been in this application forever
   SIMPLE_BANDIT,      // a multi-armed bandit that count successes and failures as weights
   UNIFORM_RANDOM,     // all edits are chosen at random all the time
-  ADVERSARIAL_BANDIT  // adversarial bandit approach, see Auer et al. 1998
+  ADVERSARIAL_BANDIT, // adversarial bandit approach, see Auer et al. 1998
+  DIRECTED_SAMPLING   // Gibbs sampling test mode. Attempts to draw samples from a particular 
 };
 
 enum DrawMode {

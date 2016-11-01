@@ -12,7 +12,6 @@
 #define GIBBSEDIT_H_INCLUDED
 
 #include "Edit.h"
-#include "gibbs_with_gaussian_mixture.h"
 
 class GibbsEdit : public Edit
 {
