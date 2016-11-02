@@ -14,6 +14,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "globals.h"
 #include "AttributeControllerBase.h"
+#include "GibbsComponents.h"
 
 class DeviceSelector : public Component, public ListBoxModel
 {
@@ -94,11 +95,19 @@ public:
   void lockAttributeModes();
   void unlockAttributeModes();
 
+  // initializes gibbs pallets
+  void initPallets();
+
 private:
   void initAttributes();
 
+  TabbedComponent _tabs;
+
   AttributeControlsList* _container;
+  GibbsPalletContainer* _pallets;
+
   Viewport* _componentView;
+  Viewport* _palletViewer;
   
   TextButton* _search;
   TextButton* _sortButton;

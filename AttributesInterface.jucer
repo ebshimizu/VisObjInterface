@@ -53,6 +53,10 @@
               file="Source/ConstraintEditor.cpp"/>
         <FILE id="wQq1ad" name="ConstraintEditor.h" compile="0" resource="0"
               file="Source/ConstraintEditor.h"/>
+        <FILE id="jGpNvt" name="GibbsComponents.cpp" compile="1" resource="0"
+              file="Source/GibbsComponents.cpp"/>
+        <FILE id="pQiW8A" name="GibbsComponents.h" compile="0" resource="0"
+              file="Source/GibbsComponents.h"/>
         <FILE id="cmHY0e" name="HistoryEntry.cpp" compile="1" resource="0"
               file="Source/HistoryEntry.cpp"/>
         <FILE id="EcgfET" name="HistoryEntry.h" compile="0" resource="0" file="Source/HistoryEntry.h"/>

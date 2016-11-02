@@ -141,6 +141,7 @@
     <ClCompile Include="..\..\Source\MeanShift.cpp"/>
     <ClCompile Include="..\..\Source\SpectralCluster.cpp"/>
     <ClCompile Include="..\..\Source\ConstraintEditor.cpp"/>
+    <ClCompile Include="..\..\Source\GibbsComponents.cpp"/>
     <ClCompile Include="..\..\Source\HistoryEntry.cpp"/>
     <ClCompile Include="..\..\Source\HistoryPanel.cpp"/>
     <ClCompile Include="..\..\Source\hsvPicker.cpp"/>
@@ -1739,6 +1740,7 @@
     <ClInclude Include="..\..\Source\MeanShift.h"/>
     <ClInclude Include="..\..\Source\SpectralCluster.h"/>
     <ClInclude Include="..\..\Source\ConstraintEditor.h"/>
+    <ClInclude Include="..\..\Source\GibbsComponents.h"/>
     <ClInclude Include="..\..\Source\HistoryEntry.h"/>
     <ClInclude Include="..\..\Source\HistoryPanel.h"/>
     <ClInclude Include="..\..\Source\hsvPicker.h"/>

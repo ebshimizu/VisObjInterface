@@ -403,6 +403,9 @@
     <ClCompile Include="..\..\Source\ConstraintEditor.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\GibbsComponents.cpp">
+      <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\HistoryEntry.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
@@ -2251,6 +2254,9 @@
       <Filter>AttributesInterface\Source\GUI\clustering</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\ConstraintEditor.h">
+      <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\GibbsComponents.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\HistoryEntry.h">

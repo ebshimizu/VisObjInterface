@@ -192,16 +192,29 @@ map<string, AttributeControllerBase*> AttributeControlsList::getActiveAttribues(
 }
 
 //==============================================================================
-AttributeControls::AttributeControls()
+AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::TabsAtTop)
 {
+  addAndMakeVisible(_tabs);
+
   _container = new AttributeControlsList();
-  initAttributes();
   _container->setName("attribute list");
   addAndMakeVisible(_container);
+
+  _pallets = new GibbsPalletContainer();
+  _pallets->setName("available pallets");
+  addAndMakeVisible(_pallets);
 
   _componentView = new Viewport();
   _componentView->setViewedComponent(_container);
   addAndMakeVisible(_componentView);
+
+  _palletViewer = new Viewport();
+  _palletViewer->setViewedComponent(_pallets);
+  addAndMakeVisible(_palletViewer);
+
+  _tabs.addTab("Attributes", Colour(0xff333333), _componentView, false);
+  _tabs.addTab("Pallets", Colour(0xff333333), _palletViewer, false);
+  _tabs.setCurrentTabIndex(1);
 
   _search = new TextButton("Search", "Perform a search with the current attribute constraints");
   _search->addListener(this);
@@ -232,6 +245,9 @@ AttributeControls::AttributeControls()
   //_sort->addItem("Key Azimuth Angle", 6);
   _sort->setSelectedId(1);
   addAndMakeVisible(_sort);
+
+  initAttributes();
+  initPallets();
 }
 
 AttributeControls::~AttributeControls()
@@ -244,6 +260,8 @@ AttributeControls::~AttributeControls()
   delete _sortButton;
   delete _setKeyButton;
   delete _clusterButton;
+  delete _pallets;
+  delete _palletViewer;
 }
 
 void AttributeControls::paint (Graphics& g)
@@ -271,8 +289,9 @@ void AttributeControls::resized()
   botRow2.removeFromLeft(80);
   _sort->setBounds(botRow2.reduced(5));
 
-  _componentView->setBounds(lbounds);
+  _tabs.setBounds(lbounds);
   _container->setWidth(_componentView->getMaximumVisibleWidth());
+  _pallets->setSize(_palletViewer->getMaximumVisibleWidth(), 0);
 }
 
 void AttributeControls::refresh()
@@ -284,6 +303,7 @@ void AttributeControls::reload()
   // Delete everything and reload attributes
   _container->removeAllControllers();
   initAttributes();
+  initPallets();
 
   _container->runPreprocess();
 }
@@ -352,6 +372,37 @@ void AttributeControls::lockAttributeModes()
 void AttributeControls::unlockAttributeModes()
 {
   _container->unlockImageAttrs();
+}
+
+void AttributeControls::initPallets()
+{
+  _pallets->clearPallets();
+  File imageDir = getGlobalSettings()->_imageAttrLoc;
+  Array<File> imagesToLoad;
+  int numImage = imageDir.findChildFiles(imagesToLoad, 2, false, "*.png");
+
+  for (int i = 0; i < numImage; i++) {
+    String name = imagesToLoad[i].getFileNameWithoutExtension();
+    String filepath = imagesToLoad[i].getFullPathName();
+
+    File img(filepath);
+    FileInputStream in(img);
+
+    if (in.openedOk()) {
+      // load image
+      PNGImageFormat pngReader;
+      Image originalImg = pngReader.decodeImage(in);
+
+      _pallets->addPallet(new GibbsPallet(name, originalImg));
+      
+      getRecorder()->log(SYSTEM, "Loaded image for pallet " + name.toStdString());
+    }
+    else {
+      getRecorder()->log(SYSTEM, "Failed to load image for pallet " + name.toStdString());
+    }
+  }
+
+  resized();
 }
 
 void AttributeControls::initAttributes()
