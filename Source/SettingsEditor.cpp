@@ -465,7 +465,7 @@ SettingsEditor::SettingsEditor()
 {
   Array<PropertyComponent*> searchComponents;
   searchComponents.add(new SettingsChoice("Search Mode", { "MCMC with no inner loop", "MCMC with Random Starting Points",
-    "K-Frontier Random Start", "K-Frontier MCMC", "CMA-ES", "K-Frontier MCMC with Repulsion" }));
+    "K-Frontier Random Start", "K-Frontier MCMC", "CMA-ES", "K-Frontier MCMC with Repulsion", "Gibbs Sampling" }));
   searchComponents.add(new SettingsChoice("Search Distance Metric", { "Per-Pixel Average Lab Difference",
     "Per-Pixel Maximum Lab Difference", "Per-Pixel 90th Percentile Difference", "Lab L2 Norm", "Luminance L2 Norm",
     "Parameter L2 Norm", "Softmax Parameter L2 Norm", "Attribute Function Distance", "Directed Per-Pixel Average Lab Difference",

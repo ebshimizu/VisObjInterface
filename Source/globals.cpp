@@ -429,7 +429,7 @@ GlobalSettings::GlobalSettings()
   _primaryDivisiveThreshold = 7.5;
   _secondaryDivisiveThreshold = 5;
 	_clusterDisplay = COLUMNS;
-	_searchMode = KRANDOM_START;
+	_searchMode = GIBBS_SAMPLING;
 	_maxGradIters = 200;
   _reduceRepeatEdits = true;
   _autoTimeout = 30;

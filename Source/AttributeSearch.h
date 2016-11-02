@@ -17,6 +17,7 @@
 #include "Edit.h"
 #include "GibbsEdit.h"
 #include "SearchResultsViewer.h"
+#include "GibbsSchedule.h"
 
 class SearchResultsViewer;
 class SearchResultContainer;
@@ -71,6 +72,7 @@ public:
   ~AttributeSearchThread();
 
   void setState(Snapshot* start, attrObjFunc& f, attrObjFunc& fsq, SearchMode m, Image freeze);
+  void setState(Snapshot* start, vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> sampler);
 
   void run() override;
 
@@ -90,9 +92,6 @@ public:
   void setStartConfig(Snapshot* start);
 
 	void setParent(int p) { _parent = p; }
-
-	// Special function for computing statistics about the hybrid search mode.
-	void runHybridDebug();
 
   // resets the thread state to use the given scene ast the starting config.
   // also recomputes edit weights as needed, etc.
@@ -130,6 +129,7 @@ private:
   Array<shared_ptr<SearchResultContainer> > _currentResults;
   DistanceMetric _distMetric;
   DistanceMetric _dispMetric;
+  vector<pair<GibbsScheduleConstraint, GibbsSchedule*> > _activeSchedule;
 
   // repulsion terms
   double _coneK;
@@ -203,6 +203,9 @@ private:
   // repulsion term added to normal objective function
   void runRepulsionKMCMC();
 
+  // Runs the gibbs sampling version of the search
+  void runGibbsSampling();
+
   // internal helper functino for CMAES
   Eigen::VectorXd CMAESHelper(const Eigen::VectorXd &startingPoint, int lambda, int maxIters, vector<Eigen::VectorXd> *candidates);
 
@@ -249,6 +252,8 @@ public:
   // updates the state of the search on running. Will assume ownership of snapshot.
   void setState(Snapshot* start, map<string, AttributeControllerBase*> active);
 
+  void setState(Snapshot* start, vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> sampler);
+
   // Runs the search dispatch thread
   // this thread really just manages the runtime of other threads that actually perform
   // the search. this thread could also synchronize them and provide new starting scenes
@@ -277,6 +282,12 @@ private:
 
   Array<AttributeSearchThread*> _threads;
   map<string, pair<AttributeControllerBase*, AttributeConstraint> > _active;
+
+  // for gibbs sampling, the active base schedule provided by the user.
+  // it's likely the search will slightly modify these schedules to get
+  // a bit more variety.
+  vector<pair<GibbsScheduleConstraint, GibbsSchedule*> > _activeSchedule;
+  
   attrObjFunc _f;
   attrObjFunc _fsq; // least squares version (guaranteed to always be positive basically
   Snapshot* _start;

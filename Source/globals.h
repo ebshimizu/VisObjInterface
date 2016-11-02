@@ -146,7 +146,8 @@ enum SearchMode {
   KRANDOM_START,     // Random start with k-means clustering used to select a frontier
   KMCMC,             // Standard search with a k-size frontier
   CMAES,             // Gradient free opt
-  REPULSION_KMCMC    // K-Frontier MCMC with a repulsion term added to configs that have already been seen.
+  REPULSION_KMCMC,   // K-Frontier MCMC with a repulsion term added to configs that have already been seen.
+  GIBBS_SAMPLING     // Not a MCMC method, uses Gibbs sampling to generate examples based on user constraints
 };
 
 enum EditSelectMode {
@@ -165,7 +166,17 @@ enum DrawMode {
   RECT_REMOVE
 };
 
+enum GibbsConstraint {
+  LOCKED = -1,
+  FREE,
+  HIGH,
+  LOW
+};
 
+enum GibbsParam {
+  GINTENSITY,
+  GCOLOR
+};
 
 struct Timing {
   float _sampleTime;
@@ -176,6 +187,15 @@ struct Timing {
   float _addResultEvalTime;
   int _numSamples;
   int _numResults;
+};
+
+struct GibbsScheduleConstraint {
+  DeviceSet _targets;
+  GibbsParam _param;
+
+  // this bool controls whether or not the devices are sampled accoring to
+  // their system or if they're all independently free parameters
+  bool _followConventions;
 };
 
 // A container for various things that the entire application may want to access

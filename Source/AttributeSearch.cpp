@@ -254,6 +254,53 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjF
   _statusMessage = "Initialized for new search. Mode: " + String(_mode);
 }
 
+void AttributeSearchThread::setState(Snapshot * start, vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> sampler)
+{
+  if (_original != nullptr)
+    delete _original;
+  if (_fallback != nullptr)
+    delete _fallback;
+
+  _original = new Snapshot(*start);
+  _edits.clear();
+  _edits = getGlobalSettings()->_edits;
+  _T = getGlobalSettings()->_T;
+  _maxDepth = getGlobalSettings()->_startChainLength;
+  _failures = 0;
+  _resampleTime = getGlobalSettings()->_resampleTime;
+  _resampleThreads = getGlobalSettings()->_resampleThreads;
+  _currentStyle = NO_STYLE;
+
+	_mode = getGlobalSettings()->_searchMode;
+  _editMode = getGlobalSettings()->_editSelectMode;
+	_status = IDLE;
+  _fallback = new Snapshot(*start);
+  _samplesTaken = 0;
+  _useMask = false;
+  _maskTolerance = getGlobalSettings()->_maskTolerance;
+  _useStyles = getGlobalSettings()->_useSearchStyles;
+  _k = getGlobalSettings()->_searchFrontierSize;
+  _frontier.clear();
+  _previousResultsSize = 0;
+  _distMetric = getGlobalSettings()->_searchDistMetric;
+  _dispMetric = getGlobalSettings()->_searchDispMetric;
+  _activeSchedule = sampler;
+
+  _coneK = getGlobalSettings()->_repulsionConeK;
+  _costScale = getGlobalSettings()->_repulsionCostK;
+  _numPairs = getGlobalSettings()->_numPairs;
+  _coneRadius = 0;
+
+  // quick check to see if the mask is actually filled in
+  for (int y = 0; y < _freezeMask.getHeight(); y++) {
+    for (int x = 0; x < _freezeMask.getWidth(); x++) {
+      _useMask |= (_freezeMask.getPixelAt(x, y).getBrightness() > 0);
+    }
+  }
+
+  _statusMessage = "Initialized for new search. Mode: " + String(_mode);
+}
+
 void AttributeSearchThread::run()
 {
   initEditWeights();
@@ -541,6 +588,9 @@ void AttributeSearchThread::runSearch()
   }
   else if (_mode == REPULSION_KMCMC) {
     runRepulsionKMCMC();
+  }
+  else if (_mode == GIBBS_SAMPLING) {
+    runGibbsSampling();
   }
 
   if (_useStyles) {
@@ -925,6 +975,133 @@ void AttributeSearchThread::runRepulsionKMCMC()
     // recentering resets the weights
     recenter();
   }
+}
+
+void AttributeSearchThread::runGibbsSampling()
+{
+  // fundamentally different than MCMC sampling, here we already know what colors we want
+  // and maybe what intensites we're interested in. We therefore generate samples based
+  // on these priors and present them to the user. We may also choose to present
+  // other options to the user outside of their explicit constraints.
+  // timing diagnostics
+  auto start = chrono::high_resolution_clock::now();
+
+  Snapshot* sample = new Snapshot(*_original);
+  auto deviceData = sample->getRigData();
+
+  // we have a list of sampling schedules and the affected devices.
+  // Unless otherwise specified, we assume all devices in the sets are adjusted
+  // as a system
+  for (auto schedule : _activeSchedule) {
+    if (threadShouldExit()) {
+      delete sample;
+      return;
+    }
+
+    DeviceSet devices = schedule.first._targets;
+
+    if (schedule.first._followConventions) {
+      // determine number of affected systems
+      set<string> systems = devices.getAllMetadataForKey("system");
+      vector<float> sampleData;
+
+      if (schedule.first._param == GINTENSITY) {
+        sampleData.resize(systems.size());
+
+        // for now we assume all things are free
+        // TODO: CHECK LOCKS
+        vector<GibbsConstraint> constraints;
+        for (int i = 0; i < sampleData.size(); i++)
+          constraints.push_back(FREE);
+
+        schedule.second->sampleIntensity(sampleData, constraints);
+
+        // link system with val
+        map<string, float> systemToVal;
+        int i = 0;
+        for (auto s : systems) {
+          systemToVal[s] = sampleData[i];
+          i++;
+        }
+
+        // update devices
+        for (auto id : devices.getIds()) {
+          if (!isDeviceParamLocked(id, "intensity")) {
+            deviceData[id]->getIntensity()->setValAsPercent(systemToVal[deviceData[id]->getMetadata("system")]);
+          }
+        }
+      }
+      else if (schedule.first._param == GCOLOR) {
+        sampleData.resize(systems.size() * 3);
+
+        // for now we assume all things are free
+        // TODO: CHECK LOCKS
+        vector<GibbsConstraint> constraints;
+        for (int i = 0; i < systems.size(); i++)
+          constraints.push_back(FREE);
+
+        schedule.second->sampleColor(sampleData, constraints);
+
+        // link system with val
+        map<string, int> systemToVal;
+        int i = 0;
+        for (auto s : systems) {
+          systemToVal[s] = i;
+          i++;
+        }
+
+        // update devices
+        for (auto id : devices.getIds()) {
+          if (!isDeviceParamLocked(id, "color")) {
+            int index = systemToVal[deviceData[id]->getMetadata("system")] * 3;
+            float hue = sampleData[index];
+            float sat = sampleData[index + 1];
+            float val = sampleData[index + 2];
+            deviceData[id]->setColorHSV("color", hue * 360.0f, sat, val);
+          }
+        }
+      }
+    }
+    else {
+      // TODO: FILL THIS IN. TESTING BASIC FUNCTIONALITY WITH CONVENTIONAL VERSION
+    }
+  }
+
+  // now that we have the sample, apply the usual display criteria to it
+  SearchResult* r = new SearchResult();
+  r->_scene = snapshotToVector(sample);
+
+  // diagnostics
+  DebugData data;
+  auto& samples = getGlobalSettings()->_samples;
+  data._sampleId = (unsigned int)samples[_id].size() + 1;
+  data._editName = "GIBBS SAMPLE";
+  data._accepted = true;
+  data._scene = r->_scene;
+  data._timeStamp = chrono::high_resolution_clock::now();
+
+  r->_extraData["Thread"] = String(_id);
+  r->_extraData["Sample"] = String(data._sampleId);
+  r->_creationTime = chrono::high_resolution_clock::now();
+
+  // at this point all the data has been saved in the search result
+  delete sample;
+
+  // send scene to the results area. may chose to not use the scene
+  if (!_viewer->addNewResult(r, _id, _dispMetric, false)) {
+    // r has been deleted by _viewer here
+    _failures++;
+    data._accepted = false;
+  }
+
+  samples[_id].push_back(data);
+  _samplesTaken++;
+
+  // timing diagnostics
+  getGlobalSettings()->_timings[_id]._sampleTime += chrono::duration<float>(chrono::high_resolution_clock::now() - start).count();
+  getGlobalSettings()->_timings[_id]._numSamples += 1;
+
+  // repeat infinitely
 }
 
 Eigen::VectorXd AttributeSearchThread::CMAESHelper(const Eigen::VectorXd & startingPoint, int lambda, int maxIters, vector<Eigen::VectorXd>* candidates)
@@ -1517,6 +1694,48 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
 
     getGlobalSettings()->_sessionSearchSettings += attrStr;
   }
+}
+
+void AttributeSearch::setState(Snapshot * start, vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> sampler)
+{
+  if (_start != nullptr)
+    delete _start;
+
+  if (_threads.size() != getGlobalSettings()->_searchThreads)
+    reinit();
+
+  _activeSchedule = sampler;
+  _start = start;
+
+  auto& samples = getGlobalSettings()->_samples;
+  samples.clear();
+  _mode = getGlobalSettings()->_searchMode;
+  _sharedData.clear();
+  _sharedData["Edit Weight Status"] = 0;
+  _sharedData["Initial Scene Run"] = 0;
+
+  // init all threads
+  int i = 0;
+  for (auto& t : _threads) {
+    t->setState(_start, _activeSchedule);
+
+    // set up diagnostics container
+    samples[i] = vector<DebugData>();
+    getGlobalSettings()->_timings[i] = { 0,0,0,0,0,0,0,0 };
+    t->setInternalID(i);
+    i++;
+  }
+
+  DebugData data;
+  data._sampleId = (unsigned int)samples[-1].size() + 1;
+  data._editName = "START";
+  data._accepted = true;
+  data._scene = snapshotToVector(start);
+  data._timeStamp = chrono::high_resolution_clock::now();
+  samples[-1].push_back(data);
+
+  setSessionName();
+  getGlobalSettings()->_sessionSearchSettings = "";
 }
 
 void AttributeSearch::run()
