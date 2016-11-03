@@ -70,6 +70,8 @@ void SystemExplorer::updateAllImages()
 
 void SystemExplorer::paint(Graphics & g)
 {
+  g.setColour(Colours::white);
+  auto lbounds = getLocalBounds();
 }
 
 void SystemExplorer::resized()
@@ -86,6 +88,11 @@ void SystemExplorer::resized()
   }
 }
 
+string SystemExplorer::getSystem()
+{
+  return _system;
+}
+
 void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
 {
   // grab the actual snapshot this corresponds to
@@ -94,14 +101,15 @@ void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
 
   // set all unlocked intensity non-system devices to 0
   for (auto d : cfg->getRigData()) {
-    if (isDeviceParamLocked(d.first, "intensity")) {
-      // if locked, grab values and update the snapshot
-      d.second->setIntensity(getRig()->getDevice(d.first)->getIntensity()->getVal());
-      d.second->setParam("color", getRig()->getDevice(d.first)->getParam("color"));
-    }
-
-    else if (d.second->getMetadata("system") != _system) {
-      d.second->setIntensity(0);
+    if (d.second->getMetadata("system") != _system) {
+      if (isDeviceParamLocked(d.first, "intensity")) {
+        // if locked, grab values and update the snapshot
+        d.second->setIntensity(getRig()->getDevice(d.first)->getIntensity()->getVal());
+        d.second->setParam("color", getRig()->getDevice(d.first)->getParam("color"));
+      }
+      else {
+        d.second->setIntensity(0);
+      }
     }
   }
 
@@ -126,6 +134,14 @@ SystemExplorerContainer::~SystemExplorerContainer()
 void SystemExplorerContainer::paint(Graphics & g)
 {
   g.fillAll(Colour(0xff333333));
+  g.setColour(Colours::white);
+  g.setFont(14);
+
+  auto lbounds = getLocalBounds();
+  for (int i = 0; i < _views.size(); i++) {
+    g.drawFittedText(_explorers[i]->getSystem(), lbounds.removeFromTop(24).reduced(2), Justification::left, 1);
+    lbounds.removeFromTop(_rowHeight - 24);
+  }
 }
 
 void SystemExplorerContainer::resized()
@@ -135,7 +151,8 @@ void SystemExplorerContainer::resized()
 
   auto lbounds = getLocalBounds();
   for (int i = 0; i < _views.size(); i++) {
-    _views[i]->setBounds(lbounds.removeFromTop(_rowHeight));
+    lbounds.removeFromTop(24);
+    _views[i]->setBounds(lbounds.removeFromTop(_rowHeight - 24));
     _explorers[i]->setSize(_views[i]->getWidth(), _views[i]->getMaximumVisibleHeight());
   }
 }
@@ -207,6 +224,7 @@ SearchResultsContainer::SearchResultsContainer()
 
 SearchResultsContainer::~SearchResultsContainer()
 {
+  delete _exploreView;
   delete _unclusteredViewer;
 }
 

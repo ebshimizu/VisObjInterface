@@ -522,6 +522,9 @@ set<string> getUnlockedSystems()
   DeviceSet all = getRig()->getAllDevices();
 
   for (auto d : all.getDevices()) {
+    if (!d->metadataExists("system"))
+      continue;
+
     string sys = d->getMetadata("system");
     bool locked = isDeviceParamLocked(d->getId(), "intensity");
 

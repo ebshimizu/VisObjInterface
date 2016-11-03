@@ -68,6 +68,7 @@ public:
 
   virtual void paint(Graphics& g) override;
   virtual void resized() override;
+  string getSystem();
 
 private:
   void updateSingleImage(shared_ptr<SearchResultContainer> result);

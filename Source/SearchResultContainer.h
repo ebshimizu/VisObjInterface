@@ -142,6 +142,10 @@ public:
 	// updates the mask used by the container
 	void updateMask();
 
+  // Publicly accessible map in the event a container wants to precompute some order
+  // and store the results in each element for easy sorting
+  map<string, double> _sortVals;
+
 private:
   // Search result object from the attribute search
   shared_ptr<SearchResult> _result;
