@@ -84,7 +84,7 @@ void SystemExplorer::resized()
   // now place them
   auto lbounds = getLocalBounds();
   for (auto r : _results) {
-    r->setBounds(lbounds.removeFromLeft(imgWidth).reduced(3));
+    r->setBounds(lbounds.removeFromLeft(imgWidth));
   }
 }
 
@@ -93,11 +93,24 @@ string SystemExplorer::getSystem()
   return _system;
 }
 
+void SystemExplorer::sort(string method)
+{
+  CacheSorter sorter = CacheSorter(method);
+
+  _results.sort(sorter);
+  resized();
+}
+
 void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
 {
   // grab the actual snapshot this corresponds to
   shared_ptr<SearchResult> sr = result->getSearchResult();
   Snapshot* cfg = vectorToSnapshot(sr->_scene);
+
+  // we also collect some data to help sort this thing
+  Eigen::Vector3d hsv(0,0,0);
+  float intens = 0;
+  int count = 0;
 
   // set all unlocked intensity non-system devices to 0
   for (auto d : cfg->getRigData()) {
@@ -111,12 +124,31 @@ void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
         d.second->setIntensity(0);
       }
     }
+    else {
+      // sorting data
+      if (d.second->paramExists("color")) {
+        hsv += d.second->getColor()->getHSV();
+      }
+      intens += d.second->getIntensity()->asPercent();
+      count++;
+    }
   }
 
   // now render the thing
   // we'll render at 25% of full res for now, to test speed
   Image preview = renderImage(cfg, getGlobalSettings()->_renderWidth * 0.25, getGlobalSettings()->_renderHeight * 0.25);
   result->setImage(preview);
+
+  // search data
+  hsv /= count;
+  result->_sortVals["intens"] = intens / count;
+  
+  // hue only
+  result->_sortVals["hue"] = hsv[0];
+
+  // hsv combined
+  float hsCombo = round(hsv[0]) + hsv[1];
+  result->_sortVals["hs"] = hsCombo;
 }
 
 //==============================================================================
@@ -161,6 +193,13 @@ void SystemExplorerContainer::setHeight(int height)
 {
   _rowHeight = height;
   resized();
+}
+
+void SystemExplorerContainer::sort(string method)
+{
+  for (auto e : _explorers) {
+    e->sort(method);
+  }
 }
 
 void SystemExplorerContainer::addContainer(string system)
@@ -276,6 +315,12 @@ void SearchResultsContainer::updateSize(int height, int width)
 
 void SearchResultsContainer::sort()
 {
+  // temporary override of the sort function
+  // may end up being the actual sort function at some point
+  _views.sort("hs");
+  resized();
+  return;
+
   string id = getGlobalSettings()->_currentSortMode;
 
   if (id == "Attribute Default") {

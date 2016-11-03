@@ -100,3 +100,13 @@ int StyleSorter::compareElements(shared_ptr<SearchResultContainer> first, shared
   else
     return 0;
 }
+
+int CacheSorter::compareElements(shared_ptr<SearchResultContainer> first, shared_ptr<SearchResultContainer> second)
+{
+  if (first->_sortVals[_s] < second->_sortVals[_s])
+    return -1;
+  else if (first->_sortVals[_s] > second->_sortVals[_s])
+    return 1;
+  else
+    return 0;
+}

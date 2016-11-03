@@ -62,4 +62,14 @@ public:
   Style _s;
 };
 
+class CacheSorter : public AttributeSorter
+{
+public:
+  CacheSorter(string s) : _s(s) { }
+
+  virtual int compareElements(shared_ptr<SearchResultContainer> first, shared_ptr<SearchResultContainer> second);
+ 
+  string _s;
+};
+
 #endif  // ATTRIBUTESORTING_H_INCLUDED

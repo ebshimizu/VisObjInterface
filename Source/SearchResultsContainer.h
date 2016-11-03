@@ -69,6 +69,9 @@ public:
   virtual void paint(Graphics& g) override;
   virtual void resized() override;
   string getSystem();
+  
+  // sorts the elements in the explorer by a specified criteria
+  void sort(string method);
 
 private:
   void updateSingleImage(shared_ptr<SearchResultContainer> result);
@@ -86,7 +89,8 @@ public:
   virtual void paint(Graphics& g) override;
   virtual void resized() override;
   void setHeight(int height);
-
+  
+  void sort(string method);
   void addContainer(string system);
   void addResult(shared_ptr<SearchResultContainer> result);
   void clear();
