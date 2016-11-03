@@ -41,6 +41,152 @@ int TopLevelSorter::compareElements(shared_ptr<TopLevelCluster> first, shared_pt
 
 //==============================================================================
 
+SystemExplorer::SystemExplorer(string system) :
+  _system(system)
+{
+  updateAllImages();
+}
+
+SystemExplorer::~SystemExplorer()
+{
+}
+
+void SystemExplorer::addNewResult(shared_ptr<SearchResultContainer> result)
+{
+  auto nr = shared_ptr<SearchResultContainer>(new SearchResultContainer(shared_ptr<SearchResult>(result->getSearchResult())));
+  nr->setSystem(_system);
+  addAndMakeVisible(nr.get());
+  updateSingleImage(nr);
+  _results.add(nr);
+  resized();
+}
+
+void SystemExplorer::updateAllImages()
+{
+  for (auto r : _results) {
+    updateSingleImage(r);
+  }
+}
+
+void SystemExplorer::paint(Graphics & g)
+{
+}
+
+void SystemExplorer::resized()
+{
+  // resize to fit all elements
+  int imgWidth = getHeight();
+  int totalWidth = _results.size() * imgWidth;
+  setSize(totalWidth, getHeight());
+
+  // now place them
+  auto lbounds = getLocalBounds();
+  for (auto r : _results) {
+    r->setBounds(lbounds.removeFromLeft(imgWidth).reduced(3));
+  }
+}
+
+void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
+{
+  // grab the actual snapshot this corresponds to
+  shared_ptr<SearchResult> sr = result->getSearchResult();
+  Snapshot* cfg = vectorToSnapshot(sr->_scene);
+
+  // set all unlocked intensity non-system devices to 0
+  for (auto d : cfg->getRigData()) {
+    if (isDeviceParamLocked(d.first, "intensity")) {
+      // if locked, grab values and update the snapshot
+      d.second->setIntensity(getRig()->getDevice(d.first)->getIntensity()->getVal());
+      d.second->setParam("color", getRig()->getDevice(d.first)->getParam("color"));
+    }
+
+    else if (d.second->getMetadata("system") != _system) {
+      d.second->setIntensity(0);
+    }
+  }
+
+  // now render the thing
+  // we'll render at 25% of full res for now, to test speed
+  Image preview = renderImage(cfg, getGlobalSettings()->_renderWidth * 0.25, getGlobalSettings()->_renderHeight * 0.25);
+  result->setImage(preview);
+}
+
+//==============================================================================
+
+SystemExplorerContainer::SystemExplorerContainer()
+{
+
+}
+
+SystemExplorerContainer::~SystemExplorerContainer()
+{
+  clear();
+}
+
+void SystemExplorerContainer::paint(Graphics & g)
+{
+  g.fillAll(Colour(0xff333333));
+}
+
+void SystemExplorerContainer::resized()
+{
+  int height = _rowHeight * _views.size();
+  setSize(getWidth(), height);
+
+  auto lbounds = getLocalBounds();
+  for (int i = 0; i < _views.size(); i++) {
+    _views[i]->setBounds(lbounds.removeFromTop(_rowHeight));
+    _explorers[i]->setSize(_views[i]->getWidth(), _views[i]->getMaximumVisibleHeight());
+  }
+}
+
+void SystemExplorerContainer::setHeight(int height)
+{
+  _rowHeight = height;
+  resized();
+}
+
+void SystemExplorerContainer::addContainer(string system)
+{
+  SystemExplorer* e = new SystemExplorer(system);
+  addAndMakeVisible(e);
+
+  Viewport* ev = new Viewport();
+  ev->setViewedComponent(e);
+  addAndMakeVisible(ev);
+
+  _views.add(ev);
+  _explorers.add(e);
+}
+
+void SystemExplorerContainer::addResult(shared_ptr<SearchResultContainer> result)
+{
+  for (auto e : _explorers) {
+    e->addNewResult(result);
+  }
+}
+
+void SystemExplorerContainer::clear()
+{
+  for (auto e : _explorers)
+    delete e;
+
+  for (auto v : _views)
+    delete v;
+
+  _views.clear();
+  _explorers.clear();
+}
+
+void SystemExplorerContainer::updateImages()
+{
+  for (auto e : _explorers) {
+    e->updateAllImages();
+  }
+}
+
+//==============================================================================
+
 SearchResultsContainer::SearchResultsContainer()
 {
   _sampleId = 0;
@@ -52,6 +198,11 @@ SearchResultsContainer::SearchResultsContainer()
   _unclusteredViewer = new Viewport();
   _unclusteredViewer->setViewedComponent(_unclusteredResults);
   addAndMakeVisible(_unclusteredViewer);
+
+  addAndMakeVisible(_views);
+  _exploreView = new Viewport();
+  _exploreView->setViewedComponent(&_views, false);
+  addAndMakeVisible(_exploreView);
 }
 
 SearchResultsContainer::~SearchResultsContainer()
@@ -76,45 +227,19 @@ void SearchResultsContainer::paint(Graphics & g)
 
 void SearchResultsContainer::resized()
 {
-  // the search results container is organized in columns. The leftmost column
-  // is unclustered results, and every column to the right is a cluster.
+  // the search results container is organized in a column. The leftmost column
+  // is unclustered results, and everything to the right is the system viewer
   auto lbounds = getLocalBounds();
-  if (_notYetClustered) {
-    auto viewPt = _unclusteredViewer->getViewPosition();
 
-    _unclusteredResults->setCols(max(1, (int)(lbounds.getWidth() / 250)));
-    _unclusteredResults->setWidth(lbounds.getWidth() - _unclusteredViewer->getScrollBarThickness());
-    _unclusteredViewer->setBounds(lbounds);
-    _unclusteredViewer->setViewPosition(viewPt);
-  }
-  else {
-    auto viewPt = _unclusteredViewer->getViewPosition();
-    _unclusteredResults->setCols(1);
-    _unclusteredResults->setWidth(_columnSize - _unclusteredViewer->getScrollBarThickness());
-    _unclusteredViewer->setBounds(lbounds.removeFromLeft(_columnSize));
-    _unclusteredViewer->setViewPosition(viewPt);
+  auto viewPt = _unclusteredViewer->getViewPosition();
+  _unclusteredResults->setCols(1);
+  _unclusteredResults->setWidth(_columnSize - _unclusteredViewer->getScrollBarThickness());
+  _unclusteredViewer->setBounds(lbounds.removeFromLeft(_columnSize));
+  _unclusteredViewer->setViewPosition(viewPt);
 
-    // clusters
-    if (getGlobalSettings()->_clusterDisplay == COLUMNS) {
-      for (int i = 0; i < _clusters.size(); i++) {
-        _clusters[i]->setBounds(lbounds.removeFromLeft(_columnSize));
-      }
-    }
-    else if (getGlobalSettings()->_clusterDisplay == GRID) {
-      int width = lbounds.getWidth() / getGlobalSettings()->_numPrimaryClusters;
-      int height = lbounds.getHeight() / getGlobalSettings()->_numSecondaryClusters;
-
-      for (int i = 0; i < getGlobalSettings()->_numSecondaryClusters; i++) {
-        auto row = lbounds.removeFromTop(height);
-        for (int j = 0; j < getGlobalSettings()->_numPrimaryClusters; j++) {
-          int idx = i * getGlobalSettings()->_numPrimaryClusters + j;
-          if (idx < _clusters.size()) {
-            _clusters[idx]->setBounds(row.removeFromLeft(width));
-          }
-        }
-      }
-    }
-  }
+  _exploreView->setBounds(lbounds);
+  _views.setHeight(200);
+  _views.setSize(_exploreView->getMaximumVisibleWidth(), _exploreView->getMaximumVisibleHeight());
 }
 
 void SearchResultsContainer::updateSize(int height, int width)
@@ -283,12 +408,25 @@ void SearchResultsContainer::sort(AttributeSorter* s)
   repaint();
 }
 
+void SearchResultsContainer::initForSearch()
+{
+  _views.clear();
+
+  set<string> systems = getUnlockedSystems();
+
+  for (auto s : systems) {
+    _views.addContainer(s);
+  }
+
+  resized();
+}
+
 Array<shared_ptr<SearchResultContainer> > SearchResultsContainer::getResults()
 {
   return _allResults;
 }
 
-bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId, DistanceMetric metric, bool force)
+bool SearchResultsContainer::addNewResult(shared_ptr<SearchResult> r, int callingThreadId, DistanceMetric metric, bool force)
 {
   auto start = chrono::high_resolution_clock::now();
   getGlobalSettings()->_timings[callingThreadId]._numResults += 1;
@@ -296,7 +434,6 @@ bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId,
   {
     // limit number of total results
     if (isFull()) {
-      delete r;
       return false;
     }
 
@@ -353,9 +490,9 @@ bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId,
 
       // add result to new results queue
 
-      // do the fullsize render here
-      width = getGlobalSettings()->_renderWidth;
-      height = getGlobalSettings()->_renderHeight;
+      // do the fullsize render here - actually now 25% render
+      width = getGlobalSettings()->_renderWidth * 0.25;
+      height = getGlobalSettings()->_renderHeight * 0.25;
       p->setDims(width, height);
 
       Image fullSizeImg = Image(Image::ARGB, width, height, true);
@@ -396,7 +533,7 @@ bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId,
   }
 }
 
-bool SearchResultsContainer::addNewResult(SearchResult * r, int callingThreadId, DistanceMetric metric,
+bool SearchResultsContainer::addNewResult(shared_ptr<SearchResult> r, int callingThreadId, DistanceMetric metric,
   bool force, Array<shared_ptr<SearchResultContainer>>& _currentResult)
 {
   bool res = addNewResult(r, callingThreadId, metric, force);
@@ -427,6 +564,7 @@ void SearchResultsContainer::showNewResults()
     for (auto r : _newResults) {
       _unclusteredResults->addResult(r);
       _allResults.add(r);
+      _views.addResult(r);
     }
     _newResults.clear();
 
@@ -460,6 +598,7 @@ void SearchResultsContainer::clear()
   repaint();
   _sampleId = 0;
   _resultsSinceLastSort = 0;
+  _views.clear();
 }
 
 bool SearchResultsContainer::isFull()
@@ -733,7 +872,7 @@ void SearchResultsContainer::loadResults(string filename)
       stringstream lineStream(line);
       string cell;
 
-      SearchResult* r = new SearchResult();
+      shared_ptr<SearchResult> r = shared_ptr<SearchResult>(new SearchResult());
       vector<double> sceneVals;
       string tooltip;
 
@@ -807,7 +946,7 @@ void SearchResultsContainer::loadTrace(int selected)
 
   // create containers for each element
   for (auto sample : start) {
-    SearchResult* r = new SearchResult();
+    shared_ptr<SearchResult> r = shared_ptr<SearchResult>(new SearchResult());
     r->_scene = sample._scene;
     r->_sampleNo = sample._sampleId;
     r->_objFuncVal = sample._f;
@@ -851,7 +990,7 @@ int SearchResultsContainer::numResults()
   return _allResults.size();
 }
 
-SearchResultContainer * SearchResultsContainer::createContainerFor(SearchResult * r)
+SearchResultContainer * SearchResultsContainer::createContainerFor(shared_ptr<SearchResult> r)
 {
   SearchResultContainer* newResult = new SearchResultContainer(r);
 
@@ -1463,6 +1602,12 @@ Array<shared_ptr<SearchResultContainer>> SearchResultsContainer::getKCenters(int
   }
 
   return centers;
+}
+
+void SearchResultsContainer::updateAllImages()
+{
+  _views.updateImages();
+  repaint();
 }
 
 void SearchResultsContainer::writeMetadata(std::ofstream &statsFile, SearchMetadata &md)

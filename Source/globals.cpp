@@ -440,7 +440,7 @@ GlobalSettings::GlobalSettings()
   _resampleThreads = thread::hardware_concurrency();
   _maskTolerance = 5;
   _editSelectMode = SIMPLE_BANDIT;
-  _continuousSort = true;
+  _continuousSort = false;
   _useSearchStyles = false;
   _searchFrontierSize = 4;
   _repulsionConeK = 0.5;
@@ -514,4 +514,30 @@ Image renderImage(Snapshot * s, int width, int height)
   getAnimationPatch()->renderSingleFrameToBuffer(s->getDevices(), bufptr, width, height);
 
   return img;
+}
+
+set<string> getUnlockedSystems()
+{
+  map<string, bool> systemIsUnlocked;
+  DeviceSet all = getRig()->getAllDevices();
+
+  for (auto d : all.getDevices()) {
+    string sys = d->getMetadata("system");
+    bool locked = isDeviceParamLocked(d->getId(), "intensity");
+
+    if (systemIsUnlocked.count(sys) == 0) {
+      systemIsUnlocked[sys] = false;
+    }
+
+    systemIsUnlocked[sys] |= !locked;
+  }
+
+  set<string> sets;
+  for (auto s : systemIsUnlocked) {
+    if (s.second) {
+      sets.insert(s.first);
+    }
+  }
+
+  return sets;
 }

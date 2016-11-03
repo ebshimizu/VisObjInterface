@@ -44,7 +44,7 @@ This class represents a scene returned from a search operation
 class SearchResultContainer : public Component, public SettableTooltipClient
 {
 public:
-  SearchResultContainer(SearchResult* result, bool isHistoryItem = false);
+  SearchResultContainer(shared_ptr<SearchResult> result, bool isHistoryItem = false);
   ~SearchResultContainer();
 
   void regenToolTip();
@@ -57,12 +57,15 @@ public:
 	void computeGradient();
   Image getImage() { return _render; }
 
-  SearchResult* getSearchResult() { return _result; }
-  void setSearchResult(SearchResult* r) { _result = r; }
+  shared_ptr<SearchResult> getSearchResult() { return _result; }
+  void setSearchResult(shared_ptr<SearchResult> r) { _result = r; }
  
   // Removes references to SearchResult objects in this GUI element. 
   // Note that this can cause memory leaks if used improperly
   void clearSearchResult();
+
+  // Used by the SystemExplorer
+  void setSystem(string system);
 
   // Clicking does things.
   virtual void mouseDown(const MouseEvent& event);
@@ -141,7 +144,9 @@ public:
 
 private:
   // Search result object from the attribute search
-  SearchResult* _result;
+  shared_ptr<SearchResult> _result;
+
+  string _system;
 
   // rendered image 
   Image _render;

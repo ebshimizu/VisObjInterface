@@ -20,7 +20,7 @@ TopLevelCluster::TopLevelCluster()
   addAndMakeVisible(_viewer);
 
   _statsUpdated = false;
-  _centerContainer = shared_ptr<SearchResultContainer>(new SearchResultContainer(new SearchResult()));
+  _centerContainer = shared_ptr<SearchResultContainer>(new SearchResultContainer(shared_ptr<SearchResult>(new SearchResult())));
 }
 
 TopLevelCluster::~TopLevelCluster()
@@ -118,7 +118,7 @@ void TopLevelCluster::setRepresentativeResult()
   shared_ptr<SearchResultContainer> best = nullptr;
 
   for (int i = 0; i < _contents->size(); i++) {
-    SearchResult* e = (*_contents)[i]->getSearchResult();
+    shared_ptr<SearchResult> e = (*_contents)[i]->getSearchResult();
 
 		// outliers are not allowed to be representative samples unless there is only
 		// one element in the top level cluster
@@ -136,7 +136,7 @@ void TopLevelCluster::setRepresentativeResult()
   }
 
 	if (best != nullptr) {
-		_rep = shared_ptr<SearchResultContainer>(new SearchResultContainer(new SearchResult(*best->getSearchResult())));
+		_rep = shared_ptr<SearchResultContainer>(new SearchResultContainer(shared_ptr<SearchResult>(new SearchResult(*best->getSearchResult()))));
 		_rep->setImage(best->getImage());
 		_rep->setFeatures(best->getFeatures());
 		//_scene = _rep->getSearchResult()->_scene;

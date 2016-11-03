@@ -407,7 +407,7 @@ void MainContentComponent::addHistory()
   HistoryPanel* h = _search->getHistory();
 
   // take current scene, package as search result, add to history
-  SearchResult* r = new SearchResult();
+  shared_ptr<SearchResult> r = shared_ptr<SearchResult>(new SearchResult());
 
   Snapshot* current = new Snapshot(getRig());
   r->_scene = snapshotToVector(current);
@@ -496,6 +496,11 @@ void MainContentComponent::transferSelected(Snapshot * source, DeviceSet devices
 
   getGlobalSettings()->invalidateCache();
   arnoldRender();
+}
+
+void MainContentComponent::redrawResults()
+{
+  _search->updateImages();
 }
 
 bool MainContentComponent::isSearchRunning()
@@ -1340,6 +1345,7 @@ void MainContentComponent::search()
   stopSearch();
   _search->clearContainer();
   getGlobalSettings()->clearEdits();
+  _search->initForSearch();
 
   if (getGlobalSettings()->_searchMode == GIBBS_SAMPLING) {
     // TODO: Ok so for testing purposes everything is going to be 100% hard-coded for the sampling

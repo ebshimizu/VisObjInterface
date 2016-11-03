@@ -200,6 +200,15 @@ void SearchResultsViewer::clearHistory()
 	_history->clearAllHistory();
 }
 
+void SearchResultsViewer::updateImages()
+{
+  _results->updateAllImages();
+}
+
+void SearchResultsViewer::initForSearch() {
+  _results->initForSearch();
+}
+
 Array<shared_ptr<SearchResultContainer>> SearchResultsViewer::getKCenters(int k, DistanceMetric metric)
 {
   return _results->getKCenters(k, metric);
@@ -230,12 +239,12 @@ shared_ptr<SearchResultContainer> SearchResultsViewer::getLastSample()
 	return _results->getLastSample();
 }
 
-bool SearchResultsViewer::addNewResult(SearchResult * r, int callingThreadId, DistanceMetric metric, bool force)
+bool SearchResultsViewer::addNewResult(shared_ptr<SearchResult> r, int callingThreadId, DistanceMetric metric, bool force)
 {
   return _results->addNewResult(r, callingThreadId, metric, force);
 }
 
-bool SearchResultsViewer::addNewResult(SearchResult * r, int callingThreadId, DistanceMetric metric, bool force, Array<shared_ptr<SearchResultContainer>>& _currentResults)
+bool SearchResultsViewer::addNewResult(shared_ptr<SearchResult> r, int callingThreadId, DistanceMetric metric, bool force, Array<shared_ptr<SearchResultContainer>>& _currentResults)
 {
   return _results->addNewResult(r, callingThreadId, metric, force, _currentResults);
 }

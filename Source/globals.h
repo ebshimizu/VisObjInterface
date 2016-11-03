@@ -420,4 +420,7 @@ double avgLabMaskedImgDiff(Image& a, Image& b, Image& mask);
 // renders the specified snapshot to an image of the specified size
 Image renderImage(Snapshot* s, int width, int height);
 
+// returns a set of systems that have at least one light unlocked
+set<string> getUnlockedSystems();
+
 #endif  // GLOBALS_H_INCLUDED

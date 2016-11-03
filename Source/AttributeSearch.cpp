@@ -607,7 +607,7 @@ void AttributeSearchThread::runSearchNoInnerLoop()
 
   // assign start scene, initialize result
   Snapshot* start = new Snapshot(*_original);
-  SearchResult* r = new SearchResult();
+  shared_ptr<SearchResult> r = shared_ptr<SearchResult>(new SearchResult());
   double orig = fx;
 
   // RNG
@@ -624,7 +624,6 @@ void AttributeSearchThread::runSearchNoInnerLoop()
   // depth increases when scenes are rejected from the viewer
   while (depth < _maxDepth) {
     if (threadShouldExit()) {
-      delete r;
       delete start;
       return;
     }
@@ -734,7 +733,6 @@ void AttributeSearchThread::runSearchNoInnerLoop()
   }
   else {
     data._accepted = false;
-    delete r;
   }
 
   samples[_id].push_back(data);
@@ -795,7 +793,7 @@ void AttributeSearchThread::runCMAES()
   // insert results
   for (auto s : results) {
     // create result container
-    SearchResult* r = new SearchResult();
+    shared_ptr<SearchResult> r = shared_ptr<SearchResult>(new SearchResult());
     r->_scene = s;
     
     Snapshot* sn = vectorToSnapshot(s);
@@ -835,7 +833,7 @@ void AttributeSearchThread::runRepulsionKMCMC()
 
   // assign start scene, initialize result
   Snapshot* start = new Snapshot(*_original);
-  SearchResult* r = new SearchResult();
+  shared_ptr<SearchResult> r = shared_ptr<SearchResult>(new SearchResult());
   double orig = fx;
 
   // RNG
@@ -852,7 +850,6 @@ void AttributeSearchThread::runRepulsionKMCMC()
   // depth increases when scenes are rejected from the viewer
   while (depth < _maxDepth) {
     if (threadShouldExit()) {
-      delete r;
       delete start;
       return;
     }
@@ -965,7 +962,6 @@ void AttributeSearchThread::runRepulsionKMCMC()
   }
   else {
     data._accepted = false;
-    delete r;
   }
 
   samples[_id].push_back(data);
@@ -1068,7 +1064,7 @@ void AttributeSearchThread::runGibbsSampling()
   }
 
   // now that we have the sample, apply the usual display criteria to it
-  SearchResult* r = new SearchResult();
+  shared_ptr<SearchResult> r = shared_ptr<SearchResult>(new SearchResult());
   r->_scene = snapshotToVector(sample);
 
   // diagnostics
@@ -1450,7 +1446,7 @@ void AttributeSearchThread::initEditWeights()
 
 double AttributeSearchThread::repulsion(Snapshot * s)
 {
-  SearchResult* t = new SearchResult();
+  shared_ptr<SearchResult> t = shared_ptr<SearchResult>(new SearchResult());
   t->_scene = snapshotToVector(s);
   SearchResultContainer* temp = new SearchResultContainer(t, false);
   temp->setImage(renderImage(s, 100, 100));

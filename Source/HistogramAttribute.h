@@ -252,6 +252,8 @@ public:
   // Returns the dimensionality of this histogram
   int getDims();
 
+
+
 private:
   // Retrieves the closest bin center to the specified point
   HistogramFeature closestBin(vector<float> pt);

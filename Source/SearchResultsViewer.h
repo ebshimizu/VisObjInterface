@@ -50,8 +50,8 @@ public:
   HistoryPanel* getHistory() { return _history; }
 
   // adds a new search result to the display area. Thread safe.
-  bool addNewResult(SearchResult* r, int callingThreadId, DistanceMetric metric = PPAVGLAB, bool force = false);
-  bool addNewResult(SearchResult* r, int callingThreadId, DistanceMetric metric, bool force, Array<shared_ptr<SearchResultContainer> >& _currentResults);
+  bool addNewResult(shared_ptr<SearchResult> r, int callingThreadId, DistanceMetric metric = PPAVGLAB, bool force = false);
+  bool addNewResult(shared_ptr<SearchResult> r, int callingThreadId, DistanceMetric metric, bool force, Array<shared_ptr<SearchResultContainer> >& _currentResults);
 
   // tells the search result container to update itself
   void showNewResults();
@@ -88,6 +88,9 @@ public:
 
 	// Clears the history container
 	void clearHistory();
+
+  void updateImages();
+  void initForSearch();
 
   Array<shared_ptr<SearchResultContainer> > getKCenters(int k, DistanceMetric metric);
 

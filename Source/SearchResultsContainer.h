@@ -49,6 +49,56 @@ private:
 };
 
 //==============================================================================
+
+// Building blocks for a heirarchical view of the search results.
+// In each explorer, the specified system is displayed with all other locked lights
+// in the rig. When a result is chosen, the specified system is locked and all other
+// views are updated
+class SystemExplorer : public Component
+{
+public:
+  SystemExplorer(string system);
+  ~SystemExplorer();
+
+  void addNewResult(shared_ptr<SearchResultContainer> result);
+
+  // updates the thumbnails. Note that the results are unchanged, but the images
+  // get updated based on what's locked
+  void updateAllImages();
+
+  virtual void paint(Graphics& g) override;
+  virtual void resized() override;
+
+private:
+  void updateSingleImage(shared_ptr<SearchResultContainer> result);
+
+  Array<shared_ptr<SearchResultContainer> > _results;
+  string _system;
+};
+
+class SystemExplorerContainer : public Component
+{
+public:
+  SystemExplorerContainer();
+  ~SystemExplorerContainer();
+
+  virtual void paint(Graphics& g) override;
+  virtual void resized() override;
+  void setHeight(int height);
+
+  void addContainer(string system);
+  void addResult(shared_ptr<SearchResultContainer> result);
+  void clear();
+  void updateImages();
+
+private:
+  Array<Viewport*> _views;
+  Array<SystemExplorer*> _explorers;
+
+  int _rowHeight;
+};
+
+//==============================================================================
 class SearchResultsContainer : public Component
 {
 public:
@@ -62,14 +112,18 @@ public:
   void sort();  // Uses the value in the globals to sort
   void sort(AttributeSorter* s);
 
+  // with the system explorer view we need to know what systems we're creating
+  // rows for in the first place
+  void initForSearch();
+
   // Return the results for some other use
   Array<shared_ptr<SearchResultContainer> > getResults();
 
   // Add a new search result to the display area. Is thread safe.
 	// Setting force to true will automatically add the result to the container, disregarding
 	// similarity requirements, but respecting limit on number of elements in the container
-  bool addNewResult(SearchResult* r, int callingThreadId, DistanceMetric metric = PPAVGLAB, bool force = false);
-  bool addNewResult(SearchResult* r, int callingThreadId, DistanceMetric metric, bool force, Array<shared_ptr<SearchResultContainer> >& _currentResult);
+  bool addNewResult(shared_ptr<SearchResult> r, int callingThreadId, DistanceMetric metric = PPAVGLAB, bool force = false);
+  bool addNewResult(shared_ptr<SearchResult> r, int callingThreadId, DistanceMetric metric, bool force, Array<shared_ptr<SearchResultContainer> >& _currentResult);
 
   // integrate new results and display
   void showNewResults();
@@ -144,6 +198,8 @@ public:
   // returns k center points from clusters created from the current set of results
   Array<shared_ptr<SearchResultContainer> > getKCenters(int k, DistanceMetric metric);
 
+  void updateAllImages();
+
 private:
   // All results contains every result in the container. It should only be deleted at the top
   // level of the container hierarchy, which looks like:
@@ -173,7 +229,10 @@ private:
   Viewport* _unclusteredViewer;
 
   // Creates an attribute search result container for the given result struct
-  SearchResultContainer* createContainerFor(SearchResult* r);
+  SearchResultContainer* createContainerFor(shared_ptr<SearchResult> r);
+
+  SystemExplorerContainer _views;
+  Viewport* _exploreView;
 
   // clustering quality metric
   double daviesBouldin();

@@ -34,6 +34,27 @@ void GibbsPallet::setImg(Image & img)
 
 void GibbsPallet::computeSchedule()
 {
+  // compute a HSV histogram and pull out stats about the intensity and color
+  SparseHistogram imgHist(3, { 10, 0, 0.2f, 0, 0.2f, 0 });
+  Image i = _img.rescaled(100, 100);
+
+  for (int y = 0; y < i.getHeight(); y++) {
+    for (int x = 0; x < i.getWidth(); x++) {
+      auto p = i.getPixelAt(x, y);
+      vector<float> hsv;
+      hsv.resize(3);
+
+      p.getHSB(hsv[0], hsv[1], hsv[2]);
+      hsv[0] *= 360;
+
+      imgHist.add(hsv);
+    }
+  }
+
+  // determine what the top hue bins are, i.e. where most of the colors lie.
+  // ideally we'll also want to determine the bandwidth of these histograms as well
+  // actually it's basically just fitting a gaussian model to the histogram
+  imgHist;
 }
 
 void GibbsPallet::setCustomSchedule(shared_ptr<GibbsSchedule> sched)

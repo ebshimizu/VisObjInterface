@@ -71,7 +71,7 @@ void SearchResultBlender::sliderValueChanged(Slider * s)
 
 
 //==============================================================================
-SearchResultContainer::SearchResultContainer(SearchResult* result, bool isHistoryItem) :
+SearchResultContainer::SearchResultContainer(shared_ptr<SearchResult> result, bool isHistoryItem) :
   _result(result), _isHistoryItem(isHistoryItem)
 {
   // In your constructor, you should add any child components, and
@@ -83,13 +83,11 @@ SearchResultContainer::SearchResultContainer(SearchResult* result, bool isHistor
   _clusterContents = new SearchResultList();
   _clusterContents->setWidth(820);
   _clusterContents->setCols(3);
+  _system = "";
 }
 
 SearchResultContainer::~SearchResultContainer()
 {
-  if (_result != nullptr)
-    delete _result;
-
   delete _clusterContents;
 }
 
@@ -210,113 +208,153 @@ void SearchResultContainer::computeGradient()
 
 void SearchResultContainer::clearSearchResult()
 {
-  if (_result != nullptr)
-    delete _result;
-
   _result = nullptr;
+}
+
+void SearchResultContainer::setSystem(string system)
+{
+  _system = system;
 }
 
 void SearchResultContainer::mouseDown(const MouseEvent & event)
 {
   if (event.mods.isRightButtonDown()) {
-    PopupMenu m;
-    m.addItem(1, "Move to Stage");
-    m.addItem(2, "Repeat Search with Selected");
-    m.addItem(3, "Transfer Selected to Stage");
+    if (_system != "") {
+      PopupMenu m;
 
-    PopupMenu subTransferArea;
-    StringArray areas;
-    for (auto area : getRig()->getMetadataValues("area")) {
-      areas.add(area);
-    }
+      m.addItem(1, "Lock " + _system + " system");
+      int result = m.show();
 
-    for (int i = 0; i < areas.size(); i++) {
-      subTransferArea.addItem(i + 4, areas[i]);
-    }
-    m.addSubMenu("Transfer Area to Stage", subTransferArea);
+      if (result == 1) {
+        // get the system lights from the rig
+        Snapshot* s = vectorToSnapshot(_result->_scene);
+        auto sd = s->getRigData();
+        DeviceSet sys = getRig()->select("$system=" + _system);
+        for (auto d : sys.getDevices()) {
+          d->setParam("intensity", sd[d->getId()]->getIntensity());
+          d->setParam("color", sd[d->getId()]->getColor());
+          lockDeviceParam(d->getId(), "intensity");
+          lockDeviceParam(d->getId(), "color");
+        }
 
-    PopupMenu subTransferSystem;
-    StringArray systems;
-    for (auto system : getRig()->getMetadataValues("system")) {
-      systems.add(system);
-    }
+        // set all other unlocked devices to 0
+        DeviceSet all = getRig()->getAllDevices();
+        for (auto d : all.getDevices()) {
+          if (!isDeviceParamLocked(d->getId(), "intensity"))
+            d->setParam("intensity", 0.0);
+        }
 
-    for (int i = 0; i < systems.size(); i++) {
-      subTransferSystem.addItem(i + 4 + areas.size(), systems[i]);
-    }
-    m.addSubMenu("Transfer System to Stage", subTransferSystem);
+        MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
-    const int result = m.show();
-
-    if (result == 1) {
-      Snapshot* s = vectorToSnapshot(_result->_scene);
-      s->loadRig(getRig());
-      delete s;
-
-      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-
-      if (mc != nullptr) {
-        mc->arnoldRender(!_isHistoryItem);
-        mc->refreshParams();
-        mc->refreshAttr();
-        getRecorder()->log(ACTION, "User picked scene for stage: " + getTooltip().toStdString());
+        if (mc != nullptr) {
+          mc->arnoldRender(!_isHistoryItem);
+          mc->refreshParams();
+          mc->refreshAttr();
+          mc->redrawResults();
+          getRecorder()->log(ACTION, "User locked system " + _system + ": " + getTooltip().toStdString());
+        }
       }
     }
-    else if (result == 2) {
-      Snapshot* s = vectorToSnapshot(_result->_scene);
-      s->loadRig(getRig());
-      delete s;
-      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+    else {
+      PopupMenu m;
+      m.addItem(1, "Move to Stage");
+      m.addItem(2, "Repeat Search with Selected");
+      m.addItem(3, "Transfer Selected to Stage");
 
-      if (mc != nullptr) {
-        mc->refreshParams();
-        mc->refreshAttr();
-        mc->search();
-      }
-    }
-    else if (result == 3) {
-      Snapshot* s = vectorToSnapshot(_result->_scene);
-
-      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-
-      if (mc != nullptr) {
-        mc->transferSelected(s);
-        mc->refreshParams();
-        mc->refreshAttr();
+      PopupMenu subTransferArea;
+      StringArray areas;
+      for (auto area : getRig()->getMetadataValues("area")) {
+        areas.add(area);
       }
 
-      delete s;
-    }
-    else if (result >= 4 && result < areas.size() + 4) {
-      Snapshot* s = vectorToSnapshot(_result->_scene);
+      for (int i = 0; i < areas.size(); i++) {
+        subTransferArea.addItem(i + 4, areas[i]);
+      }
+      m.addSubMenu("Transfer Area to Stage", subTransferArea);
 
-      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-
-      if (mc != nullptr) {
-        mc->transferSelected(s, getRig()->select("$area=" + areas[result - 4].toStdString()));
-        mc->refreshParams();
-        mc->refreshAttr();
+      PopupMenu subTransferSystem;
+      StringArray systems;
+      for (auto system : getRig()->getMetadataValues("system")) {
+        systems.add(system);
       }
 
-      delete s;
-    }
-    else if (result >= areas.size() + 4) {
-      Snapshot* s = vectorToSnapshot(_result->_scene);
-
-      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-
-      if (mc != nullptr) {
-        mc->transferSelected(s, getRig()->select("$system=" + systems[result - 4 - areas.size()].toStdString()));
-        mc->refreshParams();
-        mc->refreshAttr();
+      for (int i = 0; i < systems.size(); i++) {
+        subTransferSystem.addItem(i + 4 + areas.size(), systems[i]);
       }
+      m.addSubMenu("Transfer System to Stage", subTransferSystem);
 
-      delete s;
+      const int result = m.show();
+
+      if (result == 1) {
+        Snapshot* s = vectorToSnapshot(_result->_scene);
+        s->loadRig(getRig());
+        delete s;
+
+        MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+        if (mc != nullptr) {
+          mc->arnoldRender(!_isHistoryItem);
+          mc->refreshParams();
+          mc->refreshAttr();
+          getRecorder()->log(ACTION, "User picked scene for stage: " + getTooltip().toStdString());
+        }
+      }
+      else if (result == 2) {
+        Snapshot* s = vectorToSnapshot(_result->_scene);
+        s->loadRig(getRig());
+        delete s;
+        MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+        if (mc != nullptr) {
+          mc->refreshParams();
+          mc->refreshAttr();
+          mc->search();
+        }
+      }
+      else if (result == 3) {
+        Snapshot* s = vectorToSnapshot(_result->_scene);
+
+        MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+        if (mc != nullptr) {
+          mc->transferSelected(s);
+          mc->refreshParams();
+          mc->refreshAttr();
+        }
+
+        delete s;
+      }
+      else if (result >= 4 && result < areas.size() + 4) {
+        Snapshot* s = vectorToSnapshot(_result->_scene);
+
+        MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+        if (mc != nullptr) {
+          mc->transferSelected(s, getRig()->select("$area=" + areas[result - 4].toStdString()));
+          mc->refreshParams();
+          mc->refreshAttr();
+        }
+
+        delete s;
+      }
+      else if (result >= areas.size() + 4) {
+        Snapshot* s = vectorToSnapshot(_result->_scene);
+
+        MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+        if (mc != nullptr) {
+          mc->transferSelected(s, getRig()->select("$system=" + systems[result - 4 - areas.size()].toStdString()));
+          mc->refreshParams();
+          mc->refreshAttr();
+        }
+
+        delete s;
+      }
     }
   }
   else if (event.mods.isLeftButtonDown() && event.mods.isCommandDown()) {
     // popup window to allow blending of current scene with search scene
-    SearchResultBlender* popupComponent = new SearchResultBlender(_result);
+    SearchResultBlender* popupComponent = new SearchResultBlender(_result.get());
     popupComponent->setSize(300, 45);
     CallOutBox::launchAsynchronously(popupComponent, getScreenBounds(), nullptr);
   }

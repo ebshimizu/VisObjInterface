@@ -76,6 +76,8 @@ public:
   void transferSelected(Snapshot* source);
   void transferSelected(Snapshot* source, DeviceSet devices);
 
+  void redrawResults();
+
   bool isSearchRunning();
 
 private:

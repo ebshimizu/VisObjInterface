@@ -84,7 +84,7 @@ Array<shared_ptr<TopLevelCluster> > KMeans::cluster(Array<shared_ptr<SearchResul
 
     // update centers
     for (auto& p : points) {
-      SearchResult* r = p->getSearchResult();
+      shared_ptr<SearchResult> r = p->getSearchResult();
       feats[r->_cluster] += p->getFeatures();
       scenes[r->_cluster] += r->_scene;
       counts[r->_cluster] += 1;
@@ -141,7 +141,7 @@ Array<shared_ptr<SearchResultContainer>> KMeans::clusterBestCenters(Array<shared
 
     // update centers
     for (auto& p : points) {
-      SearchResult* r = p->getSearchResult();
+      shared_ptr<SearchResult> r = p->getSearchResult();
       feats[r->_cluster] += p->getFeatures();
       scenes[r->_cluster] += r->_scene;
       counts[r->_cluster] += 1;
@@ -214,7 +214,7 @@ Array<shared_ptr<SearchResultContainer>> KMeans::clusterBestRepCenters(Array<sha
 
     // update centers
     for (auto& p : points) {
-      SearchResult* r = p->getSearchResult();
+      shared_ptr<SearchResult> r = p->getSearchResult();
       feats[r->_cluster] += p->getFeatures();
       scenes[r->_cluster] += r->_scene;
       counts[r->_cluster] += 1;
@@ -513,7 +513,7 @@ Array<shared_ptr<SearchResultContainer>> KMeans::forgy2(int k, Array<shared_ptr<
 
   int i = 0;
   for (auto& p : tempPoints) {
-    auto src = shared_ptr<SearchResultContainer>(new SearchResultContainer(new SearchResult()));
+    auto src = shared_ptr<SearchResultContainer>(new SearchResultContainer(shared_ptr<SearchResult>(new SearchResult())));
     src->getSearchResult()->_cluster = i;
     src->getSearchResult()->_scene = p->getSearchResult()->_scene;
     src->setFeatures(p->getFeatures());
