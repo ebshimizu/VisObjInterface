@@ -1348,62 +1348,9 @@ void MainContentComponent::search()
   _search->initForSearch();
 
   if (getGlobalSettings()->_searchMode == GIBBS_SAMPLING) {
-    // TODO: Ok so for testing purposes everything is going to be 100% hard-coded for the sampling
-    // example. The example that we'll use is all systems, random intensities, specific color pallete
-    // manually defined to be the pink thing from my opera scene
+    // TODO: pulls data from the custom controls window for now, should generate from image eventually
 
-    // _attrs->getGibbsSchedule();
-
-    GibbsSchedule* test = new GibbsSchedule();
-
-    // I'm testing on the light lab so lets keep this not too bright
-    vector<normal_distribution<float> > idists;
-    idists.push_back(normal_distribution<float>(0.3, 0.2));
-    test->setIntensDist(idists);
-
-    // color woo
-    // basically we peg the mean to the specified color and allow for some variance around
-    // it so all the results aren't super boring.
-    vector<normal_distribution<float> > hue;
-    vector<normal_distribution<float> > sat;
-    vector<normal_distribution<float> > val;
-
-    // color 1: purple
-    hue.push_back(normal_distribution<float>(0.719, 0.02));
-    sat.push_back(normal_distribution<float>(0.7, 0.1));
-    val.push_back(normal_distribution<float>(0.54, 0.1));
-
-    // color 2: pink
-    hue.push_back(normal_distribution<float>(0.894, 0.02));
-    sat.push_back(normal_distribution<float>(0.75, 0.1));
-    val.push_back(normal_distribution<float>(0.55, 0.1));
-
-    // ideally this should be weighted less based on histogram
-    // color 3: yellow 
-    hue.push_back(normal_distribution<float>(0.103, 0.02));
-    sat.push_back(normal_distribution<float>(0.98, 0.1));
-    val.push_back(normal_distribution<float>(0.76, 0.1));
-
-    // color 4: blue
-    hue.push_back(normal_distribution<float>(0.655, 0.02));
-    sat.push_back(normal_distribution<float>(1.0, 0.1));
-    val.push_back(normal_distribution<float>(0.8, 0.1));
-
-    test->setColorDists(hue, sat, val);
-
-    GibbsScheduleConstraint ci;
-    ci._followConventions = true;
-    ci._param = GINTENSITY;
-    ci._targets = getRig()->getAllDevices();
-
-    GibbsScheduleConstraint cc;
-    cc._followConventions = true;
-    cc._param = GCOLOR;
-    cc._targets = getRig()->getAllDevices();
-
-    vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> state;
-    state.push_back(pair<GibbsScheduleConstraint, GibbsSchedule*>(ci, test));
-    state.push_back(pair<GibbsScheduleConstraint, GibbsSchedule*>(cc, test));
+    vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> state = _attrs->getGibbsSchedule();
 
     _searchWorker->setState(new Snapshot(getRig()), state);
     _searchWorker->startThread(9);

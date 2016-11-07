@@ -242,7 +242,8 @@ public:
             MainContentComponent* cmp = new MainContentComponent();
             setContentOwned (cmp, true);
 
-            centreWithSize (getWidth(), getHeight());
+            setFullScreen(true);
+            //centreWithSize (getWidth(), getHeight());
             setResizable(true, false);
             setVisible (true);
 

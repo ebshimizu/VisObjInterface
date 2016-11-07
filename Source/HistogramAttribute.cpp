@@ -800,6 +800,21 @@ int SparseHistogram::getDims()
   return _n;
 }
 
+map<double, double> SparseHistogram::getDimension(int dim)
+{
+  map<double, double> data;
+  for (auto b : _histData) {
+    data[b.first._data._v[dim]] += b.second;
+  }
+
+  return data;
+}
+
+float SparseHistogram::getTotalWeight()
+{
+  return _totalWeight;
+}
+
 HistogramFeature SparseHistogram::closestBin(vector<float> pt)
 {
   vector<float> bin;

@@ -66,8 +66,43 @@ private:
 // This component is a color constraint on the gibbs sampler. 
 // Takes a set of devices and applies the specified color pallet constraint to the
 // devices
-class GibbsColorConstraint : public Component {
+class GibbsColorConstraint : public Component, public ButtonListener, public ChangeListener {
+public:
+  GibbsColorConstraint();
 
+  virtual void paint(Graphics& g) override;
+  virtual void resized() override;
+
+  virtual void buttonClicked(Button* b) override;
+
+  void getDistributions(normal_distribution<float>& hue, normal_distribution<float>& sat, normal_distribution<float>& val);
+
+  void changeListenerCallback(ChangeBroadcaster* source);
+
+private:
+  Colour _color;
+  float _sigma;
+
+  TextButton _setColor;
+};
+
+class GibbsConstraintContainer : public Component, public SliderListener {
+public:
+  GibbsConstraintContainer();
+  ~GibbsConstraintContainer();
+
+  virtual void paint(Graphics& g) override;
+  virtual void resized() override;
+
+  virtual void sliderValueChanged(Slider* s) override;
+
+  vector<vector<normal_distribution<float>>> getColorDists();
+  normal_distribution<float> getIntensDist();
+
+private:
+  Array<GibbsColorConstraint*> _colors;
+
+  Slider _intens;
 };
 
 // This component is an intensity constraint on the gibbs sampler.

@@ -98,6 +98,8 @@ public:
   // initializes gibbs pallets
   void initPallets();
 
+  vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> getGibbsSchedule();
+
 private:
   void initAttributes();
 
@@ -105,6 +107,7 @@ private:
 
   AttributeControlsList* _container;
   GibbsPalletContainer* _pallets;
+  GibbsConstraintContainer* _tempConstraints;
 
   Viewport* _componentView;
   Viewport* _palletViewer;

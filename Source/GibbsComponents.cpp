@@ -10,6 +10,7 @@
 
 #include "GibbsComponents.h"
 #include "ImageAttribute.h"
+#include "hsvPicker.h"
 
 GibbsPallet::GibbsPallet(String name, Image & src) : _img(src), _name(name)
 {
@@ -35,7 +36,7 @@ void GibbsPallet::setImg(Image & img)
 void GibbsPallet::computeSchedule()
 {
   // compute a HSV histogram and pull out stats about the intensity and color
-  SparseHistogram imgHist(3, { 10, 0, 0.2f, 0, 0.2f, 0 });
+  SparseHistogram imgHist(3, { 0, 10, 0, 0.2f, 0, 0.2f });
   Image i = _img.rescaled(100, 100);
 
   for (int y = 0; y < i.getHeight(); y++) {
@@ -51,10 +52,45 @@ void GibbsPallet::computeSchedule()
     }
   }
 
+  // temporary short circuit
+  return;
+
   // determine what the top hue bins are, i.e. where most of the colors lie.
   // ideally we'll also want to determine the bandwidth of these histograms as well
   // actually it's basically just fitting a gaussian model to the histogram
-  imgHist;
+  float totalWeight = imgHist.getTotalWeight();
+  map<double, double> hues = imgHist.getDimension(0);
+
+  // determine peak hue values and roughly fit a gaussian
+  float currentWeight = totalWeight;
+  while (currentWeight > totalWeight * 0.2) {
+    // find max hue value
+    double maxHue = -1;
+
+    for (auto h : hues) {
+      if (maxHue < 0) {
+        maxHue = h.first;
+        continue;
+      }
+
+      if (h.second > hues[maxHue]) {
+        maxHue = h.first;
+      }
+    }
+
+    // have peak, determine how long the tail is (generally if constantly decreasing consider part of tail)
+    double currentHue = maxHue;
+    double nextHue = maxHue - 10;
+    if (nextHue < 0)
+      nextHue += 360;
+
+    while (hues[currentHue] > hues[nextHue]) {
+      currentHue = nextHue;
+      double nextHue = currentHue - 10;
+      if (nextHue < 0)
+        nextHue += 360;
+    } 
+  }
 }
 
 void GibbsPallet::setCustomSchedule(shared_ptr<GibbsSchedule> sched)
@@ -142,4 +178,118 @@ void GibbsPalletContainer::clearPallets()
 Array<GibbsPallet*> GibbsPalletContainer::getPallets()
 {
   return _pallets;
+}
+
+GibbsColorConstraint::GibbsColorConstraint() : _setColor("Select Color")
+{
+  _color = Colours::white;
+  addAndMakeVisible(_setColor);
+  _setColor.addListener(this);
+}
+
+void GibbsColorConstraint::paint(Graphics & g)
+{
+  auto lbounds = getLocalBounds();
+
+  g.fillAll(Colour(0xff333333));
+  g.setColour(_color);
+
+  g.fillRect(lbounds.removeFromLeft(80).reduced(3));
+}
+
+void GibbsColorConstraint::resized()
+{
+  auto lbounds = getLocalBounds();
+  lbounds.removeFromLeft(80);
+  _setColor.setBounds(lbounds.removeFromRight(100).reduced(3));
+}
+
+void GibbsColorConstraint::buttonClicked(Button * b)
+{
+  // there's only one button here so
+  HSVPicker* cs = new HSVPicker();
+  cs->setName("Constraint");
+  cs->setCurrentColour(_color);
+  cs->setSize(300, 400);
+  cs->addChangeListener(this);
+  CallOutBox::launchAsynchronously(cs, this->getScreenBounds(), nullptr);
+}
+
+void GibbsColorConstraint::getDistributions(normal_distribution<float>& hue, normal_distribution<float>& sat, normal_distribution<float>& val)
+{
+  hue = normal_distribution<float>(_color.getHue(), 0.03);
+  sat = normal_distribution<float>(_color.getSaturation(), 0.1);
+  val = normal_distribution<float>(_color.getBrightness(), 0.1);
+}
+
+
+void GibbsColorConstraint::changeListenerCallback(ChangeBroadcaster * source)
+{
+  HSVPicker* cs = dynamic_cast<HSVPicker*>(source);
+  _color = cs->getCurrentColour();
+
+  repaint();
+}
+
+GibbsConstraintContainer::GibbsConstraintContainer()
+{
+  _intens.setName("intens");
+  _intens.addListener(this);
+  _intens.setRange(0, 1);
+  addAndMakeVisible(_intens);
+
+  for (int i = 0; i < 4; i++) {
+    GibbsColorConstraint* c1 = new GibbsColorConstraint();
+    addAndMakeVisible(c1);
+    _colors.add(c1);
+  }
+}
+
+GibbsConstraintContainer::~GibbsConstraintContainer()
+{
+  for (auto c : _colors) {
+    delete c;
+  }
+}
+
+void GibbsConstraintContainer::paint(Graphics & g)
+{
+}
+
+void GibbsConstraintContainer::resized()
+{
+  int height = 50 * _colors.size() + 30;
+  setSize(getWidth(), height);
+
+  auto lbounds = getLocalBounds();
+  for (auto c : _colors) {
+    c->setBounds(lbounds.removeFromTop(50));
+  }
+
+  _intens.setBounds(lbounds.removeFromTop(30));
+}
+
+void GibbsConstraintContainer::sliderValueChanged(Slider * s)
+{
+}
+
+vector<vector<normal_distribution<float>>> GibbsConstraintContainer::getColorDists()
+{
+  vector<vector<normal_distribution<float>>> dists;
+  dists.resize(3);
+
+  for (int i = 0; i < _colors.size(); i++) {
+    dists[0].push_back(normal_distribution<float>());
+    dists[1].push_back(normal_distribution<float>());
+    dists[2].push_back(normal_distribution<float>());
+
+    _colors[i]->getDistributions(dists[0][i], dists[1][i], dists[2][i]);
+  }
+
+  return dists;
+}
+
+normal_distribution<float> GibbsConstraintContainer::getIntensDist()
+{
+  return normal_distribution<float>(_intens.getValue());
 }

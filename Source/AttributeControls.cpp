@@ -214,7 +214,6 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
 
   _tabs.addTab("Attributes", Colour(0xff333333), _componentView, false);
   _tabs.addTab("Pallets", Colour(0xff333333), _palletViewer, false);
-  _tabs.setCurrentTabIndex(1);
 
   _search = new TextButton("Search", "Perform a search with the current attribute constraints");
   _search->addListener(this);
@@ -231,6 +230,11 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   _clusterButton = new TextButton("Cluster", "Clusters the currently returned search results");
   _clusterButton->addListener(this);
   addAndMakeVisible(_clusterButton);
+
+  _tempConstraints = new GibbsConstraintContainer();
+  addAndMakeVisible(_tempConstraints);
+  _tabs.addTab("Pallete Picker", Colour(0xff333333), _tempConstraints, false);
+  _tabs.setCurrentTabIndex(2);
 
   // Add the sort methods to the combo box
   _sort = new ComboBox("sort mode");
@@ -262,6 +266,7 @@ AttributeControls::~AttributeControls()
   delete _clusterButton;
   delete _pallets;
   delete _palletViewer;
+  delete _tempConstraints;
 }
 
 void AttributeControls::paint (Graphics& g)
@@ -403,6 +408,35 @@ void AttributeControls::initPallets()
   }
 
   resized();
+}
+
+vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> AttributeControls::getGibbsSchedule()
+{
+  GibbsSchedule s;
+  auto colorConstraints = _tempConstraints->getColorDists();
+  auto intensConstraints = _tempConstraints->getIntensDist();
+
+  GibbsScheduleConstraint ci;
+  ci._followConventions = true;
+  ci._param = GINTENSITY;
+  ci._targets = getRig()->getAllDevices();
+
+  GibbsScheduleConstraint cc;
+  cc._param = GCOLOR;
+  cc._followConventions = true;
+  cc._targets = getRig()->getAllDevices();
+
+  GibbsSchedule* sched = new GibbsSchedule();
+  vector<normal_distribution<float>> idists;
+  idists.push_back(intensConstraints);
+  sched->setIntensDist(idists);
+
+  sched->setColorDists(colorConstraints[0], colorConstraints[1], colorConstraints[2]);
+  vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> state;
+  state.push_back(pair<GibbsScheduleConstraint, GibbsSchedule*>(ci, sched));
+  state.push_back(pair<GibbsScheduleConstraint, GibbsSchedule*>(cc, sched));
+
+  return state;
 }
 
 void AttributeControls::initAttributes()

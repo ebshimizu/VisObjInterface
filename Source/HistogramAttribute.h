@@ -252,7 +252,11 @@ public:
   // Returns the dimensionality of this histogram
   int getDims();
 
+  // returns the weights of bins along a single dimension
+  map<double, double> getDimension(int dim);
 
+  // Returns the total weight of the elements in the histogram
+  float getTotalWeight();
 
 private:
   // Retrieves the closest bin center to the specified point
