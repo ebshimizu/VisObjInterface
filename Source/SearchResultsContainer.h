@@ -66,7 +66,7 @@ public:
 
   // updates the thumbnails. Note that the results are unchanged, but the images
   // get updated based on what's locked
-  void updateAllImages();
+  void updateAllImages(Snapshot* rigState);
 
   virtual void paint(Graphics& g) override;
   virtual void resized() override;
@@ -78,16 +78,41 @@ public:
   void sort(string method);
 
   // fills the dropdown box with the proper options
-  void populateDropdown();
+  // and initialized the required stuff
+  void init();
+
+  void blackout();
+  void unBlackout();
 
 private:
   void updateSingleImage(shared_ptr<SearchResultContainer> result);
 
-  Array<shared_ptr<SearchResultContainer> > _results;
+  // because we have a viewport the results are contained within a different
+  // object to place in the viewport
+  class SystemExplorerResults : public Component {
+  public:
+    SystemExplorerResults();
+    
+    virtual void resized() override;
+
+    Array<shared_ptr<SearchResultContainer> > _results;
+  };
+
+  SystemExplorerResults* _container;
   DeviceSet _selected;
+  Viewport* _rowElems;
+  Image _currentImg;
+  Snapshot* _currentState;
+
+  // state for updating images
+  Snapshot* _rigState;
+
+  // for temporary ops
+  Snapshot* _temp;
 
   ComboBox _select;
   string _name;
+  bool _isBlackout;
 };
 
 class SearchResultsContainer;
@@ -114,7 +139,6 @@ public:
 private:
   void addContainer(SystemExplorer* e);
 
-  Array<Viewport*> _views;
   Array<SystemExplorer*> _explorers;
   SearchResultsContainer* _rc;
 
@@ -127,9 +151,12 @@ private:
 
   class UpdateImageJob : public ThreadPoolJob {
   public:
-    UpdateImageJob(SystemExplorer* e);
+    UpdateImageJob(SystemExplorer* e, Snapshot* state);
+    ~UpdateImageJob();
+
     virtual JobStatus runJob();
     SystemExplorer* _e;
+    Snapshot* _state;
   };
 };
 

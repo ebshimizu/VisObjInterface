@@ -46,18 +46,21 @@ SystemExplorer::SystemExplorer(string name, string system) : _name(name)
   setName(name);
   _selected = getRig()->select("$system=" + system);
 
-  populateDropdown();
+  init();
 
   for (int i = 1; i < _select.getNumItems() + 1; i++) {
-    if (_select.getItemText(i) == system)
-      _select.setSelectedId(i);
+    if (_select.getItemText(i - 1) == system)
+      _select.setSelectedId(i, dontSendNotification);
   }
+
+  // if we're using this constructor, we're explicitly locking this to a particular system
+  //_select.setEnabled(false);
 }
 
 SystemExplorer::SystemExplorer(string name) : _name(name)
 {
   setName(name);
-  populateDropdown();
+  init();
 }
 
 SystemExplorer::SystemExplorer(Array<shared_ptr<SearchResultContainer>> results, string name)
@@ -66,29 +69,54 @@ SystemExplorer::SystemExplorer(Array<shared_ptr<SearchResultContainer>> results,
   for (auto r : results)
     addNewResult(r);
 
-  populateDropdown();
+  init();
 
 }
 
 SystemExplorer::~SystemExplorer()
 {
+  delete _container;
+  delete _rowElems;
+  delete _currentState;
+  delete _rigState;
+  delete _temp;
 }
 
 void SystemExplorer::addNewResult(shared_ptr<SearchResultContainer> result)
 {
   auto nr = shared_ptr<SearchResultContainer>(new SearchResultContainer(shared_ptr<SearchResult>(result->getSearchResult())));
   nr->setSystem(_selected);
-  addAndMakeVisible(nr.get());
+  _container->addAndMakeVisible(nr.get());
   updateSingleImage(nr);
-  _results.add(nr);
+  _container->_results.add(nr);
   resized();
 }
 
-void SystemExplorer::updateAllImages()
+void SystemExplorer::updateAllImages(Snapshot* rigState)
 {
-  for (auto r : _results) {
+  delete _rigState;
+  _rigState = new Snapshot(*rigState);
+
+  for (auto r : _container->_results) {
     updateSingleImage(r);
     r->setSystem(_selected);
+  }
+
+  // also update current state scene
+  if (!_isBlackout) {
+    // update current scene if we're not in blackout mode
+    _currentState = new Snapshot(getRig());
+    auto data = _currentState->getRigData();
+
+    // isolate selected devices
+    for (auto d : _currentState->getDevices()) {
+      if (!_selected.contains(d->getId())) {
+        d->setIntensity(0);
+      }
+    }
+
+    _currentImg = renderImage(_currentState, getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale,
+      getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
   }
 }
 
@@ -96,24 +124,21 @@ void SystemExplorer::paint(Graphics & g)
 {
   g.setColour(Colours::white);
   auto lbounds = getLocalBounds();
+
+  auto left = lbounds.removeFromLeft(250);
+  left.removeFromTop(24);
+  g.drawImageWithin(_currentImg, left.getX(), left.getY(), left.getWidth(), left.getHeight(), RectanglePlacement::centred);
 }
 
 void SystemExplorer::resized()
 {
-  // resize to fit all elements
-  int imgWidth = getHeight();
-  int totalWidth = max(_results.size() * imgWidth, 350);
-  setSize(totalWidth, getHeight());
-
-  // now place them
   auto lbounds = getLocalBounds();
 
-  auto top = lbounds.removeFromTop(20);
-  _select.setBounds(top.removeFromLeft(300));
+  auto left = lbounds.removeFromLeft(250);
+  _select.setBounds(left.removeFromTop(24).reduced(2));
 
-  for (auto r : _results) {
-    r->setBounds(lbounds.removeFromLeft(imgWidth));
-  }
+  _rowElems->setBounds(lbounds);
+  _container->setSize(lbounds.getWidth(), _rowElems->getMaximumVisibleHeight());
 }
 
 DeviceSet SystemExplorer::getViewedDevices()
@@ -132,19 +157,26 @@ void SystemExplorer::comboBoxChanged(ComboBox * c)
   _selected = getRig()->select("$system=" + system.toStdString());
 
   setName(system);
-  updateAllImages();
+  updateAllImages(new Snapshot(getRig()));
 }
 
 void SystemExplorer::sort(string method)
 {
   CacheSorter sorter = CacheSorter(method);
 
-  _results.sort(sorter);
+  _container->_results.sort(sorter);
   resized();
 }
 
-void SystemExplorer::populateDropdown()
+void SystemExplorer::init()
 {
+  // create viewport and container
+  _rowElems = new Viewport();
+  _container = new SystemExplorerResults();
+  addAndMakeVisible(_container);
+  _rowElems->setViewedComponent(_container, false);
+  addAndMakeVisible(_rowElems);
+
   auto systems = getRig()->getMetadataValues("system");
   StringArray options;
   for (auto s : systems)
@@ -153,26 +185,54 @@ void SystemExplorer::populateDropdown()
   _select.addItemList(options, 1);
   _select.addListener(this);
   addAndMakeVisible(_select);
+
+  // create the image and current state
+  _currentState = new Snapshot(getRig());
+  auto data = _currentState->getRigData();
+
+  // isolate selected devices
+  for (auto d : _currentState->getDevices()) {
+    if (!_selected.contains(d->getId())) {
+      d->setIntensity(0);
+    }
+  }
+
+  _currentImg = renderImage(_currentState, getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale,
+    getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
+  _isBlackout = false;
+  _rigState = new Snapshot(*_currentState);
+  _temp = new Snapshot(*_currentState);
+}
+
+void SystemExplorer::blackout()
+{
+}
+
+void SystemExplorer::unBlackout()
+{
 }
 
 void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
 {
   // grab the actual snapshot this corresponds to
   shared_ptr<SearchResult> sr = result->getSearchResult();
-  Snapshot* cfg = vectorToSnapshot(sr->_scene);
+  vectorToExistingSnapshot(sr->_scene, *_temp);
 
   // we also collect some data to help sort this thing
   Eigen::Vector3d hsv(0,0,0);
   float intens = 0;
   int count = 0;
 
+  // this could be threaded, so we access the cached copy of the rig state
+  auto rigData = _rigState->getRigData();
+
   // set all unlocked intensity non-system devices to 0
-  for (auto d : cfg->getRigData()) {
+  for (auto d : _temp->getRigData()) {
     if (!_selected.contains(d.first)) {
       if (isDeviceParamLocked(d.first, "intensity")) {
         // if locked, grab values and update the snapshot
-        d.second->setIntensity(getRig()->getDevice(d.first)->getIntensity()->getVal());
-        d.second->setParam("color", getRig()->getDevice(d.first)->getParam("color"));
+        d.second->setIntensity(rigData[d.first]->getIntensity()->getVal());
+        d.second->setParam("color", LumiverseTypeUtils::copy(rigData[d.first]->getParam("color")));
       }
       else {
         d.second->setIntensity(0);
@@ -190,7 +250,7 @@ void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
 
   // now render the thing
   // we'll render at 25% of full res for now, to test speed
-  Image preview = renderImage(cfg, getGlobalSettings()->_renderWidth * 0.25, getGlobalSettings()->_renderHeight * 0.25);
+  Image preview = renderImage(_temp, getGlobalSettings()->_renderWidth * 0.25, getGlobalSettings()->_renderHeight * 0.25);
   result->setImage(preview);
 
   // search data
@@ -203,8 +263,25 @@ void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
   // hsv combined
   float hsCombo = round(hsv[0]) + hsv[1];
   result->_sortVals["hs"] = hsCombo;
+}
 
-  delete cfg;
+SystemExplorer::SystemExplorerResults::SystemExplorerResults()
+{
+}
+
+void SystemExplorer::SystemExplorerResults::resized()
+{
+  // resize to fit all elements
+  int imgWidth = getHeight();
+  int totalWidth = _results.size() * imgWidth;
+  setSize(totalWidth, getHeight());
+
+  // now place them
+  auto lbounds = getLocalBounds();
+
+  for (auto r : _results) {
+    r->setBounds(lbounds.removeFromLeft(imgWidth));
+  }
 }
 
 //==============================================================================
@@ -229,15 +306,15 @@ void SystemExplorerContainer::paint(Graphics & g)
   g.setFont(14);
 
   auto lbounds = getLocalBounds();
-  for (int i = 0; i < _views.size(); i++) {
+  for (int i = 0; i < _explorers.size(); i++) {
     //g.drawFittedText(_explorers[i]->getName(), lbounds.removeFromTop(24).reduced(2), Justification::left, 1);
-    lbounds.removeFromTop(_rowHeight - 24);
+    lbounds.removeFromTop(_rowHeight);
   }
 }
 
 void SystemExplorerContainer::resized()
 {
-  int height = _rowHeight * _views.size() + 24;
+  int height = _rowHeight * _explorers.size() + 24;
   setSize(getWidth(), height);
 
   auto lbounds = getLocalBounds();
@@ -245,12 +322,11 @@ void SystemExplorerContainer::resized()
   auto top = lbounds.removeFromTop(24);
   _add.setBounds(top.removeFromLeft(80));
   
-  for (int i = 0; i < _views.size(); i++) {
+  for (int i = 0; i < _explorers.size(); i++) {
     auto rowBounds = lbounds.removeFromTop(_rowHeight);
 
     _deleteButtons[i]->setBounds(rowBounds.removeFromLeft(18).removeFromTop(18));
-    _views[i]->setBounds(rowBounds);
-    _explorers[i]->setSize(_views[i]->getWidth(), _views[i]->getMaximumVisibleHeight());
+    _explorers[i]->setBounds(rowBounds);
   }
 }
 
@@ -291,13 +367,9 @@ void SystemExplorerContainer::clear()
   for (auto e : _explorers)
     delete e;
 
-  for (auto v : _views)
-    delete v;
-
   for (auto b : _deleteButtons)
     delete b;
 
-  _views.clear();
   _explorers.clear();
   _deleteButtons.clear();
 }
@@ -307,7 +379,7 @@ void SystemExplorerContainer::updateImages()
   ThreadPool renderers(max(1u, thread::hardware_concurrency() - 2));
 
   for (auto e : _explorers) {
-    renderers.addJob(new UpdateImageJob(e), true);
+    renderers.addJob(new UpdateImageJob(e, new Snapshot(getRig())), true);
   }
 
   // wait for completion
@@ -326,15 +398,14 @@ void SystemExplorerContainer::buttonClicked(Button * b)
     // this is a delete button
     String toDelete = b->getName();
 
-    Viewport* toRemove;
-    for (auto v : _views) {
+    SystemExplorer* toRemove;
+    for (auto v : _explorers) {
       if (v->getName() == toDelete) {
         toRemove = v;
       }
     }
 
-    _views.removeAllInstancesOf(toRemove);
-    _explorers.removeAllInstancesOf((SystemExplorer*)toRemove->getViewedComponent());
+    _explorers.removeAllInstancesOf(toRemove);
     _deleteButtons.removeAllInstancesOf((TextButton*)b);
     delete b;
     delete toRemove;
@@ -344,18 +415,12 @@ void SystemExplorerContainer::buttonClicked(Button * b)
 void SystemExplorerContainer::addContainer(SystemExplorer * e)
 {
   addAndMakeVisible(e);
-
-  Viewport* ev = new Viewport();
-  ev->setViewedComponent(e);
-  addAndMakeVisible(ev);
-
-  _views.add(ev);
   _explorers.add(e);
 
   // create delete button
   TextButton* del = new TextButton("x");
   del->setName(String(_counter));
-  ev->setName(String(_counter));
+  e->setName(String(_counter));
   del->addListener(this);
   addAndMakeVisible(del);
   _deleteButtons.add(del);
@@ -364,14 +429,19 @@ void SystemExplorerContainer::addContainer(SystemExplorer * e)
   resized();
 }
 
-SystemExplorerContainer::UpdateImageJob::UpdateImageJob(SystemExplorer* e) :
-  ThreadPoolJob("update images " + e->getName()), _e(e)
+SystemExplorerContainer::UpdateImageJob::UpdateImageJob(SystemExplorer* e, Snapshot* state) :
+  ThreadPoolJob("update images " + e->getName()), _e(e), _state(state)
 {
+}
+
+SystemExplorerContainer::UpdateImageJob::~UpdateImageJob()
+{
+  delete _state;
 }
 
 ThreadPoolJob::JobStatus SystemExplorerContainer::UpdateImageJob::runJob()
 {
-  _e->updateAllImages();
+  _e->updateAllImages(_state);
   return ThreadPoolJob::JobStatus::jobHasFinished;
 }
 
@@ -439,6 +509,7 @@ void SearchResultsContainer::resized()
 
 void SearchResultsContainer::updateSize(int height, int width)
 {
+
   // fixed sized, maximum visible area, width defined by number of clusters
 	if (getGlobalSettings()->_clusterDisplay == COLUMNS) {
     if (!_notYetClustered) {
@@ -611,8 +682,14 @@ void SearchResultsContainer::sort(AttributeSorter* s)
 
 void SearchResultsContainer::initForSearch()
 {
-  //_views->clear();
+  _views->clear();
   //_views->addContainer();
+
+  // create view for each system
+  auto systems = getRig()->getMetadataValues("system");
+  for (auto s : systems) {
+    _views->addContainer(s);
+  }
 
   resized();
 }
