@@ -65,7 +65,7 @@ public:
   void clearSearchResult();
 
   // Used by the SystemExplorer
-  void setSystem(string system);
+  void setSystem(DeviceSet selected);
 
   // Clicking does things.
   virtual void mouseDown(const MouseEvent& event);
@@ -150,7 +150,7 @@ private:
   // Search result object from the attribute search
   shared_ptr<SearchResult> _result;
 
-  string _system;
+  DeviceSet _selected;
 
   // rendered image 
   Image _render;

@@ -83,7 +83,6 @@ SearchResultContainer::SearchResultContainer(shared_ptr<SearchResult> result, bo
   _clusterContents = new SearchResultList();
   _clusterContents->setWidth(820);
   _clusterContents->setCols(3);
-  _system = "";
 }
 
 SearchResultContainer::~SearchResultContainer()
@@ -211,26 +210,25 @@ void SearchResultContainer::clearSearchResult()
   _result = nullptr;
 }
 
-void SearchResultContainer::setSystem(string system)
+void SearchResultContainer::setSystem(DeviceSet selected)
 {
-  _system = system;
+  _selected = selected;
 }
 
 void SearchResultContainer::mouseDown(const MouseEvent & event)
 {
   if (event.mods.isRightButtonDown()) {
-    if (_system != "") {
+    if (_selected.size() != 0) {
       PopupMenu m;
 
-      m.addItem(1, "Lock " + _system + " system");
+      m.addItem(1, "Lock lights");
       int result = m.show();
 
       if (result == 1) {
         // get the system lights from the rig
         Snapshot* s = vectorToSnapshot(_result->_scene);
         auto sd = s->getRigData();
-        DeviceSet sys = getRig()->select("$system=" + _system);
-        for (auto d : sys.getDevices()) {
+        for (auto d : _selected.getDevices()) {
           d->setParam("intensity", sd[d->getId()]->getIntensity());
           d->setParam("color", sd[d->getId()]->getColor());
           lockDeviceParam(d->getId(), "intensity");
@@ -251,7 +249,7 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
           mc->refreshParams();
           mc->refreshAttr();
           mc->redrawResults();
-          getRecorder()->log(ACTION, "User locked system " + _system + ": " + getTooltip().toStdString());
+          getRecorder()->log(ACTION, "User locked DeviceSet: " + _selected.info());
         }
       }
     }

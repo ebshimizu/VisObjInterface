@@ -54,10 +54,12 @@ private:
 // In each explorer, the specified system is displayed with all other locked lights
 // in the rig. When a result is chosen, the specified system is locked and all other
 // views are updated
-class SystemExplorer : public Component
+class SystemExplorer : public Component, public ComboBoxListener
 {
 public:
-  SystemExplorer(string system);
+  SystemExplorer(string name, string system);
+  SystemExplorer(string name);
+  SystemExplorer(Array<shared_ptr<SearchResultContainer> > results, string name);
   ~SystemExplorer();
 
   void addNewResult(shared_ptr<SearchResultContainer> result);
@@ -68,22 +70,32 @@ public:
 
   virtual void paint(Graphics& g) override;
   virtual void resized() override;
-  string getSystem();
+  DeviceSet getViewedDevices();
+
+  virtual void comboBoxChanged(ComboBox* c);
   
   // sorts the elements in the explorer by a specified criteria
   void sort(string method);
+
+  // fills the dropdown box with the proper options
+  void populateDropdown();
 
 private:
   void updateSingleImage(shared_ptr<SearchResultContainer> result);
 
   Array<shared_ptr<SearchResultContainer> > _results;
-  string _system;
+  DeviceSet _selected;
+
+  ComboBox _select;
+  string _name;
 };
 
-class SystemExplorerContainer : public Component
+class SearchResultsContainer;
+
+class SystemExplorerContainer : public Component, public ButtonListener
 {
 public:
-  SystemExplorerContainer();
+  SystemExplorerContainer(SearchResultsContainer* c);
   ~SystemExplorerContainer();
 
   virtual void paint(Graphics& g) override;
@@ -92,15 +104,33 @@ public:
   
   void sort(string method);
   void addContainer(string system);
+  void addContainer();
   void addResult(shared_ptr<SearchResultContainer> result);
   void clear();
   void updateImages();
 
+  virtual void buttonClicked(Button* b) override;
+
 private:
+  void addContainer(SystemExplorer* e);
+
   Array<Viewport*> _views;
   Array<SystemExplorer*> _explorers;
+  SearchResultsContainer* _rc;
 
   int _rowHeight;
+
+  TextButton _add;
+  Array<TextButton*> _deleteButtons;
+
+  int _counter;
+
+  class UpdateImageJob : public ThreadPoolJob {
+  public:
+    UpdateImageJob(SystemExplorer* e);
+    virtual JobStatus runJob();
+    SystemExplorer* _e;
+  };
 };
 
 //==============================================================================
@@ -236,7 +266,7 @@ private:
   // Creates an attribute search result container for the given result struct
   SearchResultContainer* createContainerFor(shared_ptr<SearchResult> r);
 
-  SystemExplorerContainer _views;
+  SystemExplorerContainer* _views;
   Viewport* _exploreView;
 
   // clustering quality metric

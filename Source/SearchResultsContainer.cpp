@@ -41,10 +41,33 @@ int TopLevelSorter::compareElements(shared_ptr<TopLevelCluster> first, shared_pt
 
 //==============================================================================
 
-SystemExplorer::SystemExplorer(string system) :
-  _system(system)
+SystemExplorer::SystemExplorer(string name, string system) : _name(name)
 {
-  updateAllImages();
+  setName(name);
+  _selected = getRig()->select("$system=" + system);
+
+  populateDropdown();
+
+  for (int i = 1; i < _select.getNumItems() + 1; i++) {
+    if (_select.getItemText(i) == system)
+      _select.setSelectedId(i);
+  }
+}
+
+SystemExplorer::SystemExplorer(string name) : _name(name)
+{
+  setName(name);
+  populateDropdown();
+}
+
+SystemExplorer::SystemExplorer(Array<shared_ptr<SearchResultContainer>> results, string name)
+{
+  setName(name);
+  for (auto r : results)
+    addNewResult(r);
+
+  populateDropdown();
+
 }
 
 SystemExplorer::~SystemExplorer()
@@ -54,7 +77,7 @@ SystemExplorer::~SystemExplorer()
 void SystemExplorer::addNewResult(shared_ptr<SearchResultContainer> result)
 {
   auto nr = shared_ptr<SearchResultContainer>(new SearchResultContainer(shared_ptr<SearchResult>(result->getSearchResult())));
-  nr->setSystem(_system);
+  nr->setSystem(_selected);
   addAndMakeVisible(nr.get());
   updateSingleImage(nr);
   _results.add(nr);
@@ -65,6 +88,7 @@ void SystemExplorer::updateAllImages()
 {
   for (auto r : _results) {
     updateSingleImage(r);
+    r->setSystem(_selected);
   }
 }
 
@@ -78,19 +102,37 @@ void SystemExplorer::resized()
 {
   // resize to fit all elements
   int imgWidth = getHeight();
-  int totalWidth = _results.size() * imgWidth;
+  int totalWidth = max(_results.size() * imgWidth, 350);
   setSize(totalWidth, getHeight());
 
   // now place them
   auto lbounds = getLocalBounds();
+
+  auto top = lbounds.removeFromTop(20);
+  _select.setBounds(top.removeFromLeft(300));
+
   for (auto r : _results) {
     r->setBounds(lbounds.removeFromLeft(imgWidth));
   }
 }
 
-string SystemExplorer::getSystem()
+DeviceSet SystemExplorer::getViewedDevices()
 {
-  return _system;
+  return _selected;
+}
+
+void SystemExplorer::comboBoxChanged(ComboBox * c)
+{
+  // assumes for now that each element in the combo box is a system
+  String system = c->getText();
+
+  if (system == "")
+    return;
+
+  _selected = getRig()->select("$system=" + system.toStdString());
+
+  setName(system);
+  updateAllImages();
 }
 
 void SystemExplorer::sort(string method)
@@ -99,6 +141,18 @@ void SystemExplorer::sort(string method)
 
   _results.sort(sorter);
   resized();
+}
+
+void SystemExplorer::populateDropdown()
+{
+  auto systems = getRig()->getMetadataValues("system");
+  StringArray options;
+  for (auto s : systems)
+    options.add(s);
+
+  _select.addItemList(options, 1);
+  _select.addListener(this);
+  addAndMakeVisible(_select);
 }
 
 void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
@@ -114,7 +168,7 @@ void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
 
   // set all unlocked intensity non-system devices to 0
   for (auto d : cfg->getRigData()) {
-    if (d.second->getMetadata("system") != _system) {
+    if (!_selected.contains(d.first)) {
       if (isDeviceParamLocked(d.first, "intensity")) {
         // if locked, grab values and update the snapshot
         d.second->setIntensity(getRig()->getDevice(d.first)->getIntensity()->getVal());
@@ -153,9 +207,12 @@ void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
 
 //==============================================================================
 
-SystemExplorerContainer::SystemExplorerContainer()
+SystemExplorerContainer::SystemExplorerContainer(SearchResultsContainer* rc) : _add("Add View"), _rc(rc)
 {
-
+  _add.setName("add");
+  _add.addListener(this);
+  addAndMakeVisible(_add);
+  _counter = 0;
 }
 
 SystemExplorerContainer::~SystemExplorerContainer()
@@ -171,20 +228,26 @@ void SystemExplorerContainer::paint(Graphics & g)
 
   auto lbounds = getLocalBounds();
   for (int i = 0; i < _views.size(); i++) {
-    g.drawFittedText(_explorers[i]->getSystem(), lbounds.removeFromTop(24).reduced(2), Justification::left, 1);
+    //g.drawFittedText(_explorers[i]->getName(), lbounds.removeFromTop(24).reduced(2), Justification::left, 1);
     lbounds.removeFromTop(_rowHeight - 24);
   }
 }
 
 void SystemExplorerContainer::resized()
 {
-  int height = _rowHeight * _views.size();
+  int height = _rowHeight * _views.size() + 24;
   setSize(getWidth(), height);
 
   auto lbounds = getLocalBounds();
+  
+  auto top = lbounds.removeFromTop(24);
+  _add.setBounds(top.removeFromLeft(80));
+  
   for (int i = 0; i < _views.size(); i++) {
-    lbounds.removeFromTop(24);
-    _views[i]->setBounds(lbounds.removeFromTop(_rowHeight - 24));
+    auto rowBounds = lbounds.removeFromTop(_rowHeight);
+
+    _deleteButtons[i]->setBounds(rowBounds.removeFromLeft(18).removeFromTop(18));
+    _views[i]->setBounds(rowBounds);
     _explorers[i]->setSize(_views[i]->getWidth(), _views[i]->getMaximumVisibleHeight());
   }
 }
@@ -204,15 +267,14 @@ void SystemExplorerContainer::sort(string method)
 
 void SystemExplorerContainer::addContainer(string system)
 {
-  SystemExplorer* e = new SystemExplorer(system);
-  addAndMakeVisible(e);
+  SystemExplorer* e = new SystemExplorer(system, system);
+  addContainer(e);
+}
 
-  Viewport* ev = new Viewport();
-  ev->setViewedComponent(e);
-  addAndMakeVisible(ev);
-
-  _views.add(ev);
-  _explorers.add(e);
+void SystemExplorerContainer::addContainer()
+{
+  SystemExplorer* e = new SystemExplorer(_rc->getAllResults(), "new view");
+  addContainer(e);
 }
 
 void SystemExplorerContainer::addResult(shared_ptr<SearchResultContainer> result)
@@ -230,16 +292,81 @@ void SystemExplorerContainer::clear()
   for (auto v : _views)
     delete v;
 
+  for (auto b : _deleteButtons)
+    delete b;
+
   _views.clear();
   _explorers.clear();
+  _deleteButtons.clear();
 }
 
 void SystemExplorerContainer::updateImages()
 {
+  ThreadPool renderers(max(1u, thread::hardware_concurrency() - 2));
+
   for (auto e : _explorers) {
-    e->updateAllImages();
+    renderers.addJob(new UpdateImageJob(e), true);
   }
 }
+
+void SystemExplorerContainer::buttonClicked(Button * b)
+{
+  if (b->getName() == "add") {
+    addContainer();
+  }
+  else {
+    // this is a delete button
+    String toDelete = b->getName();
+
+    Viewport* toRemove;
+    for (auto v : _views) {
+      if (v->getName() == toDelete) {
+        toRemove = v;
+      }
+    }
+
+    _views.removeAllInstancesOf(toRemove);
+    _explorers.removeAllInstancesOf((SystemExplorer*)toRemove->getViewedComponent());
+    _deleteButtons.removeAllInstancesOf((TextButton*)b);
+    delete b;
+    delete toRemove;
+  }
+}
+
+void SystemExplorerContainer::addContainer(SystemExplorer * e)
+{
+  addAndMakeVisible(e);
+
+  Viewport* ev = new Viewport();
+  ev->setViewedComponent(e);
+  addAndMakeVisible(ev);
+
+  _views.add(ev);
+  _explorers.add(e);
+
+  // create delete button
+  TextButton* del = new TextButton("x");
+  del->setName(String(_counter));
+  ev->setName(String(_counter));
+  del->addListener(this);
+  addAndMakeVisible(del);
+  _deleteButtons.add(del);
+  _counter++;
+
+  resized();
+}
+
+SystemExplorerContainer::UpdateImageJob::UpdateImageJob(SystemExplorer* e) :
+  ThreadPoolJob("update images " + e->getName()), _e(e)
+{
+}
+
+ThreadPoolJob::JobStatus SystemExplorerContainer::UpdateImageJob::runJob()
+{
+  _e->updateAllImages();
+  return ThreadPoolJob::JobStatus::jobHasFinished;
+}
+
 
 //==============================================================================
 
@@ -255,9 +382,11 @@ SearchResultsContainer::SearchResultsContainer()
   _unclusteredViewer->setViewedComponent(_unclusteredResults);
   addAndMakeVisible(_unclusteredViewer);
 
+  _views = new SystemExplorerContainer(this);
+
   addAndMakeVisible(_views);
   _exploreView = new Viewport();
-  _exploreView->setViewedComponent(&_views, false);
+  _exploreView->setViewedComponent(_views, false);
   addAndMakeVisible(_exploreView);
 }
 
@@ -265,6 +394,7 @@ SearchResultsContainer::~SearchResultsContainer()
 {
   delete _exploreView;
   delete _unclusteredViewer;
+  delete _views;
 }
 
 void SearchResultsContainer::paint(Graphics & g)
@@ -295,8 +425,8 @@ void SearchResultsContainer::resized()
   _unclusteredViewer->setViewPosition(viewPt);
 
   _exploreView->setBounds(lbounds);
-  _views.setHeight(200);
-  _views.setSize(_exploreView->getMaximumVisibleWidth(), _exploreView->getMaximumVisibleHeight());
+  _views->setHeight(200);
+  _views->setSize(_exploreView->getMaximumVisibleWidth(), _exploreView->getMaximumVisibleHeight());
 }
 
 void SearchResultsContainer::updateSize(int height, int width)
@@ -317,7 +447,7 @@ void SearchResultsContainer::sort()
 {
   // temporary override of the sort function
   // may end up being the actual sort function at some point
-  _views.sort("hs");
+  _views->sort("hs");
   resized();
   return;
 
@@ -473,13 +603,8 @@ void SearchResultsContainer::sort(AttributeSorter* s)
 
 void SearchResultsContainer::initForSearch()
 {
-  _views.clear();
-
-  set<string> systems = getUnlockedSystems();
-
-  for (auto s : systems) {
-    _views.addContainer(s);
-  }
+  _views->clear();
+  _views->addContainer();
 
   resized();
 }
@@ -627,7 +752,7 @@ void SearchResultsContainer::showNewResults()
     for (auto r : _newResults) {
       _unclusteredResults->addResult(r);
       _allResults.add(r);
-      _views.addResult(r);
+      _views->addResult(r);
     }
     _newResults.clear();
 
@@ -661,7 +786,7 @@ void SearchResultsContainer::clear()
   repaint();
   _sampleId = 0;
   _resultsSinceLastSort = 0;
-  _views.clear();
+  _views->clear();
 }
 
 bool SearchResultsContainer::isFull()
@@ -1669,7 +1794,7 @@ Array<shared_ptr<SearchResultContainer>> SearchResultsContainer::getKCenters(int
 
 void SearchResultsContainer::updateAllImages()
 {
-  _views.updateImages();
+  _views->updateImages();
   repaint();
 }
 
