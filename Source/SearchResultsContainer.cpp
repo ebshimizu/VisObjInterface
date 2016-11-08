@@ -203,6 +203,8 @@ void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
   // hsv combined
   float hsCombo = round(hsv[0]) + hsv[1];
   result->_sortVals["hs"] = hsCombo;
+
+  delete cfg;
 }
 
 //==============================================================================
@@ -306,6 +308,12 @@ void SystemExplorerContainer::updateImages()
 
   for (auto e : _explorers) {
     renderers.addJob(new UpdateImageJob(e), true);
+  }
+
+  // wait for completion
+  while (renderers.getNumJobs() > 0)
+  {
+    this_thread::sleep_for(100ms);
   }
 }
 
@@ -603,8 +611,8 @@ void SearchResultsContainer::sort(AttributeSorter* s)
 
 void SearchResultsContainer::initForSearch()
 {
-  _views->clear();
-  _views->addContainer();
+  //_views->clear();
+  //_views->addContainer();
 
   resized();
 }
