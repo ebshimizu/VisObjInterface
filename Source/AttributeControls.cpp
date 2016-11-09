@@ -198,19 +198,19 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
 
   _container = new AttributeControlsList();
   _container->setName("attribute list");
-  addAndMakeVisible(_container);
+  //addAndMakeVisible(_container);
 
   _pallets = new GibbsPalletContainer();
   _pallets->setName("available pallets");
-  addAndMakeVisible(_pallets);
+  //addAndMakeVisible(_pallets);
 
   _componentView = new Viewport();
   _componentView->setViewedComponent(_container);
-  addAndMakeVisible(_componentView);
+  //addAndMakeVisible(_componentView);
 
   _palletViewer = new Viewport();
   _palletViewer->setViewedComponent(_pallets);
-  addAndMakeVisible(_palletViewer);
+  //addAndMakeVisible(_palletViewer);
 
   _tabs.addTab("Attributes", Colour(0xff333333), _componentView, false);
   _tabs.addTab("Pallets", Colour(0xff333333), _palletViewer, false);

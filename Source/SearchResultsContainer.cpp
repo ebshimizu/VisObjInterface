@@ -127,6 +127,13 @@ void SystemExplorer::paint(Graphics & g)
 
   auto left = lbounds.removeFromLeft(250);
   left.removeFromTop(24);
+
+  auto line = lbounds.removeFromLeft(5);
+  g.setColour(Colours::white);
+  line.removeFromLeft(2);
+  line.removeFromRight(2);
+  g.fillRect(line);
+
   g.drawImageWithin(_currentImg, left.getX(), left.getY(), left.getWidth(), left.getHeight(), RectanglePlacement::centred);
 }
 
@@ -137,6 +144,7 @@ void SystemExplorer::resized()
   auto left = lbounds.removeFromLeft(250);
   _select.setBounds(left.removeFromTop(24).reduced(2));
 
+  lbounds.removeFromLeft(5);
   _rowElems->setBounds(lbounds);
   _container->setSize(lbounds.getWidth(), _rowElems->getMaximumVisibleHeight());
 }
