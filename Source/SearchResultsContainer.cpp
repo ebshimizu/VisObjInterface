@@ -66,11 +66,10 @@ SystemExplorer::SystemExplorer(string name) : _name(name)
 SystemExplorer::SystemExplorer(Array<shared_ptr<SearchResultContainer>> results, string name)
 {
   setName(name);
-  for (auto r : results)
-    addNewResult(r);
-
   init();
 
+  for (auto r : results)
+    addNewResult(r);
 }
 
 SystemExplorer::~SystemExplorer()
@@ -97,10 +96,24 @@ void SystemExplorer::updateAllImages(Snapshot* rigState)
   delete _rigState;
   _rigState = new Snapshot(*rigState);
 
+
+  long long recent = 0;
+  SearchResultContainer* recentElem;
   for (auto r : _container->_results) {
     updateSingleImage(r);
     r->setSystem(_selected);
+    r->setMostRecent(false);
+
+    if (r->wasSelected()) {
+      if (r->getTime() > recent) {
+        recent = r->getTime();
+        recentElem = r.get();
+      }
+    }
   }
+
+  if (recentElem != nullptr)
+    recentElem->setMostRecent(true);
 
   // also update current state scene
   if (!_isBlackout) {
@@ -212,12 +225,79 @@ void SystemExplorer::init()
   _temp = new Snapshot(*_currentState);
 }
 
+void SystemExplorer::buttonClicked(Button * b)
+{
+  if (_isBlackout) {
+    unBlackout();
+  }
+  else {
+    blackout();
+  }
+}
+
 void SystemExplorer::blackout()
 {
+  _isBlackout = true;
+
+  // set the current state of the devices in the rig to black, update
+  for (auto d : _selected.getDevices()) {
+    getRig()->getDevice(d->getId())->setIntensity(0);
+    lockDeviceParam(d->getId(), "intensity");
+    lockDeviceParam(d->getId(), "color");
+  }
+
+  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+  if (mc != nullptr) {
+    mc->arnoldRender(false);
+    mc->refreshParams();
+    mc->refreshAttr();
+    mc->redrawResults();
+  }
+
+  Snapshot* tmp = new Snapshot(getRig());
+  
+  // isolate selected devices
+  for (auto d : tmp->getDevices()) {
+    if (!_selected.contains(d->getId())) {
+      d->setIntensity(0);
+    }
+  }
+
+  _currentImg = renderImage(tmp, getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale,
+    getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
+  delete tmp;
 }
 
 void SystemExplorer::unBlackout()
 {
+  _isBlackout = false;
+
+  // restore the current state
+  auto& status = _currentState->getRigData();
+  for (auto d : _selected.getDevices()) {
+    getRig()->getDevice(d->getId())->setIntensity(status[d->getId()]->getIntensity()->getVal());
+    getRig()->getDevice(d->getId())->setParam("color", LumiverseTypeUtils::copy(status[d->getId()]->getColor()));
+  }
+
+  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+  if (mc != nullptr) {
+    mc->arnoldRender(false);
+    mc->refreshParams();
+    mc->refreshAttr();
+    mc->redrawResults();
+  }
+
+  // isolate selected devices
+  for (auto d : _currentState->getDevices()) {
+    if (!_selected.contains(d->getId())) {
+      d->setIntensity(0);
+    }
+  }
+
+  _currentImg = renderImage(_currentState, getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale,
+    getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
 }
 
 void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
@@ -332,8 +412,10 @@ void SystemExplorerContainer::resized()
   
   for (int i = 0; i < _explorers.size(); i++) {
     auto rowBounds = lbounds.removeFromTop(_rowHeight);
+    auto left = rowBounds.removeFromLeft(24);
 
-    _deleteButtons[i]->setBounds(rowBounds.removeFromLeft(18).removeFromTop(18));
+    _deleteButtons[i]->setBounds(left.removeFromTop(24).reduced(2));
+    _blackoutButtons[i]->setBounds(left.removeFromTop(24).reduced(2));
     _explorers[i]->setBounds(rowBounds);
   }
 }
@@ -378,8 +460,12 @@ void SystemExplorerContainer::clear()
   for (auto b : _deleteButtons)
     delete b;
 
+  for (auto b : _blackoutButtons)
+    delete b;
+
   _explorers.clear();
   _deleteButtons.clear();
+  _blackoutButtons.clear();
 }
 
 void SystemExplorerContainer::updateImages()
@@ -413,10 +499,20 @@ void SystemExplorerContainer::buttonClicked(Button * b)
       }
     }
 
+    TextButton* btoRemove;
+    for (auto b : _blackoutButtons) {
+      if (b->getName() == toDelete) {
+        btoRemove = b;
+      }
+    }
+
     _explorers.removeAllInstancesOf(toRemove);
     _deleteButtons.removeAllInstancesOf((TextButton*)b);
+    _blackoutButtons.removeAllInstancesOf(btoRemove);
     delete b;
     delete toRemove;
+    delete btoRemove;
+    resized();
   }
 }
 
@@ -432,6 +528,14 @@ void SystemExplorerContainer::addContainer(SystemExplorer * e)
   del->addListener(this);
   addAndMakeVisible(del);
   _deleteButtons.add(del);
+
+  // create delete buttons
+  TextButton* bo = new TextButton("B");
+  bo->setName(String(_counter));
+  bo->addListener(e);
+  addAndMakeVisible(bo);
+  _blackoutButtons.add(bo);
+
   _counter++;
 
   resized();

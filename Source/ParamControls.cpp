@@ -436,7 +436,7 @@ void ParamControls::paintCell(Graphics & g, int rowNumber, int columnId, int wid
   }
   else if (columnId == 3) {
     if (isDeviceParamLocked(_ids[rowNumber].toStdString(), "intensity")) {
-      g.setColour(Colours::red);
+      g.setColour(Colours::white);
       g.fillRect(2, 2, width - 2, height - 2);
     }
     g.setColour(Colours::white);
@@ -444,7 +444,7 @@ void ParamControls::paintCell(Graphics & g, int rowNumber, int columnId, int wid
   }
   else if (columnId == 5) {
     if (isDeviceParamLocked(_ids[rowNumber].toStdString(), "color")) {
-      g.setColour(Colours::red);
+      g.setColour(Colours::white);
       g.fillRect(2, 2, width - 2, height - 2);
     }
     g.setColour(Colours::white);

@@ -83,6 +83,9 @@ SearchResultContainer::SearchResultContainer(shared_ptr<SearchResult> result, bo
   _clusterContents = new SearchResultList();
   _clusterContents->setWidth(820);
   _clusterContents->setCols(3);
+  _wasSelected = false;
+  _selectTime = 0;
+  _isMostRecent = false;
 }
 
 SearchResultContainer::~SearchResultContainer()
@@ -118,6 +121,9 @@ void SearchResultContainer::paint (Graphics& g)
 {
   if (_isHovered) {
     g.fillAll(Colours::lightyellow);
+  }
+  else if (_isMostRecent) {
+    g.fillAll(Colours::lightgrey);
   }
   else {
     g.fillAll(Colour(0xff333333));
@@ -241,6 +247,9 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
           if (!isDeviceParamLocked(d->getId(), "intensity"))
             d->setParam("intensity", 0.0);
         }
+
+        _selectTime = chrono::high_resolution_clock::now().time_since_epoch().count();
+        _wasSelected = true;
 
         MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
@@ -869,6 +878,21 @@ void SearchResultContainer::updateMask()
 	if (getGlobalSettings()->_useFGMask) {
 		_mask = getGlobalSettings()->_fgMask.rescaled(100, 100);
 	}
+}
+
+long long SearchResultContainer::getTime()
+{
+  return _selectTime;
+}
+
+void SearchResultContainer::setMostRecent(bool isRecent)
+{
+  _isMostRecent = isRecent;
+}
+
+bool SearchResultContainer::wasSelected()
+{
+  return _wasSelected;
 }
 
 // ======================================================================

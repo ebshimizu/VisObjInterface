@@ -146,6 +146,15 @@ public:
   // and store the results in each element for easy sorting
   map<string, double> _sortVals;
 
+  // Returns time the element was selected
+  long long getTime();
+
+  // Sets or unsets the element as most recent
+  void setMostRecent(bool isRecent);
+
+  // Returns true if the item has even been selected for something
+  bool wasSelected();
+
 private:
   // Search result object from the attribute search
   shared_ptr<SearchResult> _result;
@@ -167,6 +176,11 @@ private:
   // Indicates if this is a history item. If true, is not placed into history stack
   // when transferred to stage.
   bool _isHistoryItem;
+
+  // indicates when an element was selected
+  long long _selectTime;
+  bool _isMostRecent;
+  bool _wasSelected;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SearchResultContainer)
 };

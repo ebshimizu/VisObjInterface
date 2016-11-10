@@ -54,7 +54,7 @@ private:
 // In each explorer, the specified system is displayed with all other locked lights
 // in the rig. When a result is chosen, the specified system is locked and all other
 // views are updated
-class SystemExplorer : public Component, public ComboBoxListener
+class SystemExplorer : public Component, public ComboBoxListener, public ButtonListener
 {
 public:
   SystemExplorer(string name, string system);
@@ -80,6 +80,9 @@ public:
   // fills the dropdown box with the proper options
   // and initialized the required stuff
   void init();
+
+  // buttons!
+  virtual void buttonClicked(Button* b);
 
   void blackout();
   void unBlackout();
@@ -146,6 +149,7 @@ private:
 
   TextButton _add;
   Array<TextButton*> _deleteButtons;
+  Array<TextButton*> _blackoutButtons;
 
   int _counter;
 

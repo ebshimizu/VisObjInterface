@@ -403,7 +403,7 @@ GlobalSettings::GlobalSettings()
   _jndThreshold = 3;
   _currentSortMode = "Attribute Default";
   _clusterElemsPerRow = 6;
-  _maxReturnedScenes = 500;
+  _maxReturnedScenes = 100;
   _showThumbnailImg = false;
   _T = 1;
   _exportTraces = false;
