@@ -78,45 +78,24 @@ SearchResultsViewer::SearchResultsViewer()
   _viewer = new Viewport();
   _viewer->setViewedComponent(_results);
   addAndMakeVisible(_viewer);
-
-  _history = new HistoryPanel();
-  _historyViewer = new Viewport();
-  _historyViewer->setViewedComponent(_history);
-  addAndMakeVisible(_historyViewer);
 }
 
 SearchResultsViewer::~SearchResultsViewer()
 {
   delete _viewer;
-  delete _history;
-  delete _historyViewer;
 }
 
 void SearchResultsViewer::paint (Graphics& g)
 {
-  /* This demo code just fills the component's background and
-     draws some placeholder text to get you started.
-
-     You should replace everything in this method with your own
-     drawing code..
-  */
-
   g.fillAll(Colour(0xff333333));
-
-  g.setColour(Colours::grey);
-  auto lbounds = getLocalBounds();
-  lbounds.removeFromRight(300);
-  g.fillRect(lbounds.removeFromRight(2));
 }
 
 void SearchResultsViewer::resized()
 {
   auto lbounds = getLocalBounds();
 
-  _historyViewer->setBounds(lbounds.removeFromRight(300));
-  _history->setWidth(_historyViewer->getMaximumVisibleWidth());
-
-  lbounds.removeFromRight(2);
+  //_historyViewer->setBounds(lbounds.removeFromRight(300));
+  //_history->setWidth(_historyViewer->getMaximumVisibleWidth());
 
   // preserve viewer position
   Point<int> pos = _viewer->getViewPosition();
@@ -193,11 +172,6 @@ int SearchResultsViewer::numSavedClusters()
 void SearchResultsViewer::clearClusters()
 {
 	_results->clearClusters();
-}
-
-void SearchResultsViewer::clearHistory()
-{
-	_history->clearAllHistory();
 }
 
 void SearchResultsViewer::updateImages()

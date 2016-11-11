@@ -21,13 +21,12 @@ MainContentComponent::MainContentComponent()
   
   // Init components and resizers
   addAndMakeVisible(_search = new SearchResultsViewer());
-  addAndMakeVisible(_params = new ParamControls());
   addAndMakeVisible(_attrs = new AttributeControls());
   addAndMakeVisible(_viewer = new SceneViewer());
 
   addAndMakeVisible(_hbar = new StretchableLayoutResizerBar(&_horizResizer, 1, false));
-  addAndMakeVisible(_vbar1 = new StretchableLayoutResizerBar(&_vertResizer, 1, true));
-  addAndMakeVisible(_vbar2 = new StretchableLayoutResizerBar(&_vertResizer, 3, true));
+  addAndMakeVisible(_vbar = new StretchableLayoutResizerBar(&_vertResizer, 1, true));
+  addAndMakeVisible(_vbar2 = new StretchableLayoutResizerBar(&_viewerSearchResizer, 1, true));
 
   _searchWorker = new AttributeSearch(_search);
 
@@ -35,11 +34,13 @@ MainContentComponent::MainContentComponent()
   _horizResizer.setItemLayout(1, 5, 5, 5);
   _horizResizer.setItemLayout(2, -0.2, -0.8, -0.5);
 
-  _vertResizer.setItemLayout(0, -0.2, -0.5, -0.25);
+  _vertResizer.setItemLayout(0, -0.2, -1, -0.75);
   _vertResizer.setItemLayout(1, 5, 5, 5);
-  _vertResizer.setItemLayout(2, -0.2, -0.8, -0.5);
-  _vertResizer.setItemLayout(3, 5, 5, 5);
-  _vertResizer.setItemLayout(4, -0.2, -0.5, -0.25);
+  _vertResizer.setItemLayout(2, 40, -0.5, -0.25);
+
+  _viewerSearchResizer.setItemLayout(0, -0.2, -0.8, -0.5);
+  _viewerSearchResizer.setItemLayout(1, 5, 5, 5);
+  _viewerSearchResizer.setItemLayout(2, -0.2, -0.8, -0.5);
 
   setSize (1600, 900);
 
@@ -81,11 +82,15 @@ void MainContentComponent::resized()
 
   getStatusBar()->setBounds(lbounds.removeFromBottom(26));
 
-  Component* comps[] = { nullptr, _hbar, _search };
-  _horizResizer.layOutComponents(comps, 3, 0, 0, lbounds.getWidth(), lbounds.getHeight(), true, true);
+  Component* comps2[] = { nullptr, _vbar, _attrs };
+  _vertResizer.layOutComponents(comps2, 3, 0, 0, lbounds.getWidth(), lbounds.getHeight(), false, true);
 
-  Component* comps2[] = { _params, _vbar1, _viewer, _vbar2, _attrs };
-  _vertResizer.layOutComponents(comps2, 5, 0, 0, lbounds.getWidth(), _horizResizer.getItemCurrentAbsoluteSize(0), false, true);
+  Component* comps[] = { nullptr , _hbar, nullptr };
+  _horizResizer.layOutComponents(comps, 3, 0, 0, _vertResizer.getItemCurrentAbsoluteSize(0), lbounds.getHeight(), true, true);
+
+  Component* comps3[] = { _viewer, _vbar2, _search };
+  _viewerSearchResizer.layOutComponents(comps3, 3, 0, 0, _vertResizer.getItemCurrentAbsoluteSize(0), _horizResizer.getItemCurrentAbsoluteSize(0), false, true);
+
 }
 
 ApplicationCommandTarget * MainContentComponent::getNextCommandTarget()
@@ -372,22 +377,22 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     endAuto();
     break;
   case command::LOCK_SELECTED_INTENSITY:
-    _params->lockSelected({ "intensity" });
+    _attrs->getParamController()->lockSelected({ "intensity" });
     break;
   case command::LOCK_SELECTED_COLOR:
-    _params->lockSelected({ "color" });
+    _attrs->getParamController()->lockSelected({ "color" });
     break;
   case command::LOCK_ALL_SELECTED:
-    _params->lockSelected({ "intensity", "color" });
+    _attrs->getParamController()->lockSelected({ "intensity", "color" });
     break;
   case command::UNLOCK_SELECTED_INTENSITY:
-    _params->unlockSelected({ "intensity" });
+    _attrs->getParamController()->unlockSelected({ "intensity" });
     break;
   case command::UNLOCK_SELECTED_COLOR:
-    _params->unlockSelected({ "color" });
+    _attrs->getParamController()->unlockSelected({ "color" });
     break;
   case command::UNLOCK_ALL_SELECTED:
-    _params->unlockSelected({ "intensity", "color" });
+    _attrs->getParamController()->unlockSelected({ "intensity", "color" });
     break;
   case command::RELOAD_ATTRS:
     reloadImageAttrs();
@@ -404,7 +409,7 @@ bool MainContentComponent::perform(const InvocationInfo & info)
 
 void MainContentComponent::addHistory()
 {
-  HistoryPanel* h = _search->getHistory();
+  HistoryPanel* h = _attrs->getHistory();
 
   // take current scene, package as search result, add to history
   shared_ptr<SearchResult> r = shared_ptr<SearchResult>(new SearchResult());
@@ -465,7 +470,7 @@ void MainContentComponent::clearClusters()
 
 void MainContentComponent::transferSelected(Snapshot * source)
 {
-  StringArray ids = _params->getSelectedIds();
+  StringArray ids = _attrs->getParamController()->getSelectedIds();
 
   for (String s : ids) {
     string id = s.toStdString();
@@ -552,7 +557,7 @@ void MainContentComponent::openRig(String fname)
       _attrs->reload();
       // Also should delete history and clear any displayed clusters
       _search->clearContainer();
-      _search->clearHistory();
+      _attrs->getHistory()->clearAllHistory();
       _showName = selected.getFileName();
 
       // initialize consistency constraints
@@ -771,8 +776,8 @@ void MainContentComponent::pickTrace()
 
 void MainContentComponent::loadComponents()
 {
-  _params->initProperties();
-  _params->refreshParams();
+  _attrs->getParamController()->initProperties();
+  _attrs->getParamController()->refreshParams();
   auto p = getAnimationPatch();
   getGlobalSettings()->_renderWidth = p->getWidth();
   getGlobalSettings()->_renderHeight = p->getHeight();
@@ -781,8 +786,8 @@ void MainContentComponent::loadComponents()
 
 void MainContentComponent::refreshParams()
 {
-  _params->refreshParams();
-  _params->repaint();
+  _attrs->getParamController()->refreshParams();
+  _attrs->getParamController()->repaint();
 }
 
 void MainContentComponent::refreshAttr()
@@ -891,7 +896,7 @@ void MainContentComponent::getDefaultsFromArnold()
   auto arnold = getAnimationPatch();
   //arnold->getPositionFromAss(getRig()->getDeviceRaw());
   arnold->getBeamPropsFromAss(getRig()->getDeviceRaw());
-  _params->initProperties();
+  _attrs->getParamController()->initProperties();
 }
 
 void MainContentComponent::saveClusters()

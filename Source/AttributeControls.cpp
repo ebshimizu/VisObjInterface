@@ -192,10 +192,9 @@ map<string, AttributeControllerBase*> AttributeControlsList::getActiveAttribues(
 }
 
 //==============================================================================
-AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::TabsAtTop)
+AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::TabsAtRight)
 {
-  addAndMakeVisible(_tabs);
-
+  // container init
   _container = new AttributeControlsList();
   _container->setName("attribute list");
   //addAndMakeVisible(_container);
@@ -205,16 +204,22 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   //addAndMakeVisible(_pallets);
 
   _componentView = new Viewport();
-  _componentView->setViewedComponent(_container);
+  _componentView->setViewedComponent(_container, true);
   //addAndMakeVisible(_componentView);
 
   _palletViewer = new Viewport();
-  _palletViewer->setViewedComponent(_pallets);
+  _palletViewer->setViewedComponent(_pallets, true);
   //addAndMakeVisible(_palletViewer);
 
-  _tabs.addTab("Attributes", Colour(0xff333333), _componentView, false);
-  _tabs.addTab("Pallets", Colour(0xff333333), _palletViewer, false);
+  _tempConstraints = new GibbsConstraintContainer();
+  //addAndMakeVisible(_tempConstraints);
 
+  _paramControls = new ParamControls();
+  _history = new HistoryPanel();
+  _historyViewer = new Viewport();
+  _historyViewer->setViewedComponent(_history, true);
+
+  // button controls
   _search = new TextButton("Search", "Perform a search with the current attribute constraints");
   _search->addListener(this);
   addAndMakeVisible(_search);
@@ -231,11 +236,6 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   _clusterButton->addListener(this);
   addAndMakeVisible(_clusterButton);
 
-  _tempConstraints = new GibbsConstraintContainer();
-  addAndMakeVisible(_tempConstraints);
-  _tabs.addTab("Pallete Picker", Colour(0xff333333), _tempConstraints, false);
-  _tabs.setCurrentTabIndex(2);
-
   // Add the sort methods to the combo box
   _sort = new ComboBox("sort mode");
   _sort->addListener(this);
@@ -250,23 +250,28 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   _sort->setSelectedId(1);
   addAndMakeVisible(_sort);
 
+  // tab setup
+  addAndMakeVisible(_tabs);
+  //_tabs.addTab("Attributes", Colour(0xff333333), _componentView, true);
+  _tabs.addTab("Lights", Colour(0xff333333), _paramControls, true);
+  _tabs.addTab("Pallets", Colour(0xff333333), _palletViewer, true);
+  _tabs.addTab("Pallete Picker", Colour(0xff333333), _tempConstraints, true);
+  _tabs.addTab("History", Colour(0xff333333), _historyViewer, true);
+  _tabs.setCurrentTabIndex(0);
+
   initAttributes();
   initPallets();
 }
 
 AttributeControls::~AttributeControls()
 {
-  delete _container;
-  _componentView->setViewedComponent(nullptr);
   delete _componentView;
   delete _search;
   delete _sort;
   delete _sortButton;
   delete _setKeyButton;
   delete _clusterButton;
-  delete _pallets;
   delete _palletViewer;
-  delete _tempConstraints;
 }
 
 void AttributeControls::paint (Graphics& g)
@@ -297,6 +302,7 @@ void AttributeControls::resized()
   _tabs.setBounds(lbounds);
   _container->setWidth(_componentView->getMaximumVisibleWidth());
   _pallets->setSize(_palletViewer->getMaximumVisibleWidth(), 0);
+  _history->setWidth(_historyViewer->getMaximumVisibleWidth());
 }
 
 void AttributeControls::refresh()
@@ -437,6 +443,16 @@ vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> AttributeControls::getGibb
   state.push_back(pair<GibbsScheduleConstraint, GibbsSchedule*>(cc, sched));
 
   return state;
+}
+
+ParamControls * AttributeControls::getParamController()
+{
+  return _paramControls;
+}
+
+HistoryPanel* AttributeControls::getHistory()
+{
+  return _history;
 }
 
 void AttributeControls::initAttributes()

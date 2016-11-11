@@ -13,6 +13,8 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "globals.h"
+#include "ParamControls.h"
+#include "HistoryPanel.h"
 #include "AttributeControllerBase.h"
 #include "GibbsComponents.h"
 
@@ -100,6 +102,12 @@ public:
 
   vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> getGibbsSchedule();
 
+  // Gets the parameter controller
+  ParamControls* getParamController();
+
+  // Gets the history controller
+  HistoryPanel* getHistory();
+
 private:
   void initAttributes();
 
@@ -108,9 +116,12 @@ private:
   AttributeControlsList* _container;
   GibbsPalletContainer* _pallets;
   GibbsConstraintContainer* _tempConstraints;
+  ParamControls* _paramControls;
+  HistoryPanel* _history;
 
   Viewport* _componentView;
   Viewport* _palletViewer;
+  Viewport* _historyViewer;
   
   TextButton* _search;
   TextButton* _sortButton;

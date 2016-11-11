@@ -47,8 +47,6 @@ public:
   void cluster();
   void sort();
 
-  HistoryPanel* getHistory() { return _history; }
-
   // adds a new search result to the display area. Thread safe.
   bool addNewResult(shared_ptr<SearchResult> r, int callingThreadId, DistanceMetric metric = PPAVGLAB, bool force = false);
   bool addNewResult(shared_ptr<SearchResult> r, int callingThreadId, DistanceMetric metric, bool force, Array<shared_ptr<SearchResultContainer> >& _currentResults);
@@ -86,9 +84,6 @@ public:
 	// Clears clusters but doesn't remove elements from the results container
 	void clearClusters();
 
-	// Clears the history container
-	void clearHistory();
-
   void updateImages();
   void initForSearch();
 
@@ -108,7 +103,6 @@ private:
   Viewport* _viewer;
   Viewport* _historyViewer;
   SearchResultsContainer* _results;
-  HistoryPanel* _history;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SearchResultsViewer)
 };

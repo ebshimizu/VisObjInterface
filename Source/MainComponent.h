@@ -135,19 +135,21 @@ private:
   // Top/bottom split
   StretchableLayoutManager _horizResizer;
 
-  // Left/center/right split for top
+  // Left/right split
   StretchableLayoutManager _vertResizer;
+
+  // view/results split
+  StretchableLayoutManager _viewerSearchResizer;
 
   // Horizontal bar
   ScopedPointer<StretchableLayoutResizerBar> _hbar;
   
   // Vertical bars
-  ScopedPointer<StretchableLayoutResizerBar> _vbar1;
+  ScopedPointer<StretchableLayoutResizerBar> _vbar;
   ScopedPointer<StretchableLayoutResizerBar> _vbar2;
 
   // Components
   ScopedPointer<SearchResultsViewer> _search;
-  ScopedPointer<ParamControls> _params;
   ScopedPointer<AttributeControls> _attrs;
   ScopedPointer<SceneViewer> _viewer;
 
