@@ -16,7 +16,9 @@
 #include "AttributeSorting.h"
 #include "TopLevelCluster.h"
 #include "SearchResultList.h"
+#include "SystemExplorer.h"
 
+class ExplorerPanel;
 class SearchResultContainer;
 class AttributeSorter;
 class SearchResultList;
@@ -49,122 +51,6 @@ private:
 };
 
 //==============================================================================
-
-// Building blocks for a heirarchical view of the search results.
-// In each explorer, the specified system is displayed with all other locked lights
-// in the rig. When a result is chosen, the specified system is locked and all other
-// views are updated
-class SystemExplorer : public Component, public ComboBoxListener, public ButtonListener
-{
-public:
-  SystemExplorer(string name, string system);
-  SystemExplorer(string name);
-  SystemExplorer(Array<shared_ptr<SearchResultContainer> > results, string name);
-  ~SystemExplorer();
-
-  void addNewResult(shared_ptr<SearchResultContainer> result);
-
-  // updates the thumbnails. Note that the results are unchanged, but the images
-  // get updated based on what's locked
-  void updateAllImages(Snapshot* rigState);
-
-  virtual void paint(Graphics& g) override;
-  virtual void resized() override;
-  DeviceSet getViewedDevices();
-
-  virtual void comboBoxChanged(ComboBox* c);
-  
-  // sorts the elements in the explorer by a specified criteria
-  void sort(string method);
-
-  // fills the dropdown box with the proper options
-  // and initialized the required stuff
-  void init();
-
-  // buttons!
-  virtual void buttonClicked(Button* b);
-
-  void blackout();
-  void unBlackout();
-
-private:
-  void updateSingleImage(shared_ptr<SearchResultContainer> result);
-
-  // because we have a viewport the results are contained within a different
-  // object to place in the viewport
-  class SystemExplorerResults : public Component {
-  public:
-    SystemExplorerResults();
-    
-    virtual void resized() override;
-
-    Array<shared_ptr<SearchResultContainer> > _results;
-  };
-
-  SystemExplorerResults* _container;
-  DeviceSet _selected;
-  Viewport* _rowElems;
-  Image _currentImg;
-  Snapshot* _currentState;
-
-  // state for updating images
-  Snapshot* _rigState;
-
-  // for temporary ops
-  Snapshot* _temp;
-
-  ComboBox _select;
-  string _name;
-  bool _isBlackout;
-};
-
-class SearchResultsContainer;
-
-class SystemExplorerContainer : public Component, public ButtonListener
-{
-public:
-  SystemExplorerContainer(SearchResultsContainer* c);
-  ~SystemExplorerContainer();
-
-  virtual void paint(Graphics& g) override;
-  virtual void resized() override;
-  void setHeight(int height);
-  
-  void sort(string method);
-  void addContainer(string system);
-  void addContainer();
-  void addResult(shared_ptr<SearchResultContainer> result);
-  void clear();
-  void updateImages();
-
-  virtual void buttonClicked(Button* b) override;
-
-private:
-  void addContainer(SystemExplorer* e);
-
-  Array<SystemExplorer*> _explorers;
-  SearchResultsContainer* _rc;
-
-  int _rowHeight;
-
-  TextButton _add;
-  Array<TextButton*> _deleteButtons;
-  Array<TextButton*> _blackoutButtons;
-
-  int _counter;
-
-  class UpdateImageJob : public ThreadPoolJob {
-  public:
-    UpdateImageJob(SystemExplorer* e, Snapshot* state);
-    ~UpdateImageJob();
-
-    virtual JobStatus runJob();
-    SystemExplorer* _e;
-    Snapshot* _state;
-  };
-};
-
-//==============================================================================
 class SearchResultsContainer : public Component
 {
 public:
@@ -177,10 +63,6 @@ public:
   void updateSize(int height, int width);
   void sort();  // Uses the value in the globals to sort
   void sort(AttributeSorter* s);
-
-  // with the system explorer view we need to know what systems we're creating
-  // rows for in the first place
-  void initForSearch();
 
   // Return the results for some other use
   Array<shared_ptr<SearchResultContainer> > getResults();
@@ -265,6 +147,7 @@ public:
   Array<shared_ptr<SearchResultContainer> > getKCenters(int k, DistanceMetric metric);
 
   void updateAllImages();
+  void setExplorerPanel(ExplorerPanel* exp);
 
 private:
   // All results contains every result in the container. It should only be deleted at the top
@@ -297,8 +180,8 @@ private:
   // Creates an attribute search result container for the given result struct
   SearchResultContainer* createContainerFor(shared_ptr<SearchResult> r);
 
-  SystemExplorerContainer* _views;
-  Viewport* _exploreView;
+  // explorer panel object 
+  ExplorerPanel* _exp;
 
   // clustering quality metric
   double daviesBouldin();

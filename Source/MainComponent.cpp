@@ -23,6 +23,9 @@ MainContentComponent::MainContentComponent()
   addAndMakeVisible(_search = new SearchResultsViewer());
   addAndMakeVisible(_attrs = new AttributeControls());
   addAndMakeVisible(_viewer = new SceneViewer());
+  addAndMakeVisible(_exp = new ExplorerPanel());
+  _exp->initWithResults(_search->getContainer());
+  _search->getContainer()->setExplorerPanel(_exp);
 
   addAndMakeVisible(_hbar = new StretchableLayoutResizerBar(&_horizResizer, 1, false));
   addAndMakeVisible(_vbar = new StretchableLayoutResizerBar(&_vertResizer, 1, true));
@@ -85,7 +88,7 @@ void MainContentComponent::resized()
   Component* comps2[] = { nullptr, _vbar, _attrs };
   _vertResizer.layOutComponents(comps2, 3, 0, 0, lbounds.getWidth(), lbounds.getHeight(), false, true);
 
-  Component* comps[] = { nullptr , _hbar, nullptr };
+  Component* comps[] = { nullptr , _hbar, _exp };
   _horizResizer.layOutComponents(comps, 3, 0, 0, _vertResizer.getItemCurrentAbsoluteSize(0), lbounds.getHeight(), true, true);
 
   Component* comps3[] = { _viewer, _vbar2, _search };
@@ -1350,7 +1353,7 @@ void MainContentComponent::search()
   stopSearch();
   _search->clearContainer();
   getGlobalSettings()->clearEdits();
-  _search->initForSearch();
+  _exp->getContainer()->clear();
 
   if (getGlobalSettings()->_searchMode == GIBBS_SAMPLING) {
     // TODO: pulls data from the custom controls window for now, should generate from image eventually

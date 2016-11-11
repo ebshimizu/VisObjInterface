@@ -16,6 +16,7 @@
 #include "SceneViewer.h"
 #include "SettingsEditor.h"
 #include "ConstraintEditor.h"
+#include "SystemExplorer.h"
 
 //==============================================================================
 /*
@@ -152,6 +153,7 @@ private:
   ScopedPointer<SearchResultsViewer> _search;
   ScopedPointer<AttributeControls> _attrs;
   ScopedPointer<SceneViewer> _viewer;
+  ScopedPointer<ExplorerPanel> _exp;
 
   SafePointer<SettingsWindow> _settingsWindow;
   SafePointer<ConstraintWindow> _constraintWindow;

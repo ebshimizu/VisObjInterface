@@ -179,8 +179,9 @@ void SearchResultsViewer::updateImages()
   _results->updateAllImages();
 }
 
-void SearchResultsViewer::initForSearch() {
-  _results->initForSearch();
+SearchResultsContainer * SearchResultsViewer::getContainer()
+{
+  return _results;
 }
 
 Array<shared_ptr<SearchResultContainer>> SearchResultsViewer::getKCenters(int k, DistanceMetric metric)

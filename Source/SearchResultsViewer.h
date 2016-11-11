@@ -85,7 +85,8 @@ public:
 	void clearClusters();
 
   void updateImages();
-  void initForSearch();
+
+  SearchResultsContainer* getContainer();
 
   Array<shared_ptr<SearchResultContainer> > getKCenters(int k, DistanceMetric metric);
 

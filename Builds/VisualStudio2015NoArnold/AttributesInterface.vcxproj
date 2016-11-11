@@ -148,6 +148,7 @@
     <ClCompile Include="..\..\Source\SceneViewer.cpp" />
     <ClCompile Include="..\..\Source\SettingsEditor.cpp" />
     <ClCompile Include="..\..\Source\StatusBar.cpp" />
+    <ClCompile Include="..\..\Source\SystemExplorer.cpp" />
     <ClCompile Include="..\..\Source\GibbsSchedule.cpp" />
     <ClCompile Include="..\..\Source\GibbsEdit.cpp" />
     <ClCompile Include="..\..\Source\AttributeStyles.cpp" />
@@ -1748,6 +1749,7 @@
     <ClInclude Include="..\..\Source\SettingsEditor.h" />
     <ClInclude Include="..\..\Source\StatusBar.h" />
     <ClInclude Include="..\..\Source\TopComponentContainer.h" />
+    <ClInclude Include="..\..\Source\SystemExplorer.h" />
     <ClInclude Include="..\..\Source\GibbsSchedule.h" />
     <ClInclude Include="..\..\Source\GibbsEdit.h" />
     <ClInclude Include="..\..\Source\gibbs_with_gaussian_mixture.h" />

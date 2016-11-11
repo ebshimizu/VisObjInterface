@@ -430,6 +430,9 @@
     <ClCompile Include="..\..\Source\StatusBar.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\SystemExplorer.cpp">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\GibbsSchedule.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
@@ -2285,6 +2288,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\TopComponentContainer.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SystemExplorer.h">
+      <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\GibbsSchedule.h">
       <Filter>AttributesInterface\Source\attributes</Filter>
