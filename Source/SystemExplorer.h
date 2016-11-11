@@ -51,10 +51,21 @@ public:
   // buttons!
   virtual void buttonClicked(Button* b);
 
+  // turns the selected lights off in all parts of the interface
   void blackout();
   void unBlackout();
 
+  // Turns all lights off except the selected lights in all parts of the interface
+  void solo();
+  void unSolo();
+
+  // locks or unlocks the selected lights 
+  void togglePin();
+
   void clear();
+
+  // Updates the pin status of the view
+  void updatePinState();
 
 private:
   void updateSingleImage(shared_ptr<SearchResultContainer> result);
@@ -82,9 +93,18 @@ private:
   // for temporary ops
   Snapshot* _temp;
 
+  TextButton _blackout;
+  TextButton _solo;
+  TextButton _pin;
+
   ComboBox _select;
   string _name;
+
   bool _isBlackout;
+  bool _isSolo;
+
+  // true when every light in the selection is locked
+  bool _isPinned;
 };
 
 class SystemExplorerContainer : public Component, public ButtonListener
@@ -116,7 +136,6 @@ private:
 
   TextButton _add;
   Array<TextButton*> _deleteButtons;
-  Array<TextButton*> _blackoutButtons;
 
   int _counter;
 

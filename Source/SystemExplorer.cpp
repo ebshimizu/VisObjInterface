@@ -13,7 +13,7 @@
 
 //==============================================================================
 
-SystemExplorer::SystemExplorer(string name, string system) : _name(name)
+SystemExplorer::SystemExplorer(string name, string system) : _name(name), _blackout("B"), _solo("S"), _pin("P")
 {
   setName(name);
   _selected = getRig()->select("$system=" + system);
@@ -67,9 +67,8 @@ void SystemExplorer::updateAllImages(Snapshot* rigState)
   delete _rigState;
   _rigState = new Snapshot(*rigState);
 
-
   long long recent = 0;
-  SearchResultContainer* recentElem;
+  SearchResultContainer* recentElem = nullptr;
   for (auto r : _container->_results) {
     updateSingleImage(r);
     r->setSystem(_selected);
@@ -102,6 +101,8 @@ void SystemExplorer::updateAllImages(Snapshot* rigState)
     _currentImg = renderImage(_currentState, getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale,
       getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
   }
+
+  // here should check if stuff is still pinned
 }
 
 void SystemExplorer::paint(Graphics & g)
@@ -109,6 +110,7 @@ void SystemExplorer::paint(Graphics & g)
   g.setColour(Colours::white);
   auto lbounds = getLocalBounds();
 
+  lbounds.removeFromLeft(24);
   auto left = lbounds.removeFromLeft(250);
   left.removeFromTop(24);
 
@@ -124,6 +126,12 @@ void SystemExplorer::paint(Graphics & g)
 void SystemExplorer::resized()
 {
   auto lbounds = getLocalBounds();
+
+  auto buttons = lbounds.removeFromLeft(24);
+  buttons.removeFromTop(24);
+  _blackout.setBounds(buttons.removeFromTop(24).reduced(2));
+  _solo.setBounds(buttons.removeFromTop(24).reduced(2));
+  _pin.setBounds(buttons.removeFromTop(24).reduced(2));
 
   auto left = lbounds.removeFromLeft(250);
   _select.setBounds(left.removeFromTop(24).reduced(2));
@@ -194,15 +202,42 @@ void SystemExplorer::init()
   _isBlackout = false;
   _rigState = new Snapshot(*_currentState);
   _temp = new Snapshot(*_currentState);
+
+  _pin.setButtonText("P");
+  _solo.setButtonText("S");
+  _blackout.setButtonText("B");
+  _pin.setName("P");
+  _solo.setName("S");
+  _blackout.setName("B");
+
+  _pin.addListener(this);
+  _solo.addListener(this);
+  _blackout.addListener(this);
+  addAndMakeVisible(_pin);
+  addAndMakeVisible(_solo);
+  addAndMakeVisible(_blackout);
 }
 
 void SystemExplorer::buttonClicked(Button * b)
 {
-  if (_isBlackout) {
-    unBlackout();
+  if (b->getName() == "B") {
+    if (_isBlackout) {
+      unBlackout();
+    }
+    else {
+      blackout();
+    }
   }
-  else {
-    blackout();
+  else if (b->getName() == "S") {
+    if (_isSolo) {
+      unSolo();
+    }
+    else {
+      solo();
+    }
+  }
+  else if (b->getName() == "P") {
+    togglePin();
   }
 }
 
@@ -271,10 +306,53 @@ void SystemExplorer::unBlackout()
     getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
 }
 
+void SystemExplorer::solo()
+{
+}
+
+void SystemExplorer::unSolo()
+{
+}
+
+void SystemExplorer::togglePin()
+{
+  updatePinState();
+
+  if (_isPinned) {
+    // unlock
+    for (auto d : _selected.getIds()) {
+      unlockDeviceParam(d, "intensity");
+      unlockDeviceParam(d, "color");
+    }
+    _isPinned = false;
+  }
+  else {
+    // lock
+    for (auto d : _selected.getIds()) {
+      lockDeviceParam(d, "intensity");
+      lockDeviceParam(d, "color");
+    }
+    _isPinned = true;
+  }
+
+  getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, true);
+}
+
 void SystemExplorer::clear()
 {
   _container->_results.clear();
   _container->resized();
+}
+
+void SystemExplorer::updatePinState()
+{
+  // pinned if all devices are locked, otherwise consider everything unlocked.
+  bool allLocked = true;
+  for (auto d : _selected.getIds()) {
+    allLocked &= isDeviceParamLocked(d, "intensity");
+  }
+
+  _isPinned = allLocked;
 }
 
 void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
@@ -367,9 +445,6 @@ SystemExplorerContainer::~SystemExplorerContainer()
 
   for (auto b : _deleteButtons)
     delete b;
-
-  for (auto b : _blackoutButtons)
-    delete b;
 }
 
 void SystemExplorerContainer::paint(Graphics & g)
@@ -397,10 +472,8 @@ void SystemExplorerContainer::resized()
 
   for (int i = 0; i < _explorers.size(); i++) {
     auto rowBounds = lbounds.removeFromTop(_rowHeight);
-    auto left = rowBounds.removeFromLeft(24);
 
-    _deleteButtons[i]->setBounds(left.removeFromTop(24).reduced(2));
-    _blackoutButtons[i]->setBounds(left.removeFromTop(24).reduced(2));
+    _deleteButtons[i]->setBounds(rowBounds.getX() + 2, rowBounds.getY() + 2, 20, 20);
     _explorers[i]->setBounds(rowBounds);
   }
 }
@@ -457,7 +530,9 @@ void SystemExplorerContainer::updateImages()
     this_thread::sleep_for(100ms);
   }
 
-  repaint();
+  for (auto e : _explorers) {
+    e->repaint();
+  }
 }
 
 void SystemExplorerContainer::buttonClicked(Button * b)
@@ -476,19 +551,10 @@ void SystemExplorerContainer::buttonClicked(Button * b)
       }
     }
 
-    TextButton* btoRemove;
-    for (auto b : _blackoutButtons) {
-      if (b->getName() == toDelete) {
-        btoRemove = b;
-      }
-    }
-
     _explorers.removeAllInstancesOf(toRemove);
     _deleteButtons.removeAllInstancesOf((TextButton*)b);
-    _blackoutButtons.removeAllInstancesOf(btoRemove);
     delete b;
     delete toRemove;
-    delete btoRemove;
     resized();
   }
 }
@@ -500,18 +566,12 @@ void SystemExplorerContainer::addContainer(SystemExplorer * e)
 
   // create delete button
   TextButton* del = new TextButton("x");
+  del->setTooltip("Delete");
   del->setName(String(_counter));
   e->setName(String(_counter));
   del->addListener(this);
   addAndMakeVisible(del);
   _deleteButtons.add(del);
-
-  // create delete buttons
-  TextButton* bo = new TextButton("B");
-  bo->setName(String(_counter));
-  bo->addListener(e);
-  addAndMakeVisible(bo);
-  _blackoutButtons.add(bo);
 
   _counter++;
 
