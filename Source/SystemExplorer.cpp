@@ -91,6 +91,7 @@ void SystemExplorer::updateAllImages(Snapshot* rigState)
   // also update current state scene
   if (!_isBlackout) {
     // update current scene if we're not in blackout mode
+    delete _currentState;
     _currentState = new Snapshot(getRig());
     auto data = _currentState->getRigData();
 
@@ -104,8 +105,6 @@ void SystemExplorer::updateAllImages(Snapshot* rigState)
     _currentImg = renderImage(_currentState, getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale,
       getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
   }
-
-  // here should check if stuff is still pinned
 }
 
 void SystemExplorer::paint(Graphics & g)
@@ -193,6 +192,7 @@ void SystemExplorer::init()
   _currentImg = renderImage(_currentState, getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale,
     getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
   _isBlackout = false;
+  _isSolo = false;
   _rigState = new Snapshot(*_currentState);
   _temp = new Snapshot(*_currentState);
 
@@ -203,12 +203,21 @@ void SystemExplorer::init()
   _solo.setName("S");
   _blackout.setName("B");
 
+  _pin.setColour(TextButton::buttonOnColourId, Colours::darkred);
+  _solo.setColour(TextButton::buttonOnColourId, Colours::darkgoldenrod);
+
+  _pin.setToggleState(_isPinned, dontSendNotification);
+  _solo.setToggleState(_isSolo, dontSendNotification);
+  _blackout.setToggleState(_isBlackout, dontSendNotification);
+
   _pin.addListener(this);
   _solo.addListener(this);
   _blackout.addListener(this);
   addAndMakeVisible(_pin);
   addAndMakeVisible(_solo);
   addAndMakeVisible(_blackout);
+
+  updatePinState();
 }
 
 void SystemExplorer::buttonClicked(Button * b)
@@ -266,6 +275,8 @@ void SystemExplorer::blackout()
   _currentImg = renderImage(tmp, getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale,
     getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
   delete tmp;
+
+  _blackout.setToggleState(_isBlackout, dontSendNotification);
 }
 
 void SystemExplorer::unBlackout()
@@ -297,14 +308,33 @@ void SystemExplorer::unBlackout()
 
   _currentImg = renderImage(_currentState, getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale,
     getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
+  _blackout.setToggleState(_isBlackout, dontSendNotification);
 }
 
 void SystemExplorer::solo()
 {
+  _isSolo = true;
+  _solo.setToggleState(_isSolo, dontSendNotification);
+
+  Snapshot* temp = new Snapshot(getRig());
+  updateAllImages(temp);
+  delete temp;
+
+  repaint();
+  _container->repaint();
 }
 
 void SystemExplorer::unSolo()
 {
+  _isSolo = false;
+  _solo.setToggleState(_isSolo, dontSendNotification);
+  
+  Snapshot* temp = new Snapshot(getRig());
+  updateAllImages(temp);
+  delete temp;
+
+  repaint();
+  _container->repaint();
 }
 
 void SystemExplorer::togglePin()
@@ -328,6 +358,7 @@ void SystemExplorer::togglePin()
     _isPinned = true;
   }
 
+  _pin.setToggleState(_isPinned, dontSendNotification);
   getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, true);
 }
 
@@ -346,6 +377,7 @@ void SystemExplorer::updatePinState()
   }
 
   _isPinned = allLocked;
+  _pin.setToggleState(_isPinned, dontSendNotification);
 }
 
 void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
@@ -362,25 +394,43 @@ void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
   // this could be threaded, so we access the cached copy of the rig state
   auto rigData = _rigState->getRigData();
 
-  // set all unlocked intensity non-system devices to 0
-  for (auto d : _temp->getRigData()) {
-    if (!_selected.contains(d.first)) {
-      if (isDeviceParamLocked(d.first, "intensity")) {
-        // if locked, grab values and update the snapshot
-        d.second->setIntensity(rigData[d.first]->getIntensity()->getVal());
-        d.second->setParam("color", LumiverseTypeUtils::copy(rigData[d.first]->getParam("color")));
+  // set all unlocked intensity non-system devices to 0 if not in solo mode
+  if (!_isSolo) {
+    for (auto d : _temp->getRigData()) {
+      if (!_selected.contains(d.first)) {
+        if (isDeviceParamLocked(d.first, "intensity")) {
+          // if locked, grab values and update the snapshot
+          d.second->setIntensity(rigData[d.first]->getIntensity()->getVal());
+          d.second->setParam("color", LumiverseTypeUtils::copy(rigData[d.first]->getParam("color")));
+        }
+        else {
+          d.second->setIntensity(0);
+        }
       }
       else {
-        d.second->setIntensity(0);
+        // sorting data
+        if (d.second->paramExists("color")) {
+          hsv += d.second->getColor()->getHSV();
+        }
+        intens += d.second->getIntensity()->asPercent();
+        count++;
       }
     }
-    else {
-      // sorting data
-      if (d.second->paramExists("color")) {
-        hsv += d.second->getColor()->getHSV();
+  }
+  else {
+    // only turn on the things that this set affects
+    for (auto d : _temp->getRigData()) {
+      if (!_selected.contains(d.first)) {
+        d.second->setIntensity(0);
       }
-      intens += d.second->getIntensity()->asPercent();
-      count++;
+      else {
+        // sorting data
+        if (d.second->paramExists("color")) {
+          hsv += d.second->getColor()->getHSV();
+        }
+        intens += d.second->getIntensity()->asPercent();
+        count++;
+      }
     }
   }
 
@@ -524,6 +574,7 @@ void SystemExplorerContainer::updateImages()
   }
 
   for (auto e : _explorers) {
+    e->updatePinState();
     e->repaint();
   }
 }
