@@ -180,6 +180,7 @@ void SystemExplorer::init()
 
   // create the image and current state
   _currentState = new Snapshot(getRig());
+  _rigState = new Snapshot(*_currentState);
   auto data = _currentState->getRigData();
 
   // isolate selected devices
@@ -193,7 +194,6 @@ void SystemExplorer::init()
     getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
   _isBlackout = false;
   _isSolo = false;
-  _rigState = new Snapshot(*_currentState);
   _temp = new Snapshot(*_currentState);
 
   _pin.setButtonText("P");

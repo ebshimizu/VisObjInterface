@@ -260,6 +260,8 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
           mc->redrawResults();
           getRecorder()->log(ACTION, "User locked DeviceSet: " + _selected.info());
         }
+
+        getApplicationCommandManager()->invokeDirectly(command::SEARCH, true);
       }
     }
     else {
