@@ -27,6 +27,7 @@ public:
   SystemExplorer(string name, string system);
   SystemExplorer(string name);
   SystemExplorer(Array<shared_ptr<SearchResultContainer> > results, string name);
+  SystemExplorer(Array<shared_ptr<SearchResultContainer> > results, string name, DeviceSet selected);
   ~SystemExplorer();
 
   void addNewResult(shared_ptr<SearchResultContainer> result);
@@ -97,7 +98,6 @@ private:
   TextButton _solo;
   TextButton _pin;
 
-  ComboBox _select;
   string _name;
 
   bool _isBlackout;

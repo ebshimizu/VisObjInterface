@@ -19,14 +19,6 @@ SystemExplorer::SystemExplorer(string name, string system) : _name(name), _black
   _selected = getRig()->select("$system=" + system);
 
   init();
-
-  for (int i = 1; i < _select.getNumItems() + 1; i++) {
-    if (_select.getItemText(i - 1) == system)
-      _select.setSelectedId(i, dontSendNotification);
-  }
-
-  // if we're using this constructor, we're explicitly locking this to a particular system
-  //_select.setEnabled(false);
 }
 
 SystemExplorer::SystemExplorer(string name) : _name(name)
@@ -38,6 +30,17 @@ SystemExplorer::SystemExplorer(string name) : _name(name)
 SystemExplorer::SystemExplorer(Array<shared_ptr<SearchResultContainer>> results, string name)
 {
   setName(name);
+  init();
+
+  for (auto r : results)
+    addNewResult(r);
+}
+
+SystemExplorer::SystemExplorer(Array<shared_ptr<SearchResultContainer>> results, string name, DeviceSet selected) :
+  _name(name)
+{
+  setName(name);
+  _selected = selected;
   init();
 
   for (auto r : results)
@@ -111,8 +114,8 @@ void SystemExplorer::paint(Graphics & g)
   auto lbounds = getLocalBounds();
 
   lbounds.removeFromLeft(24);
-  auto left = lbounds.removeFromLeft(250);
-  left.removeFromTop(24);
+  auto left = lbounds.removeFromLeft(200);
+  g.drawFittedText(getName() + ": " + _name, left.removeFromTop(24), Justification::centredLeft, 2);
 
   auto line = lbounds.removeFromLeft(5);
   g.setColour(Colours::white);
@@ -133,8 +136,7 @@ void SystemExplorer::resized()
   _solo.setBounds(buttons.removeFromTop(24).reduced(2));
   _pin.setBounds(buttons.removeFromTop(24).reduced(2));
 
-  auto left = lbounds.removeFromLeft(250);
-  _select.setBounds(left.removeFromTop(24).reduced(2));
+  auto left = lbounds.removeFromLeft(200);
 
   lbounds.removeFromLeft(5);
   _rowElems->setBounds(lbounds);
@@ -176,15 +178,6 @@ void SystemExplorer::init()
   addAndMakeVisible(_container);
   _rowElems->setViewedComponent(_container, true);
   addAndMakeVisible(_rowElems);
-
-  auto systems = getRig()->getMetadataValues("system");
-  StringArray options;
-  for (auto s : systems)
-    options.add(s);
-
-  _select.addItemList(options, 1);
-  _select.addListener(this);
-  addAndMakeVisible(_select);
 
   // create the image and current state
   _currentState = new Snapshot(getRig());
@@ -538,7 +531,45 @@ void SystemExplorerContainer::updateImages()
 void SystemExplorerContainer::buttonClicked(Button * b)
 {
   if (b->getName() == "add") {
-    addContainer();
+    // create popup menu
+    PopupMenu main;
+    PopupMenu sys;
+    PopupMenu area;
+    
+    int i = 1;
+    map<int, string> cmdMap;
+
+    // populate systems
+    for (auto s : getRig()->getMetadataValues("system")) {
+      sys.addItem(i, s);
+      cmdMap[i] = "$system=" + s;
+      i++;
+    }
+
+    // populate areas
+    for (auto a : getRig()->getMetadataValues("area")) {
+      area.addItem(i, a);
+      cmdMap[i] = "$area=" + a;
+      i++;
+    }
+
+    // add to menu
+    main.addSubMenu("Systems", sys);
+    main.addSubMenu("Areas", area);
+
+    // get a response
+    int result = main.show();
+
+    // no selection
+    if (result == 0)
+      return;
+
+    // selected command
+    string cmd = cmdMap[result];
+
+    // add container with selected devices
+    SystemExplorer* e = new SystemExplorer(_rc->getAllResults(), cmd, getRig()->select(cmd));
+    addContainer(e);
   }
   else {
     // this is a delete button
