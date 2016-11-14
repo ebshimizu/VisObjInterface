@@ -254,8 +254,8 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   addAndMakeVisible(_tabs);
   //_tabs.addTab("Attributes", Colour(0xff333333), _componentView, true);
   _tabs.addTab("Lights", Colour(0xff333333), _paramControls, true);
-  _tabs.addTab("Pallets", Colour(0xff333333), _palletViewer, true);
-  _tabs.addTab("Pallete Picker", Colour(0xff333333), _tempConstraints, true);
+  _tabs.addTab("Palettes", Colour(0xff333333), _palletViewer, true);
+  _tabs.addTab("Palette Picker", Colour(0xff333333), _tempConstraints, true);
   _tabs.addTab("History", Colour(0xff333333), _historyViewer, true);
   _tabs.setCurrentTabIndex(0);
 
@@ -404,7 +404,7 @@ void AttributeControls::initPallets()
       PNGImageFormat pngReader;
       Image originalImg = pngReader.decodeImage(in);
 
-      _pallets->addPallet(new GibbsPallet(name, originalImg));
+      _pallets->addPallet(new GibbsPalette(name, originalImg));
       
       getRecorder()->log(SYSTEM, "Loaded image for pallet " + name.toStdString());
     }

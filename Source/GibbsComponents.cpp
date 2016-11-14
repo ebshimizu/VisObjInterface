@@ -12,28 +12,28 @@
 #include "ImageAttribute.h"
 #include "hsvPicker.h"
 
-GibbsPallet::GibbsPallet(String name, Image & src) : _img(src), _name(name)
+GibbsPalette::GibbsPalette(String name, Image & src) : _img(src), _name(name)
 {
   computeSchedule();
   setTooltip(name);
 }
 
-void GibbsPallet::paint(Graphics & g)
+void GibbsPalette::paint(Graphics & g)
 {
   auto localb = getLocalBounds();
   g.drawImageWithin(_img, localb.getX(), localb.getY(), localb.getWidth(), localb.getHeight(), RectanglePlacement::centred);
 }
 
-void GibbsPallet::resized()
+void GibbsPalette::resized()
 {
 }
 
-void GibbsPallet::setImg(Image & img)
+void GibbsPalette::setImg(Image & img)
 {
   _img = img;
 }
 
-void GibbsPallet::computeSchedule()
+void GibbsPalette::computeSchedule()
 {
   // compute a HSV histogram and pull out stats about the intensity and color
   SparseHistogram imgHist(3, { 0, 10, 0, 0.2f, 0, 0.2f });
@@ -93,12 +93,12 @@ void GibbsPallet::computeSchedule()
   }
 }
 
-void GibbsPallet::setCustomSchedule(shared_ptr<GibbsSchedule> sched)
+void GibbsPalette::setCustomSchedule(shared_ptr<GibbsSchedule> sched)
 {
   _schedule = sched;
 }
 
-void GibbsPallet::mouseDown(const MouseEvent & event)
+void GibbsPalette::mouseDown(const MouseEvent & event)
 {
   if (event.mods.isLeftButtonDown()) {
     Viewport* vp = new Viewport();
@@ -111,7 +111,7 @@ void GibbsPallet::mouseDown(const MouseEvent & event)
   }
 }
 
-shared_ptr<GibbsSchedule> GibbsPallet::getSchedule()
+shared_ptr<GibbsSchedule> GibbsPalette::getSchedule()
 {
   return _schedule;
 }
@@ -153,7 +153,7 @@ void GibbsPalletContainer::resized()
   }
 }
 
-void GibbsPalletContainer::addPallet(GibbsPallet * pallet)
+void GibbsPalletContainer::addPallet(GibbsPalette * pallet)
 {
   _pallets.add(pallet);
   addAndMakeVisible(pallet);
@@ -175,7 +175,7 @@ void GibbsPalletContainer::clearPallets()
   resized();
 }
 
-Array<GibbsPallet*> GibbsPalletContainer::getPallets()
+Array<GibbsPalette*> GibbsPalletContainer::getPallets()
 {
   return _pallets;
 }
@@ -217,7 +217,7 @@ void GibbsColorConstraint::buttonClicked(Button * b)
 
 void GibbsColorConstraint::getDistributions(normal_distribution<float>& hue, normal_distribution<float>& sat, normal_distribution<float>& val)
 {
-  hue = normal_distribution<float>(_color.getHue(), 0.03);
+  hue = normal_distribution<float>(_color.getHue(), 0.01);
   sat = normal_distribution<float>(_color.getSaturation(), 0.1);
   val = normal_distribution<float>(_color.getBrightness(), 0.1);
 }
@@ -238,10 +238,13 @@ GibbsConstraintContainer::GibbsConstraintContainer()
   _intens.setRange(0, 1);
   addAndMakeVisible(_intens);
 
+  _add.setName("add");
+  _add.addListener(this);
+  _add.setButtonText("Add Color");
+  addAndMakeVisible(_add);
+
   for (int i = 0; i < 4; i++) {
-    GibbsColorConstraint* c1 = new GibbsColorConstraint();
-    addAndMakeVisible(c1);
-    _colors.add(c1);
+    addColorConstraint();
   }
 }
 
@@ -249,6 +252,10 @@ GibbsConstraintContainer::~GibbsConstraintContainer()
 {
   for (auto c : _colors) {
     delete c;
+  }
+
+  for (auto b : _deleteButtons) {
+    delete b;
   }
 }
 
@@ -258,15 +265,23 @@ void GibbsConstraintContainer::paint(Graphics & g)
 
 void GibbsConstraintContainer::resized()
 {
-  int height = 50 * _colors.size() + 30;
+  // TODO: MAGIC NUMBERS BAD
+  int height = 40 * _colors.size() + 30 * 2;
   setSize(getWidth(), height);
 
   auto lbounds = getLocalBounds();
+  int i = 0;
   for (auto c : _colors) {
-    c->setBounds(lbounds.removeFromTop(50));
+    auto top = lbounds.removeFromTop(40);
+    auto left = top.removeFromLeft(25);
+    _deleteButtons[i]->setBounds(left.removeFromTop(25).reduced(2));
+    c->setBounds(top);
+    i++;
   }
 
   _intens.setBounds(lbounds.removeFromTop(30));
+
+  _add.setBounds(lbounds.removeFromTop(30).removeFromRight(100).reduced(2));
 }
 
 void GibbsConstraintContainer::sliderValueChanged(Slider * s)
@@ -292,4 +307,48 @@ vector<vector<normal_distribution<float>>> GibbsConstraintContainer::getColorDis
 normal_distribution<float> GibbsConstraintContainer::getIntensDist()
 {
   return normal_distribution<float>(_intens.getValue());
+}
+
+void GibbsConstraintContainer::addColorConstraint()
+{
+  GibbsColorConstraint* c = new GibbsColorConstraint();
+  addAndMakeVisible(c);
+  _colors.add(c);
+  c->setName(String(_counter));
+
+  TextButton* del = new TextButton();
+  del->setName(String(_counter));
+  del->setButtonText("x");
+  del->setTooltip("Delete Constraint");
+  del->addListener(this);
+  addAndMakeVisible(del);
+  _deleteButtons.add(del);
+
+  _counter++;
+  resized();
+}
+
+void GibbsConstraintContainer::buttonClicked(Button * b)
+{
+  if (b->getButtonText() == "x") {
+    // delete button
+    TextButton* tb = dynamic_cast<TextButton*>(b);
+
+    GibbsColorConstraint* toDelete = nullptr;
+    for (auto c : _colors) {
+      if (c->getName() == tb->getName()) {
+        toDelete = c;
+      }
+    }
+
+    _deleteButtons.removeAllInstancesOf(tb);
+    _colors.removeAllInstancesOf(toDelete);
+    delete tb;
+    delete toDelete;
+
+    resized();
+  }
+  else if (b->getName() == "add") {
+    addColorConstraint();
+  }
 }

@@ -16,9 +16,9 @@
 
 // This component displays and image and contains a gibbs schedule corresponding
 // to that image
-class GibbsPallet : public Component, public SettableTooltipClient {
+class GibbsPalette : public Component, public SettableTooltipClient {
 public:
-  GibbsPallet(String name, Image& src);
+  GibbsPalette(String name, Image& src);
 
   virtual void paint(Graphics& g) override;
   virtual void resized() override;
@@ -51,16 +51,16 @@ public:
   virtual void paint(Graphics& g) override;
   virtual void resized() override;
 
-  void addPallet(GibbsPallet* pallet);
+  void addPallet(GibbsPalette* pallet);
   void setCols(int c);
   void clearPallets();
 
-  Array<GibbsPallet*> getPallets();
+  Array<GibbsPalette*> getPallets();
 
 private:
   int _cols;
 
-  Array<GibbsPallet*> _pallets;
+  Array<GibbsPalette*> _pallets;
 };
 
 // This component is a color constraint on the gibbs sampler. 
@@ -86,7 +86,7 @@ private:
   TextButton _setColor;
 };
 
-class GibbsConstraintContainer : public Component, public SliderListener {
+class GibbsConstraintContainer : public Component, public SliderListener, public ButtonListener {
 public:
   GibbsConstraintContainer();
   ~GibbsConstraintContainer();
@@ -99,10 +99,18 @@ public:
   vector<vector<normal_distribution<float>>> getColorDists();
   normal_distribution<float> getIntensDist();
 
+  // Adds a new color constraint element to the gui
+  void addColorConstraint();
+
+  virtual void buttonClicked(Button* b);
+
 private:
   Array<GibbsColorConstraint*> _colors;
+  Array<TextButton*> _deleteButtons;
 
+  TextButton _add;
   Slider _intens;
+  int _counter;
 };
 
 // This component is an intensity constraint on the gibbs sampler.
