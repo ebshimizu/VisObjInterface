@@ -21,7 +21,8 @@ extern class SearchResultsContainer;
 // In each explorer, the specified system is displayed with all other locked lights
 // in the rig. When a result is chosen, the specified system is locked and all other
 // views are updated
-class SystemExplorer : public Component, public ComboBoxListener, public ButtonListener
+class SystemExplorer : public Component, public ComboBoxListener, public ButtonListener,
+  public SliderListener
 {
 public:
   SystemExplorer(string name, string system);
@@ -68,6 +69,10 @@ public:
   // Updates the pin status of the view
   void updatePinState();
 
+  // intensity slider callbacks
+  virtual void sliderDragEnded(Slider* s);
+  virtual void sliderValueChanged(Slider* s);
+
 private:
   void updateSingleImage(shared_ptr<SearchResultContainer> result);
 
@@ -99,6 +104,7 @@ private:
   TextButton _pin;
 
   string _name;
+  Slider _intens;
 
   bool _isBlackout;
   bool _isSolo;

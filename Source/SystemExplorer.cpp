@@ -114,6 +114,7 @@ void SystemExplorer::paint(Graphics & g)
 
   lbounds.removeFromLeft(24);
   auto left = lbounds.removeFromLeft(200);
+  left.removeFromBottom(24);
   g.drawFittedText(getName() + ": " + _name, left.removeFromTop(24), Justification::centredLeft, 2);
 
   auto line = lbounds.removeFromLeft(5);
@@ -136,6 +137,8 @@ void SystemExplorer::resized()
   _pin.setBounds(buttons.removeFromTop(24).reduced(2));
 
   auto left = lbounds.removeFromLeft(200);
+
+  _intens.setBounds(left.removeFromBottom(24));
 
   lbounds.removeFromLeft(5);
   _rowElems->setBounds(lbounds);
@@ -184,11 +187,22 @@ void SystemExplorer::init()
   auto data = _currentState->getRigData();
 
   // isolate selected devices
+  float avgIntens = 0;
   for (auto d : _currentState->getDevices()) {
     if (!_selected.contains(d->getId())) {
       d->setIntensity(0);
     }
+    else {
+      avgIntens += d->getIntensity()->asPercent();
+    }
   }
+
+  // set intensity slider
+  _intens.setRange(0, 100, 0.01);
+  _intens.setValue(100.0 * avgIntens / _selected.size(), dontSendNotification);
+  _intens.addListener(this);
+  _intens.setSliderStyle(Slider::SliderStyle::LinearBar);
+  addAndMakeVisible(_intens);
 
   _currentImg = renderImage(_currentState, getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale,
     getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
@@ -378,6 +392,29 @@ void SystemExplorer::updatePinState()
 
   _isPinned = allLocked;
   _pin.setToggleState(_isPinned, dontSendNotification);
+}
+
+void SystemExplorer::sliderDragEnded(Slider * s)
+{
+  // Trigger re-render
+  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+  if (mc != nullptr) {
+    mc->refreshParams();
+    mc->refreshAttr();
+    mc->redrawResults();
+  }
+
+  getApplicationCommandManager()->invokeDirectly(command::ARNOLD_RENDER, true);
+}
+
+void SystemExplorer::sliderValueChanged(Slider * s)
+{
+  // due to this happening fairly frequently while drawing, we update the rig
+  // by itself here
+  for (auto d : _selected.getIds()) {
+    getRig()->getDevice(d)->getIntensity()->setValAsPercent(s->getValue() / 100.0);
+  }
 }
 
 void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
@@ -588,6 +625,12 @@ void SystemExplorerContainer::buttonClicked(Button * b)
     PopupMenu area;
     
     int i = 1;
+    main.addItem(i, "Selected Lights");
+    i++;
+
+    main.addItem(i, "Custom Query");
+    i++;
+
     map<int, string> cmdMap;
 
     // populate systems
@@ -615,11 +658,21 @@ void SystemExplorerContainer::buttonClicked(Button * b)
     if (result == 0)
       return;
 
-    // selected command
-    string cmd = cmdMap[result];
+    SystemExplorer* e;
+    if (result == 1) {
 
-    // add container with selected devices
-    SystemExplorer* e = new SystemExplorer(_rc->getAllResults(), cmd, getRig()->select(cmd));
+    }
+    else if (result == 2) {
+
+    }
+    else {
+      // selected command
+      string cmd = cmdMap[result];
+
+      // add container with selected devices
+      e = new SystemExplorer(_rc->getAllResults(), cmd, getRig()->select(cmd));
+    }
+
     addContainer(e);
   }
   else {
