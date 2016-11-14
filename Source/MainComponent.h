@@ -81,6 +81,9 @@ public:
 
   bool isSearchRunning();
 
+  // Checks the parameter component and retrieves selected devices
+  StringArray getSelectedDeviceIds();
+
 private:
   // Open a Lumiverse file
   void openRig();

@@ -516,6 +516,11 @@ bool MainContentComponent::isSearchRunning()
   return _searchWorker->isThreadRunning();
 }
 
+StringArray MainContentComponent::getSelectedDeviceIds()
+{
+  return _attrs->getParamController()->getSelectedIds();
+}
+
 void MainContentComponent::openRig() {
   FileChooser fc("Load Show (pick a .rig.json or .playback.json file)", File::getCurrentWorkingDirectory(),
     "*.rig.json;*.playback.json", true);

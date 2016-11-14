@@ -660,14 +660,56 @@ void SystemExplorerContainer::buttonClicked(Button * b)
 
     SystemExplorer* e;
     if (result == 1) {
+      // get selected lights
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+      auto ids = mc->getSelectedDeviceIds();
 
+      if (ids.size() == 0) {
+        getStatusBar()->setStatusMessage("Can't add view: no lights selected", true, false);
+        return;
+      }
+
+      DeviceSet s(getRig());
+      for (auto id : ids) {
+        s = s.add(id.toStdString());
+      }
+
+      e = new SystemExplorer(_rc->getAllResults(), s.info(), s);
     }
     else if (result == 2) {
+      AlertWindow w("Custom Lumiverse Query",
+        "Enter a Lumiverse query to select relevant devices.",
+        AlertWindow::QuestionIcon);
 
+      w.addTextEditor("query", "", "Query:");
+
+      w.addButton("OK", 1, KeyPress(KeyPress::returnKey, 0, 0));
+      w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+      if (w.runModalLoop() != 0) // is they picked 'ok'
+      {
+        // this is the text they entered..
+        String cmd = w.getTextEditorContents("query");
+        DeviceSet selected = getRig()->select(cmd.toStdString());
+
+        if (selected.size() == 0) {
+          getStatusBar()->setStatusMessage("Can't add view: no lights selected using query \"" + cmd + "\"", true, false);
+          return;
+        }
+
+        getStatusBar()->setStatusMessage("Added new view using query \"" + cmd + "\"");
+        e = new SystemExplorer(_rc->getAllResults(), cmd.toStdString(), selected);
+      }
+      else {
+        getStatusBar()->setStatusMessage("Cancelled custom selection.");
+        return;
+      }
     }
     else {
       // selected command
       string cmd = cmdMap[result];
+
+      getStatusBar()->setStatusMessage("Added new view using query \"" + cmd + "\"");
 
       // add container with selected devices
       e = new SystemExplorer(_rc->getAllResults(), cmd, getRig()->select(cmd));
