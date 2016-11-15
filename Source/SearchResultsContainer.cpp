@@ -1564,5 +1564,6 @@ void SearchResultsContainer::ppsd(String prefix)
 
 void SearchResultsContainer::updateThreshold()
 {
-  _currentThreshold = _initThreshold / (_attempts / _thresholdDecayRate + 1);
+  // floor is a jnd of 0.1.
+  _currentThreshold = max(_initThreshold / (_attempts / _thresholdDecayRate + 1), 0.1);
 }
