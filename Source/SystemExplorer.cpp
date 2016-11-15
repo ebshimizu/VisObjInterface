@@ -522,7 +522,7 @@ double SystemExplorer::filteredDist(shared_ptr<SearchResultContainer> r1, shared
   auto rd2 = s2->getRigData();
 
   for (auto id : ids) {
-    if (rd1[id]->paramExists("color")) {
+    if (rd1[id]->paramExists("color") && rd1[id]->getColor() != nullptr) {
       auto hsv1 = rd1[id]->getColor()->getHSV();
       auto hsv2 = rd2[id]->getColor()->getHSV();
       hsv1[0] /= 360;

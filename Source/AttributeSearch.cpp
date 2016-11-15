@@ -87,7 +87,7 @@ void vectorToExistingSnapshot(Eigen::VectorXd source, Snapshot& dest)
 		if (d.second->paramExists("azimuth"))
 			d.second->getParam<LumiverseOrientation>("azimuth")->setValAsPercent((float) source[base + 2]);
 
-    if (d.second->paramExists("color")) {
+    if (d.second->paramExists("color") && d.second->getColor() != nullptr) {
       d.second->getParam<LumiverseColor>("color")->setColorChannel("Red", source[base + 3]);
       d.second->getParam<LumiverseColor>("color")->setColorChannel("Green", source[base + 4]);
       d.second->getParam<LumiverseColor>("color")->setColorChannel("Blue", source[base + 5]);
