@@ -347,8 +347,10 @@ void GibbsConstraintContainer::buttonClicked(Button * b)
     delete toDelete;
 
     resized();
+    getParentComponent()->resized();
   }
   else if (b->getName() == "add") {
     addColorConstraint();
+    getParentComponent()->resized();
   }
 }

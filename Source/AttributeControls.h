@@ -114,17 +114,28 @@ public:
 private:
   void initAttributes();
 
+  class PaletteControls : public Component {
+  public:
+    PaletteControls();
+    ~PaletteControls();
+
+    virtual void resized();
+
+    GibbsPalletContainer* _palettes;
+    Viewport* _paletteViewer;
+    GibbsConstraintContainer* _tempConstraints;
+  };
+
+  PaletteControls* _paletteControls;
+
   TabbedComponent _tabs;
 
   AttributeControlsList* _container;
-  GibbsPalletContainer* _pallets;
-  GibbsConstraintContainer* _tempConstraints;
   ParamControls* _paramControls;
   HistoryPanel* _history;
   SettingsEditor* _settings;
 
   Viewport* _componentView;
-  Viewport* _palletViewer;
   Viewport* _historyViewer;
   
   TextButton* _search;

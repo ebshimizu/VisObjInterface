@@ -199,20 +199,12 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   _container->setName("attribute list");
   //addAndMakeVisible(_container);
 
-  _pallets = new GibbsPalletContainer();
-  _pallets->setName("available pallets");
-  //addAndMakeVisible(_pallets);
+  _paletteControls = new PaletteControls();
+  _paletteControls->setName("Palette Controls");
 
   _componentView = new Viewport();
   _componentView->setViewedComponent(_container, true);
   //addAndMakeVisible(_componentView);
-
-  _palletViewer = new Viewport();
-  _palletViewer->setViewedComponent(_pallets, true);
-  //addAndMakeVisible(_palletViewer);
-
-  _tempConstraints = new GibbsConstraintContainer();
-  //addAndMakeVisible(_tempConstraints);
 
   _paramControls = new ParamControls();
   _history = new HistoryPanel();
@@ -256,8 +248,7 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   addAndMakeVisible(_tabs);
   //_tabs.addTab("Attributes", Colour(0xff333333), _componentView, true);
   _tabs.addTab("Lights", Colour(0xff333333), _paramControls, true);
-  _tabs.addTab("Palettes", Colour(0xff333333), _palletViewer, true);
-  _tabs.addTab("Palette Picker", Colour(0xff333333), _tempConstraints, true);
+  _tabs.addTab("Palettes", Colour(0xff333333), _paletteControls, true);
   _tabs.addTab("History", Colour(0xff333333), _historyViewer, true);
   _tabs.addTab("Settings", Colour(0xff333333), _settings, true);
   _tabs.setCurrentTabIndex(0);
@@ -274,7 +265,7 @@ AttributeControls::~AttributeControls()
   delete _sortButton;
   delete _setKeyButton;
   delete _clusterButton;
-  delete _palletViewer;
+  delete _paletteControls;
 }
 
 void AttributeControls::paint (Graphics& g)
@@ -304,7 +295,6 @@ void AttributeControls::resized()
 
   _tabs.setBounds(lbounds);
   _container->setWidth(_componentView->getMaximumVisibleWidth());
-  _pallets->setSize(_palletViewer->getMaximumVisibleWidth(), 0);
   _history->setWidth(_historyViewer->getMaximumVisibleWidth());
 }
 
@@ -390,7 +380,7 @@ void AttributeControls::unlockAttributeModes()
 
 void AttributeControls::initPallets()
 {
-  _pallets->clearPallets();
+  _paletteControls->_palettes->clearPallets();
   File imageDir = getGlobalSettings()->_imageAttrLoc;
   Array<File> imagesToLoad;
   int numImage = imageDir.findChildFiles(imagesToLoad, 2, false, "*.png");
@@ -407,7 +397,7 @@ void AttributeControls::initPallets()
       PNGImageFormat pngReader;
       Image originalImg = pngReader.decodeImage(in);
 
-      _pallets->addPallet(new GibbsPalette(name, originalImg));
+      _paletteControls->_palettes->addPallet(new GibbsPalette(name, originalImg));
       
       getRecorder()->log(SYSTEM, "Loaded image for pallet " + name.toStdString());
     }
@@ -422,8 +412,8 @@ void AttributeControls::initPallets()
 vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> AttributeControls::getGibbsSchedule()
 {
   GibbsSchedule s;
-  auto colorConstraints = _tempConstraints->getColorDists();
-  auto intensConstraints = _tempConstraints->getIntensDist();
+  auto colorConstraints = _paletteControls->_tempConstraints->getColorDists();
+  auto intensConstraints = _paletteControls->_tempConstraints->getIntensDist();
 
   GibbsScheduleConstraint ci;
   ci._followConventions = true;
@@ -510,4 +500,34 @@ void AttributeControls::initAttributes()
   }
 
   getStatusBar()->setStatusMessage("Loaded " + String(numImage) + " images from " + imageDir.getFullPathName());
+}
+
+AttributeControls::PaletteControls::PaletteControls()
+{
+  _palettes = new GibbsPalletContainer();
+  _palettes->setName("available palettes");
+  //addAndMakeVisible(_pallets);
+
+  _paletteViewer = new Viewport();
+  _paletteViewer->setViewedComponent(_palettes, true);
+  addAndMakeVisible(_paletteViewer);
+
+  _tempConstraints = new GibbsConstraintContainer();
+  addAndMakeVisible(_tempConstraints);
+}
+
+AttributeControls::PaletteControls::~PaletteControls()
+{
+  delete _paletteViewer;
+  delete _tempConstraints;
+}
+
+void AttributeControls::PaletteControls::resized()
+{
+  auto lbounds = getLocalBounds();
+  _tempConstraints->setSize(lbounds.getWidth(), lbounds.getHeight());
+  _tempConstraints->setBounds(lbounds.removeFromTop(_tempConstraints->getHeight()));
+
+  _paletteViewer->setBounds(lbounds);
+  _palettes->setSize(_paletteViewer->getMaximumVisibleWidth(), 0);
 }
