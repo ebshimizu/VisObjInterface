@@ -59,6 +59,14 @@ void SystemExplorer::addNewResult(shared_ptr<SearchResultContainer> result)
 {
   auto nr = shared_ptr<SearchResultContainer>(new SearchResultContainer(shared_ptr<SearchResult>(result->getSearchResult())));
   nr->setSystem(_selected);
+
+  // check similarity before adding, if too similar, reject
+  // we check similarity against L2 parameter norm filtered by active devices
+  for (auto r : _container->_results) {
+    if (filteredDist(r, nr) < _distThreshold)
+      return;
+  }
+
   _container->addAndMakeVisible(nr.get());
   updateSingleImage(nr);
   _container->_results.add(nr);
@@ -196,6 +204,8 @@ void SystemExplorer::init()
       avgIntens += d->getIntensity()->asPercent();
     }
   }
+
+  _distThreshold = getGlobalSettings()->_jndThreshold;
 
   // set intensity slider
   _intens.setRange(0, 100, 0.01);
@@ -499,6 +509,36 @@ void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
   // hsv combined
   float hsCombo = round(hsv[0]) + hsv[1];
   result->_sortVals["hs"] = hsCombo;
+}
+
+double SystemExplorer::filteredDist(shared_ptr<SearchResultContainer> r1, shared_ptr<SearchResultContainer> r2)
+{
+  double dist = 0;
+  Snapshot* s1 = vectorToSnapshot(r1->getSearchResult()->_scene);
+  Snapshot* s2 = vectorToSnapshot(r2->getSearchResult()->_scene);
+  auto ids = _selected.getIds();
+
+  auto rd1 = s1->getRigData();
+  auto rd2 = s2->getRigData();
+
+  for (auto id : ids) {
+    if (rd1[id]->paramExists("color")) {
+      auto hsv1 = rd1[id]->getColor()->getHSV();
+      auto hsv2 = rd2[id]->getColor()->getHSV();
+      hsv1[0] /= 360;
+      hsv2[0] /= 360;
+
+      hsv1 *= rd1[id]->getIntensity()->asPercent();
+      hsv2 *= rd2[id]->getIntensity()->asPercent();
+
+      dist += (hsv1 - hsv2).squaredNorm();
+    }
+    else {
+      dist += pow(rd1[id]->getIntensity()->asPercent() - rd2[id]->getIntensity()->asPercent(), 2);
+    }
+  }
+  
+  return sqrt(dist) / _selected.size();
 }
 
 SystemExplorer::SystemExplorerResults::SystemExplorerResults()

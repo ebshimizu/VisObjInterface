@@ -79,6 +79,10 @@ public:
 private:
   void updateSingleImage(shared_ptr<SearchResultContainer> result);
 
+  // Returns the distance between the two results in terms of the selected devices
+  // for this particular view. Uses avg L2 param distance at the moment.
+  double filteredDist(shared_ptr<SearchResultContainer> r1, shared_ptr<SearchResultContainer> r2);
+
   // because we have a viewport the results are contained within a different
   // object to place in the viewport
   class SystemExplorerResults : public Component {
@@ -114,6 +118,8 @@ private:
 
   // true when every light in the selection is locked
   bool _isPinned;
+
+  double _distThreshold;
 };
 
 class SystemExplorerContainer : public Component, public ButtonListener

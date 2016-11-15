@@ -126,6 +126,8 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_repulsionCostK = newValue;
   else if (_id == "Repulsion Num Pairs")
     getGlobalSettings()->_numPairs = (int)newValue;
+  else if (_id == "View JND Threshold")
+    getGlobalSettings()->_viewJndThreshold = newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -222,6 +224,8 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_repulsionCostK;
   else if (_id == "Repulsion Num Pairs")
     return getGlobalSettings()->_numPairs;
+  else if (_id == "View JND Threshold")
+    return getGlobalSettings()->_viewJndThreshold;
 
   return 0;
 }
@@ -474,6 +478,7 @@ SettingsEditor::SettingsEditor()
     "Directed Gibbs Sampling Test" }));
   searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 250, 1));
   searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 10, 0.01));
+  searchComponents.add(new SettingsSlider("View JND Threshold", 0.001, 1, 0.001));
   searchComponents.add(new SettingsChoice("Search Threshold Metric", { "Per-Pixel Average Lab Difference",
     "Per-Pixel Maximum Lab Difference", "Per-Pixel 90th Percentile Difference", "Lab L2 Norm", "Luminance L2 Norm",
     "Parameter L2 Norm", "Softmax Parameter L2 Norm", "Attribute Function Distance", "Directed Per-Pixel Average Lab Difference",

@@ -218,6 +218,7 @@ public:
   double _editStepSize;         // MCMC: Std dev of gaussian sample 
   int _maxMCMCIters;            // MCMC: Max number of iterations
   double _jndThreshold;         // For two feature vectors, how far apart they can be to be considered equivalent
+  double _viewJndThreshold;     // For views, the jnd threshold
   int _standardMCMCIters;       // Iterations for a normal MCMC search
   int _clusterElemsPerRow;      // Number of elements to show in a cluster detail view
   int _maxReturnedScenes;       // Limiter for how many scenes get returned from a search, primarily limited by memory 
