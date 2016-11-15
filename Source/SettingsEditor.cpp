@@ -128,6 +128,8 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_numPairs = (int)newValue;
   else if (_id == "View JND Threshold")
     getGlobalSettings()->_viewJndThreshold = newValue;
+  else if (_id == "JND Threshold Decay Rate")
+    getGlobalSettings()->_thresholdDecayRate = newValue;
 }
 
 double SettingsSlider::getValue() const
@@ -226,6 +228,8 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_numPairs;
   else if (_id == "View JND Threshold")
     return getGlobalSettings()->_viewJndThreshold;
+  else if (_id == "JND Threshold Decay Rate")
+    return getGlobalSettings()->_thresholdDecayRate;
 
   return 0;
 }
@@ -477,7 +481,8 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsChoice("Edit Selection Mode", { "Default", "Simple Bandit", "Uniform Random", "Adversarial Bandit",
     "Directed Gibbs Sampling Test" }));
   searchComponents.add(new SettingsSlider("Initial Edit Depth", 1, 250, 1));
-  searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 10, 0.01));
+  searchComponents.add(new SettingsSlider("JND Threshold", 0.01, 100, 0.01));
+  searchComponents.add(new SettingsSlider("JND Threshold Decay Rate", 0.1, 250, 0.1));
   searchComponents.add(new SettingsSlider("View JND Threshold", 0.001, 1, 0.001));
   searchComponents.add(new SettingsChoice("Search Threshold Metric", { "Per-Pixel Average Lab Difference",
     "Per-Pixel Maximum Lab Difference", "Per-Pixel 90th Percentile Difference", "Lab L2 Norm", "Luminance L2 Norm",

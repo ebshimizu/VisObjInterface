@@ -208,6 +208,15 @@ private:
 
   int _resultsSinceLastSort;
 
+  // Number of times a result has been proposed for addition to the set.
+  int _attempts;
+  
+  // The current JND threshold value
+  double _currentThreshold;
+  double _initThreshold;
+  double _thresholdDecayRate;
+  void updateThreshold();
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SearchResultsContainer)
 };
 

@@ -264,6 +264,7 @@ public:
   int _numPairs;                // Number of pairs to estimate cone radius
   DistanceMetric _searchDistMetric;   // Metric to use for determining how the frontier is selected during a search
   DistanceMetric _searchDispMetric;   // Metric to use for determining if a result should be displayed during a search
+  double _thresholdDecayRate;   // how quickly the jnd decays for accepting samples. Smaller is faster
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

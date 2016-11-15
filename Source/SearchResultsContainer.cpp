@@ -53,6 +53,11 @@ SearchResultsContainer::SearchResultsContainer()
   _unclusteredViewer = new Viewport();
   _unclusteredViewer->setViewedComponent(_unclusteredResults);
   addAndMakeVisible(_unclusteredViewer);
+
+  _attempts = 0;
+  _currentThreshold = getGlobalSettings()->_jndThreshold;
+  _initThreshold = getGlobalSettings()->_jndThreshold;
+  _thresholdDecayRate = getGlobalSettings()->_thresholdDecayRate;
 }
 
 SearchResultsContainer::~SearchResultsContainer()
@@ -306,7 +311,7 @@ bool SearchResultsContainer::addNewResult(shared_ptr<SearchResult> r, int callin
       auto evalStart = chrono::high_resolution_clock::now();
       lock_guard<mutex> lock(_resultsLock);
       for (auto& res : _allResults) {
-        if (newResult->dist(res.get(), metric) < getGlobalSettings()->_jndThreshold) {
+        if (newResult->dist(res.get(), metric) < _currentThreshold) {
           earlyExit = true;
           duplicate = res;
           break;
@@ -315,7 +320,7 @@ bool SearchResultsContainer::addNewResult(shared_ptr<SearchResult> r, int callin
 
       // also check things in the waiting queue
       for (auto& res : _newResults) {
-        if (newResult->dist(res.get(), metric) < getGlobalSettings()->_jndThreshold) {
+        if (newResult->dist(res.get(), metric) < _currentThreshold) {
           earlyExit = true;
           duplicate = res;
           break;
@@ -358,6 +363,8 @@ bool SearchResultsContainer::addNewResult(shared_ptr<SearchResult> r, int callin
 
         Lumiverse::Logger::log(INFO, "Adding new result. In queue: " + String(_newResults.size()).toStdString());
         _resultsSinceLastSort += 1;
+        _attempts += 1;
+        updateThreshold();
       }
     }
     else {
@@ -365,6 +372,8 @@ bool SearchResultsContainer::addNewResult(shared_ptr<SearchResult> r, int callin
       int numDupes = String(duplicate->getSearchResult()->_extraData["duplicates"]).getIntValue();
       duplicate->getSearchResult()->_extraData["duplicates"] = String(numDupes + 1);
       duplicate->regenToolTip();
+      _attempts += 1;
+      updateThreshold();
     }
 
     getGlobalSettings()->_timings[callingThreadId]._addResultTime += chrono::duration<float>(chrono::high_resolution_clock::now() - start).count();
@@ -438,6 +447,9 @@ void SearchResultsContainer::clear()
   repaint();
   _sampleId = 0;
   _resultsSinceLastSort = 0;
+  _attempts = 0;
+  _currentThreshold = getGlobalSettings()->_jndThreshold;
+  _initThreshold = getGlobalSettings()->_jndThreshold;
   _exp->getContainer()->clear();
 }
 
@@ -1548,4 +1560,9 @@ void SearchResultsContainer::ppsd(String prefix)
 	PNGImageFormat pngif;
 	pngif.writeImageToStream(varOut, os);
 	pngif.writeImageToStream(sdOut, os2);
+}
+
+void SearchResultsContainer::updateThreshold()
+{
+  _currentThreshold = _initThreshold / (_attempts / _thresholdDecayRate + 1);
 }
