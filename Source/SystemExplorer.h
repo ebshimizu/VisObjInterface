@@ -177,6 +177,9 @@ public:
 
   void buttonClicked(Button* b) override;
 
+  // fills the container with default system views
+  void populateSystemViews();
+
   SystemExplorerContainer* getContainer();
 
 private:

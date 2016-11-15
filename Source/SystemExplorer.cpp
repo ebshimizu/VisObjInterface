@@ -537,7 +537,9 @@ double SystemExplorer::filteredDist(shared_ptr<SearchResultContainer> r1, shared
       dist += pow(rd1[id]->getIntensity()->asPercent() - rd2[id]->getIntensity()->asPercent(), 2);
     }
   }
-  
+
+  delete s1;
+  delete s2;
   return sqrt(dist) / _selected.size();
 }
 
@@ -626,7 +628,7 @@ void SystemExplorerContainer::sort(string method)
 
 void SystemExplorerContainer::addContainer(string system)
 {
-  SystemExplorer* e = new SystemExplorer(system, system);
+  SystemExplorer* e = new SystemExplorer(_rc->getAllResults(), system, getRig()->select("$system=" + system));
   addContainer(e);
 }
 
@@ -861,6 +863,16 @@ void ExplorerPanel::paint(Graphics & g)
 
 void ExplorerPanel::buttonClicked(Button * b)
 {
+}
+
+void ExplorerPanel::populateSystemViews()
+{
+  _exp->clear();
+
+  auto systems = getRig()->getMetadataValues("system");
+  for (auto s : systems) {
+    _exp->addContainer(s);
+  }
 }
 
 SystemExplorerContainer * ExplorerPanel::getContainer()

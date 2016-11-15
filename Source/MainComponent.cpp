@@ -503,6 +503,11 @@ void MainContentComponent::redrawResults()
   _search->updateImages();
 }
 
+void MainContentComponent::populateSystemViews()
+{
+  _exp->populateSystemViews();
+}
+
 bool MainContentComponent::isSearchRunning()
 {
   return _searchWorker->isThreadRunning();

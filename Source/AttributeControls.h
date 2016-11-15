@@ -111,6 +111,7 @@ public:
 
   void refreshSettings();
 
+
 private:
   void initAttributes();
 

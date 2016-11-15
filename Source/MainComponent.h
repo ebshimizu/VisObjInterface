@@ -79,6 +79,9 @@ public:
 
   void redrawResults();
 
+  // fills the bottom area of the screen with views based off of default systems
+  void populateSystemViews();
+
   bool isSearchRunning();
 
   // Checks the parameter component and retrieves selected devices

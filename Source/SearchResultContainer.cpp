@@ -297,6 +297,13 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
       if (result == 1) {
         Snapshot* s = vectorToSnapshot(_result->_scene);
         s->loadRig(getRig());
+
+        // lock every single light in the rig
+        for (auto id : s->getRigData()) {
+          lockDeviceParam(id.first, "intensity");
+          lockDeviceParam(id.first, "color");
+        }
+
         delete s;
 
         MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
@@ -305,6 +312,7 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
           mc->arnoldRender(!_isHistoryItem);
           mc->refreshParams();
           mc->refreshAttr();
+          mc->populateSystemViews();
           getRecorder()->log(ACTION, "User picked scene for stage: " + getTooltip().toStdString());
         }
       }
@@ -329,6 +337,7 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
           mc->transferSelected(s);
           mc->refreshParams();
           mc->refreshAttr();
+          mc->redrawResults();
         }
 
         delete s;
@@ -342,6 +351,7 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
           mc->transferSelected(s, getRig()->select("$area=" + areas[result - 4].toStdString()));
           mc->refreshParams();
           mc->refreshAttr();
+          mc->redrawResults();
         }
 
         delete s;
