@@ -69,6 +69,9 @@ public:
   // Updates the pin status of the view
   void updatePinState();
 
+  // Updates the intensity slider value
+  void updateIntensSlider();
+
   // intensity slider callbacks
   virtual void sliderDragEnded(Slider* s);
   virtual void sliderValueChanged(Slider* s);

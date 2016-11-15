@@ -39,7 +39,7 @@ MainContentComponent::MainContentComponent()
 
   _vertResizer.setItemLayout(0, -0.2, -1, -0.75);
   _vertResizer.setItemLayout(1, 5, 5, 5);
-  _vertResizer.setItemLayout(2, 40, -0.5, -0.25);
+  _vertResizer.setItemLayout(2, 30, -0.5, -0.25);
 
   _viewerSearchResizer.setItemLayout(0, -0.2, -0.8, -0.5);
   _viewerSearchResizer.setItemLayout(1, 5, 5, 5);
@@ -61,8 +61,6 @@ MainContentComponent::MainContentComponent()
 
 MainContentComponent::~MainContentComponent()
 {
-  if (_settingsWindow != nullptr)
-    delete _settingsWindow;
   if (_constraintWindow != nullptr)
     delete _constraintWindow;
 
@@ -105,7 +103,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
 {
   // Add new commands to handle here.
   const CommandID ids[] = {
-    command::OPEN, command::REFRESH_PARAMS, command::ARNOLD_RENDER, command::SETTINGS,
+    command::OPEN, command::REFRESH_PARAMS, command::ARNOLD_RENDER,
     command::SEARCH, command::REFRESH_ATTR, command::SAVE, command::SAVE_AS, command::RECLUSTER,
     command::LOCK_ALL_COLOR,
     command::LOCK_ALL_INTENSITY, command::LOCK_ALL_POSITION, command::UNLOCK_ALL,
@@ -285,9 +283,6 @@ bool MainContentComponent::perform(const InvocationInfo & info)
   case command::ARNOLD_RENDER:
     arnoldRender();
     break;
-  case command::SETTINGS:
-    openSettings();
-    break;
   case command::SEARCH:
     search();
     break;
@@ -368,11 +363,8 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     openConstraints();
     break;
 	case command::REFRESH_SETTINGS:
-	{
-		if (_settingsWindow != nullptr) {
-			_settingsWindow->refresh();
-		}
-	}
+    _attrs->refreshSettings();
+    break;
   case command::START_AUTO:
     startAuto();
     break;
@@ -818,21 +810,6 @@ void MainContentComponent::arnoldRenderNoPopup()
 
   // may want to clean this part up a bit, maybe trigger on mouse up
   addHistory();
-}
-
-void MainContentComponent::openSettings()
-{
-  if (_settingsWindow != nullptr)
-    return;
-
-  _settingsWindow = new SettingsWindow();
-  juce::Rectangle<int> area(50, 50, 600, 400);
-
-  _settingsWindow->setBounds(area);
-
-  _settingsWindow->setResizable(true, false);
-  _settingsWindow->setUsingNativeTitleBar(true);
-  _settingsWindow->setVisible(true);
 }
 
 void MainContentComponent::openConstraints()

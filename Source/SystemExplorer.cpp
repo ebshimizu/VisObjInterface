@@ -394,6 +394,19 @@ void SystemExplorer::updatePinState()
   _pin.setToggleState(_isPinned, dontSendNotification);
 }
 
+void SystemExplorer::updateIntensSlider()
+{
+  // compute avg intens
+  float avgIntens = 0;
+  for (auto d : _currentState->getDevices()) {
+    if (_selected.contains(d->getId())) {
+      avgIntens += d->getIntensity()->asPercent();
+    }
+  }
+
+  _intens.setValue(avgIntens * 100 / _selected.size(), dontSendNotification);
+}
+
 void SystemExplorer::sliderDragEnded(Slider * s)
 {
   // Trigger re-render

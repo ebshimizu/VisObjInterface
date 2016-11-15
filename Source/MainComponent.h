@@ -103,8 +103,7 @@ private:
   // Initializes the components in the interface after loading a rig
   void loadComponents();
 
-  // Opens the settings window
-  void openSettings();
+  // Opens the constraints window
   void openConstraints();
 
   // parameter locking
@@ -158,7 +157,6 @@ private:
   ScopedPointer<SceneViewer> _viewer;
   ScopedPointer<ExplorerPanel> _exp;
 
-  SafePointer<SettingsWindow> _settingsWindow;
   SafePointer<ConstraintWindow> _constraintWindow;
 
   // Search object

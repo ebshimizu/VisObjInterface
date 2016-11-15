@@ -219,6 +219,8 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   _historyViewer = new Viewport();
   _historyViewer->setViewedComponent(_history, true);
 
+  _settings = new SettingsEditor();
+
   // button controls
   _search = new TextButton("Search", "Perform a search with the current attribute constraints");
   _search->addListener(this);
@@ -257,6 +259,7 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   _tabs.addTab("Palettes", Colour(0xff333333), _palletViewer, true);
   _tabs.addTab("Palette Picker", Colour(0xff333333), _tempConstraints, true);
   _tabs.addTab("History", Colour(0xff333333), _historyViewer, true);
+  _tabs.addTab("Settings", Colour(0xff333333), _settings, true);
   _tabs.setCurrentTabIndex(0);
 
   initAttributes();
@@ -453,6 +456,11 @@ ParamControls * AttributeControls::getParamController()
 HistoryPanel* AttributeControls::getHistory()
 {
   return _history;
+}
+
+void AttributeControls::refreshSettings()
+{
+  _settings->refresh();
 }
 
 void AttributeControls::initAttributes()

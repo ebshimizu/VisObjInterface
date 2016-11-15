@@ -50,7 +50,6 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& /* menu
     menu.addSeparator();
     menu.addCommandItem(cm, command::GET_FROM_ARNOLD);
     menu.addSeparator();
-    menu.addCommandItem(cm, command::SETTINGS);
     menu.addCommandItem(cm, command::CONSTRAINTS);
   }
   else if (topLevelMenuIndex == 2) {

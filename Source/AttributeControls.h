@@ -13,6 +13,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "globals.h"
+#include "SettingsEditor.h"
 #include "ParamControls.h"
 #include "HistoryPanel.h"
 #include "AttributeControllerBase.h"
@@ -108,6 +109,8 @@ public:
   // Gets the history controller
   HistoryPanel* getHistory();
 
+  void refreshSettings();
+
 private:
   void initAttributes();
 
@@ -118,6 +121,7 @@ private:
   GibbsConstraintContainer* _tempConstraints;
   ParamControls* _paramControls;
   HistoryPanel* _history;
+  SettingsEditor* _settings;
 
   Viewport* _componentView;
   Viewport* _palletViewer;
