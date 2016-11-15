@@ -232,11 +232,11 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
 
   _setKeyButton = new TextButton("Key Lights", "Sets Key Lights used for Clustering");
   _setKeyButton->addListener(this);
-  addAndMakeVisible(_setKeyButton);
+  //addAndMakeVisible(_setKeyButton);
 
   _clusterButton = new TextButton("Cluster", "Clusters the currently returned search results");
   _clusterButton->addListener(this);
-  addAndMakeVisible(_clusterButton);
+  //addAndMakeVisible(_clusterButton);
 
   // Add the sort methods to the combo box
   _sort = new ComboBox("sort mode");
