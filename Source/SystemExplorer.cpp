@@ -625,6 +625,7 @@ void SystemExplorerContainer::updateImages()
 
   for (auto e : _explorers) {
     e->updatePinState();
+    e->updateIntensSlider();
     e->repaint();
   }
 }
