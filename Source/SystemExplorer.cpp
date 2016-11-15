@@ -205,7 +205,7 @@ void SystemExplorer::init()
     }
   }
 
-  _distThreshold = getGlobalSettings()->_jndThreshold;
+  _distThreshold = getGlobalSettings()->_viewJndThreshold;
 
   // set intensity slider
   _intens.setRange(0, 100, 0.01);
