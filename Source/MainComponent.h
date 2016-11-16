@@ -89,6 +89,11 @@ public:
 
   void setColors(vector<Eigen::VectorXd> colors, double intens);
 
+  // resets the interface
+  // Which is the following: unlock all lights, reset to open white, clear all
+  // explore panels, empty the results panel
+  void reset();
+
 private:
   // Open a Lumiverse file
   void openRig();

@@ -180,6 +180,8 @@ public:
   // fills the container with default system views
   void populateSystemViews();
 
+  void clear();
+
   SystemExplorerContainer* getContainer();
 
 private:

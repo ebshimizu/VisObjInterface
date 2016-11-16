@@ -113,7 +113,8 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::PICK_TRACE, command::OPEN_MASK, command::SAVE_CLUSTERS, command::LOAD_CLUSTERS, command::REFRESH_SETTINGS,
     command::CONSTRAINTS, command::START_AUTO, command::END_AUTO, command::LOCK_ALL_SELECTED,
     command::LOCK_SELECTED_INTENSITY, command::LOCK_SELECTED_COLOR, command::UNLOCK_ALL_SELECTED,
-    command::UNLOCK_SELECTED_COLOR, command::UNLOCK_SELECTED_INTENSITY, command::RELOAD_ATTRS, command::LOAD_ATTRS
+    command::UNLOCK_SELECTED_COLOR, command::UNLOCK_SELECTED_INTENSITY, command::RELOAD_ATTRS, command::LOAD_ATTRS,
+    command::RESET_ALL
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -266,6 +267,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::LOAD_ATTRS:
     result.setInfo("Load Image Attributes", "Select a folder to load images from", "File", 0);
     break;
+  case command::RESET_ALL:
+    result.setInfo("Reset Scene", "Resets the current scene to defaults and clears the search interfaces", "Edit", 0);
+    break;
   default:
     return;
   }
@@ -395,6 +399,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
   case command::LOAD_ATTRS:
     loadImageAttrsFromDir();
     break;
+  case command::RESET_ALL:
+    reset();
+    break;
   default:
     return false;
   }
@@ -521,6 +528,35 @@ StringArray MainContentComponent::getSelectedDeviceIds()
 void MainContentComponent::setColors(vector<Eigen::VectorXd> colors, double intens)
 {
   _attrs->setColors(colors, intens);
+}
+
+void MainContentComponent::reset()
+{
+  stopSearch();
+
+  // unlock devices
+  unlockAll();
+
+  // reset to open white
+  auto devices = getRig()->getAllDevices();
+  for (auto id : devices.getIds()) {
+    getRig()->getDevice(id)->getIntensity()->setValAsPercent(0.5);
+
+    if (getRig()->getDevice(id)->paramExists("color"))
+      getRig()->getDevice(id)->setColorRGBRaw("color", 1, 1, 1);
+  }
+
+  // clear search panel
+  _search->clearContainer();
+
+  // clear explore panels
+  _exp->clear();
+
+  // clear the mask?
+  _viewer->clearMask();
+
+  // re-render
+  arnoldRender();
 }
 
 void MainContentComponent::openRig() {

@@ -253,6 +253,11 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   _tabs.addTab("Settings", Colour(0xff333333), _settings, true);
   _tabs.setCurrentTabIndex(0);
 
+  _reset.addListener(this);
+  _reset.setButtonText("Reset");
+  _reset.setName("reset");
+  addAndMakeVisible(_reset);
+
   initAttributes();
   initPallets();
 }
@@ -286,8 +291,9 @@ void AttributeControls::resized()
   auto botBounds = lbounds.removeFromBottom(30);
   _search->setBounds(botBounds.removeFromRight(80).reduced(5));
   _sortButton->setBounds(botBounds.removeFromRight(80).reduced(5));
-  _clusterButton->setBounds(botBounds.removeFromRight(80).reduced(5));
-  _setKeyButton->setBounds(botBounds.removeFromRight(80).reduced(5));
+  _reset.setBounds(botBounds.removeFromRight(80).reduced(5));
+  //_clusterButton->setBounds(botBounds.removeFromRight(80).reduced(5));
+  //_setKeyButton->setBounds(botBounds.removeFromRight(80).reduced(5));
 
   auto botRow2 = lbounds.removeFromBottom(30);
   botRow2.removeFromLeft(80);
@@ -344,6 +350,9 @@ void AttributeControls::buttonClicked(Button * b)
   }
   else if (b->getName() == "Cluster") {
     getApplicationCommandManager()->invokeDirectly(RECLUSTER, true);
+  }
+  else if (b->getName() == "reset") {
+    getApplicationCommandManager()->invokeDirectly(RESET_ALL, false);
   }
 }
 

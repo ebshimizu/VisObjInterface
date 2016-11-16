@@ -648,7 +648,9 @@ void SystemExplorerContainer::addResult(shared_ptr<SearchResultContainer> result
 void SystemExplorerContainer::clear()
 {
   for (auto e : _explorers)
-    e->clear();
+    delete e;
+
+  _explorers.clear();
 }
 
 void SystemExplorerContainer::updateImages()
@@ -873,6 +875,14 @@ void ExplorerPanel::populateSystemViews()
   for (auto s : systems) {
     _exp->addContainer(s);
   }
+}
+
+void ExplorerPanel::clear()
+{
+  // deletes all current views
+  _exp->clear();
+
+  resized();
 }
 
 SystemExplorerContainer * ExplorerPanel::getContainer()

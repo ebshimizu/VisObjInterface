@@ -114,7 +114,6 @@ public:
 
   void refreshSettings();
 
-
 private:
   void initAttributes();
 
@@ -146,6 +145,7 @@ private:
   TextButton* _sortButton;
   TextButton* _setKeyButton;
   TextButton* _clusterButton;
+  TextButton _reset;
   ComboBox* _sort;
   Slider* _numClusters;
 

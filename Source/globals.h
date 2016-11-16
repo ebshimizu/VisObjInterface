@@ -53,6 +53,7 @@ enum command {
   SETTINGS = 0x4000,
   GET_FROM_ARNOLD = 0x4003,
   CONSTRAINTS = 0x4004,
+  RESET_ALL = 0x4005,
 
   // Explore
   SEARCH = 0x5000,
