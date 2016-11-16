@@ -518,6 +518,11 @@ StringArray MainContentComponent::getSelectedDeviceIds()
   return _attrs->getParamController()->getSelectedIds();
 }
 
+void MainContentComponent::setColors(vector<Eigen::VectorXd> colors, double intens)
+{
+  _attrs->setColors(colors, intens);
+}
+
 void MainContentComponent::openRig() {
   FileChooser fc("Load Show (pick a .rig.json or .playback.json file)", File::getCurrentWorkingDirectory(),
     "*.rig.json;*.playback.json", true);

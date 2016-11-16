@@ -448,6 +448,12 @@ HistoryPanel* AttributeControls::getHistory()
   return _history;
 }
 
+void AttributeControls::setColors(vector<Eigen::VectorXd> colors, double intens)
+{
+  _paletteControls->_tempConstraints->addColors(colors, intens);
+  _paletteControls->resized();
+}
+
 void AttributeControls::refreshSettings()
 {
   _settings->refresh();

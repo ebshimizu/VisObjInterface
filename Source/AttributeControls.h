@@ -109,6 +109,9 @@ public:
   // Gets the history controller
   HistoryPanel* getHistory();
 
+  // sets colors in the palettes
+  void setColors(vector<Eigen::VectorXd> colors, double intens);
+
   void refreshSettings();
 
 

@@ -11,6 +11,8 @@
 #include "GibbsComponents.h"
 #include "ImageAttribute.h"
 #include "hsvPicker.h"
+#include "KMeans.h"
+#include "MainComponent.h"
 
 GibbsPalette::GibbsPalette(String name, Image & src) : _img(src), _name(name)
 {
@@ -35,61 +37,46 @@ void GibbsPalette::setImg(Image & img)
 
 void GibbsPalette::computeSchedule()
 {
+  _colors.clear();
+
+  // for now we'll do the really simple thing and just run k-means on this thing.
+  // k = 5 for now
+
   // compute a HSV histogram and pull out stats about the intensity and color
   SparseHistogram imgHist(3, { 0, 10, 0, 0.2f, 0, 0.2f });
   Image i = _img.rescaled(100, 100);
+  _avgIntens = 0;
+
+  vector<pair<Eigen::VectorXd, int> > pts;
 
   for (int y = 0; y < i.getHeight(); y++) {
     for (int x = 0; x < i.getWidth(); x++) {
       auto p = i.getPixelAt(x, y);
-      vector<float> hsv;
+      Eigen::VectorXf hsv;
       hsv.resize(3);
 
       p.getHSB(hsv[0], hsv[1], hsv[2]);
-      hsv[0] *= 360;
 
-      imgHist.add(hsv);
+      Eigen::VectorXd pt;
+      pt.resize(3);
+      pt[0] = hsv[0];
+      pt[1] = hsv[1];
+      pt[2] = hsv[2];
+      pts.push_back(pair<Eigen::VectorXd, int>(pt, 0));
+
+      _avgIntens += p.getBrightness();
     }
   }
 
-  // temporary short circuit
-  return;
+  _avgIntens /= (i.getHeight() * i.getWidth());
 
-  // determine what the top hue bins are, i.e. where most of the colors lie.
-  // ideally we'll also want to determine the bandwidth of these histograms as well
-  // actually it's basically just fitting a gaussian model to the histogram
-  float totalWeight = imgHist.getTotalWeight();
-  map<double, double> hues = imgHist.getDimension(0);
+  // cluster 
+  GenericKMeans cluster;
+  auto centers = cluster.cluster(5, pts, InitMode::FORGY);
 
-  // determine peak hue values and roughly fit a gaussian
-  float currentWeight = totalWeight;
-  while (currentWeight > totalWeight * 0.2) {
-    // find max hue value
-    double maxHue = -1;
-
-    for (auto h : hues) {
-      if (maxHue < 0) {
-        maxHue = h.first;
-        continue;
-      }
-
-      if (h.second > hues[maxHue]) {
-        maxHue = h.first;
-      }
-    }
-
-    // have peak, determine how long the tail is (generally if constantly decreasing consider part of tail)
-    double currentHue = maxHue;
-    double nextHue = maxHue - 10;
-    if (nextHue < 0)
-      nextHue += 360;
-
-    while (hues[currentHue] > hues[nextHue]) {
-      currentHue = nextHue;
-      double nextHue = currentHue - 10;
-      if (nextHue < 0)
-        nextHue += 360;
-    } 
+  // use the centers to create the distribution
+  for (auto c : centers) {
+    _colors.push_back(c);
   }
 }
 
@@ -108,6 +95,21 @@ void GibbsPalette::mouseDown(const MouseEvent & event)
     vp->setSize(id->getWidth(), id->getHeight());
 
     CallOutBox::launchAsynchronously(vp, this->getScreenBounds(), nullptr);
+  }
+  else if (event.mods.isRightButtonDown()) {
+    PopupMenu menu;
+    menu.addItem(1, "Create Palette");
+
+    int result = menu.show();
+
+    if (result == 1) {
+      // load colors through main component
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+      if (mc != nullptr) {
+        mc->setColors(_colors, _avgIntens);
+      }
+    }
   }
 }
 
@@ -231,6 +233,11 @@ void GibbsColorConstraint::changeListenerCallback(ChangeBroadcaster * source)
   repaint();
 }
 
+void GibbsColorConstraint::setSelectedColor(Colour c)
+{
+  _color = c;
+}
+
 GibbsConstraintContainer::GibbsConstraintContainer()
 {
   _intens.setName("intens");
@@ -325,6 +332,35 @@ void GibbsConstraintContainer::addColorConstraint()
   _deleteButtons.add(del);
 
   _counter++;
+  resized();
+}
+
+void GibbsConstraintContainer::addColors(vector<Eigen::VectorXd> colors, double intens)
+{
+  for (auto c : _colors)
+    delete c;
+  _colors.clear();
+
+  for (auto c : colors) {
+    GibbsColorConstraint* gc = new GibbsColorConstraint();
+    addAndMakeVisible(gc);
+    gc->setSelectedColor(Colour((float)c[0], (float)c[1], (float)c[2], 1.0f));
+    _colors.add(gc);
+    gc->setName(String(_counter));
+
+    TextButton* del = new TextButton();
+    del->setName(String(_counter));
+    del->setButtonText("x");
+    del->setTooltip("Delete Constraint");
+    del->addListener(this);
+    addAndMakeVisible(del);
+    _deleteButtons.add(del);
+
+    _counter++;
+  }
+
+  _intens.setValue(intens, dontSendNotification);
+
   resized();
 }
 

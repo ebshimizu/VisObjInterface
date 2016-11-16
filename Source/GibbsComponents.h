@@ -40,6 +40,9 @@ private:
   shared_ptr<GibbsSchedule> _schedule;
   Image _img;
   String _name;
+
+  vector<Eigen::VectorXd> _colors;
+  double _avgIntens;
 };
 
 // Displays a list of the contained pallets in a grid
@@ -79,6 +82,8 @@ public:
 
   void changeListenerCallback(ChangeBroadcaster* source);
 
+  void setSelectedColor(Colour c);
+
 private:
   Colour _color;
   float _sigma;
@@ -101,6 +106,9 @@ public:
 
   // Adds a new color constraint element to the gui
   void addColorConstraint();
+
+  // adds a set of color constraints to the gui
+  void addColors(vector<Eigen::VectorXd> colors, double intens);
 
   virtual void buttonClicked(Button* b);
 

@@ -87,6 +87,8 @@ public:
   // Checks the parameter component and retrieves selected devices
   StringArray getSelectedDeviceIds();
 
+  void setColors(vector<Eigen::VectorXd> colors, double intens);
+
 private:
   // Open a Lumiverse file
   void openRig();
