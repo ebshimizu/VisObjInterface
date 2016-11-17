@@ -452,6 +452,8 @@ GlobalSettings::GlobalSettings()
   _thresholdDecayRate = 50;
 
   _imageAttrLoc = File::getCurrentWorkingDirectory().getChildFile("image_attributes");
+  _tempDir = File::getCurrentWorkingDirectory().getChildFile("tmp");
+  _paletteAppDir = File::getCurrentWorkingDirectory().getChildFile("PaletteExtraction");
 
   if (_searchThreads <= 0)
     _searchThreads = 1;

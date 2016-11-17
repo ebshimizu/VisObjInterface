@@ -355,6 +355,17 @@ public:
 
   // folder containing the image attributes to load
   File _imageAttrLoc;
+
+  // temporary working directory for color palette extraction
+  File _tempDir;
+
+  // app dir
+  File _paletteAppDir;
+
+  // Stores the sensitivity value of each light in the rig.
+  // computed on load, this is the average per-pixel change in brightness
+  // centered on 50%.
+  map<string, double> _sensitivity;
 };
 
 // Results that eventually get returned to the UI layer

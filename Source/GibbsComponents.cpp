@@ -99,6 +99,7 @@ void GibbsPalette::mouseDown(const MouseEvent & event)
   else if (event.mods.isRightButtonDown()) {
     PopupMenu menu;
     menu.addItem(1, "Create Palette");
+    menu.addItem(2, "Generate Palette");
 
     int result = menu.show();
 
@@ -110,12 +111,62 @@ void GibbsPalette::mouseDown(const MouseEvent & event)
         mc->setColors(_colors, _avgIntens);
       }
     }
+    if (result == 2) {
+      // debug
+      generatePalette(5);
+    }
   }
 }
 
 shared_ptr<GibbsSchedule> GibbsPalette::getSchedule()
 {
   return _schedule;
+}
+
+void GibbsPalette::generatePalette(int colors)
+{
+  // step 0: check that all required dirs exist
+  File temp = getGlobalSettings()->_tempDir;
+  if (!temp.getChildFile("saliency").exists())
+    temp.getChildFile("saliency").createDirectory();
+
+  if (!temp.getChildFile("segments").exists())
+    temp.getChildFile("segments").createDirectory();
+
+  if (!temp.getChildFile("tmp").exists())
+    temp.getChildFile("tmp").createDirectory();
+
+  // step 1: save an image to the temp working directory
+  String outPath = "";
+  {
+    File out = temp.getChildFile(_name + ".png");
+    FileOutputStream os(out);
+    PNGImageFormat pngif;
+
+    pngif.writeImageToStream(_img, os);
+    os.flush();
+    outPath = out.getFullPathName();
+  }
+
+  // step 2: cd to the app folder and run the matlab command to generate images
+  File scriptDir = getGlobalSettings()->_paletteAppDir;
+  String cmd = "matlab -r -nosplash -nodesktop -wait \"cd('" + scriptDir.getFullPathName() + "');";
+  cmd += "generateImages('" + outPath + "', '" + _name + "', '" + temp.getFullPathName() + "/');exit;\"";
+  system(cmd.toStdString().c_str());
+
+  // step 3: run the palette generation command
+  File paletteGen = scriptDir.getChildFile("getPalette.exe");
+  cmd = paletteGen.getFullPathName() + " " + temp.getFullPathName() + " " + scriptDir.getChildFile("weights").getFullPathName();
+  cmd += " " + scriptDir.getChildFile("c3_data.json").getFullPathName() + " " + _name + ".png ";
+  cmd += temp.getChildFile(_name + "_" + String(colors) + ".colors").getFullPathName() + " " + String(colors);
+  system(cmd.toStdString().c_str());
+
+  // step 4: read color file
+  File result = temp.getChildFile(_name + "_" + String(colors) + ".colors");
+  String colors = result.loadFileAsString();
+
+  // colors are rgb separated by a space
+
 }
 
 //=============================================================================

@@ -36,6 +36,9 @@ public:
   // gets a pointer to the schedule created by this pallet
   shared_ptr<GibbsSchedule> getSchedule();
 
+  // Generates a color palette using Sharon Lin's palette extraction code
+  void generatePalette(int colors);
+
 private:
   shared_ptr<GibbsSchedule> _schedule;
   Image _img;
