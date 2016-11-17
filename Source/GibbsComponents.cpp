@@ -416,7 +416,7 @@ void GibbsConstraintContainer::resized()
 
   auto lightsRow = lbounds.removeFromTop(30);
   lightsRow.removeFromLeft(60);
-  _numLights.setBounds(intensRow);
+  _numLights.setBounds(lightsRow);
 
   auto bot = lbounds.removeFromTop(30);
   _add.setBounds(bot.removeFromRight(100).reduced(2));
