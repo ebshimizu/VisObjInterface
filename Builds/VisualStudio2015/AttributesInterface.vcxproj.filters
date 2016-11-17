@@ -436,6 +436,9 @@
     <ClCompile Include="..\..\Source\GibbsSchedule.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\gibbs_with_gaussian_mixture.cpp">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\GibbsEdit.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>

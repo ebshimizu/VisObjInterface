@@ -423,6 +423,10 @@ vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> AttributeControls::getGibb
   GibbsSchedule s;
   auto colorConstraints = _paletteControls->_tempConstraints->getColorDists();
   auto intensConstraints = _paletteControls->_tempConstraints->getIntensDist();
+  
+  double avg, max;
+  int k;
+  _paletteControls->_tempConstraints->getIntensDistProps(s._avgIntens, s._maxIntens, s._numBrightLights);
 
   GibbsScheduleConstraint ci;
   ci._followConventions = true;

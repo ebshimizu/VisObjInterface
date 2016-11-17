@@ -94,7 +94,8 @@ private:
   TextButton _setColor;
 };
 
-class GibbsConstraintContainer : public Component, public SliderListener, public ButtonListener {
+class GibbsConstraintContainer : public Component, public SliderListener, public ButtonListener
+{
 public:
   GibbsConstraintContainer();
   ~GibbsConstraintContainer();
@@ -115,13 +116,23 @@ public:
 
   virtual void buttonClicked(Button* b);
 
+  // fills in the average, max, and number of bright lights parameters
+  void getIntensDistProps(double& avg, double& max, int& k);
+
+  // returns true if the scope is set to Systems, false if set to lights
+  bool useSystems();
+
 private:
   Array<GibbsColorConstraint*> _colors;
   Array<TextButton*> _deleteButtons;
 
   TextButton _add;
   Slider _intens;
+  Slider _numLights;
+  ComboBox _scope;
+
   int _counter;
+  int _k;
 };
 
 // This component is an intensity constraint on the gibbs sampler.

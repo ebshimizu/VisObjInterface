@@ -39,6 +39,7 @@
 		8E576466171B54389F255C5D = {isa = PBXBuildFile; fileRef = 324D1E609BB3DFA791CAAC51; };
 		ACC4D97B0C3C5E1AD59D1FAE = {isa = PBXBuildFile; fileRef = C8D4614AEC6282049AACA9A9; };
 		3504654C7017F25C1BB21B09 = {isa = PBXBuildFile; fileRef = BC9E5C1687F6841B3E840CDB; };
+		9332EBBF7E7EC2E904999E81 = {isa = PBXBuildFile; fileRef = E19D06C1C36749D1699AD8BB; };
 		52BB0E573729932815EBC09B = {isa = PBXBuildFile; fileRef = B7E5ACEC9F3FFB20042B7812; };
 		0B603B1B4CB8D89CC00CC5EC = {isa = PBXBuildFile; fileRef = 632000188BAE7A9EC01E2E8B; };
 		A729A1EFD2EA14AC479AAD2C = {isa = PBXBuildFile; fileRef = 5008F966D83231242802E5E7; };
@@ -1225,6 +1226,7 @@
 		E100A7382D8CBF3410CC212B = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_OpenGL_win32.h"; path = "../../JuceLibraryCode/modules/juce_opengl/native/juce_OpenGL_win32.h"; sourceTree = "SOURCE_ROOT"; };
 		E1794180EEF88B878E0C5D59 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_HashMap.h"; path = "../../JuceLibraryCode/modules/juce_core/containers/juce_HashMap.h"; sourceTree = "SOURCE_ROOT"; };
 		E1808A1531C6E76F1C5F3D0E = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "juce_ios_Audio.cpp"; path = "../../JuceLibraryCode/modules/juce_audio_devices/native/juce_ios_Audio.cpp"; sourceTree = "SOURCE_ROOT"; };
+		E19D06C1C36749D1699AD8BB = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = "gibbs_with_gaussian_mixture.cpp"; path = "../../Source/gibbs_with_gaussian_mixture.cpp"; sourceTree = "SOURCE_ROOT"; };
 		E217D417B2BC6CE5A7F15C9C = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = bitrate.c; path = "../../JuceLibraryCode/modules/juce_audio_formats/codecs/oggvorbis/libvorbis-1.3.2/lib/bitrate.c"; sourceTree = "SOURCE_ROOT"; };
 		E22092279D6737A19F0269E9 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "gibbs_with_gaussian_mixture.h"; path = "../../Source/gibbs_with_gaussian_mixture.h"; sourceTree = "SOURCE_ROOT"; };
 		E2992A3301FC21B34B4310C4 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "juce_AnimatedPosition.h"; path = "../../JuceLibraryCode/modules/juce_gui_basics/layout/juce_AnimatedPosition.h"; sourceTree = "SOURCE_ROOT"; };
@@ -1451,9 +1453,10 @@
 					6C2B9C97F932EC669FCDD8BD,
 					BC9E5C1687F6841B3E840CDB,
 					9674FE85E491E4CFCA7BB08F,
-					B7E5ACEC9F3FFB20042B7812,
 					54D85A48986E793FA2090C64,
 					E22092279D6737A19F0269E9,
+					E19D06C1C36749D1699AD8BB,
+					B7E5ACEC9F3FFB20042B7812,
 					632000188BAE7A9EC01E2E8B,
 					B7569BDA7BDDD612DE40C656,
 					5008F966D83231242802E5E7,
@@ -2977,6 +2980,7 @@
 					8E576466171B54389F255C5D,
 					ACC4D97B0C3C5E1AD59D1FAE,
 					3504654C7017F25C1BB21B09,
+					9332EBBF7E7EC2E904999E81,
 					52BB0E573729932815EBC09B,
 					0B603B1B4CB8D89CC00CC5EC,
 					A729A1EFD2EA14AC479AAD2C,

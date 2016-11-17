@@ -38,6 +38,12 @@ public:
   // samples the color according to the current schedule
   void sampleColor(vector<float>& result, const vector<GibbsConstraint> constraints);
 
+  // mixing some parameters here while the final interface gets figured out
+  double _avgIntens;
+  double _maxIntens;
+  int _numBrightLights;
+  bool _useSystems;
+
 private:
   default_random_engine _gen;
 
@@ -48,7 +54,6 @@ private:
   vector<normal_distribution<float> > _hueDists;
   vector<normal_distribution<float> > _satDists;
   vector<normal_distribution<float> > _valDists;
-
 };
 
 

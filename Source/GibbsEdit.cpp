@@ -9,7 +9,6 @@
 */
 
 #include "GibbsEdit.h"
-#include "gibbs_with_gaussian_mixture.h"
 
 GibbsEdit::GibbsEdit(set<EditParam> lockedParams) : Edit(lockedParams)
 {
@@ -56,7 +55,7 @@ void GibbsEdit::performEdit(Snapshot * s, double stepSize)
     constraint.push_back(0);
   }
 
-  GibbsSamplingGaussianMixture(results, constraint, results.size(), 1, 0.9, 0.1);
+  //GibbsSamplingGaussianMixture(results, constraint, results.size(), 1, 0.9, 0.1);
 
   auto data = s->getRigData();
 

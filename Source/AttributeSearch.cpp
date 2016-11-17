@@ -1004,28 +1004,50 @@ void AttributeSearchThread::runGibbsSampling()
       if (schedule.first._param == GINTENSITY) {
         sampleData.resize(systems.size());
 
-        // for now we assume all things are free
-        // TODO: CHECK LOCKS
-        vector<GibbsConstraint> constraints;
-        for (int i = 0; i < sampleData.size(); i++)
-          constraints.push_back(FREE);
+        // testing out Ersin's sample code
+        // operates on all lights, not just systems right now
+        // initialize results
+        vector<float> results, sens;
+        vector<int> constraints;
+        for (auto d : deviceData) {
+          results.push_back(0);
+          sens.push_back(getGlobalSettings()->_sensitivity[d.first]);
+          constraints.push_back(0);
+        }
 
-        schedule.second->sampleIntensity(sampleData, constraints);
+        GibbsSamplingGaussianMixture(results, constraints, sens, results.size(),
+          schedule.second->_numBrightLights, schedule.second->_avgIntens, schedule.second->_maxIntens, true);
 
-        // link system with val
-        map<string, float> systemToVal;
+        // update devices
         int i = 0;
-        for (auto s : systems) {
-          systemToVal[s] = sampleData[i];
+        for (auto d : deviceData) {
+          if (!isDeviceParamLocked(d.first, "intensity"))
+            deviceData[d.first]->getIntensity()->setValAsPercent(results[i]);
           i++;
         }
 
+        // for now we assume all things are free
+        // TODO: CHECK LOCKS
+        //vector<GibbsConstraint> constraints;
+        //for (int i = 0; i < sampleData.size(); i++)
+        //  constraints.push_back(FREE);
+
+        //schedule.second->sampleIntensity(sampleData, constraints);
+
+        // link system with val
+        //map<string, float> systemToVal;
+        //int i = 0;
+        //for (auto s : systems) {
+        //  systemToVal[s] = sampleData[i];
+        //  i++;
+        //}
+
         // update devices
-        for (auto id : devices.getIds()) {
-          if (!isDeviceParamLocked(id, "intensity")) {
-            deviceData[id]->getIntensity()->setValAsPercent(systemToVal[deviceData[id]->getMetadata("system")]);
-          }
-        }
+        //for (auto id : devices.getIds()) {
+        //  if (!isDeviceParamLocked(id, "intensity")) {
+        //    deviceData[id]->getIntensity()->setValAsPercent(systemToVal[deviceData[id]->getMetadata("system")]);
+        //  }
+        //}
       }
       else if (schedule.first._param == GCOLOR) {
         sampleData.resize(systems.size() * 3);

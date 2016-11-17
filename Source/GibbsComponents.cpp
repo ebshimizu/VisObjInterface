@@ -337,14 +337,29 @@ void GibbsColorConstraint::setSelectedColor(Colour c)
 GibbsConstraintContainer::GibbsConstraintContainer()
 {
   _intens.setName("intens");
+  _intens.setSliderStyle(Slider::SliderStyle::TwoValueHorizontal);
   _intens.addListener(this);
   _intens.setRange(0, 1);
   addAndMakeVisible(_intens);
+
+  _numLights.setName("bright");
+  _numLights.addListener(this);
+  _numLights.setRange(0, getRig()->getAllDevices().size(), 0);
+  addAndMakeVisible(_numLights);
 
   _add.setName("add");
   _add.addListener(this);
   _add.setButtonText("Add Color");
   addAndMakeVisible(_add);
+
+  _intens.setMinAndMaxValues(0.3, 0.8);
+  _k = 2;
+
+  _scope.setName("scope");
+  _scope.addItem("Lights", 1);
+  _scope.addItem("Systems", 2);
+  _scope.setSelectedId(1, dontSendNotification);
+  addAndMakeVisible(_scope);
 
   for (int i = 0; i < 4; i++) {
     addColorConstraint();
@@ -384,7 +399,9 @@ void GibbsConstraintContainer::resized()
 
   _intens.setBounds(lbounds.removeFromTop(30));
 
-  _add.setBounds(lbounds.removeFromTop(30).removeFromRight(100).reduced(2));
+  auto bot = lbounds.removeFromTop(30);
+  _add.setBounds(bot.removeFromRight(100).reduced(2));
+  _scope.setBounds(bot.removeFromLeft(100).reduced(2));
 }
 
 void GibbsConstraintContainer::sliderValueChanged(Slider * s)
@@ -485,4 +502,16 @@ void GibbsConstraintContainer::buttonClicked(Button * b)
     addColorConstraint();
     getParentComponent()->resized();
   }
+}
+
+void GibbsConstraintContainer::getIntensDistProps(double & avg, double & max, int & k)
+{
+  avg = _intens.getMinValue();
+  max = _intens.getMaxValue();
+  k = _k;
+}
+
+bool GibbsConstraintContainer::useSystems()
+{
+  return _scope.getSelectedId() == 2;
 }

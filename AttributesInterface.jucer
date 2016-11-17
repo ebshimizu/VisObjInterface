@@ -88,10 +88,12 @@
         <FILE id="sh6lOV" name="GibbsSchedule.cpp" compile="1" resource="0"
               file="Source/GibbsSchedule.cpp"/>
         <FILE id="QnASQg" name="GibbsSchedule.h" compile="0" resource="0" file="Source/GibbsSchedule.h"/>
-        <FILE id="w3I9NJ" name="GibbsEdit.cpp" compile="1" resource="0" file="Source/GibbsEdit.cpp"/>
         <FILE id="XqvCCE" name="GibbsEdit.h" compile="0" resource="0" file="Source/GibbsEdit.h"/>
         <FILE id="KzrdVc" name="gibbs_with_gaussian_mixture.h" compile="0"
               resource="0" file="Source/gibbs_with_gaussian_mixture.h"/>
+        <FILE id="D43HVb" name="gibbs_with_gaussian_mixture.cpp" compile="1"
+              resource="0" file="Source/gibbs_with_gaussian_mixture.cpp"/>
+        <FILE id="w3I9NJ" name="GibbsEdit.cpp" compile="1" resource="0" file="Source/GibbsEdit.cpp"/>
         <FILE id="roidQC" name="AttributeStyles.cpp" compile="1" resource="0"
               file="Source/AttributeStyles.cpp"/>
         <FILE id="cpyQHo" name="AttributeStyles.h" compile="0" resource="0"

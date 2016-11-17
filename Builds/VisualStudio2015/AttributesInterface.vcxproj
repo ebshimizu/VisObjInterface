@@ -152,6 +152,7 @@
     <ClCompile Include="..\..\Source\StatusBar.cpp"/>
     <ClCompile Include="..\..\Source\SystemExplorer.cpp"/>
     <ClCompile Include="..\..\Source\GibbsSchedule.cpp"/>
+    <ClCompile Include="..\..\Source\gibbs_with_gaussian_mixture.cpp"/>
     <ClCompile Include="..\..\Source\GibbsEdit.cpp"/>
     <ClCompile Include="..\..\Source\AttributeStyles.cpp"/>
     <ClCompile Include="..\..\Source\SearchResultList.cpp"/>
