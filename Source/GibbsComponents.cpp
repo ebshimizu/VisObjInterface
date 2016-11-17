@@ -340,11 +340,13 @@ GibbsConstraintContainer::GibbsConstraintContainer()
   _intens.setSliderStyle(Slider::SliderStyle::TwoValueHorizontal);
   _intens.addListener(this);
   _intens.setRange(0, 1);
+  _intens.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, false, 0, 0);
+  _intens.setPopupDisplayEnabled(true, nullptr);
   addAndMakeVisible(_intens);
 
   _numLights.setName("bright");
   _numLights.addListener(this);
-  _numLights.setRange(0, getRig()->getAllDevices().size(), 0);
+  _numLights.setRange(0, getRig()->getAllDevices().size(), 1);
   addAndMakeVisible(_numLights);
 
   _add.setName("add");
@@ -359,6 +361,7 @@ GibbsConstraintContainer::GibbsConstraintContainer()
   _scope.addItem("Lights", 1);
   _scope.addItem("Systems", 2);
   _scope.setSelectedId(1, dontSendNotification);
+  _scope.addListener(this);
   addAndMakeVisible(_scope);
 
   for (int i = 0; i < 4; i++) {
@@ -379,12 +382,22 @@ GibbsConstraintContainer::~GibbsConstraintContainer()
 
 void GibbsConstraintContainer::paint(Graphics & g)
 {
+  auto lbounds = getLocalBounds();
+  lbounds.removeFromTop(40 * _colors.size());
+
+  // labels
+  auto intensLabel = lbounds.removeFromTop(30).removeFromLeft(60);
+  g.setColour(Colours::white);
+  g.drawFittedText("Target Intensity", intensLabel, Justification::centredLeft, 2);
+
+  auto lightLabel = lbounds.removeFromTop(30).removeFromLeft(60);
+  g.drawFittedText("Birght Lights", lightLabel, Justification::centredLeft, 2);
 }
 
 void GibbsConstraintContainer::resized()
 {
   // TODO: MAGIC NUMBERS BAD
-  int height = 40 * _colors.size() + 30 * 2;
+  int height = 40 * _colors.size() + 30 * 3;
   setSize(getWidth(), height);
 
   auto lbounds = getLocalBounds();
@@ -397,7 +410,13 @@ void GibbsConstraintContainer::resized()
     i++;
   }
 
-  _intens.setBounds(lbounds.removeFromTop(30));
+  auto intensRow = lbounds.removeFromTop(30);
+  intensRow.removeFromLeft(60);
+  _intens.setBounds(intensRow);
+
+  auto lightsRow = lbounds.removeFromTop(30);
+  intensRow.removeFromLeft(60);
+  _numLights.setBounds(intensRow);
 
   auto bot = lbounds.removeFromTop(30);
   _add.setBounds(bot.removeFromRight(100).reduced(2));
@@ -426,7 +445,7 @@ vector<vector<normal_distribution<float>>> GibbsConstraintContainer::getColorDis
 
 normal_distribution<float> GibbsConstraintContainer::getIntensDist()
 {
-  return normal_distribution<float>(_intens.getValue());
+  return normal_distribution<float>(_intens.getMinValue());
 }
 
 void GibbsConstraintContainer::addColorConstraint()
@@ -508,10 +527,24 @@ void GibbsConstraintContainer::getIntensDistProps(double & avg, double & max, in
 {
   avg = _intens.getMinValue();
   max = _intens.getMaxValue();
-  k = _k;
+  k = (int) _numLights.getValue();
 }
 
 bool GibbsConstraintContainer::useSystems()
 {
   return _scope.getSelectedId() == 2;
+}
+
+void GibbsConstraintContainer::updateBounds()
+{
+  if (_scope.getSelectedId() == 1)
+    _numLights.setRange(0, getRig()->getAllDevices().size(), 1);
+
+  else if (_scope.getSelectedId() == 2)
+    _numLights.setRange(0, getRig()->getMetadataValues("system").size(), 1);
+}
+
+void GibbsConstraintContainer::comboBoxChanged(ComboBox * b)
+{
+  updateBounds();
 }

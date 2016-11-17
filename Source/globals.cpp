@@ -597,5 +597,47 @@ void computeLightSensitivity()
     getGlobalSettings()->_sensitivity[active] = diff / (base.getHeight() * base.getWidth()) * 100;
   }
 
+  // systems
+  // basically the same except we adjust multiple affected devices
+  auto systems = getRig()->getMetadataValues("system");
+  for (auto system : systems) {
+    DeviceSet active = getRig()->select("$system=" + system);
+
+    // render image at 50% with selected devices
+    for (auto id : devices.getIds()) {
+      if (active.contains(id)) {
+        tmpData[id]->getIntensity()->setValAsPercent(0.5);
+
+        if (tmpData[id]->paramExists("color")) {
+          tmpData[id]->setColorRGBRaw("color", 1, 1, 1);
+        }
+      }
+      else {
+        tmpData[id]->setIntensity(0);
+      }
+    }
+
+    // render
+    Image base = renderImage(tmp, imgWidth, imgHeight);
+
+    // adjust to 51%
+    for (auto id : active.getIds()) {
+      tmpData[id]->getIntensity()->setValAsPercent(0.51);
+    }
+
+    // render
+    Image brighter = renderImage(tmp, imgWidth, imgHeight);
+
+    // calculate avg per-pixel brightness difference
+    double diff = 0;
+    for (int y = 0; y < base.getHeight(); y++) {
+      for (int x = 0; x < base.getWidth(); x++) {
+        diff += brighter.getPixelAt(x, y).getBrightness() - base.getPixelAt(x, y).getBrightness();
+      }
+    }
+
+    getGlobalSettings()->_systemSensitivity[system] = diff / (base.getHeight() * base.getWidth()) * 100;
+  }
+
   delete tmp;
 }

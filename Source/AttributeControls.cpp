@@ -314,6 +314,7 @@ void AttributeControls::reload()
   _container->removeAllControllers();
   initAttributes();
   initPallets();
+  _paletteControls->_tempConstraints->updateBounds();
 
   _container->runPreprocess();
 }
@@ -420,13 +421,11 @@ void AttributeControls::initPallets()
 
 vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> AttributeControls::getGibbsSchedule()
 {
-  GibbsSchedule s;
   auto colorConstraints = _paletteControls->_tempConstraints->getColorDists();
   auto intensConstraints = _paletteControls->_tempConstraints->getIntensDist();
   
   double avg, max;
   int k;
-  _paletteControls->_tempConstraints->getIntensDistProps(s._avgIntens, s._maxIntens, s._numBrightLights);
 
   GibbsScheduleConstraint ci;
   ci._followConventions = true;
@@ -442,6 +441,8 @@ vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> AttributeControls::getGibb
   vector<normal_distribution<float>> idists;
   idists.push_back(intensConstraints);
   sched->setIntensDist(idists);
+  _paletteControls->_tempConstraints->getIntensDistProps(sched->_avgIntens, sched->_maxIntens, sched->_numBrightLights);
+  sched->_useSystems = _paletteControls->_tempConstraints->useSystems();
 
   sched->setColorDists(colorConstraints[0], colorConstraints[1], colorConstraints[2]);
   vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> state;

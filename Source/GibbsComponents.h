@@ -94,7 +94,7 @@ private:
   TextButton _setColor;
 };
 
-class GibbsConstraintContainer : public Component, public SliderListener, public ButtonListener
+class GibbsConstraintContainer : public Component, public SliderListener, public ButtonListener, public ComboBoxListener
 {
 public:
   GibbsConstraintContainer();
@@ -121,6 +121,12 @@ public:
 
   // returns true if the scope is set to Systems, false if set to lights
   bool useSystems();
+
+  // updates the bounds on the lights slider
+  void updateBounds();
+
+  // update bounds n stuff
+  void comboBoxChanged(ComboBox* b);
 
 private:
   Array<GibbsColorConstraint*> _colors;

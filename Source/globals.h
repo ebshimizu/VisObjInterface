@@ -366,6 +366,7 @@ public:
   // computed on load, this is the average per-pixel change in brightness
   // centered on 50%.
   map<string, double> _sensitivity;
+  map<string, double> _systemSensitivity;
 };
 
 // Results that eventually get returned to the UI layer

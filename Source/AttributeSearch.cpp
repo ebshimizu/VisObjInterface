@@ -1005,25 +1005,51 @@ void AttributeSearchThread::runGibbsSampling()
         sampleData.resize(systems.size());
 
         // testing out Ersin's sample code
-        // operates on all lights, not just systems right now
-        // initialize results
+        // operates on lights or systems depending on what the schedule says
         vector<float> results, sens;
         vector<int> constraints;
-        for (auto d : deviceData) {
-          results.push_back(0);
-          sens.push_back(getGlobalSettings()->_sensitivity[d.first]);
-          constraints.push_back(0);
+        if (schedule.second->_useSystems) {
+          auto systems = getRig()->getMetadataValues("system");
+          for (auto s : systems) {
+            results.push_back(0);
+            sens.push_back(getGlobalSettings()->_systemSensitivity[s]);
+            constraints.push_back(0);
+          }
+
+          GibbsSamplingGaussianMixture(results, constraints, sens, results.size(),
+            schedule.second->_numBrightLights, schedule.second->_maxIntens, schedule.second->_avgIntens, true);
+
+          // update devices
+          int i = 0;
+          for (auto s : systems) {
+            DeviceSet selected = getRig()->select("$system=" + s);
+            auto ids = selected.getIds();
+            
+            for (auto id : ids) {
+              if (!isDeviceParamLocked(id, "intensity"))
+                deviceData[id]->getIntensity()->setValAsPercent(results[i]);
+            }
+
+            i++;
+          }
         }
+        else {
+          for (auto d : deviceData) {
+            results.push_back(0);
+            sens.push_back(getGlobalSettings()->_sensitivity[d.first]);
+            constraints.push_back(0);
+          }
 
-        GibbsSamplingGaussianMixture(results, constraints, sens, results.size(),
-          schedule.second->_numBrightLights, schedule.second->_avgIntens, schedule.second->_maxIntens, true);
+          GibbsSamplingGaussianMixture(results, constraints, sens, results.size(),
+            schedule.second->_numBrightLights, schedule.second->_maxIntens, schedule.second->_avgIntens, true);
 
-        // update devices
-        int i = 0;
-        for (auto d : deviceData) {
-          if (!isDeviceParamLocked(d.first, "intensity"))
-            deviceData[d.first]->getIntensity()->setValAsPercent(results[i]);
-          i++;
+          // update devices
+          int i = 0;
+          for (auto d : deviceData) {
+            if (!isDeviceParamLocked(d.first, "intensity"))
+              deviceData[d.first]->getIntensity()->setValAsPercent(results[i]);
+            i++;
+          }
         }
 
         // for now we assume all things are free
