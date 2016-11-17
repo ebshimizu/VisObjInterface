@@ -415,7 +415,7 @@ void GibbsConstraintContainer::resized()
   _intens.setBounds(intensRow);
 
   auto lightsRow = lbounds.removeFromTop(30);
-  intensRow.removeFromLeft(60);
+  lightsRow.removeFromLeft(60);
   _numLights.setBounds(intensRow);
 
   auto bot = lbounds.removeFromTop(30);
@@ -491,7 +491,7 @@ void GibbsConstraintContainer::addColors(vector<Eigen::VectorXd> colors, double 
     _counter++;
   }
 
-  _intens.setValue(intens, dontSendNotification);
+  _intens.setMinValue(intens, dontSendNotification);
 
   resized();
 }
