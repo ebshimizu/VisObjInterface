@@ -437,4 +437,7 @@ Image renderImage(Snapshot* s, int width, int height);
 // returns a set of systems that have at least one light unlocked
 set<string> getUnlockedSystems();
 
+// populates the sensitivity map for each light
+void computeLightSensitivity();
+
 #endif  // GLOBALS_H_INCLUDED

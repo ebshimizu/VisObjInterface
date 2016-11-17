@@ -548,3 +548,54 @@ set<string> getUnlockedSystems()
 
   return sets;
 }
+
+void computeLightSensitivity()
+{
+  int imgWidth = 100;
+  int imgHeight = 100;
+
+  getGlobalSettings()->_sensitivity.clear();
+
+  // process: set each light individually to 50% intensity
+  // calculate average per-pixel difference in image brightness
+  auto devices = getRig()->getAllDevices();
+  Snapshot* tmp = new Snapshot(getRig());
+  auto tmpData = tmp->getRigData();
+
+  for (auto active : devices.getIds()) {
+    // render image at 50% with just that device
+    for (auto id : devices.getIds()) {
+      if (id == active) {
+        tmpData[id]->getIntensity()->setValAsPercent(0.5);
+
+        if (tmpData[id]->paramExists("color")) {
+          tmpData[id]->setColorRGBRaw("color", 1, 1, 1);
+        }
+      }
+      else {
+        tmpData[id]->setIntensity(0);
+      }
+    }
+
+    // render
+    Image base = renderImage(tmp, imgWidth, imgHeight);
+
+    // adjust to 51%
+    tmpData[active]->getIntensity()->setValAsPercent(0.51);
+
+    // render
+    Image brighter = renderImage(tmp, imgWidth, imgHeight);
+    
+    // calculate avg per-pixel brightness difference
+    double diff = 0;
+    for (int y = 0; y < base.getHeight(); y++) {
+      for (int x = 0; x < base.getWidth(); x++) {
+        diff += brighter.getPixelAt(x, y).getBrightness() - base.getPixelAt(x, y).getBrightness();
+      }
+    }
+
+    getGlobalSettings()->_sensitivity[active] = diff / (base.getHeight() * base.getWidth()) * 100;
+  }
+
+  delete tmp;
+}

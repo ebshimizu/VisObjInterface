@@ -163,10 +163,10 @@ void GibbsPalette::generatePalette(int colors)
 
   // step 4: read color file
   File result = temp.getChildFile(_name + "_" + String(colors) + ".colors");
-  String colors = result.loadFileAsString();
+  String colorString = result.loadFileAsString();
 
   // colors are rgb separated by a space
-
+  // TODO: parse the file
 }
 
 //=============================================================================
