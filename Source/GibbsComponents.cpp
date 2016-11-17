@@ -114,6 +114,12 @@ void GibbsPalette::mouseDown(const MouseEvent & event)
     if (result == 2) {
       // debug
       generatePalette(5);
+
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+      if (mc != nullptr) {
+        mc->setColors(_colors, _avgIntens);
+      }
     }
   }
 }
@@ -155,18 +161,57 @@ void GibbsPalette::generatePalette(int colors)
   system(cmd.toStdString().c_str());
 
   // step 3: run the palette generation command
+  File result = temp.getChildFile(_name + "_" + String(colors) + ".colors");
+  result.deleteFile();
   File paletteGen = scriptDir.getChildFile("getPalette.exe");
   cmd = paletteGen.getFullPathName() + " " + temp.getFullPathName() + " " + scriptDir.getChildFile("weights").getFullPathName();
   cmd += " " + scriptDir.getChildFile("c3_data.json").getFullPathName() + " " + _name + ".png ";
-  cmd += temp.getChildFile(_name + "_" + String(colors) + ".colors").getFullPathName() + " " + String(colors);
+  cmd += result.getFullPathName() + " " + String(colors);
   system(cmd.toStdString().c_str());
 
   // step 4: read color file
-  File result = temp.getChildFile(_name + "_" + String(colors) + ".colors");
   String colorString = result.loadFileAsString();
+  _colors.clear();
 
   // colors are rgb separated by a space
   // TODO: parse the file
+  int start = 0;
+  int end = 0;
+  while (start <= colorString.length()) {
+    end = colorString.indexOf(start, " ");
+    if (end == -1)
+      end = colorString.length();
+
+    String substr = colorString.substring(start, end);
+
+    // parse numbers, separated by ,
+    int R = substr.upToFirstOccurrenceOf(",", false, true).getIntValue();
+    substr = substr.fromFirstOccurrenceOf(",", false, true);
+
+    int G = substr.upToFirstOccurrenceOf(",", false, true).getIntValue();
+    substr = substr.fromFirstOccurrenceOf(",", false, true);
+
+    int B = substr.getIntValue();
+
+    Colour c(R, G, B);
+
+    Eigen::VectorXf hsv;
+    hsv.resize(3);
+    c.getHSB(hsv[0], hsv[1], hsv[2]);
+
+    Eigen::VectorXd pt;
+    pt.resize(3);
+    pt[0] = hsv[0];
+    pt[1] = hsv[1];
+    pt[2] = hsv[2];
+
+    _colors.push_back(pt);
+
+    start = end + 1;
+  }
+
+  // step 5: show in interface
+  // that actually happens not in this function 
 }
 
 //=============================================================================
