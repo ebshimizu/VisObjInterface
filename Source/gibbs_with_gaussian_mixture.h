@@ -18,7 +18,8 @@
 //
 //
 // inputs:
-// c  = constraints per light (0: no constraint, 1: sample from high, sample from low)
+// c  = constraints per light (0: no constraint, 1: sample from high, 2: sample from low)
+// s  = approximate average sensitivity per light per pixel.
 // n  = number of samples to generate (in our case, number of lights or
 //      light systems to generate intensity for).
 // k  = target number of directed (i.e. high intensity) lights.
@@ -30,10 +31,12 @@
 //
 void GibbsSamplingGaussianMixture(std::vector<float>& result,
                                   const std::vector<int>& c,
+                                  const std::vector<float>& s,
                                   const int n,
                                   const int k,
                                   const float mh,
                                   const float ma,
+                                  bool use_image_intensity = true,
                                   const float sh=0.1,
                                   const float sl=0.1)
 {
@@ -41,6 +44,9 @@ void GibbsSamplingGaussianMixture(std::vector<float>& result,
     result.resize(n);
 
   assert(c.size() == n);
+
+  if (use_image_intensity)
+    assert(s.size() == n);
 
   std::random_device rd;
   std::mt19937 gen(rd());
@@ -165,6 +171,24 @@ void GibbsSamplingGaussianMixture(std::vector<float>& result,
     {
       result[i] = unconstrained_samples[j];
       j++;
+    }
+  }
+
+  if (use_image_intensity)
+  {
+    float sum_s = 0.0f;
+    for (int i = 0; i < n; ++i)
+    {
+      float current_s = (result[i] / s[i] > 1.0f) ? (result[i] / 1.0f) : s[i];
+      result[i] = result[i] / current_s;
+      sum_s += current_s;
+    }
+
+    sum_s = sum_s / (float)n;
+
+    for (int i = 0; i < n; ++i)
+    {
+      result[i] = result[i] * sum_s;
     }
   }
 }
