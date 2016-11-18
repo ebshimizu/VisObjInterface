@@ -55,5 +55,7 @@ void ClosureOverUnevenBuckets(const std::vector<float>& object,
         std::end(remaining_bucket_capacity));
       bucket_id[closure_drip_order[i]] = (int)(it - remaining_bucket_capacity.begin());
     }
+    remaining_bucket_capacity[bucket_id[closure_drip_order[i]]] =
+    remaining_bucket_capacity[bucket_id[closure_drip_order[i]]] - object[closure_drip_order[i]];
   }
 }
