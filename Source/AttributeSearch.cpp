@@ -13,6 +13,7 @@
 #include "MainComponent.h"
 #include "AttributeStyles.h"
 #include "CMAES/src/cmaes_interface.h"
+#include "closure_over_uneven_buckets.h"
 #include <list>
 #include <algorithm>
 
@@ -254,7 +255,7 @@ void AttributeSearchThread::setState(Snapshot * start, attrObjFunc & f, attrObjF
   _statusMessage = "Initialized for new search. Mode: " + String(_mode);
 }
 
-void AttributeSearchThread::setState(Snapshot * start, vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> sampler)
+void AttributeSearchThread::setState(Snapshot * start, GibbsSchedule* sampler)
 {
   if (_original != nullptr)
     delete _original;
@@ -988,128 +989,114 @@ void AttributeSearchThread::runGibbsSampling()
   // we have a list of sampling schedules and the affected devices.
   // Unless otherwise specified, we assume all devices in the sets are adjusted
   // as a system
-  for (auto schedule : _activeSchedule) {
-    if (threadShouldExit()) {
-      delete sample;
-      return;
+  if (threadShouldExit()) {
+    delete sample;
+    return;
+  }
+
+  // testing out Ersin's sample code
+  // operates on lights or systems depending on what the schedule says
+  vector<float> results, sens;
+  vector<int> constraints;
+  if (_activeSchedule->_useSystems) {
+    auto systems = getRig()->getMetadataValues("system");
+    for (auto s : systems) {
+      results.push_back(0);
+      sens.push_back(getGlobalSettings()->_systemSensitivity[s]);
+      constraints.push_back(0);
     }
 
-    DeviceSet devices = schedule.first._targets;
+    GibbsSamplingGaussianMixture(results, constraints, sens, results.size(),
+      _activeSchedule->_numBrightLights, _activeSchedule->_maxIntens, _activeSchedule->_avgIntens, true);
 
-    if (schedule.first._followConventions) {
-      // determine number of affected systems
-      set<string> systems = devices.getAllMetadataForKey("system");
-      vector<float> sampleData;
+    // sample colors
+    vector<int> colorIds;
+    colorIds.resize(results.size());
+    ClosureOverUnevenBuckets(results, _activeSchedule->_colorWeights, colorIds);
 
-      if (schedule.first._param == GINTENSITY) {
-        sampleData.resize(systems.size());
+    // assign colors and intensities - actually a resample from gaussian
+    // dists centered at palette location
+    int i = 0;
+    for (auto s : systems) {
+      DeviceSet selected = getRig()->select("$system=" + s);
+      auto ids = selected.getIds();
 
-        // testing out Ersin's sample code
-        // operates on lights or systems depending on what the schedule says
-        vector<float> results, sens;
-        vector<int> constraints;
-        if (schedule.second->_useSystems) {
-          auto systems = getRig()->getMetadataValues("system");
-          for (auto s : systems) {
-            results.push_back(0);
-            sens.push_back(getGlobalSettings()->_systemSensitivity[s]);
-            constraints.push_back(0);
-          }
+      for (auto id : ids) {
+        if (!isDeviceParamLocked(id, "intensity"))
+          deviceData[id]->getIntensity()->setValAsPercent(results[i]);
+        if (!isDeviceParamLocked(id, "color")) {
+          // get color id
+          int colorId = colorIds[i];
 
-          GibbsSamplingGaussianMixture(results, constraints, sens, results.size(),
-            schedule.second->_numBrightLights, schedule.second->_maxIntens, schedule.second->_avgIntens, true);
+          // sample color
+          double sat = _activeSchedule->sampleSat(colorId);
+          double hue = _activeSchedule->sampleHue(colorId) * 360.0;
 
-          // update devices
-          int i = 0;
-          for (auto s : systems) {
-            DeviceSet selected = getRig()->select("$system=" + s);
-            auto ids = selected.getIds();
-            
-            for (auto id : ids) {
-              if (!isDeviceParamLocked(id, "intensity"))
-                deviceData[id]->getIntensity()->setValAsPercent(results[i]);
-            }
-
-            i++;
-          }
-        }
-        else {
-          for (auto d : deviceData) {
-            results.push_back(0);
-            sens.push_back(getGlobalSettings()->_sensitivity[d.first]);
-            constraints.push_back(0);
-          }
-
-          GibbsSamplingGaussianMixture(results, constraints, sens, results.size(),
-            schedule.second->_numBrightLights, schedule.second->_maxIntens, schedule.second->_avgIntens, true);
-
-          // update devices
-          int i = 0;
-          for (auto d : deviceData) {
-            if (!isDeviceParamLocked(d.first, "intensity"))
-              deviceData[d.first]->getIntensity()->setValAsPercent(results[i]);
-            i++;
-          }
-        }
-
-        // for now we assume all things are free
-        // TODO: CHECK LOCKS
-        //vector<GibbsConstraint> constraints;
-        //for (int i = 0; i < sampleData.size(); i++)
-        //  constraints.push_back(FREE);
-
-        //schedule.second->sampleIntensity(sampleData, constraints);
-
-        // link system with val
-        //map<string, float> systemToVal;
-        //int i = 0;
-        //for (auto s : systems) {
-        //  systemToVal[s] = sampleData[i];
-        //  i++;
-        //}
-
-        // update devices
-        //for (auto id : devices.getIds()) {
-        //  if (!isDeviceParamLocked(id, "intensity")) {
-        //    deviceData[id]->getIntensity()->setValAsPercent(systemToVal[deviceData[id]->getMetadata("system")]);
-        //  }
-        //}
-      }
-      else if (schedule.first._param == GCOLOR) {
-        sampleData.resize(systems.size() * 3);
-
-        // for now we assume all things are free
-        // TODO: CHECK LOCKS
-        vector<GibbsConstraint> constraints;
-        for (int i = 0; i < systems.size(); i++)
-          constraints.push_back(FREE);
-
-        schedule.second->sampleColor(sampleData, constraints);
-
-        // link system with val
-        map<string, int> systemToVal;
-        int i = 0;
-        for (auto s : systems) {
-          systemToVal[s] = i;
-          i++;
-        }
-
-        // update devices
-        for (auto id : devices.getIds()) {
-          if (!isDeviceParamLocked(id, "color")) {
-            int index = systemToVal[deviceData[id]->getMetadata("system")] * 3;
-            float hue = sampleData[index];
-            float sat = sampleData[index + 1];
-            float val = sampleData[index + 2];
-            deviceData[id]->setColorHSV("color", hue * 360.0f, sat, val);
-          }
+          // value is always 1, intens compensates
+          deviceData[id]->getColor()->setHSV(hue, sat, 1);
         }
       }
-    }
-    else {
-      // TODO: FILL THIS IN. TESTING BASIC FUNCTIONALITY WITH CONVENTIONAL VERSION
+
+      i++;
     }
   }
+  else {
+    for (auto d : deviceData) {
+      results.push_back(0);
+      sens.push_back(getGlobalSettings()->_sensitivity[d.first]);
+      constraints.push_back(0);
+    }
+
+    GibbsSamplingGaussianMixture(results, constraints, sens, results.size(),
+      _activeSchedule->_numBrightLights, _activeSchedule->_maxIntens, _activeSchedule->_avgIntens, true);
+
+    // sample colors
+    vector<int> colorIds;
+    colorIds.resize(results.size());
+    ClosureOverUnevenBuckets(results, _activeSchedule->_colorWeights, colorIds);
+
+    // update devices
+    int i = 0;
+    for (auto d : deviceData) {
+      if (!isDeviceParamLocked(d.first, "intensity"))
+        deviceData[d.first]->getIntensity()->setValAsPercent(results[i]);
+      if (!isDeviceParamLocked(d.first, "color")) {
+        // get color id
+        int colorId = colorIds[i];
+
+        // sample color
+        double sat = _activeSchedule->sampleSat(colorId);
+        double hue = _activeSchedule->sampleHue(colorId) * 360.0;
+
+        // value is always 1, intens compensates
+        deviceData[d.first]->getColor()->setHSV(hue, sat, 1);
+      }
+      i++;
+    }
+  }
+
+  // for now we assume all things are free
+  // TODO: CHECK LOCKS
+  //vector<GibbsConstraint> constraints;
+  //for (int i = 0; i < sampleData.size(); i++)
+  //  constraints.push_back(FREE);
+
+  //schedule.second->sampleIntensity(sampleData, constraints);
+
+  // link system with val
+  //map<string, float> systemToVal;
+  //int i = 0;
+  //for (auto s : systems) {
+  //  systemToVal[s] = sampleData[i];
+  //  i++;
+  //}
+
+  // update devices
+  //for (auto id : devices.getIds()) {
+  //  if (!isDeviceParamLocked(id, "intensity")) {
+  //    deviceData[id]->getIntensity()->setValAsPercent(systemToVal[deviceData[id]->getMetadata("system")]);
+  //  }
+  //}
 
   // now that we have the sample, apply the usual display criteria to it
   shared_ptr<SearchResult> r = shared_ptr<SearchResult>(new SearchResult());
@@ -1541,6 +1528,7 @@ AttributeSearch::AttributeSearch(SearchResultsViewer * viewer) : _viewer(viewer)
 {
   reinit();
   _start = nullptr;
+  _activeSchedule = nullptr;
 }
 
 AttributeSearch::~AttributeSearch()
@@ -1551,6 +1539,9 @@ AttributeSearch::~AttributeSearch()
   }
 
   _threads.clear();
+
+  if (_activeSchedule != nullptr)
+    delete _activeSchedule;
 
   delete _start;
 }
@@ -1740,13 +1731,16 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
   }
 }
 
-void AttributeSearch::setState(Snapshot * start, vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> sampler)
+void AttributeSearch::setState(Snapshot * start, GibbsSchedule* sampler)
 {
   if (_start != nullptr)
     delete _start;
 
   if (_threads.size() != getGlobalSettings()->_searchThreads)
     reinit();
+
+  if (_activeSchedule != nullptr)
+    delete _activeSchedule;
 
   _activeSchedule = sampler;
   _start = start;

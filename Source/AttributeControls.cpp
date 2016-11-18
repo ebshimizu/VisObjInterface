@@ -419,7 +419,7 @@ void AttributeControls::initPallets()
   resized();
 }
 
-vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> AttributeControls::getGibbsSchedule()
+GibbsSchedule* AttributeControls::getGibbsSchedule()
 {
   auto colorConstraints = _paletteControls->_tempConstraints->getColorDists();
   auto intensConstraints = _paletteControls->_tempConstraints->getIntensDist();
@@ -427,29 +427,17 @@ vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> AttributeControls::getGibb
   double avg, max;
   int k;
 
-  GibbsScheduleConstraint ci;
-  ci._followConventions = true;
-  ci._param = GINTENSITY;
-  ci._targets = getRig()->getAllDevices();
-
-  GibbsScheduleConstraint cc;
-  cc._param = GCOLOR;
-  cc._followConventions = true;
-  cc._targets = getRig()->getAllDevices();
-
   GibbsSchedule* sched = new GibbsSchedule();
   vector<normal_distribution<float>> idists;
   idists.push_back(intensConstraints);
   sched->setIntensDist(idists);
   _paletteControls->_tempConstraints->getIntensDistProps(sched->_avgIntens, sched->_maxIntens, sched->_numBrightLights);
   sched->_useSystems = _paletteControls->_tempConstraints->useSystems();
+  sched->_colorWeights = _paletteControls->_tempConstraints->getColorWeights();
 
   sched->setColorDists(colorConstraints[0], colorConstraints[1], colorConstraints[2]);
-  vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> state;
-  state.push_back(pair<GibbsScheduleConstraint, GibbsSchedule*>(ci, sched));
-  state.push_back(pair<GibbsScheduleConstraint, GibbsSchedule*>(cc, sched));
 
-  return state;
+  return sched;
 }
 
 ParamControls * AttributeControls::getParamController()
@@ -462,9 +450,9 @@ HistoryPanel* AttributeControls::getHistory()
   return _history;
 }
 
-void AttributeControls::setColors(vector<Eigen::VectorXd> colors, double intens)
+void AttributeControls::setColors(vector<Eigen::VectorXd> colors, double intens, vector<float> weights)
 {
-  _paletteControls->_tempConstraints->addColors(colors, intens);
+  _paletteControls->_tempConstraints->addColors(colors, intens, weights);
   _paletteControls->resized();
 }
 

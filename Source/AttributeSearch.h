@@ -72,7 +72,7 @@ public:
   ~AttributeSearchThread();
 
   void setState(Snapshot* start, attrObjFunc& f, attrObjFunc& fsq, SearchMode m, Image freeze);
-  void setState(Snapshot* start, vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> sampler);
+  void setState(Snapshot* start, GibbsSchedule* sampler);
 
   void run() override;
 
@@ -129,7 +129,7 @@ private:
   Array<shared_ptr<SearchResultContainer> > _currentResults;
   DistanceMetric _distMetric;
   DistanceMetric _dispMetric;
-  vector<pair<GibbsScheduleConstraint, GibbsSchedule*> > _activeSchedule;
+  GibbsSchedule* _activeSchedule;
 
   // repulsion terms
   double _coneK;
@@ -252,7 +252,7 @@ public:
   // updates the state of the search on running. Will assume ownership of snapshot.
   void setState(Snapshot* start, map<string, AttributeControllerBase*> active);
 
-  void setState(Snapshot* start, vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> sampler);
+  void setState(Snapshot* start, GibbsSchedule* sampler);
 
   // Runs the search dispatch thread
   // this thread really just manages the runtime of other threads that actually perform
@@ -286,7 +286,7 @@ private:
   // for gibbs sampling, the active base schedule provided by the user.
   // it's likely the search will slightly modify these schedules to get
   // a bit more variety.
-  vector<pair<GibbsScheduleConstraint, GibbsSchedule*> > _activeSchedule;
+  GibbsSchedule* _activeSchedule;
   
   attrObjFunc _f;
   attrObjFunc _fsq; // least squares version (guaranteed to always be positive basically

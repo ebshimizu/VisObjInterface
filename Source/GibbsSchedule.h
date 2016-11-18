@@ -38,11 +38,16 @@ public:
   // samples the color according to the current schedule
   void sampleColor(vector<float>& result, const vector<GibbsConstraint> constraints);
 
+  // sample from the specified distribution
+  double sampleSat(int id);
+  double sampleHue(int id);
+
   // mixing some parameters here while the final interface gets figured out
   double _avgIntens;
   double _maxIntens;
   int _numBrightLights;
   bool _useSystems;
+  vector<float> _colorWeights;
 
 private:
   default_random_engine _gen;

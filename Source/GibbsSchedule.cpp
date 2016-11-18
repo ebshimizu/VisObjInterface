@@ -73,3 +73,13 @@ void GibbsSchedule::sampleColor(vector<float>& result, const vector<GibbsConstra
     }
   }
 }
+
+double GibbsSchedule::sampleSat(int id)
+{
+  return _satDists[id](_gen);
+}
+
+double GibbsSchedule::sampleHue(int id)
+{
+  return _hueDists[id](_gen);
+}

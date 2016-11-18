@@ -39,12 +39,20 @@ public:
   // Generates a color palette using Sharon Lin's palette extraction code
   void generatePalette(int colors);
 
+  // determines color weights. clamps each pixel to nearest color in palette
+  // and then counts them
+  void updateColorWeights();
+
 private:
   shared_ptr<GibbsSchedule> _schedule;
   Image _img;
   String _name;
 
+  // colors are stored as hsv
   vector<Eigen::VectorXd> _colors;
+
+  // relative color weights (basically how much of the image is close to the specified color)
+  vector<float> _weights;
   double _avgIntens;
 };
 
@@ -72,7 +80,9 @@ private:
 // This component is a color constraint on the gibbs sampler. 
 // Takes a set of devices and applies the specified color pallet constraint to the
 // devices
-class GibbsColorConstraint : public Component, public ButtonListener, public ChangeListener {
+class GibbsColorConstraint : public Component, public ButtonListener,
+  public ChangeListener, public TextEditorListener
+{
 public:
   GibbsColorConstraint();
 
@@ -87,11 +97,17 @@ public:
 
   void setSelectedColor(Colour c);
 
+  void setColorWeight(float weight);
+  void textEditorTextChanged(TextEditor& e);
+  float getColorWeight();
+
 private:
   Colour _color;
   float _sigma;
+  float _weight;
 
   TextButton _setColor;
+  TextEditor _weightInput;
 };
 
 class GibbsConstraintContainer : public Component, public SliderListener, public ButtonListener, public ComboBoxListener
@@ -112,7 +128,7 @@ public:
   void addColorConstraint();
 
   // adds a set of color constraints to the gui
-  void addColors(vector<Eigen::VectorXd> colors, double intens);
+  void addColors(vector<Eigen::VectorXd> colors, double intens, vector<float> weights);
 
   virtual void buttonClicked(Button* b);
 
@@ -127,6 +143,9 @@ public:
 
   // update bounds n stuff
   void comboBoxChanged(ComboBox* b);
+
+  // returns color relative weights
+  vector<float> getColorWeights();
 
 private:
   Array<GibbsColorConstraint*> _colors;

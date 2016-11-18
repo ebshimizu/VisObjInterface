@@ -525,9 +525,9 @@ StringArray MainContentComponent::getSelectedDeviceIds()
   return _attrs->getParamController()->getSelectedIds();
 }
 
-void MainContentComponent::setColors(vector<Eigen::VectorXd> colors, double intens)
+void MainContentComponent::setColors(vector<Eigen::VectorXd> colors, double intens, vector<float> weights)
 {
-  _attrs->setColors(colors, intens);
+  _attrs->setColors(colors, intens, weights);
 }
 
 void MainContentComponent::reset()
@@ -1389,7 +1389,7 @@ void MainContentComponent::search()
   if (getGlobalSettings()->_searchMode == GIBBS_SAMPLING) {
     // TODO: pulls data from the custom controls window for now, should generate from image eventually
 
-    vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> state = _attrs->getGibbsSchedule();
+    GibbsSchedule* state = _attrs->getGibbsSchedule();
 
     _searchWorker->setState(new Snapshot(getRig()), state);
     _searchWorker->startThread(9);

@@ -101,7 +101,7 @@ public:
   // initializes gibbs pallets
   void initPallets();
 
-  vector<pair<GibbsScheduleConstraint, GibbsSchedule*>> getGibbsSchedule();
+  GibbsSchedule* getGibbsSchedule();
 
   // Gets the parameter controller
   ParamControls* getParamController();
@@ -110,7 +110,7 @@ public:
   HistoryPanel* getHistory();
 
   // sets colors in the palettes
-  void setColors(vector<Eigen::VectorXd> colors, double intens);
+  void setColors(vector<Eigen::VectorXd> colors, double intens, vector<float> weights);
 
   void refreshSettings();
 

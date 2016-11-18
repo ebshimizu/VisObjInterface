@@ -78,6 +78,8 @@ void GibbsPalette::computeSchedule()
   for (auto c : centers) {
     _colors.push_back(c);
   }
+
+  updateColorWeights();
 }
 
 void GibbsPalette::setCustomSchedule(shared_ptr<GibbsSchedule> sched)
@@ -108,17 +110,18 @@ void GibbsPalette::mouseDown(const MouseEvent & event)
       MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
       if (mc != nullptr) {
-        mc->setColors(_colors, _avgIntens);
+        mc->setColors(_colors, _avgIntens, _weights);
       }
     }
     if (result == 2) {
       // debug
       generatePalette(5);
+      updateColorWeights();
 
       MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
       if (mc != nullptr) {
-        mc->setColors(_colors, _avgIntens);
+        mc->setColors(_colors, _avgIntens, _weights);
       }
     }
   }
@@ -214,6 +217,51 @@ void GibbsPalette::generatePalette(int colors)
   // that actually happens not in this function 
 }
 
+void GibbsPalette::updateColorWeights()
+{
+  // palettize a small, scaled image
+  double scale = (_img.getHeight() > _img.getWidth()) ? 100.0 / _img.getHeight() : 100.0 / _img.getWidth();
+  Image scaled = _img.rescaled(_img.getWidth() * scale, _img.getHeight() * scale);
+
+  vector<int> counts;
+  counts.resize(_colors.size());
+
+  for (auto y = 0; y < scaled.getHeight(); y++) {
+    for (auto x = 0; x < scaled.getWidth(); x++) {
+      // find closest color
+      Colour px = scaled.getPixelAt(x, y);
+      
+      Eigen::VectorXf hsv;
+      hsv.resize(3);
+      px.getHSB(hsv[0], hsv[1], hsv[2]);
+
+      Eigen::VectorXd pt;
+      pt.resize(3);
+      pt[0] = hsv[0];
+      pt[1] = hsv[1];
+      pt[2] = hsv[2];
+
+      double min = DBL_MAX;
+      int minIdx = 0;
+      for (int i = 0; i < _colors.size(); i++) {
+        double dist = (pt - _colors[i]).norm();
+        if (dist < min) {
+          min = dist;
+          minIdx = i;
+        }
+      }
+
+      counts[minIdx] += 1;
+    }
+  }
+
+  _weights.clear();
+  _weights.resize(_colors.size());
+  for (int i = 0; i < counts.size(); i++) {
+    _weights[i] = (float)counts[i] / (float)(scaled.getHeight() * scaled.getWidth());
+  }
+}
+
 //=============================================================================
 
 GibbsPalletContainer::GibbsPalletContainer(int c) : _cols(c)
@@ -280,9 +328,16 @@ Array<GibbsPalette*> GibbsPalletContainer::getPallets()
 
 GibbsColorConstraint::GibbsColorConstraint() : _setColor("Select Color")
 {
+  _weight = 1;
   _color = Colours::white;
   addAndMakeVisible(_setColor);
   _setColor.addListener(this);
+
+  _weightInput.addListener(this);
+  _weightInput.setMultiLine(false, false);
+  _weightInput.setInputRestrictions(10, "0123456789.");
+  _weightInput.setText(String(_weight), dontSendNotification);
+  addAndMakeVisible(_weightInput);
 }
 
 void GibbsColorConstraint::paint(Graphics & g)
@@ -300,6 +355,10 @@ void GibbsColorConstraint::resized()
   auto lbounds = getLocalBounds();
   lbounds.removeFromLeft(80);
   _setColor.setBounds(lbounds.removeFromRight(100).reduced(3));
+
+  auto weight = lbounds.removeFromRight(80);
+  auto weightBox = weight.removeFromBottom(24);
+  _weightInput.setBounds(weightBox.reduced(2));
 }
 
 void GibbsColorConstraint::buttonClicked(Button * b)
@@ -332,6 +391,22 @@ void GibbsColorConstraint::changeListenerCallback(ChangeBroadcaster * source)
 void GibbsColorConstraint::setSelectedColor(Colour c)
 {
   _color = c;
+}
+
+void GibbsColorConstraint::setColorWeight(float weight)
+{
+  _weight = weight;
+  _weightInput.setText(String(weight), false);
+}
+
+void GibbsColorConstraint::textEditorTextChanged(TextEditor & e)
+{
+  _weight = e.getText().getFloatValue();
+}
+
+float GibbsColorConstraint::getColorWeight()
+{
+  return _weight;
 }
 
 GibbsConstraintContainer::GibbsConstraintContainer()
@@ -467,18 +542,19 @@ void GibbsConstraintContainer::addColorConstraint()
   resized();
 }
 
-void GibbsConstraintContainer::addColors(vector<Eigen::VectorXd> colors, double intens)
+void GibbsConstraintContainer::addColors(vector<Eigen::VectorXd> colors, double intens, vector<float> weights)
 {
   for (auto c : _colors)
     delete c;
   _colors.clear();
 
-  for (auto c : colors) {
+  for (int i = 0; i < colors.size(); i++) {
     GibbsColorConstraint* gc = new GibbsColorConstraint();
     addAndMakeVisible(gc);
-    gc->setSelectedColor(Colour((float)c[0], (float)c[1], (float)c[2], 1.0f));
+    gc->setSelectedColor(Colour((float)colors[i][0], (float)colors[i][1], (float)colors[i][2], 1.0f));
     _colors.add(gc);
     gc->setName(String(_counter));
+    gc->setColorWeight(weights[i]);
 
     TextButton* del = new TextButton();
     del->setName(String(_counter));
@@ -547,4 +623,21 @@ void GibbsConstraintContainer::updateBounds()
 void GibbsConstraintContainer::comboBoxChanged(ComboBox * b)
 {
   updateBounds();
+}
+
+vector<float> GibbsConstraintContainer::getColorWeights()
+{
+  // normalize
+  vector<float> weights;
+  weights.resize(_colors.size());
+  double sum = 0;
+  for (auto c : _colors) {
+    sum += c->getColorWeight();
+  }
+
+  for (int i = 0; i < weights.size(); i++) {
+    weights[i] = _colors[i]->getColorWeight() / sum;
+  }
+
+  return weights;
 }

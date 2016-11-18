@@ -87,7 +87,7 @@ public:
   // Checks the parameter component and retrieves selected devices
   StringArray getSelectedDeviceIds();
 
-  void setColors(vector<Eigen::VectorXd> colors, double intens);
+  void setColors(vector<Eigen::VectorXd> colors, double intens, vector<float> weights);
 
   // resets the interface
   // Which is the following: unlock all lights, reset to open white, clear all
