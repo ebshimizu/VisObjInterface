@@ -262,10 +262,10 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.addDefaultKeypress('l', ModifierKeys::commandModifier);
     break;
   case command::RELOAD_ATTRS:
-    result.setInfo("Reload Image Attributes", "Reloads the image attributes.", "File", 0);
+    result.setInfo("Reload Research Images", "Reloads the image attributes.", "File", 0);
     break;
   case command::LOAD_ATTRS:
-    result.setInfo("Load Image Attributes", "Select a folder to load images from", "File", 0);
+    result.setInfo("Load Research Images", "Select a folder to load images from", "File", 0);
     break;
   case command::RESET_ALL:
     result.setInfo("Reset Scene", "Resets the current scene to defaults and clears the search interfaces", "Edit", 0);
@@ -1384,7 +1384,7 @@ void MainContentComponent::search()
   stopSearch();
   _search->clearContainer();
   getGlobalSettings()->clearEdits();
-  _exp->getContainer()->clear();
+  _exp->getContainer()->empty();
 
   if (getGlobalSettings()->_searchMode == GIBBS_SAMPLING) {
     // TODO: pulls data from the custom controls window for now, should generate from image eventually

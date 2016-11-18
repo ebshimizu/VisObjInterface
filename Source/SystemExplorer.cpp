@@ -34,6 +34,8 @@ SystemExplorer::SystemExplorer(Array<shared_ptr<SearchResultContainer>> results,
 
   for (auto r : results)
     addNewResult(r);
+
+  sort("hs");
 }
 
 SystemExplorer::SystemExplorer(Array<shared_ptr<SearchResultContainer>> results, string name, DeviceSet selected) :
@@ -45,6 +47,8 @@ SystemExplorer::SystemExplorer(Array<shared_ptr<SearchResultContainer>> results,
 
   for (auto r : results)
     addNewResult(r);
+
+  sort("hs");
 }
 
 SystemExplorer::~SystemExplorer()
@@ -372,6 +376,9 @@ void SystemExplorer::togglePin()
       unlockDeviceParam(d, "color");
     }
     _isPinned = false;
+
+    // run search
+    getApplicationCommandManager()->invokeDirectly(command::SEARCH, true);
   }
   else {
     // lock
@@ -386,7 +393,7 @@ void SystemExplorer::togglePin()
   getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, true);
 }
 
-void SystemExplorer::clear()
+void SystemExplorer::empty()
 {
   _container->_results.clear();
   _container->resized();
@@ -608,7 +615,7 @@ void SystemExplorerContainer::resized()
   for (int i = 0; i < _explorers.size(); i++) {
     auto rowBounds = lbounds.removeFromTop(_rowHeight);
 
-    _deleteButtons[i]->setBounds(rowBounds.getX() + 2, rowBounds.getY() + 2, 20, 20);
+    _deleteButtons[i]->setBounds(rowBounds.removeFromLeft(20).removeFromTop(20).reduced(2));
     _explorers[i]->setBounds(rowBounds);
   }
 }
@@ -653,6 +660,12 @@ void SystemExplorerContainer::clear()
   _explorers.clear();
 }
 
+void SystemExplorerContainer::empty()
+{
+  for (auto e : _explorers)
+    e->empty();
+}
+
 void SystemExplorerContainer::updateImages()
 {
   ThreadPool renderers(max(1u, thread::hardware_concurrency() - 2));
@@ -671,6 +684,7 @@ void SystemExplorerContainer::updateImages()
     e->updatePinState();
     e->updateIntensSlider();
     e->repaint();
+    e->sort("hs");
   }
 }
 
@@ -875,6 +889,8 @@ void ExplorerPanel::populateSystemViews()
   for (auto s : systems) {
     _exp->addContainer(s);
   }
+
+  _exp->sort("hs");
 }
 
 void ExplorerPanel::clear()

@@ -64,7 +64,7 @@ public:
   // locks or unlocks the selected lights 
   void togglePin();
 
-  void clear();
+  void empty();
 
   // Updates the pin status of the view
   void updatePinState();
@@ -137,6 +137,7 @@ public:
   void addContainer();
   void addResult(shared_ptr<SearchResultContainer> result);
   void clear();
+  void empty(); // remove results but not delete
   void updateImages();
 
   virtual void buttonClicked(Button* b) override;

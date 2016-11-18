@@ -450,7 +450,6 @@ void SearchResultsContainer::clear()
   _attempts = 0;
   _currentThreshold = getGlobalSettings()->_jndThreshold;
   _initThreshold = getGlobalSettings()->_jndThreshold;
-  _exp->getContainer()->clear();
 }
 
 bool SearchResultsContainer::isFull()
