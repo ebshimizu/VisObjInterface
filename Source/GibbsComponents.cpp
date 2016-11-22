@@ -548,6 +548,10 @@ void GibbsConstraintContainer::addColors(vector<Eigen::VectorXd> colors, double 
     delete c;
   _colors.clear();
 
+  for (auto b : _deleteButtons)
+    delete b;
+  _deleteButtons.clear();
+
   for (int i = 0; i < colors.size(); i++) {
     GibbsColorConstraint* gc = new GibbsColorConstraint();
     addAndMakeVisible(gc);

@@ -657,7 +657,11 @@ void SystemExplorerContainer::clear()
   for (auto e : _explorers)
     delete e;
 
+  for (auto b : _deleteButtons)
+    delete b;
+
   _explorers.clear();
+  _deleteButtons.clear();
 }
 
 void SystemExplorerContainer::empty()
