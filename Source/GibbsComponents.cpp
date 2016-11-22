@@ -231,20 +231,23 @@ void GibbsPalette::updateColorWeights()
       // find closest color
       Colour px = scaled.getPixelAt(x, y);
       
-      Eigen::VectorXf hsv;
-      hsv.resize(3);
-      px.getHSB(hsv[0], hsv[1], hsv[2]);
-
       Eigen::VectorXd pt;
       pt.resize(3);
-      pt[0] = hsv[0];
-      pt[1] = hsv[1];
-      pt[2] = hsv[2];
+      pt[0] = px.getRed() / 255.0;
+      pt[1] = px.getGreen() / 255.0;
+      pt[2] = px.getBlue() / 255.0;
 
       double min = DBL_MAX;
       int minIdx = 0;
       for (int i = 0; i < _colors.size(); i++) {
-        double dist = (pt - _colors[i]).norm();
+        Colour toRGB((float)_colors[i][0], (float)_colors[i][1], (float)_colors[i][2], 1.0f);
+        Eigen::VectorXd rgb;
+        rgb.resize(3);
+        rgb[0] = toRGB.getRed() / 255.0;
+        rgb[1] = toRGB.getGreen() / 255.0;
+        rgb[2] = toRGB.getBlue() / 255.0;
+
+        double dist = (pt - rgb).norm();
         if (dist < min) {
           min = dist;
           minIdx = i;
