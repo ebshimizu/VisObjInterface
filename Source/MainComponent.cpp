@@ -559,6 +559,11 @@ void MainContentComponent::reset()
   arnoldRender();
 }
 
+void MainContentComponent::createIdea(Image i)
+{
+  _attrs->addIdea(i);
+}
+
 void MainContentComponent::openRig() {
   FileChooser fc("Load Show (pick a .rig.json or .playback.json file)", File::getCurrentWorkingDirectory(),
     "*.rig.json;*.playback.json", true);

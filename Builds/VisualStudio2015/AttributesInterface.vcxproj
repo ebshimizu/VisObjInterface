@@ -145,6 +145,7 @@
     <ClCompile Include="..\..\Source\HistoryEntry.cpp"/>
     <ClCompile Include="..\..\Source\HistoryPanel.cpp"/>
     <ClCompile Include="..\..\Source\hsvPicker.cpp"/>
+    <ClCompile Include="..\..\Source\Idea.cpp"/>
     <ClCompile Include="..\..\Source\MainMenu.cpp"/>
     <ClCompile Include="..\..\Source\Recorder.cpp"/>
     <ClCompile Include="..\..\Source\SceneViewer.cpp"/>
@@ -1747,6 +1748,7 @@
     <ClInclude Include="..\..\Source\HistoryEntry.h"/>
     <ClInclude Include="..\..\Source\HistoryPanel.h"/>
     <ClInclude Include="..\..\Source\hsvPicker.h"/>
+    <ClInclude Include="..\..\Source\Idea.h"/>
     <ClInclude Include="..\..\Source\MainMenu.h"/>
     <ClInclude Include="..\..\Source\Recorder.h"/>
     <ClInclude Include="..\..\Source\SceneViewer.h"/>

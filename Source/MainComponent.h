@@ -94,6 +94,9 @@ public:
   // explore panels, empty the results panel
   void reset();
 
+  // adds an idea to the ideas panel based on the specified image
+  void createIdea(Image i);
+
 private:
   // Open a Lumiverse file
   void openRig();

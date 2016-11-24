@@ -213,6 +213,8 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
 
   _settings = new SettingsEditor();
 
+  _tempConstraints = new GibbsConstraintContainer();
+
   // button controls
   _search = new TextButton("Search", "Perform a search with the current attribute constraints");
   _search->addListener(this);
@@ -248,9 +250,10 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   addAndMakeVisible(_tabs);
   //_tabs.addTab("Attributes", Colour(0xff333333), _componentView, true);
   _tabs.addTab("Lights", Colour(0xff333333), _paramControls, true);
-  _tabs.addTab("Palettes", Colour(0xff333333), _paletteControls, true);
+  _tabs.addTab("Ideas", Colour(0xff333333), _paletteControls, true);
   _tabs.addTab("History", Colour(0xff333333), _historyViewer, true);
   _tabs.addTab("Settings", Colour(0xff333333), _settings, true);
+  _tabs.addTab("Debug", Colour(0xff333333), _tempConstraints, true);
   _tabs.setCurrentTabIndex(0);
 
   _reset.addListener(this);
@@ -271,6 +274,7 @@ AttributeControls::~AttributeControls()
   delete _setKeyButton;
   delete _clusterButton;
   delete _paletteControls;
+  delete _tempConstraints;
 }
 
 void AttributeControls::paint (Graphics& g)
@@ -314,7 +318,8 @@ void AttributeControls::reload()
   _container->removeAllControllers();
   initAttributes();
   initPallets();
-  _paletteControls->_tempConstraints->updateBounds();
+
+  _tempConstraints->updateBounds();
 
   _container->runPreprocess();
 }
@@ -421,8 +426,8 @@ void AttributeControls::initPallets()
 
 GibbsSchedule* AttributeControls::getGibbsSchedule()
 {
-  auto colorConstraints = _paletteControls->_tempConstraints->getColorDists();
-  auto intensConstraints = _paletteControls->_tempConstraints->getIntensDist();
+  auto colorConstraints = _tempConstraints->getColorDists();
+  auto intensConstraints = _tempConstraints->getIntensDist();
   
   double avg, max;
   int k;
@@ -431,9 +436,9 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
   vector<normal_distribution<float>> idists;
   idists.push_back(intensConstraints);
   sched->setIntensDist(idists);
-  _paletteControls->_tempConstraints->getIntensDistProps(sched->_avgIntens, sched->_maxIntens, sched->_numBrightLights);
-  sched->_useSystems = _paletteControls->_tempConstraints->useSystems();
-  sched->_colorWeights = _paletteControls->_tempConstraints->getColorWeights();
+  _tempConstraints->getIntensDistProps(sched->_avgIntens, sched->_maxIntens, sched->_numBrightLights);
+  sched->_useSystems = _tempConstraints->useSystems();
+  sched->_colorWeights = _tempConstraints->getColorWeights();
 
   sched->setColorDists(colorConstraints[0], colorConstraints[1], colorConstraints[2]);
 
@@ -452,13 +457,18 @@ HistoryPanel* AttributeControls::getHistory()
 
 void AttributeControls::setColors(vector<Eigen::VectorXd> colors, double intens, vector<float> weights)
 {
-  _paletteControls->_tempConstraints->addColors(colors, intens, weights);
+  _tempConstraints->addColors(colors, intens, weights);
   _paletteControls->resized();
 }
 
 void AttributeControls::refreshSettings()
 {
   _settings->refresh();
+}
+
+void AttributeControls::addIdea(Image i)
+{
+  _paletteControls->_ideas->addIdea(i);
 }
 
 void AttributeControls::initAttributes()
@@ -520,21 +530,23 @@ AttributeControls::PaletteControls::PaletteControls()
   _paletteViewer->setViewedComponent(_palettes, true);
   addAndMakeVisible(_paletteViewer);
 
-  _tempConstraints = new GibbsConstraintContainer();
-  addAndMakeVisible(_tempConstraints);
+  _ideas = new IdeaList();
+  _ideaViewer = new Viewport();
+  _ideaViewer->setViewedComponent(_ideas, true);
+  addAndMakeVisible(_ideaViewer);
 }
 
 AttributeControls::PaletteControls::~PaletteControls()
 {
   delete _paletteViewer;
-  delete _tempConstraints;
+  delete _ideaViewer;
 }
 
 void AttributeControls::PaletteControls::resized()
 {
   auto lbounds = getLocalBounds();
-  _tempConstraints->setSize(lbounds.getWidth(), lbounds.getHeight());
-  _tempConstraints->setBounds(lbounds.removeFromTop(_tempConstraints->getHeight()));
+  _ideas->setSize(getWidth(), 0);
+  _ideaViewer->setBounds(lbounds.removeFromTop(getHeight() * 0.75));
 
   _paletteViewer->setBounds(lbounds);
   _palettes->setSize(_paletteViewer->getMaximumVisibleWidth(), 0);

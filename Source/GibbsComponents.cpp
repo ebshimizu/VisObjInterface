@@ -100,12 +100,20 @@ void GibbsPalette::mouseDown(const MouseEvent & event)
   }
   else if (event.mods.isRightButtonDown()) {
     PopupMenu menu;
-    menu.addItem(1, "Create Palette");
-    menu.addItem(2, "Generate Palette");
+    menu.addItem(1, "New Idea");
+    menu.addItem(2, "Create Palette");
+    menu.addItem(3, "Generate Palette");
 
     int result = menu.show();
 
     if (result == 1) {
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+      if (mc != nullptr) {
+        mc->createIdea(_img);
+      }
+    }
+    if (result == 2) {
       // load colors through main component
       MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
@@ -113,7 +121,7 @@ void GibbsPalette::mouseDown(const MouseEvent & event)
         mc->setColors(_colors, _avgIntens, _weights);
       }
     }
-    if (result == 2) {
+    if (result == 3) {
       // debug
       generatePalette(5);
       updateColorWeights();

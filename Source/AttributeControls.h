@@ -18,6 +18,7 @@
 #include "HistoryPanel.h"
 #include "AttributeControllerBase.h"
 #include "GibbsComponents.h"
+#include "Idea.h"
 
 class DeviceSelector : public Component, public ListBoxModel
 {
@@ -114,6 +115,8 @@ public:
 
   void refreshSettings();
 
+  void addIdea(Image i);
+
 private:
   void initAttributes();
 
@@ -126,9 +129,11 @@ private:
 
     GibbsPalletContainer* _palettes;
     Viewport* _paletteViewer;
-    GibbsConstraintContainer* _tempConstraints;
+    IdeaList* _ideas;
+    Viewport* _ideaViewer;
   };
 
+  GibbsConstraintContainer* _tempConstraints;
   PaletteControls* _paletteControls;
 
   TabbedComponent _tabs;

@@ -65,6 +65,8 @@
         <FILE id="J4et5w" name="HistoryPanel.h" compile="0" resource="0" file="Source/HistoryPanel.h"/>
         <FILE id="dF5a23" name="hsvPicker.cpp" compile="1" resource="0" file="Source/hsvPicker.cpp"/>
         <FILE id="MOJTC2" name="hsvPicker.h" compile="0" resource="0" file="Source/hsvPicker.h"/>
+        <FILE id="DVspYK" name="Idea.cpp" compile="1" resource="0" file="Source/Idea.cpp"/>
+        <FILE id="vlQM4Z" name="Idea.h" compile="0" resource="0" file="Source/Idea.h"/>
         <FILE id="EzqHGX" name="MainMenu.cpp" compile="1" resource="0" file="Source/MainMenu.cpp"/>
         <FILE id="xzEXk8" name="MainMenu.h" compile="0" resource="0" file="Source/MainMenu.h"/>
         <FILE id="LxBlMk" name="Recorder.cpp" compile="1" resource="0" file="Source/Recorder.cpp"/>
