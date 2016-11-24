@@ -9,6 +9,7 @@
 */
 
 #include "Idea.h"
+#include "MainComponent.h"
 
 Idea::Idea(Image src, IdeaType type) : _src(src), _type(type)
 {
@@ -16,6 +17,7 @@ Idea::Idea(Image src, IdeaType type) : _src(src), _type(type)
 
   _typeSelector.addItem("Color Palette", (int)COLOR_PALETTE);
   _typeSelector.addListener(this);
+  _typeSelector.setSelectedId((int)_type);
   addAndMakeVisible(_typeSelector);
 
   _selected = false;
@@ -245,11 +247,22 @@ void IdeaList::updateActiveIdea()
       _activeIdea = i;
     _ideas[i]->repaint();
   }
+
+  getGlobalSettings()->_activeIdea = getActiveIdea();
+
+  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+  if (mc != nullptr) {
+    mc->repaintRenderArea();
+  }
 }
 
 void IdeaList::addIdea(Image i)
 {
   _ideas.push_back(shared_ptr<Idea>(new Idea(i)));
   addAndMakeVisible(_ideas[_ideas.size() - 1].get());
+  clearActiveIdea();
+  _ideas[_ideas.size() - 1]->_selected = true;
+  updateActiveIdea();
   resized();
 }

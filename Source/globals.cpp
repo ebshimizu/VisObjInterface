@@ -450,6 +450,7 @@ GlobalSettings::GlobalSettings()
   _searchDistMetric = L2PARAM;
   _searchDispMetric = PPAVGLAB;
   _thresholdDecayRate = 50;
+  _activeIdea = nullptr;
 
   _imageAttrLoc = File::getCurrentWorkingDirectory().getChildFile("image_attributes");
   _tempDir = File::getCurrentWorkingDirectory().getChildFile("tmp");

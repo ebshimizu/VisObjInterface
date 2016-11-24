@@ -620,6 +620,7 @@ void MainContentComponent::openRig(String fname)
       getGlobalSettings()->_showThumbnailImg = false;
       getGlobalSettings()->_freeze = Image(Image::PixelFormat::ARGB, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight, true);
       getGlobalSettings()->_freeze.clear(getGlobalSettings()->_freeze.getBounds(), Colour(0xff000000));
+      getGlobalSettings()->_ideaMap.clear();
 
       // compute sensitivity
       computeLightSensitivity();

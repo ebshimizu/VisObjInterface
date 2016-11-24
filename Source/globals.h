@@ -18,6 +18,7 @@
 #include "StatusBar.h"
 #include "Recorder.h"
 #include "Edit.h"
+#include "Idea.h"
 //#include <vld.h>
 
 using namespace Lumiverse;
@@ -26,6 +27,7 @@ using namespace Lumiverse::ShowControl;
 class MainWindow;
 class Edit;
 class ConsistencyConstraint;
+class Idea;
 
 typedef pair<Eigen::VectorXd, unsigned int> mcmcSample;
 
@@ -367,6 +369,11 @@ public:
   // centered on 50%.
   map<string, double> _sensitivity;
   map<string, double> _systemSensitivity;
+
+  // maps ideas to areas of the stage
+  // may end up being more complicated based on how sampling needs to work
+  map<shared_ptr<Idea>, Rectangle<float> > _ideaMap;
+  shared_ptr<Idea> _activeIdea;
 };
 
 // Results that eventually get returned to the UI layer

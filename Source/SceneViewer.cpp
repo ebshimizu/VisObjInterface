@@ -73,11 +73,11 @@ SceneViewer::SceneViewer()
   _currentRender = Image();
 
   // initialize toolbar
-  _tools.add(new ToggleButton("None"));
-  _tools.add(new ToggleButton("Paint"));
+  //_tools.add(new ToggleButton("None"));
+  //_tools.add(new ToggleButton("Paint"));
   _tools.add(new ToggleButton("Select"));
-  _tools.add(new ToggleButton("Erase"));
-  _tools.add(new ToggleButton("Erase Region"));
+  //_tools.add(new ToggleButton("Erase"));
+  //_tools.add(new ToggleButton("Erase Region"));
 
   for (auto b : _tools) {
     b->addListener(this);
@@ -87,12 +87,12 @@ SceneViewer::SceneViewer()
 
   _clearMask = new TextButton("Clear Mask");
   _showMask = new TextButton("Show Mask");
-  _clearMask->addListener(this);
-  _showMask->addListener(this);
-  addAndMakeVisible(_clearMask);
-  addAndMakeVisible(_showMask);
+  //_clearMask->addListener(this);
+  //_showMask->addListener(this);
+  //addAndMakeVisible(_clearMask);
+  //addAndMakeVisible(_showMask);
 
-  _showMask->setColour(TextButton::ColourIds::buttonOnColourId, Colours::lightblue);
+  //_showMask->setColour(TextButton::ColourIds::buttonOnColourId, Colours::lightblue);
   _drawMask = false;
   _brushSize = 50;
 }
@@ -130,17 +130,14 @@ void SceneViewer::paint (Graphics& g)
     g.drawImageWithin(_currentRender, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
   }
 
-  g.setColour(Colours::red);
-  auto focus = getGlobalSettings()->_focusBounds;
-  if (focus.getWidth() != 0 || focus.getHeight() != 0) {
-    Point<float> topLeft = getWorldImageCoords(focus.getTopLeft());
-    Point<float> bottomRight = getWorldImageCoords(focus.getBottomRight());
-    g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
-  }
-
-  if (_drawMask) {
-    g.setOpacity(0.5);
-    g.drawImageWithin(getGlobalSettings()->_freeze, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
+  if (getGlobalSettings()->_activeIdea != nullptr) {
+    g.setColour(Colours::red);
+    auto focus = getGlobalSettings()->_ideaMap[getGlobalSettings()->_activeIdea];
+    if (focus.getWidth() != 0 || focus.getHeight() != 0) {
+      Point<float> topLeft = getWorldImageCoords(focus.getTopLeft());
+      Point<float> bottomRight = getWorldImageCoords(focus.getBottomRight());
+      g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
+    }
   }
 }
 
@@ -245,30 +242,8 @@ void SceneViewer::mouseDown(const MouseEvent & event)
   if (_currentRender.getWidth() <= 0)
     return;
 
-  switch (getGlobalSettings()->_freezeDrawMode) {
-  case DrawMode::BRUSH_ADD:
-  {
-    // compute current relative coords
-    auto imgPt = getAbsImageCoords(event.position);
-    paint(imgPt, Colour(0xffffffff));
-    break;
-  }
-  case DrawMode::RECT_ADD:
-  case DrawMode::RECT_REMOVE:
-  {
+  if (event.mods.isLeftButtonDown() && getGlobalSettings()->_activeIdea != nullptr) {
     _startPoint = getRelativeImageCoords(event.position);
-    break;
-  }
-  case DrawMode::BRUSH_REMOVE:
-  {
-    auto imgPt = getAbsImageCoords(event.position);
-    paint(imgPt, Colour(0x00000000));
-    break;
-  }
-  default:
-    getGlobalSettings()->_focusBounds.setWidth(0);
-    getGlobalSettings()->_focusBounds.setHeight(0);
-    break;
   }
 
   repaint();
@@ -279,38 +254,18 @@ void SceneViewer::mouseUp(const MouseEvent & event)
   if (_currentRender.getWidth() <= 0)
     return;
 
-  if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD ||
-      getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_REMOVE) {
+  if (getGlobalSettings()->_activeIdea != nullptr && event.mods.isLeftButtonDown()) {
     _currentPoint = getRelativeImageCoords(event.position);
     Array<Point<float> > pts;
     pts.add(_startPoint);
     pts.add(_currentPoint);
 
-    getGlobalSettings()->_focusBounds = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
-    
-    // fill in the focus bounds
-    Point<float> topLeft = getGlobalSettings()->_focusBounds.getTopLeft();
-    topLeft.setX(topLeft.getX() * _currentRender.getWidth());
-    topLeft.setY(topLeft.getY() * _currentRender.getHeight());
-
-    Point<float> botRight = getGlobalSettings()->_focusBounds.getBottomRight();
-    botRight.setX(botRight.getX() * _currentRender.getWidth());
-    botRight.setY(botRight.getY() * _currentRender.getHeight());
-    Rectangle<float> imgBounds = Rectangle<float>::leftTopRightBottom(topLeft.getX(), topLeft.getY(), botRight.getX(), botRight.getY());
-
-    if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD) {
-      paintRect(imgBounds, Colour(0xffffffff));
-    }
-    else {
-      paintRect(imgBounds, Colour(0xff000000));
-    }
-
-    getGlobalSettings()->_focusBounds.setWidth(0);
-    getGlobalSettings()->_focusBounds.setHeight(0);
+    getGlobalSettings()->_ideaMap[getGlobalSettings()->_activeIdea] =
+      Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
   }
 
   repaint();
-  getApplicationCommandManager()->invokeDirectly(command::REFRESH_ATTR, true);
+  //getApplicationCommandManager()->invokeDirectly(command::REFRESH_ATTR, true);
 }
 
 void SceneViewer::mouseDrag(const MouseEvent & event)
@@ -318,35 +273,14 @@ void SceneViewer::mouseDrag(const MouseEvent & event)
   if (_currentRender.getWidth() <= 0)
     return;
 
-  switch (getGlobalSettings()->_freezeDrawMode) {
-  case DrawMode::BRUSH_ADD:
-  {
-    // compute current relative coords
-    auto imgPt = getAbsImageCoords(event.position);
-    paint(imgPt, Colour(0xffffffff));
-    break;
-  }
-  case DrawMode::RECT_ADD:
-  case DrawMode::RECT_REMOVE:
-  {
+  if (getGlobalSettings()->_activeIdea != nullptr && event.mods.isLeftButtonDown()) {
     _currentPoint = getRelativeImageCoords(event.position);
     Array<Point<float> > pts;
     pts.add(_startPoint);
     pts.add(_currentPoint);
 
-    getGlobalSettings()->_focusBounds = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
-    break;
-  }
-  case DrawMode::BRUSH_REMOVE:
-  {
-    auto imgPt = getAbsImageCoords(event.position);
-    paint(imgPt, Colour(0xff000000));
-    break;
-  }
-  default:
-    getGlobalSettings()->_focusBounds.setWidth(0);
-    getGlobalSettings()->_focusBounds.setHeight(0);
-    break;
+    getGlobalSettings()->_ideaMap[getGlobalSettings()->_activeIdea] =
+      Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
   }
 
   repaint();
