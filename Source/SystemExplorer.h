@@ -15,7 +15,7 @@
 #include "globals.h"
 #include "SearchResultContainer.h"
 
-extern class SearchResultsContainer;
+class SearchResultsContainer;
 
 // Building blocks for a heirarchical view of the search results.
 // In each explorer, the specified system is displayed with all other locked lights

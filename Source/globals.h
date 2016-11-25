@@ -40,6 +40,8 @@ enum command {
   OPEN_MASK = 0x0005,
   LOAD_ATTRS = 0x0006,
   RELOAD_ATTRS = 0x0007,
+  SAVE_IDEAS = 0x0008,
+  LOAD_IDEAS = 0x0009,
 
   // Internal
   REFRESH_PARAMS = 0x2000,

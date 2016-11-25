@@ -25,6 +25,7 @@ class IdeaList;
 class Idea : public Component, public ComboBoxListener {
 public:
   Idea(Image src, IdeaType type = COLOR_PALETTE);
+  Idea(File srcFolder, JSONNode data);
   ~Idea();
 
   void paint(Graphics& g) override;
@@ -35,6 +36,12 @@ public:
   void mouseUp(const MouseEvent& e) override;
 
   void comboBoxChanged(ComboBox* b) override;
+
+  // converts the object to json
+  JSONNode toJSON();
+
+  // gets the image object
+  Image getImage();
 
   // indicates if this element is selected
   bool _selected;
@@ -65,6 +72,8 @@ private:
   // If out of bounds, clamps to [0,1]
   Point<float> localToRelativeImageCoords(Point<float> pt);
   Point<float> relativeImageCoordsToLocal(Point<float> pt);
+
+  void initTypeSelector();
 };
 
 class IdeaList : public Component {
@@ -81,7 +90,13 @@ public:
   void updateActiveIdea();
 
   // adds an idea to the list.
-  void addIdea(Image i);
+  void addIdea(Image i, String name);
+
+  // serialization function. Saves all ideas to a specified folder
+  void saveIdeas(File destFolder);
+
+  // loads ideas from disk.
+  void loadIdeas(File srcFolder);
 
 private:
   // list of ideas contained
@@ -89,6 +104,9 @@ private:
 
   // current active idea
   int _activeIdea;
+
+  // counter for uniquely identifying Ideas
+  int _ideaID;
 };
 
 

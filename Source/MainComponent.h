@@ -95,7 +95,7 @@ public:
   void reset();
 
   // adds an idea to the ideas panel based on the specified image
-  void createIdea(Image i);
+  void createIdea(Image i, String name);
 
 private:
   // Open a Lumiverse file
@@ -139,6 +139,10 @@ private:
   // Reloads the image attributes
   void reloadImageAttrs();
   void loadImageAttrsFromDir();
+
+  // idea serialization
+  void saveIdeas();
+  void loadIdeas();
 
   // Opens a selection box presenting a dropdown consisting of the selected
   // metadata field

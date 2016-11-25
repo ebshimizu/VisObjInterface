@@ -466,9 +466,21 @@ void AttributeControls::refreshSettings()
   _settings->refresh();
 }
 
-void AttributeControls::addIdea(Image i)
+void AttributeControls::addIdea(Image i, String name)
 {
-  _paletteControls->_ideas->addIdea(i);
+  _paletteControls->_ideas->addIdea(i, name);
+  resized();
+}
+
+void AttributeControls::saveIdeas(File destFolder)
+{
+  _paletteControls->_ideas->saveIdeas(destFolder);
+}
+
+void AttributeControls::loadIdeas(File srcFolder)
+{
+  _paletteControls->_ideas->loadIdeas(srcFolder);
+  resized();
 }
 
 void AttributeControls::initAttributes()
@@ -545,8 +557,9 @@ AttributeControls::PaletteControls::~PaletteControls()
 void AttributeControls::PaletteControls::resized()
 {
   auto lbounds = getLocalBounds();
-  _ideas->setSize(getWidth(), 0);
+  _ideas->setSize(_ideaViewer->getMaximumVisibleWidth(), 0);
   _ideaViewer->setBounds(lbounds.removeFromTop(getHeight() * 0.75));
+  _ideas->setSize(_ideaViewer->getMaximumVisibleWidth(), 0);
 
   _paletteViewer->setBounds(lbounds);
   _palettes->setSize(_paletteViewer->getMaximumVisibleWidth(), 0);

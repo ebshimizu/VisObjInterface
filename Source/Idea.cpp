@@ -14,13 +14,42 @@
 Idea::Idea(Image src, IdeaType type) : _src(src), _type(type)
 {
   updateType();
-
-  _typeSelector.addItem("Color Palette", (int)COLOR_PALETTE);
-  _typeSelector.addListener(this);
-  _typeSelector.setSelectedId((int)_type);
-  addAndMakeVisible(_typeSelector);
+  initTypeSelector();
 
   _selected = false;
+  _isBeingDragged = false;
+  _focusArea = Rectangle<float>::leftTopRightBottom(0, 0, 1, 1);
+}
+
+Idea::Idea(File srcFolder, JSONNode data)
+{
+  initTypeSelector();
+
+  // set name
+  setName(data.name());
+
+  // find the image
+  string file = data.find("image_name")->as_string();
+  File img = srcFolder.getChildFile(String(file));
+  FileInputStream in(img);
+
+  // load image
+  PNGImageFormat pngReader;
+  _src = pngReader.decodeImage(in);
+
+  // type
+  _type = (IdeaType)data.find("idea_type")->as_int();
+
+  _typeSelector.setSelectedId((int)_type, dontSendNotification);
+  updateType();
+
+  // bounds
+  auto bounds = data.find("bounds");
+  _focusArea = Rectangle<float>::leftTopRightBottom(bounds->find("topX")->as_float(), bounds->find("topY")->as_float(),
+    bounds->find("botX")->as_float(), bounds->find("botY")->as_float());
+
+  _selected = false;
+  _isBeingDragged = false;
 }
 
 Idea::~Idea()
@@ -30,7 +59,7 @@ Idea::~Idea()
 void Idea::paint(Graphics & g)
 {
   if (_selected) {
-    g.setColour(Colours::lightyellow);
+    g.setColour(Colour(0xff606060));
     g.fillAll();
   }
 
@@ -109,6 +138,31 @@ void Idea::comboBoxChanged(ComboBox * b)
 {
   _type = (IdeaType)b->getSelectedId();
   updateType();
+}
+
+JSONNode Idea::toJSON()
+{
+  JSONNode root;
+  root.set_name(getName().toStdString());
+
+  root.push_back(JSONNode("idea_type", (int)_type));
+
+  JSONNode bounds;
+  bounds.set_name("bounds");
+  bounds.push_back(JSONNode("topX", _focusArea.getTopLeft().getX()));
+  bounds.push_back(JSONNode("topY", _focusArea.getTopLeft().getY()));
+  bounds.push_back(JSONNode("botX", _focusArea.getBottomRight().getX()));
+  bounds.push_back(JSONNode("botY", _focusArea.getBottomRight().getY()));
+
+  root.push_back(bounds);
+  root.push_back(JSONNode("image_name", getName().toStdString() + ".png"));
+
+  return root;
+}
+
+Image Idea::getImage()
+{
+  return _src;
 }
 
 void Idea::updateType()
@@ -195,8 +249,17 @@ Point<float> Idea::relativeImageCoordsToLocal(Point<float> pt)
   return Point<float>(x, y);
 }
 
+void Idea::initTypeSelector()
+{
+  _typeSelector.addItem("Color Palette", (int)COLOR_PALETTE);
+  _typeSelector.addListener(this);
+  _typeSelector.setSelectedId((int)_type);
+  addAndMakeVisible(_typeSelector);
+}
+
 IdeaList::IdeaList()
 {
+  _ideaID = 0;
 }
 
 IdeaList::~IdeaList()
@@ -257,12 +320,105 @@ void IdeaList::updateActiveIdea()
   }
 }
 
-void IdeaList::addIdea(Image i)
+void IdeaList::addIdea(Image i, String name)
 {
   _ideas.push_back(shared_ptr<Idea>(new Idea(i)));
+  _ideas[_ideas.size() - 1]->setName(name + String(_ideaID));
   addAndMakeVisible(_ideas[_ideas.size() - 1].get());
   clearActiveIdea();
   _ideas[_ideas.size() - 1]->_selected = true;
   updateActiveIdea();
+  resized();
+
+  _ideaID++;
+}
+
+void IdeaList::saveIdeas(File destFolder)
+{
+  // the data is contained within a JSON file that basically contains the entire
+  // Idea object except the image (which is loaded from a filepath field in the
+  // JSON node
+
+  JSONNode root;
+
+  // can't match by ID, have to load all ideas then match name to get active
+  root.push_back(JSONNode("active_idea", getActiveIdea()->getName().toStdString()));
+
+  for (auto i : _ideas) {
+    // create json node
+    JSONNode idea = i->toJSON();
+    root.push_back(idea);
+
+    // save image, overwrite
+    File img = destFolder.getChildFile(i->getName() + ".png");
+    img.deleteFile();
+    FileOutputStream os(img);
+    PNGImageFormat pngif;
+
+    pngif.writeImageToStream(i->getImage(), os);
+  }
+
+  ofstream ideaFile;
+  ideaFile.open(destFolder.getChildFile("data.ilib").getFullPathName().toStdString(), ios::out | ios::trunc);
+  ideaFile << root.write_formatted();
+}
+
+void IdeaList::loadIdeas(File srcFolder)
+{
+  _ideas.clear();
+
+  // load time
+  // first find the json file
+  // Check to see if we can load the file.
+  ifstream data;
+  data.open(srcFolder.getChildFile("data.ilib").getFullPathName().toStdString(),
+    ios::in | ios::binary | ios::ate);
+
+  if (data.is_open()) {
+    // "+ 1" for the ending
+    streamoff size = data.tellg();
+    char* memblock = new char[(unsigned int)size + 1];
+
+    data.seekg(0, ios::beg);
+
+    data.read(memblock, size);
+    data.close();
+
+    // It's not guaranteed that the following memory after memblock is blank.
+    // C-style string needs an end.
+    memblock[size] = '\0';
+
+    JSONNode n = libjson::parse(memblock);
+
+    // iterate throught he json nodes and reconstruct the objects
+    JSONNode::iterator i = n.begin();
+    String active;
+
+    while (i != n.end()) {
+      // named params
+      if (i->name() == "active_idea") {
+        active = i->as_string();
+      }
+      // is an object
+      else {
+        shared_ptr<Idea> newIdea = shared_ptr<Idea>(new Idea(srcFolder, *i));
+        addAndMakeVisible(newIdea.get());
+        _ideas.push_back(newIdea);
+      }
+
+      i++;
+    }
+
+    // find the active idea
+    for (int j = 0; j < _ideas.size(); j++) {
+      if (_ideas[j]->getName() == active) {
+        _activeIdea = j;
+        _ideas[j]->_selected = true;
+      }
+    }
+    
+    delete memblock;
+  }
+
   resized();
 }

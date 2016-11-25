@@ -41,6 +41,8 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& /* menu
     menu.addCommandItem(cm, command::SAVE);
     menu.addCommandItem(cm, command::SAVE_AS);
     menu.addCommandItem(cm, command::SAVE_RENDER);
+    menu.addCommandItem(cm, command::SAVE_IDEAS);
+    menu.addCommandItem(cm, command::LOAD_IDEAS);
     menu.addSeparator();
     menu.addCommandItem(cm, command::LOAD_ATTRS);
     menu.addCommandItem(cm, command::RELOAD_ATTRS);

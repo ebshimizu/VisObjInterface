@@ -292,6 +292,8 @@ Builds/VisualStudio2015/clusters/*
 Builds/VisualStudio2015/traces/*
 Builds/VisualStudio2015NoArnold/AttributesInterface.exe
 *.pyc
+Builds/VisualStudio2015NoArnold/tmp/*
+Builds/VisualStudio2015NoArnold/PaletteExtraction/*
 analysis/*
 *.par
 Builds/VisualStudio2015NoArnold/errcmaes.err

@@ -14,8 +14,9 @@
 #include "KMeans.h"
 #include "MainComponent.h"
 
-GibbsPalette::GibbsPalette(String name, Image & src) : _img(src), _name(name)
+GibbsPalette::GibbsPalette(String name, Image & src) : _img(src)
 {
+  _name = name.replaceCharacter(' ', '_');
   computeSchedule();
   setTooltip(name);
 }
@@ -110,7 +111,7 @@ void GibbsPalette::mouseDown(const MouseEvent & event)
       MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
       if (mc != nullptr) {
-        mc->createIdea(_img);
+        mc->createIdea(_img, _name);
       }
     }
     if (result == 2) {

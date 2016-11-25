@@ -114,7 +114,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::CONSTRAINTS, command::START_AUTO, command::END_AUTO, command::LOCK_ALL_SELECTED,
     command::LOCK_SELECTED_INTENSITY, command::LOCK_SELECTED_COLOR, command::UNLOCK_ALL_SELECTED,
     command::UNLOCK_SELECTED_COLOR, command::UNLOCK_SELECTED_INTENSITY, command::RELOAD_ATTRS, command::LOAD_ATTRS,
-    command::RESET_ALL
+    command::RESET_ALL, command::SAVE_IDEAS, command::LOAD_IDEAS
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -270,6 +270,12 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::RESET_ALL:
     result.setInfo("Reset Scene", "Resets the current scene to defaults and clears the search interfaces", "Edit", 0);
     break;
+  case command::SAVE_IDEAS:
+    result.setInfo("Save Ideas", "Save ideas into a specified folder", "File", 0);
+    break;
+  case command::LOAD_IDEAS:
+    result.setInfo("Load Ideas", "Load ideas from a specified folder", "File", 0);
+    break;
   default:
     return;
   }
@@ -401,6 +407,12 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::RESET_ALL:
     reset();
+    break;
+  case command::SAVE_IDEAS:
+    saveIdeas();
+    break;
+  case command::LOAD_IDEAS:
+    loadIdeas();
     break;
   default:
     return false;
@@ -559,9 +571,9 @@ void MainContentComponent::reset()
   arnoldRender();
 }
 
-void MainContentComponent::createIdea(Image i)
+void MainContentComponent::createIdea(Image i, String name)
 {
-  _attrs->addIdea(i);
+  _attrs->addIdea(i, name);
 }
 
 void MainContentComponent::openRig() {
@@ -1347,6 +1359,54 @@ void MainContentComponent::loadImageAttrsFromDir()
   {
     getGlobalSettings()->_imageAttrLoc = fc.getResult();
     reloadImageAttrs();
+  }
+}
+
+void MainContentComponent::saveIdeas()
+{
+  FileChooser fc("Select Folder to Save Ideas",
+    File::getCurrentWorkingDirectory(),
+    "", true);
+
+  if (fc.browseForDirectory())
+  {
+    File selected = fc.getResult();
+
+    if (selected.getNumberOfChildFiles(File::TypesOfFileToFind::findFilesAndDirectories) > 0) {
+      // warn user
+      AlertWindow alert("Existing Files May Be Overwritten",
+        "Files contained within the selected directory may be overwirrten or deleted by saving the current ideas. Is this OK?",
+        AlertWindow::AlertIconType::WarningIcon);
+      alert.addButton("OK", 1);
+      alert.addButton("Cancel", 0);
+      int result = alert.runModalLoop();
+
+      if (result == 0) {
+        return;
+      }
+    }
+
+    _attrs->saveIdeas(selected);
+  }
+}
+
+void MainContentComponent::loadIdeas()
+{
+  FileChooser fc("Select Folder Containing Ideas",
+    File::getCurrentWorkingDirectory(),
+    "", true);
+
+  if (fc.browseForDirectory())
+  {
+    File selected = fc.getResult();
+
+    // data json file must exist for load to proceed
+    if (selected.getChildFile("data.ilib").exists()) {
+      _attrs->loadIdeas(selected);
+    }
+    else {
+      AlertWindow::showMessageBox(AlertWindow::WarningIcon, "Data file not found", "Cannot find required data.ilib file in selected directory. Check that the file exists in the specified folder and try again.", "OK");
+    }
   }
 }
 
