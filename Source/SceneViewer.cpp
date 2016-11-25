@@ -154,10 +154,10 @@ void SceneViewer::paint (Graphics& g)
       }
     }
     if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_PIN || _showAllBoxes) {
+      g.setColour(Colours::yellow);
+
       if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_PIN) {
         // draw current
-        g.setColour(Colours::yellow);
-
         Array<Point<float> > pts;
         pts.add(getWorldImageCoords(_startPoint) + Point<float>(0, _toolbarHeight));
         pts.add(getWorldImageCoords(_currentPoint) + Point<float>(0, _toolbarHeight));

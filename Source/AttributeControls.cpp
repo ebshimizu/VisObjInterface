@@ -557,9 +557,8 @@ AttributeControls::PaletteControls::~PaletteControls()
 void AttributeControls::PaletteControls::resized()
 {
   auto lbounds = getLocalBounds();
-  _ideas->setSize(_ideaViewer->getMaximumVisibleWidth(), 0);
+  _ideas->setSize(lbounds.getWidth() - _ideaViewer->getScrollBarThickness() - 2, 0);
   _ideaViewer->setBounds(lbounds.removeFromTop(getHeight() * 0.75));
-  _ideas->setSize(_ideaViewer->getMaximumVisibleWidth(), 0);
 
   _paletteViewer->setBounds(lbounds);
   _palettes->setSize(_paletteViewer->getMaximumVisibleWidth(), 0);

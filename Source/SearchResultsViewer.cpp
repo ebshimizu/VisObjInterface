@@ -99,7 +99,8 @@ void SearchResultsViewer::resized()
 
   // preserve viewer position
   Point<int> pos = _viewer->getViewPosition();
-  _results->updateSize(lbounds.getHeight() - _viewer->getScrollBarThickness(), lbounds.getWidth());
+  _results->updateSize(lbounds.getHeight() - _viewer->getScrollBarThickness(),
+    lbounds.getWidth() - _viewer->getScrollBarThickness());
   _viewer->setViewPosition(pos);
 
   _viewer->setBounds(lbounds);
