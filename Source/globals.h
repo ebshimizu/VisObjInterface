@@ -164,11 +164,8 @@ enum EditSelectMode {
 };
 
 enum DrawMode {
-  NO_DRAW,
-  BRUSH_ADD,
   RECT_ADD,
-  BRUSH_REMOVE,
-  RECT_REMOVE
+  RECT_PIN
 };
 
 enum GibbsConstraint {
@@ -376,6 +373,8 @@ public:
   // may end up being more complicated based on how sampling needs to work
   map<shared_ptr<Idea>, Rectangle<float> > _ideaMap;
   shared_ptr<Idea> _activeIdea;
+
+  Array<Rectangle<float> > _pinnedRegions;
 };
 
 // Results that eventually get returned to the UI layer

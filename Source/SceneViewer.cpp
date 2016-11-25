@@ -73,12 +73,10 @@ SceneViewer::SceneViewer()
   _currentRender = Image();
 
   // initialize toolbar
-  //_tools.add(new ToggleButton("None"));
-  //_tools.add(new ToggleButton("Paint"));
-  _tools.add(new ToggleButton("Select"));
-  //_tools.add(new ToggleButton("Erase"));
-  //_tools.add(new ToggleButton("Erase Region"));
+  _tools.add(new ToggleButton("Add"));
+  _tools.add(new ToggleButton("Pin"));
 
+  _tools.getFirst()->triggerClick();
   for (auto b : _tools) {
     b->addListener(this);
     addAndMakeVisible(b);
@@ -87,13 +85,23 @@ SceneViewer::SceneViewer()
 
   _clearMask = new TextButton("Clear Mask");
   _showMask = new TextButton("Show Mask");
+  _showAllBoxesButton = new TextButton("Show All");
+  _hideAllBoxesButton = new TextButton("Hide All");
+  _showAllBoxesButton->setColour(TextButton::ColourIds::buttonOnColourId, Colours::darkgreen);
+  _hideAllBoxesButton->setColour(TextButton::ColourIds::buttonOnColourId, Colours::darkgreen);
   //_clearMask->addListener(this);
   //_showMask->addListener(this);
+  _showAllBoxesButton->addListener(this);
+  _hideAllBoxesButton->addListener(this);
   //addAndMakeVisible(_clearMask);
   //addAndMakeVisible(_showMask);
+  addAndMakeVisible(_showAllBoxesButton);
+  addAndMakeVisible(_hideAllBoxesButton);
 
   //_showMask->setColour(TextButton::ColourIds::buttonOnColourId, Colours::lightblue);
   _drawMask = false;
+  _showAllBoxes = false;
+  _hideAllBoxes = false;
   _brushSize = 50;
 }
 
@@ -105,6 +113,8 @@ SceneViewer::~SceneViewer()
 
   delete _clearMask;
   delete _showMask;
+  delete _showAllBoxesButton;
+  delete _hideAllBoxesButton;
 }
 
 void SceneViewer::paint (Graphics& g)
@@ -130,13 +140,58 @@ void SceneViewer::paint (Graphics& g)
     g.drawImageWithin(_currentRender, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
   }
 
-  if (getGlobalSettings()->_activeIdea != nullptr) {
-    g.setColour(Colours::red);
-    auto focus = getGlobalSettings()->_ideaMap[getGlobalSettings()->_activeIdea];
-    if (focus.getWidth() != 0 || focus.getHeight() != 0) {
-      Point<float> topLeft = getWorldImageCoords(focus.getTopLeft());
-      Point<float> bottomRight = getWorldImageCoords(focus.getBottomRight());
-      g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
+  if (!_hideAllBoxes) {
+    if (_showAllBoxes) {
+      // draw all bounding boxes on the image. Currently they aren't labeled, but may want to add that
+      g.setColour(Colours::red);
+      for (auto b : getGlobalSettings()->_ideaMap) {
+        Point<float> topLeft = getWorldImageCoords(b.second.getTopLeft());
+        Point<float> bottomRight = getWorldImageCoords(b.second.getBottomRight());
+        g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
+
+        Rectangle<int> textBox = Rectangle<int>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight - 12, bottomRight.x, topLeft.y + _toolbarHeight - 2);
+        g.drawFittedText(String(b.first->getName()), textBox, Justification::bottomLeft, 1);
+      }
+    }
+    if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_PIN || _showAllBoxes) {
+      if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_PIN) {
+        // draw current
+        g.setColour(Colours::yellow);
+
+        Array<Point<float> > pts;
+        pts.add(getWorldImageCoords(_startPoint) + Point<float>(0, _toolbarHeight));
+        pts.add(getWorldImageCoords(_currentPoint) + Point<float>(0, _toolbarHeight));
+        Rectangle<float> region = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+
+        g.drawRect(region, 2);
+      }
+
+      int i = 1;
+      for (auto b : getGlobalSettings()->_pinnedRegions) {
+        Point<float> topLeft = getWorldImageCoords(b.getTopLeft());
+        Point<float> bottomRight = getWorldImageCoords(b.getBottomRight());
+
+        g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
+
+        Rectangle<int> textBox = Rectangle<int>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight - 12, bottomRight.x, topLeft.y + _toolbarHeight - 2);
+        g.drawFittedText(String(i), textBox, Justification::bottomLeft, 1);
+
+        i++;
+      }
+    }
+    if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD && !_showAllBoxes) {
+      g.setColour(Colours::red);
+      if (getGlobalSettings()->_activeIdea != nullptr) {
+        auto focus = getGlobalSettings()->_ideaMap[getGlobalSettings()->_activeIdea];
+        if (focus.getWidth() != 0 || focus.getHeight() != 0) {
+          Point<float> topLeft = getWorldImageCoords(focus.getTopLeft());
+          Point<float> bottomRight = getWorldImageCoords(focus.getBottomRight());
+          g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
+
+          Rectangle<int> textBox = Rectangle<int>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight - 12, bottomRight.x, topLeft.y + _toolbarHeight - 2);
+          g.drawFittedText(String(getGlobalSettings()->_activeIdea->getName()), textBox, Justification::bottomLeft, 1);
+        }
+      }
     }
   }
 }
@@ -152,6 +207,9 @@ void SceneViewer::resized()
   for (auto& b : _tools) {
     b->setBounds(toolbar.removeFromLeft(80).reduced(2));
   }
+
+  _showAllBoxesButton->setBounds(toolbar.removeFromRight(80).reduced(2));
+  _hideAllBoxesButton->setBounds(toolbar.removeFromRight(80).reduced(2));
 
   _clearMask->setBounds(toolbar.removeFromRight(60).reduced(2));
   _showMask->setBounds(toolbar.removeFromRight(60).reduced(2));
@@ -242,8 +300,67 @@ void SceneViewer::mouseDown(const MouseEvent & event)
   if (_currentRender.getWidth() <= 0)
     return;
 
-  if (event.mods.isLeftButtonDown() && getGlobalSettings()->_activeIdea != nullptr) {
+  if (event.mods.isLeftButtonDown()) {
     _startPoint = getRelativeImageCoords(event.position);
+  }
+
+  if (event.mods.isRightButtonDown()) {
+    // context menus
+    if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD) {
+      // check idea rectangle
+      auto pt = getRelativeImageCoords(event.position);
+      if (_showAllBoxes) {
+        PopupMenu menu;
+        map<int, shared_ptr<Idea> > ids;
+        int i = 1;
+        
+        for (auto b : getGlobalSettings()->_ideaMap) {
+          if (b.second.contains(pt)) {
+            ids[i] = b.first;
+            menu.addItem(i, b.first->getName() + ": Delete");
+          }
+          i++;
+        }
+
+        int result = menu.show();
+        if (result > 0) {
+          getGlobalSettings()->_ideaMap.erase(ids[result]);
+          repaint();
+        }
+      }
+      else {
+        if (getGlobalSettings()->_ideaMap[getGlobalSettings()->_activeIdea].contains(pt)) {
+          PopupMenu menu;
+          menu.addItem(1, "Delete");
+          int result = menu.show();
+
+          if (result == 1) {
+            getGlobalSettings()->_ideaMap.erase(getGlobalSettings()->_activeIdea);
+          }
+        }
+      }
+    }
+    else if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_PIN) {
+      // check pinned regions
+      auto pt = getRelativeImageCoords(event.position);
+      PopupMenu menu;
+      int i = 1;
+
+      for (auto b : getGlobalSettings()->_pinnedRegions) {
+        if (b.contains(pt)) {
+          menu.addItem(i, String(i) + ": Delete");
+        }
+        i++;
+      }
+
+      if (menu.getNumItems() > 0) {
+        int toDelete = menu.show();
+        if (toDelete > 0) {
+          getGlobalSettings()->_pinnedRegions.removeRange(toDelete - 1, 1);
+          repaint();
+        }
+      }
+    }
   }
 
   repaint();
@@ -254,16 +371,20 @@ void SceneViewer::mouseUp(const MouseEvent & event)
   if (_currentRender.getWidth() <= 0)
     return;
 
-  if (getGlobalSettings()->_activeIdea != nullptr && event.mods.isLeftButtonDown()) {
-    _currentPoint = getRelativeImageCoords(event.position);
-    Array<Point<float> > pts;
-    pts.add(_startPoint);
-    pts.add(_currentPoint);
+  if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_PIN) {
+    if (event.mods.isLeftButtonDown()) {
+      _currentPoint = getRelativeImageCoords(event.position);
+      Array<Point<float> > pts;
+      pts.add(_startPoint);
+      pts.add(_currentPoint);
+      Rectangle<float> region = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
 
-    getGlobalSettings()->_ideaMap[getGlobalSettings()->_activeIdea] =
-      Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+      getGlobalSettings()->_pinnedRegions.add(region);
+    }
   }
 
+  _startPoint = Point<float>(0, 0);
+  _currentPoint = Point<float>(0, 0);
   repaint();
   //getApplicationCommandManager()->invokeDirectly(command::REFRESH_ATTR, true);
 }
@@ -273,14 +394,16 @@ void SceneViewer::mouseDrag(const MouseEvent & event)
   if (_currentRender.getWidth() <= 0)
     return;
 
-  if (getGlobalSettings()->_activeIdea != nullptr && event.mods.isLeftButtonDown()) {
+  if (event.mods.isLeftButtonDown()) {
     _currentPoint = getRelativeImageCoords(event.position);
     Array<Point<float> > pts;
     pts.add(_startPoint);
     pts.add(_currentPoint);
+    Rectangle<float> region = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
 
-    getGlobalSettings()->_ideaMap[getGlobalSettings()->_activeIdea] =
-      Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+    if (getGlobalSettings()->_activeIdea != nullptr && getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD) {
+      getGlobalSettings()->_ideaMap[getGlobalSettings()->_activeIdea] = region;
+    }
   }
 
   repaint();
@@ -288,17 +411,11 @@ void SceneViewer::mouseDrag(const MouseEvent & event)
 
 void SceneViewer::buttonClicked(Button * b)
 {
-  if (b->getName() == "None") {
-    getGlobalSettings()->_freezeDrawMode = DrawMode::NO_DRAW;
-  }
-  else if (b->getName() == "Paint") {
-    getGlobalSettings()->_freezeDrawMode = DrawMode::BRUSH_ADD;
-  }
-  else if (b->getName() == "Select") {
+  if (b->getName() == "Add") {
     getGlobalSettings()->_freezeDrawMode = DrawMode::RECT_ADD;
   }
-  else if (b->getName() == "Erase") {
-    getGlobalSettings()->_freezeDrawMode = DrawMode::BRUSH_REMOVE;
+  else if (b->getName() == "Pin") {
+    getGlobalSettings()->_freezeDrawMode = DrawMode::RECT_PIN;
   }
   else if (b->getName() == "Clear Mask") {
     clearMask();
@@ -306,10 +423,18 @@ void SceneViewer::buttonClicked(Button * b)
   else if (b->getName() == "Show Mask") {
     showMask();
   }
-  else if (b->getName() == "Erase Region") {
-    getGlobalSettings()->_freezeDrawMode = DrawMode::RECT_REMOVE;
+  else if (b->getName() == "Show All") {
+    _showAllBoxes = !_showAllBoxes;
+    b->setToggleState(_showAllBoxes, dontSendNotification);
+    repaint();
+  }
+  else if (b->getName() == "Hide All") {
+    _hideAllBoxes = !_hideAllBoxes;
+    b->setToggleState(_hideAllBoxes, dontSendNotification);
+    repaint();
   }
 
+  repaint();
 }
 
 void SceneViewer::clearMask()

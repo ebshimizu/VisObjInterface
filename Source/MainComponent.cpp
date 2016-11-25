@@ -54,7 +54,7 @@ MainContentComponent::MainContentComponent()
 	// create log directories if they don't exist
   createLogDirs();
 
-  getGlobalSettings()->_freezeDrawMode = DrawMode::NO_DRAW;
+  getGlobalSettings()->_freezeDrawMode = DrawMode::RECT_ADD;
 
   _autoTimer.setWorker(_searchWorker.get());
 }

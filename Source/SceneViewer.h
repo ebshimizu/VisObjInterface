@@ -98,10 +98,14 @@ private:
   Array<ToggleButton*> _tools;
   TextButton* _clearMask;
   TextButton* _showMask;
+  TextButton* _showAllBoxesButton;
+  TextButton* _hideAllBoxesButton;
 
   bool _drawMask;
   int _toolbarHeight = 25;
   float _brushSize;
+  bool _showAllBoxes;
+  bool _hideAllBoxes;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SceneViewer)
 };

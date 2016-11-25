@@ -22,7 +22,7 @@ class IdeaList;
 
 // the Idea class contains information to apply an idea to a particular
 // set of devices on the stage
-class Idea : public Component, public ComboBoxListener {
+class Idea : public Component, public ComboBoxListener, public ButtonListener {
 public:
   Idea(Image src, IdeaType type = COLOR_PALETTE);
   Idea(File srcFolder, JSONNode data);
@@ -36,6 +36,7 @@ public:
   void mouseUp(const MouseEvent& e) override;
 
   void comboBoxChanged(ComboBox* b) override;
+  void buttonClicked(Button* b) override;
 
   // converts the object to json
   JSONNode toJSON();
@@ -56,6 +57,9 @@ private:
   // graphical elements
   ComboBox _typeSelector;
 
+  // Locks down the region selction to prevent accidental adjustments
+  TextButton _lock;
+
   // bbox representing the area of the image the idea comes from
   Rectangle<float> _focusArea;
 
@@ -64,6 +68,7 @@ private:
   Point<float> _firstPt;
   Point<float> _secondPt;
   bool _isBeingDragged;
+  bool _isRegionLocked;
 
   // takes the current type and updates necesssary data for the Idea to function
   void updateType();
@@ -73,7 +78,7 @@ private:
   Point<float> localToRelativeImageCoords(Point<float> pt);
   Point<float> relativeImageCoordsToLocal(Point<float> pt);
 
-  void initTypeSelector();
+  void initUI();
 };
 
 class IdeaList : public Component {

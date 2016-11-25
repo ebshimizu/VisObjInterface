@@ -14,16 +14,18 @@
 Idea::Idea(Image src, IdeaType type) : _src(src), _type(type)
 {
   updateType();
-  initTypeSelector();
+  initUI();
 
   _selected = false;
   _isBeingDragged = false;
+  _isRegionLocked = false;
   _focusArea = Rectangle<float>::leftTopRightBottom(0, 0, 1, 1);
+  _lock.setToggleState(_isRegionLocked, dontSendNotification);
 }
 
 Idea::Idea(File srcFolder, JSONNode data)
 {
-  initTypeSelector();
+  initUI();
 
   // set name
   setName(data.name());
@@ -50,6 +52,16 @@ Idea::Idea(File srcFolder, JSONNode data)
 
   _selected = false;
   _isBeingDragged = false;
+  
+  JSONNode::iterator l = data.find("region_lock");
+  if (l != data.end()) {
+    _isRegionLocked = l->as_bool();
+  }
+  else {
+    _isRegionLocked = false;
+  }
+
+  _lock.setToggleState(_isRegionLocked, dontSendNotification);
 }
 
 Idea::~Idea()
@@ -89,7 +101,9 @@ void Idea::paint(Graphics & g)
 void Idea::resized()
 {
   auto lbounds = getLocalBounds();
-  _typeSelector.setBounds(lbounds.removeFromTop(24).reduced(2));
+  auto top = lbounds.removeFromTop(24);
+  _lock.setBounds(top.removeFromRight(24).reduced(2));
+  _typeSelector.setBounds(top);
 
   // image
 }
@@ -97,7 +111,7 @@ void Idea::resized()
 void Idea::mouseDown(const MouseEvent & e)
 {
   // uses right click drag to select regions
-  if (e.mods.isRightButtonDown()) {
+  if (e.mods.isRightButtonDown() && !_isRegionLocked) {
     _firstPt = e.position;
     _secondPt = e.position;
     _isBeingDragged = true;
@@ -115,7 +129,7 @@ void Idea::mouseDown(const MouseEvent & e)
 
 void Idea::mouseDrag(const MouseEvent & e)
 {
-  if (e.mods.isRightButtonDown()) {
+  if (e.mods.isRightButtonDown() && !_isRegionLocked) {
     _secondPt = e.position;
     repaint();
   }
@@ -123,7 +137,7 @@ void Idea::mouseDrag(const MouseEvent & e)
 
 void Idea::mouseUp(const MouseEvent & e)
 {
-  if (e.mods.isRightButtonDown()) {
+  if (e.mods.isRightButtonDown() && !_isRegionLocked) {
     // save the rectangle
     vector<Point<float> > pts;
     pts.push_back(localToRelativeImageCoords(_firstPt));
@@ -138,6 +152,15 @@ void Idea::comboBoxChanged(ComboBox * b)
 {
   _type = (IdeaType)b->getSelectedId();
   updateType();
+}
+
+void Idea::buttonClicked(Button * b)
+{
+  if (b->getName() == "lock") {
+    _isRegionLocked = !_isRegionLocked;
+    b->setToggleState(_isRegionLocked, dontSendNotification);
+    repaint();
+  }
 }
 
 JSONNode Idea::toJSON()
@@ -156,6 +179,7 @@ JSONNode Idea::toJSON()
 
   root.push_back(bounds);
   root.push_back(JSONNode("image_name", getName().toStdString() + ".png"));
+  root.push_back(JSONNode("region_lock", _isRegionLocked));
 
   return root;
 }
@@ -249,12 +273,18 @@ Point<float> Idea::relativeImageCoordsToLocal(Point<float> pt)
   return Point<float>(x, y);
 }
 
-void Idea::initTypeSelector()
+void Idea::initUI()
 {
   _typeSelector.addItem("Color Palette", (int)COLOR_PALETTE);
   _typeSelector.addListener(this);
   _typeSelector.setSelectedId((int)_type);
   addAndMakeVisible(_typeSelector);
+
+  _lock.setButtonText("L");
+  _lock.addListener(this);
+  _lock.setName("lock");
+  _lock.setColour(TextButton::ColourIds::buttonOnColourId, Colours::darkred);
+  addAndMakeVisible(_lock);
 }
 
 IdeaList::IdeaList()
@@ -366,6 +396,7 @@ void IdeaList::saveIdeas(File destFolder)
 void IdeaList::loadIdeas(File srcFolder)
 {
   _ideas.clear();
+  removeAllChildren();
 
   // load time
   // first find the json file
@@ -417,6 +448,7 @@ void IdeaList::loadIdeas(File srcFolder)
       }
     }
     
+    updateActiveIdea();
     delete memblock;
   }
 
