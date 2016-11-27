@@ -64,7 +64,26 @@ Idea::Idea(File srcFolder, JSONNode data)
   }
 
   _lock.setToggleState(_isRegionLocked, dontSendNotification);
-  updateType();
+
+  // colors
+  JSONNode::iterator c = data.find("colors");
+  if (c != data.end()) {
+    JSONNode::iterator cit = c->begin();
+    while (cit != c->end()) {
+      // color load
+      Eigen::Vector3d color(cit->find("hue")->as_float(), cit->find("sat")->as_float(), cit->find("val")->as_float());
+      _colors.push_back(color);
+      _weights.push_back(cit->find("weight")->as_float());
+
+      cit++;
+    }
+
+    updateType(true);
+  }
+  else {
+    // full recompute, data not stored
+    updateType();
+  }
 }
 
 Idea::~Idea()
@@ -231,6 +250,20 @@ JSONNode Idea::toJSON()
   root.push_back(JSONNode("image_name", getName().toStdString() + ".png"));
   root.push_back(JSONNode("region_lock", _isRegionLocked));
 
+  // colors
+  JSONNode colors;
+  colors.set_name("colors");
+  for (int i = 0; i < _colors.size(); i++) {
+    JSONNode color;
+    color.set_name(String(i).toStdString());
+    color.push_back(JSONNode("hue", _colors[i][0]));
+    color.push_back(JSONNode("sat", _colors[i][1]));
+    color.push_back(JSONNode("val", _colors[i][2]));
+    color.push_back(JSONNode("weight", _weights[i]));
+    colors.push_back(color);
+  }
+  root.push_back(colors);
+
   return root;
 }
 
@@ -255,12 +288,14 @@ vector<float> Idea::getWeights()
   return _weights;
 }
 
-void Idea::updateType()
+void Idea::updateType(bool skipRecompute)
 {
   if (_type == COLOR_PALETTE) {
     // generate color palette if not locked
     if (!_isRegionLocked) {
-      generateColorPalette();
+      if (!skipRecompute) {
+        generateColorPalette();
+      }
     }
 
     // update ui
@@ -589,16 +624,18 @@ Idea::ColorPaletteControls::~ColorPaletteControls()
 
 void Idea::ColorPaletteControls::paint(Graphics & g)
 {
-  // draws color rectangles
-  auto lbounds = getLocalBounds();
-  int elemWidth = lbounds.getWidth() / _parent->_colors.size();
+  if (_parent->_colors.size() > 0) {
+    // draws color rectangles
+    auto lbounds = getLocalBounds();
+    int elemWidth = lbounds.getWidth() / _parent->_colors.size();
 
-  for (auto c : _parent->_colors) {
-    auto region = lbounds.removeFromLeft(elemWidth).reduced(2);
+    for (auto c : _parent->_colors) {
+      auto region = lbounds.removeFromLeft(elemWidth).reduced(2);
 
-    Colour dc((float)c[0], (float)c[1], (float)c[2], 1.0f);
-    g.setColour(dc);
-    g.fillRect(region);
+      Colour dc((float)c[0], (float)c[1], (float)c[2], 1.0f);
+      g.setColour(dc);
+      g.fillRect(region);
+    }
   }
 }
 
@@ -627,12 +664,12 @@ void Idea::ColorPaletteControls::changeListenerCallback(ChangeBroadcaster * sour
 
 void Idea::ColorPaletteControls::mouseDown(const MouseEvent & e)
 {
-  if (e.mods.isRightButtonDown()) {
-    showExtraOptions();
-  }
-  else {
-    // if we're not locked
-    if (!_parent->_isRegionLocked) {
+  // if we're not locked
+  if (!_parent->_isRegionLocked) {
+    if (e.mods.isRightButtonDown()) {
+      showExtraOptions();
+    }
+    else {
       // popup a color selector at the proper spot.
       auto lbounds = getLocalBounds();
       int elemWidth = lbounds.getWidth() / _parent->_colors.size();

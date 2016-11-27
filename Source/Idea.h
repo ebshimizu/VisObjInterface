@@ -117,7 +117,9 @@ private:
   int _numColors;
 
   // takes the current type and updates necesssary data for the Idea to function
-  void updateType();
+  // skipRecompute tells updateType to only create and update UI elements, as the underlying
+  // data has already been initialized from a different source (as in a load)
+  void updateType(bool skipRecompute = false);
 
   // takes a point within this element and returns a location within the source image.
   // If out of bounds, clamps to [0,1]
