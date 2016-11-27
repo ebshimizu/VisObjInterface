@@ -35,7 +35,7 @@ Idea::Idea(File srcFolder, JSONNode data)
   File img = srcFolder.getChildFile(String(file));
   FileInputStream in(img);
 
-  // load image
+  // load imageBox
   PNGImageFormat pngReader;
   _src = pngReader.decodeImage(in);
 
@@ -76,11 +76,11 @@ void Idea::paint(Graphics & g)
   }
 
   auto lbounds = getLocalBounds();
-  lbounds.removeFromTop(24);
+  lbounds.removeFromTop(_headerSize);
 
   g.drawImageWithin(_src, lbounds.getX(), lbounds.getY(), lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
 
-  g.setColour(Colours::red);
+  g.setColour(Colour(0xffb3b3b3));
   if (_isBeingDragged) {
     // use the points
     vector<Point<float> > pts = { _firstPt, _secondPt };
@@ -101,9 +101,12 @@ void Idea::paint(Graphics & g)
 void Idea::resized()
 {
   auto lbounds = getLocalBounds();
+  auto head1 = lbounds.removeFromTop(24);
+  _lock.setBounds(head1.removeFromRight(24).reduced(2));
+  _nameEntry.setBounds(head1.reduced(2));
+
   auto top = lbounds.removeFromTop(24);
-  _lock.setBounds(top.removeFromRight(24).reduced(2));
-  _typeSelector.setBounds(top);
+  _typeSelector.setBounds(top.reduced(2));
 
   // image
 }
@@ -163,6 +166,18 @@ void Idea::buttonClicked(Button * b)
   }
 }
 
+void Idea::textEditorTextChanged(TextEditor & e)
+{
+  if (e.getName() == "name") {
+    Component::setName(e.getText());
+    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+    if (mc != nullptr) {
+      mc->repaintRenderArea();
+    }
+  }
+}
+
 JSONNode Idea::toJSON()
 {
   JSONNode root;
@@ -189,6 +204,12 @@ Image Idea::getImage()
   return _src;
 }
 
+void Idea::setName(const String & newName)
+{
+  Component::setName(newName);
+  _nameEntry.setText(newName, dontSendNotification);
+}
+
 void Idea::updateType()
 {
   // TODO: at some point this should actually do something
@@ -200,11 +221,11 @@ Point<float> Idea::localToRelativeImageCoords(Point<float> pt)
   float y = pt.getY();
 
   // height is reduced by 24
-  y -= 24;
+  y -= _headerSize;
 
   // determine image dimensions
   float scaleX = (float)getWidth() / _src.getWidth();
-  float scaleY = (float)(getHeight() - 24) / _src.getHeight();
+  float scaleY = (float)(getHeight() - _headerSize) / _src.getHeight();
 
   // account for letterboxing
   float scale = min(scaleX, scaleY);
@@ -220,7 +241,7 @@ Point<float> Idea::localToRelativeImageCoords(Point<float> pt)
   // y too big - extra space on Top/Bot sides
   else if (scaleY > scale) {
     float actualScale = scale * _src.getHeight();
-    float diff = abs((getHeight() - 24) - actualScale);
+    float diff = abs((getHeight() - _headerSize) - actualScale);
     float offset = diff / 2;
     y -= offset;
   }
@@ -243,7 +264,7 @@ Point<float> Idea::relativeImageCoordsToLocal(Point<float> pt)
 
   // determine image dimensions
   float scaleX = (float)getWidth() / _src.getWidth();
-  float scaleY = (float)(getHeight() - 24) / _src.getHeight();
+  float scaleY = (float)(getHeight() - _headerSize) / _src.getHeight();
 
   // account for letterboxing
   float scale = min(scaleX, scaleY);
@@ -263,12 +284,12 @@ Point<float> Idea::relativeImageCoordsToLocal(Point<float> pt)
   else if (scaleY > scale) {
     float intendedScale = scaleY * _src.getHeight();
     float actualScale = scale * _src.getHeight();
-    float diff = abs((getHeight() - 24) - actualScale);
+    float diff = abs((getHeight() - _headerSize) - actualScale);
     float offset = diff / 2;
     y += offset;
   }
 
-  y += 24;
+  y += _headerSize;
 
   return Point<float>(x, y);
 }
@@ -285,6 +306,18 @@ void Idea::initUI()
   _lock.setName("lock");
   _lock.setColour(TextButton::ColourIds::buttonOnColourId, Colours::darkred);
   addAndMakeVisible(_lock);
+
+  _nameEntry.setText(getName());
+  _nameEntry.addListener(this);
+  _nameEntry.setName("name");
+  _nameEntry.setColour(TextEditor::ColourIds::backgroundColourId, Colour(0x00333333));
+  _nameEntry.setColour(TextEditor::ColourIds::textColourId, Colours::white);
+  _nameEntry.setColour(TextEditor::ColourIds::outlineColourId, Colour(0x00333333));
+  _nameEntry.setColour(TextEditor::ColourIds::focusedOutlineColourId, Colour(0xff606060));
+  _nameEntry.setColour(TextEditor::ColourIds::highlightColourId, Colour(0xffa0a0a0));
+  addAndMakeVisible(_nameEntry);
+
+  _headerSize = 24 * 2;
 }
 
 IdeaList::IdeaList()

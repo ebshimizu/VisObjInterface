@@ -22,7 +22,9 @@ class IdeaList;
 
 // the Idea class contains information to apply an idea to a particular
 // set of devices on the stage
-class Idea : public Component, public ComboBoxListener, public ButtonListener {
+class Idea : public Component, public ComboBoxListener,
+  public ButtonListener, public TextEditorListener
+{
 public:
   Idea(Image src, IdeaType type = COLOR_PALETTE);
   Idea(File srcFolder, JSONNode data);
@@ -37,6 +39,7 @@ public:
 
   void comboBoxChanged(ComboBox* b) override;
   void buttonClicked(Button* b) override;
+  void textEditorTextChanged(TextEditor& e) override;
 
   // converts the object to json
   JSONNode toJSON();
@@ -46,6 +49,8 @@ public:
 
   // indicates if this element is selected
   bool _selected;
+
+  void setName(const String& newName) override;
 
 private:
   // source image
@@ -60,8 +65,17 @@ private:
   // Locks down the region selction to prevent accidental adjustments
   TextButton _lock;
 
+  // Field for editing the name of the idea
+  TextEditor _nameEntry;
+
+  // deletes the idea and removes it from the idea list
+  TextButton _delete;
+
   // bbox representing the area of the image the idea comes from
   Rectangle<float> _focusArea;
+
+  // size of elements taking up the header of the idea.
+  int _headerSize;
 
   // variables for rectangle area selection
   // the active points are stored in absolute coordinates for ease of drawing.
