@@ -73,8 +73,8 @@ SceneViewer::SceneViewer()
   _currentRender = Image();
 
   // initialize toolbar
-  _tools.add(new ToggleButton("Add"));
-  _tools.add(new ToggleButton("Pin"));
+  _tools.add(new ToggleButton("Idea Target"));
+  _tools.add(new ToggleButton("Add Pin"));
 
   _tools.getFirst()->triggerClick();
   for (auto b : _tools) {
@@ -85,10 +85,13 @@ SceneViewer::SceneViewer()
 
   _clearMask = new TextButton("Clear Mask");
   _showMask = new TextButton("Show Mask");
-  _showAllBoxesButton = new TextButton("Show All");
-  _hideAllBoxesButton = new TextButton("Hide All");
-  _showAllBoxesButton->setColour(TextButton::ColourIds::buttonOnColourId, Colours::darkgreen);
-  _hideAllBoxesButton->setColour(TextButton::ColourIds::buttonOnColourId, Colours::darkgreen);
+  _showAllBoxesButton = new TextButton("Show Targets");
+  _hideAllBoxesButton = new TextButton("Hide Targets");
+  _showAllBoxesButton->setColour(TextButton::ColourIds::buttonOnColourId, Colour(0xff202020));
+  _showAllBoxesButton->setColour(TextButton::ColourIds::textColourOnId, Colours::white);
+  _hideAllBoxesButton->setColour(TextButton::ColourIds::buttonOnColourId, Colour(0xff202020));
+  _hideAllBoxesButton->setColour(TextButton::ColourIds::textColourOnId, Colours::white);
+  _showAllBoxesButton->setToggleState(true, dontSendNotification);
   //_clearMask->addListener(this);
   //_showMask->addListener(this);
   _showAllBoxesButton->addListener(this);
@@ -100,7 +103,6 @@ SceneViewer::SceneViewer()
 
   //_showMask->setColour(TextButton::ColourIds::buttonOnColourId, Colours::lightblue);
   _drawMask = false;
-  _showAllBoxes = false;
   _hideAllBoxes = false;
   _brushSize = 50;
 }
@@ -141,57 +143,45 @@ void SceneViewer::paint (Graphics& g)
   }
 
   if (!_hideAllBoxes) {
-    if (_showAllBoxes) {
-      // draw all bounding boxes on the image. Currently they aren't labeled, but may want to add that
-      g.setColour(Colours::red);
-      for (auto b : getGlobalSettings()->_ideaMap) {
-        Point<float> topLeft = getWorldImageCoords(b.second.getTopLeft());
-        Point<float> bottomRight = getWorldImageCoords(b.second.getBottomRight());
-        g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
-
-        Rectangle<int> textBox = Rectangle<int>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight - 12, bottomRight.x, topLeft.y + _toolbarHeight - 2);
-        g.drawFittedText(String(b.first->getName()), textBox, Justification::bottomLeft, 1);
+    // draw all bounding boxes on the image. Currently they aren't labeled, but may want to add that
+    for (auto b : getGlobalSettings()->_ideaMap) {
+      if (b.first == getGlobalSettings()->_activeIdea) {
+        g.setColour(Colour(0xffa0a0a0));
       }
+      else {
+        g.setColour(Colour(0x70a0a0a0));
+      }
+
+      Point<float> topLeft = getWorldImageCoords(b.second.getTopLeft());
+      Point<float> bottomRight = getWorldImageCoords(b.second.getBottomRight());
+      g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
+
+      Rectangle<int> textBox = Rectangle<int>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight - 12, bottomRight.x, topLeft.y + _toolbarHeight - 2);
+      g.drawFittedText(String(b.first->getName()), textBox, Justification::bottomLeft, 1);
     }
-    if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_PIN || _showAllBoxes) {
-      g.setColour(Colours::yellow);
 
-      if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_PIN) {
-        // draw current
-        Array<Point<float> > pts;
-        pts.add(getWorldImageCoords(_startPoint) + Point<float>(0, _toolbarHeight));
-        pts.add(getWorldImageCoords(_currentPoint) + Point<float>(0, _toolbarHeight));
-        Rectangle<float> region = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+    g.setColour(Colour(0xffffff00));
+    if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_PIN) {
+      // draw current
+      Array<Point<float> > pts;
+      pts.add(getWorldImageCoords(_startPoint) + Point<float>(0, _toolbarHeight));
+      pts.add(getWorldImageCoords(_currentPoint) + Point<float>(0, _toolbarHeight));
+      Rectangle<float> region = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
 
-        g.drawRect(region, 2);
-      }
-
-      int i = 1;
-      for (auto b : getGlobalSettings()->_pinnedRegions) {
-        Point<float> topLeft = getWorldImageCoords(b.getTopLeft());
-        Point<float> bottomRight = getWorldImageCoords(b.getBottomRight());
-
-        g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
-
-        Rectangle<int> textBox = Rectangle<int>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight - 12, bottomRight.x, topLeft.y + _toolbarHeight - 2);
-        g.drawFittedText(String(i), textBox, Justification::bottomLeft, 1);
-
-        i++;
-      }
+      g.drawRect(region, 2);
     }
-    if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD && !_showAllBoxes) {
-      g.setColour(Colours::red);
-      if (getGlobalSettings()->_activeIdea != nullptr) {
-        auto focus = getGlobalSettings()->_ideaMap[getGlobalSettings()->_activeIdea];
-        if (focus.getWidth() != 0 || focus.getHeight() != 0) {
-          Point<float> topLeft = getWorldImageCoords(focus.getTopLeft());
-          Point<float> bottomRight = getWorldImageCoords(focus.getBottomRight());
-          g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
 
-          Rectangle<int> textBox = Rectangle<int>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight - 12, bottomRight.x, topLeft.y + _toolbarHeight - 2);
-          g.drawFittedText(String(getGlobalSettings()->_activeIdea->getName()), textBox, Justification::bottomLeft, 1);
-        }
-      }
+    int i = 1;
+    for (auto b : getGlobalSettings()->_pinnedRegions) {
+      Point<float> topLeft = getWorldImageCoords(b.getTopLeft());
+      Point<float> bottomRight = getWorldImageCoords(b.getBottomRight());
+
+      g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
+
+      Rectangle<int> textBox = Rectangle<int>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight - 12, bottomRight.x, topLeft.y + _toolbarHeight - 2);
+      g.drawFittedText(String(i), textBox, Justification::bottomLeft, 1);
+
+      i++;
     }
   }
 }
@@ -309,7 +299,7 @@ void SceneViewer::mouseDown(const MouseEvent & event)
     if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD) {
       // check idea rectangle
       auto pt = getRelativeImageCoords(event.position);
-      if (_showAllBoxes) {
+      if (!_hideAllBoxes) {
         PopupMenu menu;
         map<int, shared_ptr<Idea> > ids;
         int i = 1;
@@ -411,10 +401,10 @@ void SceneViewer::mouseDrag(const MouseEvent & event)
 
 void SceneViewer::buttonClicked(Button * b)
 {
-  if (b->getName() == "Add") {
+  if (b->getName() == "Idea Target") {
     getGlobalSettings()->_freezeDrawMode = DrawMode::RECT_ADD;
   }
-  else if (b->getName() == "Pin") {
+  else if (b->getName() == "Add Pin") {
     getGlobalSettings()->_freezeDrawMode = DrawMode::RECT_PIN;
   }
   else if (b->getName() == "Clear Mask") {
@@ -423,15 +413,21 @@ void SceneViewer::buttonClicked(Button * b)
   else if (b->getName() == "Show Mask") {
     showMask();
   }
-  else if (b->getName() == "Show All") {
-    _showAllBoxes = !_showAllBoxes;
-    b->setToggleState(_showAllBoxes, dontSendNotification);
-    repaint();
+  else if (b->getName() == "Show Targets") {
+    if (_hideAllBoxes) {
+      _hideAllBoxes = false;
+      b->setToggleState(true, dontSendNotification);
+      _hideAllBoxesButton->setToggleState(false, dontSendNotification);
+      repaint();
+    }
   }
-  else if (b->getName() == "Hide All") {
-    _hideAllBoxes = !_hideAllBoxes;
-    b->setToggleState(_hideAllBoxes, dontSendNotification);
-    repaint();
+  else if (b->getName() == "Hide Targets") {
+    if (!_hideAllBoxes) {
+      _hideAllBoxes = true;
+      b->setToggleState(true, dontSendNotification);
+      _showAllBoxesButton->setToggleState(false, dontSendNotification);
+      repaint();
+    }
   }
 
   repaint();

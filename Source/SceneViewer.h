@@ -104,7 +104,6 @@ private:
   bool _drawMask;
   int _toolbarHeight = 25;
   float _brushSize;
-  bool _showAllBoxes;
   bool _hideAllBoxes;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SceneViewer)

@@ -59,7 +59,7 @@ private:
 // Displays a list of the contained pallets in a grid
 class GibbsPalletContainer : public Component {
 public: 
-  GibbsPalletContainer(int c = 4);
+  GibbsPalletContainer(int c = 2);
   ~GibbsPalletContainer();
  
   virtual void paint(Graphics& g) override;
