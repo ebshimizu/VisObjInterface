@@ -622,6 +622,7 @@ void MainContentComponent::openRig(String fname)
       _search->clearContainer();
       _attrs->getHistory()->clearAllHistory();
       _showName = selected.getFileName();
+      getGlobalSettings()->_showName = _showName;
 
       // initialize consistency constraints
       if (_constraintWindow != nullptr)

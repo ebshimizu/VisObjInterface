@@ -444,6 +444,41 @@ void IdeaList::saveIdeas(File destFolder)
     pngif.writeImageToStream(i->getImage(), os);
   }
 
+  // save stage regions
+  root.push_back(JSONNode("current_file", getGlobalSettings()->_showName.toStdString()));
+
+  JSONNode regions;
+  regions.set_name("idea_map");
+  for (auto i : getGlobalSettings()->_ideaMap) {
+    // save each region
+    JSONNode rect;
+    rect.set_name(i.first->getName().toStdString());
+    rect.push_back(JSONNode("topX", i.second.getTopLeft().getX()));
+    rect.push_back(JSONNode("topY", i.second.getTopLeft().getY()));
+    rect.push_back(JSONNode("botX", i.second.getBottomRight().getX()));
+    rect.push_back(JSONNode("botY", i.second.getBottomRight().getY()));
+
+    regions.push_back(rect);
+  }
+  root.push_back(regions);
+
+  // pins
+  JSONNode pins;
+  pins.set_name("pins");
+  int i = 1;
+  for (auto p : getGlobalSettings()->_pinnedRegions) {
+    JSONNode rect;
+
+    rect.set_name(String(i).toStdString());
+    rect.push_back(JSONNode("topX", p.getTopLeft().getX()));
+    rect.push_back(JSONNode("topY", p.getTopLeft().getY()));
+    rect.push_back(JSONNode("botX", p.getBottomRight().getX()));
+    rect.push_back(JSONNode("botY", p.getBottomRight().getY()));
+
+    pins.push_back(rect);
+  }
+  root.push_back(pins);
+
   ofstream ideaFile;
   ideaFile.open(destFolder.getChildFile("data.ilib").getFullPathName().toStdString(), ios::out | ios::trunc);
   ideaFile << root.write_formatted();
@@ -481,10 +516,26 @@ void IdeaList::loadIdeas(File srcFolder)
     JSONNode::iterator i = n.begin();
     String active;
 
+    JSONNode ideaMap;
+
     while (i != n.end()) {
       // named params
       if (i->name() == "active_idea") {
         active = i->as_string();
+      }
+      else if (i->name() == "current_file") {
+        string show = i->as_string();
+        if (String(show) != getGlobalSettings()->_showName) {
+          getStatusBar()->setStatusMessage("Ideas created for different rig. Idea and pin regions may not be placed correctly.", false, true);
+        }
+      }
+      else if (i->name() == "idea_map") {
+        // load this later
+        ideaMap = *i;
+      }
+      else if (i->name() == "pins") {
+        // load pins now
+        loadPins(*i);
       }
       // is an object
       else {
@@ -504,6 +555,9 @@ void IdeaList::loadIdeas(File srcFolder)
       }
     }
     
+    // now load the idea map
+    loadIdeaMap(ideaMap);
+
     updateActiveIdea();
     delete memblock;
   }
@@ -520,6 +574,58 @@ void IdeaList::deleteIdea(Idea* idea)
     }
   }
 
+  getGlobalSettings()->_ideaMap.erase(*todelete);
+
   _ideas.erase(todelete);
   resized();
+
+  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+  if (mc != nullptr) {
+    mc->repaintRenderArea();
+  }
+}
+
+void IdeaList::loadPins(JSONNode pins)
+{
+  // load the pins
+  getGlobalSettings()->_pinnedRegions.clear();
+  JSONNode::iterator i = pins.begin();
+
+  while (i != pins.end()) {
+    getGlobalSettings()->_pinnedRegions.add(Rectangle<float>::leftTopRightBottom(
+      i->find("topX")->as_float(), i->find("topY")->as_float(),
+      i->find("botX")->as_float(), i->find("botY")->as_float()));
+
+    i++;
+  }
+}
+
+void IdeaList::loadIdeaMap(JSONNode ideaMap)
+{
+  getGlobalSettings()->_ideaMap.clear();
+  JSONNode::iterator i = ideaMap.begin();
+
+  while (i != ideaMap.end()) {
+    // find idea with corresponding name
+    String name = i->name();
+    shared_ptr<Idea> selected = nullptr;
+
+    for (auto idea : _ideas) {
+      if (idea->getName() == name) {
+        selected = idea;
+      }
+    }
+
+    if (selected != nullptr) {
+      // create the rectangle
+      auto region = Rectangle<float>::leftTopRightBottom(
+        i->find("topX")->as_float(), i->find("topY")->as_float(),
+        i->find("botX")->as_float(), i->find("botY")->as_float());
+
+      getGlobalSettings()->_ideaMap[selected] = region;
+    }
+
+    i++;
+  }
 }

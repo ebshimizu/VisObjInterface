@@ -122,6 +122,9 @@ public:
   void deleteIdea(Idea* idea);
 
 private:
+  void loadPins(JSONNode pins);
+  void loadIdeaMap(JSONNode ideaMap);
+
   // list of ideas contained
   vector<shared_ptr<Idea> > _ideas;
 
