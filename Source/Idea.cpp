@@ -12,11 +12,12 @@
 #include "MainComponent.h"
 #include "ImageAttribute.h"
 #include "KMeans.h"
+#include "hsvPicker.h"
 
 Idea::Idea(Image src, IdeaType type) : _src(src), _type(type)
 {
-  updateType();
   initUI();
+  updateType();
 
   _selected = false;
   _isBeingDragged = false;
@@ -45,7 +46,6 @@ Idea::Idea(File srcFolder, JSONNode data)
   _type = (IdeaType)data.find("idea_type")->as_int();
 
   _typeSelector.setSelectedId((int)_type, dontSendNotification);
-  updateType();
 
   // bounds
   auto bounds = data.find("bounds");
@@ -64,10 +64,14 @@ Idea::Idea(File srcFolder, JSONNode data)
   }
 
   _lock.setToggleState(_isRegionLocked, dontSendNotification);
+  updateType();
 }
 
 Idea::~Idea()
 {
+  if (_colorControls != nullptr) {
+    delete _colorControls;
+  }
 }
 
 void Idea::paint(Graphics & g)
@@ -110,6 +114,13 @@ void Idea::resized()
 
   auto top = lbounds.removeFromTop(24);
   _typeSelector.setBounds(top.reduced(2));
+
+  if (_type == COLOR_PALETTE) {
+    // they might be null for some reason
+    if (_colorControls != nullptr) {
+      _colorControls->setBounds(lbounds.removeFromTop(40));
+    }
+  }
 
   // image
 }
@@ -234,14 +245,36 @@ void Idea::setName(const String & newName)
   _nameEntry.setText(newName, dontSendNotification);
 }
 
+vector<Eigen::Vector3d> Idea::getColors()
+{
+  return _colors;
+}
+
+vector<float> Idea::getWeights()
+{
+  return _weights;
+}
+
 void Idea::updateType()
 {
   if (_type == COLOR_PALETTE) {
-    // generate color palette
-    generateColorPalette();
+    // generate color palette if not locked
+    if (!_isRegionLocked) {
+      generateColorPalette();
+    }
 
     // update ui
-
+    if (_colorControls == nullptr) {
+      _colorControls = new ColorPaletteControls(this);
+      addAndMakeVisible(_colorControls);
+      _headerSize = 24 * 2 + 40;
+    }
+  }
+  else {
+    if (_colorControls != nullptr) {
+      delete _colorControls;
+      _colorControls = nullptr;
+    }
   }
 }
 
@@ -360,11 +393,14 @@ void Idea::initUI()
 
   _headerSize = 24 * 2;
   _numColors = 5;
+
+  _colorControls = nullptr;
 }
 
 void Idea::generateColorPalette()
 {
   _colors.clear();
+  _weights.clear();
 
   // for now we'll do the really simple thing and just run k-means on this thing.
   // k = 5 for now
@@ -398,7 +434,7 @@ void Idea::generateColorPalette()
 
   // cluster 
   GenericKMeans cluster;
-  auto centers = cluster.cluster(5, pts, InitMode::FORGY);
+  auto centers = cluster.cluster(_numColors, pts, InitMode::FORGY);
 
   // use the centers to create the distribution
   for (auto c : centers) {
@@ -540,6 +576,161 @@ void Idea::updateColorWeights()
   _weights.resize(_colors.size());
   for (int i = 0; i < counts.size(); i++) {
     _weights[i] = (float)counts[i] / (float)(scaled.getHeight() * scaled.getWidth());
+  }
+}
+
+Idea::ColorPaletteControls::ColorPaletteControls(Idea* parent) : _parent(parent)
+{
+}
+
+Idea::ColorPaletteControls::~ColorPaletteControls()
+{
+}
+
+void Idea::ColorPaletteControls::paint(Graphics & g)
+{
+  // draws color rectangles
+  auto lbounds = getLocalBounds();
+  int elemWidth = lbounds.getWidth() / _parent->_colors.size();
+
+  for (auto c : _parent->_colors) {
+    auto region = lbounds.removeFromLeft(elemWidth).reduced(2);
+
+    Colour dc((float)c[0], (float)c[1], (float)c[2], 1.0f);
+    g.setColour(dc);
+    g.fillRect(region);
+  }
+}
+
+void Idea::ColorPaletteControls::resized()
+{
+}
+
+void Idea::ColorPaletteControls::changeListenerCallback(ChangeBroadcaster * source)
+{
+  HSVPicker* p = dynamic_cast<HSVPicker*>(source);
+  
+  if (p != nullptr) {
+    // modify the color
+    Colour c = p->getCurrentColour();
+
+    // convert to eigen vector
+    Eigen::Vector3f hsv;
+    c.getHSB(hsv[0], hsv[1], hsv[2]);
+
+    _parent->_colors[_selectedColorId][0] = hsv[0];
+    _parent->_colors[_selectedColorId][1] = hsv[1];
+    _parent->_colors[_selectedColorId][2] = hsv[2];
+    repaint();
+  }
+}
+
+void Idea::ColorPaletteControls::mouseDown(const MouseEvent & e)
+{
+  if (e.mods.isRightButtonDown()) {
+    showExtraOptions();
+  }
+  else {
+    // if we're not locked
+    if (!_parent->_isRegionLocked) {
+      // popup a color selector at the proper spot.
+      auto lbounds = getLocalBounds();
+      int elemWidth = lbounds.getWidth() / _parent->_colors.size();
+
+      int idx = 0;
+      _selectedColorId = -1;
+      Rectangle<int> selectedArea;
+      for (auto c : _parent->_colors) {
+        auto region = lbounds.removeFromLeft(elemWidth).reduced(2);
+
+        if (region.contains(e.position.getX(), e.position.getY())) {
+          _selectedColorId = idx;
+          selectedArea = region;
+        }
+
+        idx++;
+      }
+
+      // popup a selector
+      if (_selectedColorId != -1) {
+        Eigen::Vector3d selected = _parent->_colors[_selectedColorId];
+        Colour current((float)selected[0], (float)selected[1], (float)selected[2], 1.0f);
+
+        HSVPicker* cs = new HSVPicker();
+        cs->setName("Constraint");
+        cs->setCurrentColour(current);
+        cs->setSize(200, 300);
+        cs->addChangeListener(this);
+
+        auto screenBounds = this->getScreenBounds();
+        screenBounds.setX(screenBounds.getX() + selectedArea.getX());
+        screenBounds.setWidth(selectedArea.getWidth());
+        CallOutBox::launchAsynchronously(cs, screenBounds, nullptr);
+      }
+    }
+  }
+}
+
+void Idea::ColorPaletteControls::showExtraOptions()
+{
+  PopupMenu m;
+  m.addItem(1, "Reset Colors");
+  m.addItem(2, "Change Number of Colors");
+  m.addItem(3, "Edit Weights");
+  m.addItem(4, "Recompute Weights");
+
+  int result = m.show();
+
+  if (result == 1) {
+    _parent->updateType();
+  }
+  else if (result == 2) {
+    // dialog box for changing number of colors
+    AlertWindow w("Set Number of Colors",
+      "Choose number of colors to use in Palette",
+      AlertWindow::QuestionIcon);
+
+    w.addTextEditor("colors", String(_parent->_numColors), "Number of Colors:");
+    w.getTextEditor("colors")->setInputRestrictions(3, "0123456789");
+
+    w.addButton("OK", 1, KeyPress(KeyPress::returnKey, 0, 0));
+    w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+    if (w.runModalLoop() != 0) // is they picked 'ok'
+    {
+      // this is the text they entered..
+      String text = w.getTextEditorContents("colors");
+      _parent->_numColors = text.getIntValue();
+      _parent->updateType();
+      repaint();
+    }
+  }
+  else if (result == 3) {
+    // dialog for changing weightsw
+    AlertWindow w("Edit Weights",
+      "Edit the relative frequency of each color. Weights do not have to sum to 1.",
+      AlertWindow::QuestionIcon);
+
+    for (int i = 0; i < _parent->_weights.size(); i++) {
+      w.addTextEditor(String(i), String(_parent->_weights[i]), "Color " + String(i));
+      w.getTextEditor(String(i))->setInputRestrictions(20, "1234567890.");
+    }
+
+    w.addButton("OK", 1, KeyPress(KeyPress::returnKey, 0, 0));
+    w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+    if (w.runModalLoop() != 0) // is they picked 'ok'
+    {
+      // adjust all weights
+      for (int i = 0; i < _parent->_weights.size(); i++) {
+        String val = w.getTextEditorContents(String(i));
+        _parent->_weights[i] = val.getDoubleValue();
+      }
+      repaint();
+    }
+  }
+  else if (result == 4) {
+    _parent->updateColorWeights();
   }
 }
 
@@ -786,6 +977,11 @@ void IdeaList::deleteIdea(Idea* idea)
   if (mc != nullptr) {
     mc->repaintRenderArea();
   }
+}
+
+vector<shared_ptr<Idea>> IdeaList::getIdeas()
+{
+  return _ideas;
 }
 
 void IdeaList::loadPins(JSONNode pins)

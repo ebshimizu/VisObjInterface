@@ -52,7 +52,29 @@ public:
 
   void setName(const String& newName) override;
 
+  // returns a list of colors in hsv format [0-1]
+  vector<Eigen::Vector3d> getColors();
+
+  // returns the relative frequencies for each color
+  vector<float> getWeights();
+
 private:
+  class ColorPaletteControls : public Component, public ChangeListener {
+  public:
+    ColorPaletteControls(Idea* parent);
+    ~ColorPaletteControls();
+
+    void paint(Graphics& g) override;
+    void resized() override;
+    void changeListenerCallback(ChangeBroadcaster* source);
+
+    void mouseDown(const MouseEvent& e) override;
+    void showExtraOptions();
+
+    int _selectedColorId;
+    Idea* _parent;
+  };
+
   // source image
   Image _src;
 
@@ -73,6 +95,11 @@ private:
 
   // bbox representing the area of the image the idea comes from
   Rectangle<float> _focusArea;
+
+  // extra controls for viewing and changing colors.
+  // Was considering making this a generic component to make resize easier, but would
+  // make code harder to read
+  ColorPaletteControls* _colorControls;
 
   // size of elements taking up the header of the idea.
   int _headerSize;
@@ -135,6 +162,9 @@ public:
   // Scans the idea list for null ideas. Removes from container.
   // typically called after a child deletes itself
   void deleteIdea(Idea* idea);
+
+  // returns the list of ideas contained in the list
+  vector<shared_ptr<Idea> > getIdeas();
 
 private:
   void loadPins(JSONNode pins);
