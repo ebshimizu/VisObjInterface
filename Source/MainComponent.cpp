@@ -1454,7 +1454,9 @@ void MainContentComponent::search()
   _exp->getContainer()->empty();
 
   if (getGlobalSettings()->_searchMode == GIBBS_SAMPLING) {
-    // TODO: pulls data from the custom controls window for now, should generate from image eventually
+    // TODO: rewrite schedule to basically be a fancy list of schedules
+    // still put in a different class just for the eventual case where we have to actually
+    // start resolving conflicts and handing pinned regions, etc.
 
     GibbsSchedule* state = _attrs->getGibbsSchedule();
 

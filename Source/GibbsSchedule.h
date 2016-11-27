@@ -13,6 +13,32 @@
 
 #include "globals.h"
 
+// A sampler consists of the following:
+// - A set of devices that are being sampled
+// - A function that performs the sampling over a Snapshot
+// Samplers are expected to be subclassed based on the needs for each sampling method.
+class Sampler {
+public:
+  Sampler(DeviceSet affectedDevices);
+
+  virtual void sample(Snapshot* state) = 0;
+
+protected:
+  DeviceSet _devices;
+};
+
+// A color sampler distributes colors across the specified devices
+// Requires: list of colors (HSV format, normalized between 0-1), list of corresponding weights
+class ColorSampler : Sampler {
+public:
+  ColorSampler(DeviceSet affectedDevices, vector<Eigen::Vector3d> colors, vector<float> weights);
+  ~ColorSampler();
+
+private:
+  vector<Eigen::Vector3d> _colors;
+  vector<float> _weights;
+};
+
 // Gibbs schedules consist of a distribution for intensity parameters and a
 // distribution for color parameters.
 // Each distribution is a set of gaussians that are sampled from in a particular
@@ -28,6 +54,16 @@ public:
   GibbsSchedule(Image& img);
 
   ~GibbsSchedule();
+
+  // add a new sampler to the schedule
+  void addSampler(Sampler* s);
+
+  // removes all samplers from the schedule
+  void deleteSamplers();
+
+  // returns a new snapshot based off of some input state.
+  // Snapshot returned is owned by calling scope and should be deleted there.
+  Snapshot* sample(Snapshot* state);
 
   void setIntensDist(vector<normal_distribution<float> > dists);
   void setColorDists(vector<normal_distribution<float> > hue, vector<normal_distribution<float> > sat, vector<normal_distribution<float> > val);
@@ -51,6 +87,9 @@ public:
 
 private:
   default_random_engine _gen;
+
+  // list of samplers involved in this schedule
+  vector<Sampler*> _samplers;
 
   vector<normal_distribution<float> > _intensDists;
 

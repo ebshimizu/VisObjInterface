@@ -11,6 +11,23 @@
 #include "GibbsSchedule.h"
 #include "HistogramAttribute.h"
 
+Sampler::Sampler(DeviceSet affectedDevices) : _devices(affectedDevices)
+{
+}
+
+// =============================================================================
+
+ColorSampler::ColorSampler(DeviceSet affectedDevices, vector<Eigen::Vector3d> colors, vector<float> weights) :
+  Sampler(affectedDevices), _colors(colors), _weights(weights)
+{
+}
+
+ColorSampler::~ColorSampler()
+{
+}
+
+// =============================================================================
+
 GibbsSchedule::GibbsSchedule()
 {
 }
@@ -21,6 +38,35 @@ GibbsSchedule::GibbsSchedule(Image & img)
 
 GibbsSchedule::~GibbsSchedule()
 {
+  deleteSamplers();
+}
+
+void GibbsSchedule::addSampler(Sampler * s)
+{
+  _samplers.push_back(s);
+}
+
+void GibbsSchedule::deleteSamplers()
+{
+  for (auto s : _samplers)
+    delete s;
+  _samplers.clear();
+}
+
+Snapshot * GibbsSchedule::sample(Snapshot * state)
+{
+  // TODO: implement the sampling for real. Right now we simply sample things
+  // iteratively. At some point we'll probably want to sample intensity then color
+  // so the color sampler can actually do things? it may get complicated
+  Snapshot* newState = new Snapshot(*state);
+
+  for (auto s : _samplers) {
+    // state carries over to each new sampler
+    // may have to check for conflicts before running at some point
+    s->sample(newState);
+  }
+
+  return newState;
 }
 
 void GibbsSchedule::setIntensDist(vector<normal_distribution<float>> dists)
@@ -83,3 +129,4 @@ double GibbsSchedule::sampleHue(int id)
 {
   return _hueDists[id](_gen);
 }
+
