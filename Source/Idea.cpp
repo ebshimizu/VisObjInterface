@@ -102,6 +102,7 @@ void Idea::resized()
 {
   auto lbounds = getLocalBounds();
   auto head1 = lbounds.removeFromTop(24);
+  _delete.setBounds(head1.removeFromRight(24).reduced(2));
   _lock.setBounds(head1.removeFromRight(24).reduced(2));
   _nameEntry.setBounds(head1.reduced(2));
 
@@ -163,6 +164,23 @@ void Idea::buttonClicked(Button * b)
     _isRegionLocked = !_isRegionLocked;
     b->setToggleState(_isRegionLocked, dontSendNotification);
     repaint();
+  }
+  if (b->getName() == "delete") {
+    // first ask for confirmation, since there's no undo
+    AlertWindow alert("Delete Idea",
+      "Are you sure you want to delete this idea? This action is not undoable.",
+      AlertWindow::AlertIconType::WarningIcon);
+    alert.addButton("OK", 1);
+    alert.addButton("Cancel", 0);
+    int result = alert.runModalLoop();
+
+    if (result == 0) {
+      return;
+    }
+
+    IdeaList* parent = dynamic_cast<IdeaList*>(getParentComponent());
+    parent->deleteIdea(this);
+    return;
   }
 }
 
@@ -316,6 +334,11 @@ void Idea::initUI()
   _nameEntry.setColour(TextEditor::ColourIds::focusedOutlineColourId, Colour(0xff606060));
   _nameEntry.setColour(TextEditor::ColourIds::highlightColourId, Colour(0xffa0a0a0));
   addAndMakeVisible(_nameEntry);
+
+  _delete.setButtonText("x");
+  _delete.setName("delete");
+  _delete.addListener(this);
+  addAndMakeVisible(_delete);
 
   _headerSize = 24 * 2;
 }
@@ -485,5 +508,18 @@ void IdeaList::loadIdeas(File srcFolder)
     delete memblock;
   }
 
+  resized();
+}
+
+void IdeaList::deleteIdea(Idea* idea)
+{
+  vector<shared_ptr<Idea>>::iterator todelete;
+  for (auto it = _ideas.begin(); it != _ideas.end(); it++) {
+    if (it->get() == idea) {
+      todelete = it;
+    }
+  }
+
+  _ideas.erase(todelete);
   resized();
 }

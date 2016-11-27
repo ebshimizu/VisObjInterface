@@ -117,6 +117,10 @@ public:
   // loads ideas from disk.
   void loadIdeas(File srcFolder);
 
+  // Scans the idea list for null ideas. Removes from container.
+  // typically called after a child deletes itself
+  void deleteIdea(Idea* idea);
+
 private:
   // list of ideas contained
   vector<shared_ptr<Idea> > _ideas;
