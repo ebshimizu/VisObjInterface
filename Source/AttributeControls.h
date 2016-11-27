@@ -122,11 +122,30 @@ public:
 private:
   void initAttributes();
 
-  GibbsPalletContainer* _palettes;
-  Viewport* _paletteViewer;
+  class PaletteControls : public Component {
+  public:
+    PaletteControls();
+    ~PaletteControls();
 
-  IdeaList* _ideas;
-  Viewport* _ideaViewer;
+    virtual void resized();
+
+    GibbsPalletContainer* _palettes;
+    Viewport* _paletteViewer;
+  };
+
+  class IdeaControls : public Component {
+  public:
+    IdeaControls();
+    ~IdeaControls();
+
+    virtual void resized();
+
+    IdeaList* _ideas;
+    Viewport* _ideaViewer;
+  };
+
+  PaletteControls* _vr;
+  IdeaControls* _ic;
 
   GibbsConstraintContainer* _tempConstraints;
 
