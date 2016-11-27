@@ -10,6 +10,8 @@
 
 #include "Idea.h"
 #include "MainComponent.h"
+#include "ImageAttribute.h"
+#include "KMeans.h"
 
 Idea::Idea(Image src, IdeaType type) : _src(src), _type(type)
 {
@@ -148,6 +150,10 @@ void Idea::mouseUp(const MouseEvent & e)
     pts.push_back(localToRelativeImageCoords(_secondPt));
     _focusArea = Rectangle<float>::findAreaContainingPoints(pts.data(), 2);
     _isBeingDragged = false;
+
+    // recompute necessary idea info
+    updateType();
+
     repaint();
   }
 }
@@ -230,7 +236,13 @@ void Idea::setName(const String & newName)
 
 void Idea::updateType()
 {
-  // TODO: at some point this should actually do something
+  if (_type == COLOR_PALETTE) {
+    // generate color palette
+    generateColorPalette();
+
+    // update ui
+
+  }
 }
 
 Point<float> Idea::localToRelativeImageCoords(Point<float> pt)
@@ -312,6 +324,12 @@ Point<float> Idea::relativeImageCoordsToLocal(Point<float> pt)
   return Point<float>(x, y);
 }
 
+Rectangle<int> Idea::relativeToAbsoluteImageRegion(Rectangle<float> rect)
+{
+  return Rectangle<int>(rect.getX() * _src.getWidth(), rect.getY() * _src.getHeight(),
+    rect.getWidth() * _src.getWidth(), rect.getHeight() * _src.getHeight());
+}
+
 void Idea::initUI()
 {
   _typeSelector.addItem("Color Palette", (int)COLOR_PALETTE);
@@ -341,7 +359,191 @@ void Idea::initUI()
   addAndMakeVisible(_delete);
 
   _headerSize = 24 * 2;
+  _numColors = 5;
 }
+
+void Idea::generateColorPalette()
+{
+  _colors.clear();
+
+  // for now we'll do the really simple thing and just run k-means on this thing.
+  // k = 5 for now
+
+  // compute a HSV histogram and pull out stats about the intensity and color
+  SparseHistogram imgHist(3, { 0, 10, 0, 0.2f, 0, 0.2f });
+
+  // pull out the selected image region
+  Image img = _src.getClippedImage(relativeToAbsoluteImageRegion(_focusArea));
+  double scale = (img.getHeight() > img.getWidth()) ? 100.0 / img.getHeight() : 100.0 / img.getWidth();
+  Image i = img.rescaled(img.getWidth() * scale, img.getHeight() * scale);
+
+  vector<pair<Eigen::VectorXd, int> > pts;
+
+  for (int y = 0; y < i.getHeight(); y++) {
+    for (int x = 0; x < i.getWidth(); x++) {
+      auto p = i.getPixelAt(x, y);
+      Eigen::VectorXf hsv;
+      hsv.resize(3);
+
+      p.getHSB(hsv[0], hsv[1], hsv[2]);
+
+      Eigen::VectorXd pt;
+      pt.resize(3);
+      pt[0] = hsv[0];
+      pt[1] = hsv[1];
+      pt[2] = hsv[2];
+      pts.push_back(pair<Eigen::VectorXd, int>(pt, 0));
+    }
+  }
+
+  // cluster 
+  GenericKMeans cluster;
+  auto centers = cluster.cluster(5, pts, InitMode::FORGY);
+
+  // use the centers to create the distribution
+  for (auto c : centers) {
+    _colors.push_back(c);
+  }
+
+  updateColorWeights();
+}
+
+void Idea::altGenerateColorPalette()
+{
+  // step 0: check that all required dirs exist
+  File temp = getGlobalSettings()->_tempDir;
+  if (!temp.getChildFile("saliency").exists())
+    temp.getChildFile("saliency").createDirectory();
+
+  if (!temp.getChildFile("segments").exists())
+    temp.getChildFile("segments").createDirectory();
+
+  if (!temp.getChildFile("tmp").exists())
+    temp.getChildFile("tmp").createDirectory();
+
+  // step 1: save an image to the temp working directory
+  String outPath = "";
+  {
+    File out = temp.getChildFile(getName() + ".png");
+    FileOutputStream os(out);
+    PNGImageFormat pngif;
+
+    pngif.writeImageToStream(_src.getClippedImage(relativeToAbsoluteImageRegion(_focusArea)), os);
+    os.flush();
+    outPath = out.getFullPathName();
+  }
+
+  // step 2: cd to the app folder and run the matlab command to generate images
+  File scriptDir = getGlobalSettings()->_paletteAppDir;
+  String cmd = "matlab -r -nosplash -nodesktop -wait \"cd('" + scriptDir.getFullPathName() + "');";
+  cmd += "generateImages('" + outPath + "', '" + getName() + "', '" + temp.getFullPathName() + "/');exit;\"";
+  system(cmd.toStdString().c_str());
+
+  // step 3: run the palette generation command
+  File result = temp.getChildFile(getName() + "_" + String(_numColors) + ".colors");
+  result.deleteFile();
+  File paletteGen = scriptDir.getChildFile("getPalette.exe");
+  cmd = paletteGen.getFullPathName() + " " + temp.getFullPathName() + " " + scriptDir.getChildFile("weights").getFullPathName();
+  cmd += " " + scriptDir.getChildFile("c3_data.json").getFullPathName() + " " + getName() + ".png ";
+  cmd += result.getFullPathName() + " " + String(_numColors);
+  system(cmd.toStdString().c_str());
+
+  // step 4: read color file
+  String colorString = result.loadFileAsString();
+  _colors.clear();
+
+  // colors are rgb separated by a space
+  int start = 0;
+  int end = 0;
+  while (start <= colorString.length()) {
+    end = colorString.indexOf(start, " ");
+    if (end == -1)
+      end = colorString.length();
+
+    String substr = colorString.substring(start, end);
+
+    // parse numbers, separated by ,
+    int R = substr.upToFirstOccurrenceOf(",", false, true).getIntValue();
+    substr = substr.fromFirstOccurrenceOf(",", false, true);
+
+    int G = substr.upToFirstOccurrenceOf(",", false, true).getIntValue();
+    substr = substr.fromFirstOccurrenceOf(",", false, true);
+
+    int B = substr.getIntValue();
+
+    Colour c(R, G, B);
+
+    Eigen::VectorXf hsv;
+    hsv.resize(3);
+    c.getHSB(hsv[0], hsv[1], hsv[2]);
+
+    Eigen::VectorXd pt;
+    pt.resize(3);
+    pt[0] = hsv[0];
+    pt[1] = hsv[1];
+    pt[2] = hsv[2];
+
+    _colors.push_back(pt);
+
+    start = end + 1;
+  }
+
+  updateColorWeights();
+
+  // step 5: show in interface
+  // that actually happens not in this function 
+}
+
+void Idea::updateColorWeights()
+{
+    // palettize a small, scaled image
+  Image img = _src.getClippedImage(relativeToAbsoluteImageRegion(_focusArea));
+  double scale = (img.getHeight() > img.getWidth()) ? 100.0 / img.getHeight() : 100.0 / img.getWidth();
+  Image scaled = img.rescaled(img.getWidth() * scale, img.getHeight() * scale);
+
+  vector<int> counts;
+  counts.resize(_colors.size());
+
+  for (auto y = 0; y < scaled.getHeight(); y++) {
+    for (auto x = 0; x < scaled.getWidth(); x++) {
+      // find closest color
+      Colour px = scaled.getPixelAt(x, y);
+      
+      Eigen::VectorXd pt;
+      pt.resize(3);
+      pt[0] = px.getRed() / 255.0;
+      pt[1] = px.getGreen() / 255.0;
+      pt[2] = px.getBlue() / 255.0;
+
+      double min = DBL_MAX;
+      int minIdx = 0;
+      for (int i = 0; i < _colors.size(); i++) {
+        Colour toRGB((float)_colors[i][0], (float)_colors[i][1], (float)_colors[i][2], 1.0f);
+        Eigen::VectorXd rgb;
+        rgb.resize(3);
+        rgb[0] = toRGB.getRed() / 255.0;
+        rgb[1] = toRGB.getGreen() / 255.0;
+        rgb[2] = toRGB.getBlue() / 255.0;
+
+        double dist = (pt - rgb).norm();
+        if (dist < min) {
+          min = dist;
+          minIdx = i;
+        }
+      }
+
+      counts[minIdx] += 1;
+    }
+  }
+
+  _weights.clear();
+  _weights.resize(_colors.size());
+  for (int i = 0; i < counts.size(); i++) {
+    _weights[i] = (float)counts[i] / (float)(scaled.getHeight() * scaled.getWidth());
+  }
+}
+
+// ============================================================================
 
 IdeaList::IdeaList()
 {

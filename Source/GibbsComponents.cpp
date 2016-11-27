@@ -17,7 +17,6 @@
 GibbsPalette::GibbsPalette(String name, Image & src) : _img(src)
 {
   _name = name.replaceCharacter(' ', '_');
-  computeSchedule();
   setTooltip(name);
 }
 
@@ -34,53 +33,6 @@ void GibbsPalette::resized()
 void GibbsPalette::setImg(Image & img)
 {
   _img = img;
-}
-
-void GibbsPalette::computeSchedule()
-{
-  _colors.clear();
-
-  // for now we'll do the really simple thing and just run k-means on this thing.
-  // k = 5 for now
-
-  // compute a HSV histogram and pull out stats about the intensity and color
-  SparseHistogram imgHist(3, { 0, 10, 0, 0.2f, 0, 0.2f });
-  Image i = _img.rescaled(100, 100);
-  _avgIntens = 0;
-
-  vector<pair<Eigen::VectorXd, int> > pts;
-
-  for (int y = 0; y < i.getHeight(); y++) {
-    for (int x = 0; x < i.getWidth(); x++) {
-      auto p = i.getPixelAt(x, y);
-      Eigen::VectorXf hsv;
-      hsv.resize(3);
-
-      p.getHSB(hsv[0], hsv[1], hsv[2]);
-
-      Eigen::VectorXd pt;
-      pt.resize(3);
-      pt[0] = hsv[0];
-      pt[1] = hsv[1];
-      pt[2] = hsv[2];
-      pts.push_back(pair<Eigen::VectorXd, int>(pt, 0));
-
-      _avgIntens += p.getBrightness();
-    }
-  }
-
-  _avgIntens /= (i.getHeight() * i.getWidth());
-
-  // cluster 
-  GenericKMeans cluster;
-  auto centers = cluster.cluster(5, pts, InitMode::FORGY);
-
-  // use the centers to create the distribution
-  for (auto c : centers) {
-    _colors.push_back(c);
-  }
-
-  updateColorWeights();
 }
 
 void GibbsPalette::setCustomSchedule(shared_ptr<GibbsSchedule> sched)
@@ -102,8 +54,6 @@ void GibbsPalette::mouseDown(const MouseEvent & event)
   else if (event.mods.isRightButtonDown()) {
     PopupMenu menu;
     menu.addItem(1, "New Idea");
-    menu.addItem(2, "Create Palette");
-    menu.addItem(3, "Generate Palette");
 
     int result = menu.show();
 
@@ -114,164 +64,12 @@ void GibbsPalette::mouseDown(const MouseEvent & event)
         mc->createIdea(_img, _name);
       }
     }
-    if (result == 2) {
-      // load colors through main component
-      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-
-      if (mc != nullptr) {
-        mc->setColors(_colors, _avgIntens, _weights);
-      }
-    }
-    if (result == 3) {
-      // debug
-      generatePalette(5);
-      updateColorWeights();
-
-      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-
-      if (mc != nullptr) {
-        mc->setColors(_colors, _avgIntens, _weights);
-      }
-    }
   }
 }
 
 shared_ptr<GibbsSchedule> GibbsPalette::getSchedule()
 {
   return _schedule;
-}
-
-void GibbsPalette::generatePalette(int colors)
-{
-  // step 0: check that all required dirs exist
-  File temp = getGlobalSettings()->_tempDir;
-  if (!temp.getChildFile("saliency").exists())
-    temp.getChildFile("saliency").createDirectory();
-
-  if (!temp.getChildFile("segments").exists())
-    temp.getChildFile("segments").createDirectory();
-
-  if (!temp.getChildFile("tmp").exists())
-    temp.getChildFile("tmp").createDirectory();
-
-  // step 1: save an image to the temp working directory
-  String outPath = "";
-  {
-    File out = temp.getChildFile(_name + ".png");
-    FileOutputStream os(out);
-    PNGImageFormat pngif;
-
-    pngif.writeImageToStream(_img, os);
-    os.flush();
-    outPath = out.getFullPathName();
-  }
-
-  // step 2: cd to the app folder and run the matlab command to generate images
-  File scriptDir = getGlobalSettings()->_paletteAppDir;
-  String cmd = "matlab -r -nosplash -nodesktop -wait \"cd('" + scriptDir.getFullPathName() + "');";
-  cmd += "generateImages('" + outPath + "', '" + _name + "', '" + temp.getFullPathName() + "/');exit;\"";
-  system(cmd.toStdString().c_str());
-
-  // step 3: run the palette generation command
-  File result = temp.getChildFile(_name + "_" + String(colors) + ".colors");
-  result.deleteFile();
-  File paletteGen = scriptDir.getChildFile("getPalette.exe");
-  cmd = paletteGen.getFullPathName() + " " + temp.getFullPathName() + " " + scriptDir.getChildFile("weights").getFullPathName();
-  cmd += " " + scriptDir.getChildFile("c3_data.json").getFullPathName() + " " + _name + ".png ";
-  cmd += result.getFullPathName() + " " + String(colors);
-  system(cmd.toStdString().c_str());
-
-  // step 4: read color file
-  String colorString = result.loadFileAsString();
-  _colors.clear();
-
-  // colors are rgb separated by a space
-  // TODO: parse the file
-  int start = 0;
-  int end = 0;
-  while (start <= colorString.length()) {
-    end = colorString.indexOf(start, " ");
-    if (end == -1)
-      end = colorString.length();
-
-    String substr = colorString.substring(start, end);
-
-    // parse numbers, separated by ,
-    int R = substr.upToFirstOccurrenceOf(",", false, true).getIntValue();
-    substr = substr.fromFirstOccurrenceOf(",", false, true);
-
-    int G = substr.upToFirstOccurrenceOf(",", false, true).getIntValue();
-    substr = substr.fromFirstOccurrenceOf(",", false, true);
-
-    int B = substr.getIntValue();
-
-    Colour c(R, G, B);
-
-    Eigen::VectorXf hsv;
-    hsv.resize(3);
-    c.getHSB(hsv[0], hsv[1], hsv[2]);
-
-    Eigen::VectorXd pt;
-    pt.resize(3);
-    pt[0] = hsv[0];
-    pt[1] = hsv[1];
-    pt[2] = hsv[2];
-
-    _colors.push_back(pt);
-
-    start = end + 1;
-  }
-
-  // step 5: show in interface
-  // that actually happens not in this function 
-}
-
-void GibbsPalette::updateColorWeights()
-{
-  // palettize a small, scaled image
-  double scale = (_img.getHeight() > _img.getWidth()) ? 100.0 / _img.getHeight() : 100.0 / _img.getWidth();
-  Image scaled = _img.rescaled(_img.getWidth() * scale, _img.getHeight() * scale);
-
-  vector<int> counts;
-  counts.resize(_colors.size());
-
-  for (auto y = 0; y < scaled.getHeight(); y++) {
-    for (auto x = 0; x < scaled.getWidth(); x++) {
-      // find closest color
-      Colour px = scaled.getPixelAt(x, y);
-      
-      Eigen::VectorXd pt;
-      pt.resize(3);
-      pt[0] = px.getRed() / 255.0;
-      pt[1] = px.getGreen() / 255.0;
-      pt[2] = px.getBlue() / 255.0;
-
-      double min = DBL_MAX;
-      int minIdx = 0;
-      for (int i = 0; i < _colors.size(); i++) {
-        Colour toRGB((float)_colors[i][0], (float)_colors[i][1], (float)_colors[i][2], 1.0f);
-        Eigen::VectorXd rgb;
-        rgb.resize(3);
-        rgb[0] = toRGB.getRed() / 255.0;
-        rgb[1] = toRGB.getGreen() / 255.0;
-        rgb[2] = toRGB.getBlue() / 255.0;
-
-        double dist = (pt - rgb).norm();
-        if (dist < min) {
-          min = dist;
-          minIdx = i;
-        }
-      }
-
-      counts[minIdx] += 1;
-    }
-  }
-
-  _weights.clear();
-  _weights.resize(_colors.size());
-  for (int i = 0; i < counts.size(); i++) {
-    _weights[i] = (float)counts[i] / (float)(scaled.getHeight() * scaled.getWidth());
-  }
 }
 
 //=============================================================================

@@ -24,7 +24,6 @@ public:
   virtual void resized() override;
 
   void setImg(Image& img);
-  void computeSchedule();
 
   // If you want to manually define a schedule somehow, use this function to set it
   // right now this is mostly for debug purposes, though it seems possible to
@@ -35,13 +34,6 @@ public:
 
   // gets a pointer to the schedule created by this pallet
   shared_ptr<GibbsSchedule> getSchedule();
-
-  // Generates a color palette using Sharon Lin's palette extraction code
-  void generatePalette(int colors);
-
-  // determines color weights. clamps each pixel to nearest color in palette
-  // and then counts them
-  void updateColorWeights();
 
 private:
   shared_ptr<GibbsSchedule> _schedule;

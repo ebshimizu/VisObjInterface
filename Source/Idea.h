@@ -84,6 +84,11 @@ private:
   bool _isBeingDragged;
   bool _isRegionLocked;
 
+  // type specific variables
+  vector<Eigen::Vector3d> _colors;
+  vector<float> _weights;
+  int _numColors;
+
   // takes the current type and updates necesssary data for the Idea to function
   void updateType();
 
@@ -91,8 +96,18 @@ private:
   // If out of bounds, clamps to [0,1]
   Point<float> localToRelativeImageCoords(Point<float> pt);
   Point<float> relativeImageCoordsToLocal(Point<float> pt);
+  Rectangle<int> relativeToAbsoluteImageRegion(Rectangle<float> rect);
 
   void initUI();
+
+  // generates a new color palette based on the selected region of the image
+  void generateColorPalette();
+
+  // more compute intensive function requiring a tool chain supporing Lin's code
+  void altGenerateColorPalette();
+
+  // updates the relative frequencies of each color
+  void updateColorWeights();
 };
 
 class IdeaList : public Component {
