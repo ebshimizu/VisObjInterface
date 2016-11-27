@@ -199,9 +199,6 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   _container->setName("attribute list");
   //addAndMakeVisible(_container);
 
-  _paletteControls = new PaletteControls();
-  _paletteControls->setName("Palette Controls");
-
   _componentView = new Viewport();
   _componentView->setViewedComponent(_container, true);
   //addAndMakeVisible(_componentView);
@@ -215,6 +212,19 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
 
   _tempConstraints = new GibbsConstraintContainer();
 
+  _palettes = new GibbsPalletContainer();
+  _palettes->setName("available palettes");
+  //addAndMakeVisible(_pallets);
+
+  _paletteViewer = new Viewport();
+  _paletteViewer->setViewedComponent(_palettes, true);
+  //addAndMakeVisible(_paletteViewer);
+
+  _ideas = new IdeaList();
+  _ideaViewer = new Viewport();
+  _ideaViewer->setViewedComponent(_ideas, true);
+  //addAndMakeVisible(_ideaViewer);
+
   // button controls
   _search = new TextButton("Search", "Perform a search with the current attribute constraints");
   _search->addListener(this);
@@ -222,7 +232,7 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
 
   _sortButton = new TextButton("Sort", "Sort the search results according to the selected sort method");
   _sortButton->addListener(this);
-  addAndMakeVisible(_sortButton);
+  //addAndMakeVisible(_sortButton);
 
   _setKeyButton = new TextButton("Key Lights", "Sets Key Lights used for Clustering");
   _setKeyButton->addListener(this);
@@ -244,13 +254,14 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   //_sort->addItem("Key Intensity", 5);
   //_sort->addItem("Key Azimuth Angle", 6);
   _sort->setSelectedId(1);
-  addAndMakeVisible(_sort);
+  //addAndMakeVisible(_sort);
 
   // tab setup
   addAndMakeVisible(_tabs);
   //_tabs.addTab("Attributes", Colour(0xff333333), _componentView, true);
   _tabs.addTab("Lights", Colour(0xff333333), _paramControls, true);
-  _tabs.addTab("Ideas", Colour(0xff333333), _paletteControls, true);
+  _tabs.addTab("Ideas", Colour(0xff333333), _ideas, true);
+  _tabs.addTab("Visual Research", Colour(0xff333333), _palettes, true);
   _tabs.addTab("History", Colour(0xff333333), _historyViewer, true);
   _tabs.addTab("Settings", Colour(0xff333333), _settings, true);
   _tabs.addTab("Debug", Colour(0xff333333), _tempConstraints, true);
@@ -273,19 +284,20 @@ AttributeControls::~AttributeControls()
   delete _sortButton;
   delete _setKeyButton;
   delete _clusterButton;
-  delete _paletteControls;
   delete _tempConstraints;
+  delete _ideaViewer;
+  delete _paletteViewer;
 }
 
 void AttributeControls::paint (Graphics& g)
 {
   g.fillAll(Colour(0xff333333));
-  auto lbounds = getLocalBounds();
-  lbounds.removeFromBottom(30);
-  auto botRow2 = lbounds.removeFromBottom(30);
+  //auto lbounds = getLocalBounds();
+  //lbounds.removeFromBottom(30);
+  //auto botRow2 = lbounds.removeFromBottom(30);
 
-  g.setColour(Colours::white);
-  g.drawFittedText("Sort Mode: ", botRow2.removeFromLeft(80).reduced(5), Justification::right, 1);
+  //g.setColour(Colours::white);
+  //g.drawFittedText("Sort Mode: ", botRow2.removeFromLeft(80).reduced(5), Justification::right, 1);
 }
 
 void AttributeControls::resized()
@@ -294,18 +306,24 @@ void AttributeControls::resized()
 
   auto botBounds = lbounds.removeFromBottom(30);
   _search->setBounds(botBounds.removeFromRight(80).reduced(5));
-  _sortButton->setBounds(botBounds.removeFromRight(80).reduced(5));
+  //_sortButton->setBounds(botBounds.removeFromRight(80).reduced(5));
   _reset.setBounds(botBounds.removeFromRight(80).reduced(5));
   //_clusterButton->setBounds(botBounds.removeFromRight(80).reduced(5));
   //_setKeyButton->setBounds(botBounds.removeFromRight(80).reduced(5));
 
-  auto botRow2 = lbounds.removeFromBottom(30);
-  botRow2.removeFromLeft(80);
-  _sort->setBounds(botRow2.reduced(5));
+  //auto botRow2 = lbounds.removeFromBottom(30);
+  //botRow2.removeFromLeft(80);
+  //_sort->setBounds(botRow2.reduced(5));
 
-  _tabs.setBounds(lbounds);
+  auto fullBounds = lbounds;
+  auto tabArea = lbounds.removeFromRight(24);
+  _ideas->setSize(tabArea.getWidth() - _ideaViewer->getScrollBarThickness() - 2, 0);
+  _palettes->setSize(tabArea.getWidth() - _paletteViewer->getScrollBarThickness(), 0);
+
+  _tabs.setBounds(fullBounds);
   _container->setWidth(_componentView->getMaximumVisibleWidth());
   _history->setWidth(_historyViewer->getMaximumVisibleWidth());
+
 }
 
 void AttributeControls::refresh()
@@ -395,7 +413,7 @@ void AttributeControls::unlockAttributeModes()
 
 void AttributeControls::initPallets()
 {
-  _paletteControls->_palettes->clearPallets();
+  _palettes->clearPallets();
   File imageDir = getGlobalSettings()->_imageAttrLoc;
   Array<File> imagesToLoad;
   int numImage = imageDir.findChildFiles(imagesToLoad, 2, false, "*.png");
@@ -412,7 +430,7 @@ void AttributeControls::initPallets()
       PNGImageFormat pngReader;
       Image originalImg = pngReader.decodeImage(in);
 
-      _paletteControls->_palettes->addPallet(new GibbsPalette(name, originalImg));
+      _palettes->addPallet(new GibbsPalette(name, originalImg));
       
       getRecorder()->log(SYSTEM, "Loaded image for pallet " + name.toStdString());
     }
@@ -458,7 +476,7 @@ HistoryPanel* AttributeControls::getHistory()
 void AttributeControls::setColors(vector<Eigen::VectorXd> colors, double intens, vector<float> weights)
 {
   _tempConstraints->addColors(colors, intens, weights);
-  _paletteControls->resized();
+  _tempConstraints->resized();
 }
 
 void AttributeControls::refreshSettings()
@@ -468,19 +486,19 @@ void AttributeControls::refreshSettings()
 
 void AttributeControls::addIdea(Image i, String name)
 {
-  _paletteControls->_ideas->addIdea(i, name);
-  resized();
+  _ideas->addIdea(i, name);
+  _ideas->resized();
 }
 
 void AttributeControls::saveIdeas(File destFolder)
 {
-  _paletteControls->_ideas->saveIdeas(destFolder);
+  _ideas->saveIdeas(destFolder);
 }
 
 void AttributeControls::loadIdeas(File srcFolder)
 {
-  _paletteControls->_ideas->loadIdeas(srcFolder);
-  resized();
+  _ideas->loadIdeas(srcFolder);
+  _ideas->resized();
 }
 
 void AttributeControls::initAttributes()
@@ -530,36 +548,4 @@ void AttributeControls::initAttributes()
   }
 
   getStatusBar()->setStatusMessage("Loaded " + String(numImage) + " images from " + imageDir.getFullPathName());
-}
-
-AttributeControls::PaletteControls::PaletteControls()
-{
-  _palettes = new GibbsPalletContainer();
-  _palettes->setName("available palettes");
-  //addAndMakeVisible(_pallets);
-
-  _paletteViewer = new Viewport();
-  _paletteViewer->setViewedComponent(_palettes, true);
-  addAndMakeVisible(_paletteViewer);
-
-  _ideas = new IdeaList();
-  _ideaViewer = new Viewport();
-  _ideaViewer->setViewedComponent(_ideas, true);
-  addAndMakeVisible(_ideaViewer);
-}
-
-AttributeControls::PaletteControls::~PaletteControls()
-{
-  delete _paletteViewer;
-  delete _ideaViewer;
-}
-
-void AttributeControls::PaletteControls::resized()
-{
-  auto lbounds = getLocalBounds();
-  _ideas->setSize(lbounds.getWidth() - _ideaViewer->getScrollBarThickness() - 2, 0);
-  _ideaViewer->setBounds(lbounds.removeFromTop(getHeight() * 0.75));
-
-  _paletteViewer->setBounds(lbounds);
-  _palettes->setSize(_paletteViewer->getMaximumVisibleWidth(), 0);
 }

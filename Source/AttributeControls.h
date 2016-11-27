@@ -122,21 +122,13 @@ public:
 private:
   void initAttributes();
 
-  class PaletteControls : public Component {
-  public:
-    PaletteControls();
-    ~PaletteControls();
+  GibbsPalletContainer* _palettes;
+  Viewport* _paletteViewer;
 
-    virtual void resized();
-
-    GibbsPalletContainer* _palettes;
-    Viewport* _paletteViewer;
-    IdeaList* _ideas;
-    Viewport* _ideaViewer;
-  };
+  IdeaList* _ideas;
+  Viewport* _ideaViewer;
 
   GibbsConstraintContainer* _tempConstraints;
-  PaletteControls* _paletteControls;
 
   TabbedComponent _tabs;
 
