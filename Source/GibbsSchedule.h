@@ -24,7 +24,12 @@ public:
   virtual void sample(Snapshot* state) = 0;
 
 protected:
+  // computes the per-system intensity based on affected devices
+  void computeSystemSensitivity();
+
   DeviceSet _devices;
+
+  map<string, double> _systemSensitivity;
 };
 
 // A color sampler distributes colors across the specified devices
