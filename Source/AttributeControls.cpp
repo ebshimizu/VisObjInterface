@@ -442,7 +442,7 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
     
     // create a sampler
     if (i->getType() == COLOR_PALETTE) {
-      Sampler* colorSampler = (Sampler*)(new ColorSampler(affected, i->getColors(), i->getWeights()));
+      Sampler* colorSampler = (Sampler*)(new ColorSampler(affected, r, i->getColors(), i->getWeights()));
       sched->addSampler(colorSampler);
     }
   }
