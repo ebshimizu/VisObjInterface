@@ -578,14 +578,20 @@ void computeLightSensitivity()
       }
     }
 
+    sensCache cache;
+
     // render
     Image base = renderImage(tmp, imgWidth, imgHeight);
+    cache.i50 = base;
 
     // adjust to 51%
     tmpData[active]->getIntensity()->setValAsPercent(0.51);
 
     // render
     Image brighter = renderImage(tmp, imgWidth, imgHeight);
+    cache.i51 = brighter;
+
+    getGlobalSettings()->_sensitivityCache[active] = cache;
     
     // calculate avg per-pixel brightness difference
     double diff = 0;

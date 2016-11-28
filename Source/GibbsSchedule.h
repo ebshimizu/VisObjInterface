@@ -34,6 +34,8 @@ public:
   ColorSampler(DeviceSet affectedDevices, vector<Eigen::Vector3d> colors, vector<float> weights);
   ~ColorSampler();
 
+  void sample(Snapshot* state) override;
+
 private:
   vector<Eigen::Vector3d> _colors;
   vector<float> _weights;

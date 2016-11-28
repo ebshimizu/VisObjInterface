@@ -200,6 +200,12 @@ struct GibbsScheduleConstraint {
   bool _followConventions;
 };
 
+// caches images rendered at 50% and 51% of the whole stage
+struct sensCache {
+  Image i50;
+  Image i51;
+};
+
 // A container for various things that the entire application may want to access
 // TODO: at some point, have this load from a file
 class GlobalSettings
@@ -369,6 +375,8 @@ public:
   // centered on 50%.
   map<string, double> _sensitivity;
   map<string, double> _systemSensitivity;
+
+  map<string, sensCache> _sensitivityCache;
 
   // maps ideas to areas of the stage
   // may end up being more complicated based on how sampling needs to work

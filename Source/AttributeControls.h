@@ -122,6 +122,9 @@ public:
 private:
   void initAttributes();
 
+  // returns a set of devices that affect the idea's selected region
+  DeviceSet computeAffectedDevices(shared_ptr<Idea> idea, double threshold = 0.01);
+
   class PaletteControls : public Component {
   public:
     PaletteControls();

@@ -288,6 +288,11 @@ vector<float> Idea::getWeights()
   return _weights;
 }
 
+IdeaType Idea::getType()
+{
+  return _type;
+}
+
 void Idea::updateType(bool skipRecompute)
 {
   if (_type == COLOR_PALETTE) {

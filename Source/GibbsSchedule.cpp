@@ -26,6 +26,11 @@ ColorSampler::~ColorSampler()
 {
 }
 
+void ColorSampler::sample(Snapshot * state)
+{
+  // TODO: the sampling
+}
+
 // =============================================================================
 
 GibbsSchedule::GibbsSchedule()

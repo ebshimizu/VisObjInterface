@@ -429,21 +429,23 @@ void AttributeControls::initPallets()
 
 GibbsSchedule* AttributeControls::getGibbsSchedule()
 {
-  auto colorConstraints = _tempConstraints->getColorDists();
-  auto intensConstraints = _tempConstraints->getIntensDist();
-  
-  double avg, max;
-  int k;
-
   GibbsSchedule* sched = new GibbsSchedule();
-  vector<normal_distribution<float>> idists;
-  idists.push_back(intensConstraints);
-  sched->setIntensDist(idists);
-  _tempConstraints->getIntensDistProps(sched->_avgIntens, sched->_maxIntens, sched->_numBrightLights);
-  sched->_useSystems = _tempConstraints->useSystems();
-  sched->_colorWeights = _tempConstraints->getColorWeights();
 
-  sched->setColorDists(colorConstraints[0], colorConstraints[1], colorConstraints[2]);
+  // gather all the samplers from the ideas
+  for (auto i : _ic->_ideas->getIdeas()) {
+    // determine affected devices
+    // get selected region
+    auto r = getGlobalSettings()->_ideaMap[i];
+
+    // compute affected devices
+    DeviceSet affected = computeAffectedDevices(i);
+    
+    // create a sampler
+    if (i->getType() == COLOR_PALETTE) {
+      Sampler* colorSampler = (Sampler*)(new ColorSampler(affected, i->getColors(), i->getWeights()));
+      sched->addSampler(colorSampler);
+    }
+  }
 
   return sched;
 }
@@ -533,6 +535,37 @@ void AttributeControls::initAttributes()
   }
 
   getStatusBar()->setStatusMessage("Loaded " + String(numImage) + " images from " + imageDir.getFullPathName());
+}
+
+DeviceSet AttributeControls::computeAffectedDevices(shared_ptr<Idea> idea, double threshold)
+{
+  // for each device, check if the cropped sensitivity image is above a threshold
+  DeviceSet affected(getRig());
+  auto region = getGlobalSettings()->_ideaMap[idea];
+
+  Rectangle<int> scaledRegion = Rectangle<int>(region.getX() * 100, region.getY() * 100,
+    region.getWidth() * 100, region.getHeight() * 100);
+
+  for (auto id : getRig()->getAllDevices().getIds()) {
+    // compute sensitivity from cache cropped from bounding box
+    Image i50Crop = getGlobalSettings()->_sensitivityCache[id].i50.getClippedImage(scaledRegion);
+    Image i51Crop = getGlobalSettings()->_sensitivityCache[id].i51.getClippedImage(scaledRegion);
+
+    double diff = 0;
+    for (int y = 0; y < i50Crop.getHeight(); y++) {
+      for (int x = 0; x < i50Crop.getWidth(); x++) {
+        diff += i51Crop.getPixelAt(x, y).getBrightness() - i50Crop.getPixelAt(x, y).getBrightness();
+      }
+    }
+
+    double sens = diff / (i50Crop.getHeight() * i50Crop.getWidth()) * 100;
+
+    if (sens > threshold) {
+      affected.add(id);
+    }
+  }
+
+  return affected;
 }
 
 AttributeControls::PaletteControls::PaletteControls()

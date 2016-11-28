@@ -58,6 +58,9 @@ public:
   // returns the relative frequencies for each color
   vector<float> getWeights();
 
+  // returns the idea type
+  IdeaType getType();
+
 private:
   class ColorPaletteControls : public Component, public ChangeListener {
   public:
