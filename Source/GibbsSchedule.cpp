@@ -12,7 +12,7 @@
 #include "HistogramAttribute.h"
 #include "closure_over_uneven_buckets.h"
 
-Sampler::Sampler(DeviceSet affectedDevices, Rectangle<int> region) : _devices(affectedDevices), _region(region)
+Sampler::Sampler(DeviceSet affectedDevices, Rectangle<float> region) : _devices(affectedDevices), _region(region)
 {
 }
 
@@ -37,7 +37,7 @@ void Sampler::computeSystemSensitivity()
     // gather devices
     for (auto id : getRig()->getAllDevices().getIds()) {
       if (_devices.contains(id)) {
-        active.add(id);
+        active = active.add(id);
       }
     }
 
@@ -80,7 +80,7 @@ void Sampler::computeSystemSensitivity()
 
 // =============================================================================
 
-ColorSampler::ColorSampler(DeviceSet affectedDevices, Rectangle<int> region,
+ColorSampler::ColorSampler(DeviceSet affectedDevices, Rectangle<float> region,
   vector<Eigen::Vector3d> colors, vector<float> weights) :
   Sampler(affectedDevices, region), _colors(colors), _weights(weights)
 {
@@ -105,7 +105,7 @@ void ColorSampler::sample(Snapshot * state)
     float avgIntens = 0;
     for (auto id : globalSys.getIds()) {
       if (_devices.contains(id)) {
-        localSys.add(id);
+        localSys = localSys.add(id);
         avgIntens += stateData[id]->getIntensity()->asPercent();
       }
     }
@@ -129,7 +129,9 @@ void ColorSampler::sample(Snapshot * state)
 
     // apply color to each light in the system
     for (string id : systemMap[i].getIds()) {
-      stateData[id]->getColor()->setHSV(color[0] * 360.0, color[1], color[2]);
+      if (stateData[id]->paramExists("color")) {
+        stateData[id]->getColor()->setHSV(color[0] * 360.0, color[1], color[2]);
+      }
     }
   }
 }

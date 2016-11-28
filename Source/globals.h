@@ -405,6 +405,9 @@ public:
 
 	// Extra data that may be used by any part of program
 	map<String, String> _extraData;
+  
+  // extra function evaluations for particular attributes
+  map<String, double> _extraFuncs;
 };
 
 // Gets the application command manager for this application.

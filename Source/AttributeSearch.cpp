@@ -983,124 +983,24 @@ void AttributeSearchThread::runGibbsSampling()
   // timing diagnostics
   auto start = chrono::high_resolution_clock::now();
 
-  Snapshot* sample = new Snapshot(*_original);
-  auto deviceData = sample->getRigData();
+  Snapshot* currentState = new Snapshot(*_original);
 
   // we have a list of sampling schedules and the affected devices.
   // Unless otherwise specified, we assume all devices in the sets are adjusted
   // as a system
   if (threadShouldExit()) {
-    delete sample;
+    delete currentState;
     return;
   }
 
-  // testing out Ersin's sample code
-  // operates on lights or systems depending on what the schedule says
-  vector<float> results, sens;
-  vector<int> constraints;
-  if (_activeSchedule->_useSystems) {
-    auto systems = getRig()->getMetadataValues("system");
-    for (auto s : systems) {
-      results.push_back(0);
-      sens.push_back(getGlobalSettings()->_systemSensitivity[s]);
-      constraints.push_back(0);
-    }
-
-    GibbsSamplingGaussianMixture(results, constraints, sens, results.size(),
-      _activeSchedule->_numBrightLights, _activeSchedule->_maxIntens, _activeSchedule->_avgIntens, true);
-
-    // sample colors
-    vector<int> colorIds;
-    colorIds.resize(results.size());
-    ClosureOverUnevenBuckets(results, _activeSchedule->_colorWeights, colorIds);
-
-    // assign colors and intensities - actually a resample from gaussian
-    // dists centered at palette location
-    int i = 0;
-    for (auto s : systems) {
-      DeviceSet selected = getRig()->select("$system=" + s);
-      auto ids = selected.getIds();
-
-      for (auto id : ids) {
-        if (!isDeviceParamLocked(id, "intensity"))
-          deviceData[id]->getIntensity()->setValAsPercent(results[i]);
-        if (!isDeviceParamLocked(id, "color")) {
-          // get color id
-          int colorId = colorIds[i];
-
-          // sample color
-          double sat = _activeSchedule->sampleSat(colorId);
-          double hue = _activeSchedule->sampleHue(colorId) * 360.0;
-
-          // value is always 1, intens compensates
-          deviceData[id]->getColor()->setHSV(hue, sat, 1);
-        }
-      }
-
-      i++;
-    }
-  }
-  else {
-    for (auto d : deviceData) {
-      results.push_back(0);
-      sens.push_back(getGlobalSettings()->_sensitivity[d.first]);
-      constraints.push_back(0);
-    }
-
-    GibbsSamplingGaussianMixture(results, constraints, sens, results.size(),
-      _activeSchedule->_numBrightLights, _activeSchedule->_maxIntens, _activeSchedule->_avgIntens, true);
-
-    // sample colors
-    vector<int> colorIds;
-    colorIds.resize(results.size());
-    ClosureOverUnevenBuckets(results, _activeSchedule->_colorWeights, colorIds);
-
-    // update devices
-    int i = 0;
-    for (auto d : deviceData) {
-      if (!isDeviceParamLocked(d.first, "intensity"))
-        deviceData[d.first]->getIntensity()->setValAsPercent(results[i]);
-      if (!isDeviceParamLocked(d.first, "color")) {
-        // get color id
-        int colorId = colorIds[i];
-
-        // sample color
-        double sat = _activeSchedule->sampleSat(colorId);
-        double hue = _activeSchedule->sampleHue(colorId) * 360.0;
-
-        // value is always 1, intens compensates
-        deviceData[d.first]->getColor()->setHSV(hue, sat, 1);
-      }
-      i++;
-    }
-  }
-
-  // for now we assume all things are free
-  // TODO: CHECK LOCKS
-  //vector<GibbsConstraint> constraints;
-  //for (int i = 0; i < sampleData.size(); i++)
-  //  constraints.push_back(FREE);
-
-  //schedule.second->sampleIntensity(sampleData, constraints);
-
-  // link system with val
-  //map<string, float> systemToVal;
-  //int i = 0;
-  //for (auto s : systems) {
-  //  systemToVal[s] = sampleData[i];
-  //  i++;
-  //}
-
-  // update devices
-  //for (auto id : devices.getIds()) {
-  //  if (!isDeviceParamLocked(id, "intensity")) {
-  //    deviceData[id]->getIntensity()->setValAsPercent(systemToVal[deviceData[id]->getMetadata("system")]);
-  //  }
-  //}
+  // the GibbSchedule contains a series of samplers that produce a new scene from the
+  // current state. The state is duplicated by the sampler, so we don't have to
+  // worry about overwriting things.
+  Snapshot* newSample = _activeSchedule->sample(currentState);
 
   // now that we have the sample, apply the usual display criteria to it
   shared_ptr<SearchResult> r = shared_ptr<SearchResult>(new SearchResult());
-  r->_scene = snapshotToVector(sample);
+  r->_scene = snapshotToVector(newSample);
 
   // diagnostics
   DebugData data;
@@ -1113,10 +1013,12 @@ void AttributeSearchThread::runGibbsSampling()
 
   r->_extraData["Thread"] = String(_id);
   r->_extraData["Sample"] = String(data._sampleId);
+  r->_extraFuncs["palette"] = 1;    // TODO: actual eval functions for each sampler
   r->_creationTime = chrono::high_resolution_clock::now();
 
   // at this point all the data has been saved in the search result
-  delete sample;
+  delete newSample;
+  delete currentState;
 
   // send scene to the results area. may chose to not use the scene
   if (!_viewer->addNewResult(r, _id, _dispMetric, false)) {

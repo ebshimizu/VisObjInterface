@@ -433,6 +433,10 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
 
   // gather all the samplers from the ideas
   for (auto i : _ic->_ideas->getIdeas()) {
+    // not every idea has a corresponding region on the stage
+    if (getGlobalSettings()->_ideaMap.count(i) == 0)
+      continue;
+
     // determine affected devices
     // get selected region
     auto r = getGlobalSettings()->_ideaMap[i];
@@ -561,7 +565,7 @@ DeviceSet AttributeControls::computeAffectedDevices(shared_ptr<Idea> idea, doubl
     double sens = diff / (i50Crop.getHeight() * i50Crop.getWidth()) * 100;
 
     if (sens > threshold) {
-      affected.add(id);
+      affected = affected.add(id);
     }
   }
 
