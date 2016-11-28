@@ -13,7 +13,7 @@
 
 //==============================================================================
 
-SystemExplorer::SystemExplorer(string name, string system) : _name(name), _blackout("B"), _solo("S"), _pin("P")
+SystemExplorer::SystemExplorer(string name, string system) : _name(name), _blackout("B"), _solo("S"), _intensPin("I"), _colorPin("C")
 {
   setName(name);
   _selected = getRig()->select("$system=" + system);
@@ -146,7 +146,8 @@ void SystemExplorer::resized()
   buttons.removeFromTop(24);
   _blackout.setBounds(buttons.removeFromTop(24).reduced(2));
   _solo.setBounds(buttons.removeFromTop(24).reduced(2));
-  _pin.setBounds(buttons.removeFromTop(24).reduced(2));
+  _intensPin.setBounds(buttons.removeFromTop(24).reduced(2));
+  _colorPin.setBounds(buttons.removeFromTop(24).reduced(2));
 
   auto left = lbounds.removeFromLeft(200);
 
@@ -224,24 +225,30 @@ void SystemExplorer::init()
   _isSolo = false;
   _temp = new Snapshot(*_currentState);
 
-  _pin.setButtonText("P");
+  _intensPin.setButtonText("I");
+  _colorPin.setButtonText("C");
   _solo.setButtonText("S");
   _blackout.setButtonText("B");
-  _pin.setName("P");
+  _intensPin.setName("I");
+  _colorPin.setName("C");
   _solo.setName("S");
   _blackout.setName("B");
 
-  _pin.setColour(TextButton::buttonOnColourId, Colours::darkred);
+  _intensPin.setColour(TextButton::buttonOnColourId, Colours::darkred);
+  _colorPin.setColour(TextButton::buttonOnColourId, Colours::darkred);
   _solo.setColour(TextButton::buttonOnColourId, Colours::darkgoldenrod);
 
-  _pin.setToggleState(_isPinned, dontSendNotification);
+  _intensPin.setToggleState(_isIntensPinned, dontSendNotification);
+  _colorPin.setToggleState(_isColorPinned, dontSendNotification);
   _solo.setToggleState(_isSolo, dontSendNotification);
   _blackout.setToggleState(_isBlackout, dontSendNotification);
 
-  _pin.addListener(this);
+  _intensPin.addListener(this);
+  _colorPin.addListener(this);
   _solo.addListener(this);
   _blackout.addListener(this);
-  addAndMakeVisible(_pin);
+  addAndMakeVisible(_intensPin);
+  addAndMakeVisible(_colorPin);
   addAndMakeVisible(_solo);
   addAndMakeVisible(_blackout);
 
@@ -266,8 +273,11 @@ void SystemExplorer::buttonClicked(Button * b)
       solo();
     }
   }
-  else if (b->getName() == "P") {
-    togglePin();
+  else if (b->getName() == "I") {
+    toggleIntensPin();
+  }
+  else if (b->getName() == "C") {
+    toggleColorPin();
   }
 }
 
@@ -278,8 +288,6 @@ void SystemExplorer::blackout()
   // set the current state of the devices in the rig to black, update
   for (auto d : _selected.getDevices()) {
     getRig()->getDevice(d->getId())->setIntensity(0);
-    lockDeviceParam(d->getId(), "intensity");
-    lockDeviceParam(d->getId(), "color");
   }
 
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
@@ -365,17 +373,16 @@ void SystemExplorer::unSolo()
   _container->repaint();
 }
 
-void SystemExplorer::togglePin()
+void SystemExplorer::toggleIntensPin()
 {
   updatePinState();
 
-  if (_isPinned) {
+  if (_isIntensPinned) {
     // unlock
     for (auto d : _selected.getIds()) {
       unlockDeviceParam(d, "intensity");
-      unlockDeviceParam(d, "color");
     }
-    _isPinned = false;
+    _isIntensPinned = false;
 
     // run search
     getApplicationCommandManager()->invokeDirectly(command::SEARCH, true);
@@ -384,12 +391,37 @@ void SystemExplorer::togglePin()
     // lock
     for (auto d : _selected.getIds()) {
       lockDeviceParam(d, "intensity");
-      lockDeviceParam(d, "color");
     }
-    _isPinned = true;
+    _isIntensPinned = true;
   }
 
-  _pin.setToggleState(_isPinned, dontSendNotification);
+  _intensPin.setToggleState(_isIntensPinned, dontSendNotification);
+  getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, true);
+}
+
+void SystemExplorer::toggleColorPin()
+{
+  updatePinState();
+
+  if (_isColorPinned) {
+    // unlock
+    for (auto d : _selected.getIds()) {
+      unlockDeviceParam(d, "color");
+    }
+    _isColorPinned = false;
+
+    // run search
+    getApplicationCommandManager()->invokeDirectly(command::SEARCH, true);
+  }
+  else {
+    // lock
+    for (auto d : _selected.getIds()) {
+      lockDeviceParam(d, "color");
+    }
+    _isColorPinned = true;
+  }
+
+  _colorPin.setToggleState(_isColorPinned, dontSendNotification);
   getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, true);
 }
 
@@ -402,13 +434,17 @@ void SystemExplorer::empty()
 void SystemExplorer::updatePinState()
 {
   // pinned if all devices are locked, otherwise consider everything unlocked.
-  bool allLocked = true;
+  bool allIntensLocked = true;
+  bool allColorLocked = true;
   for (auto d : _selected.getIds()) {
-    allLocked &= isDeviceParamLocked(d, "intensity");
+    allIntensLocked &= isDeviceParamLocked(d, "intensity");
+    allColorLocked &= isDeviceParamLocked(d, "color");
   }
 
-  _isPinned = allLocked;
-  _pin.setToggleState(_isPinned, dontSendNotification);
+  _isIntensPinned = allIntensLocked;
+  _isColorPinned = allColorLocked;
+  _intensPin.setToggleState(_isIntensPinned, dontSendNotification);
+  _colorPin.setToggleState(_isColorPinned, dontSendNotification);
 }
 
 void SystemExplorer::updateIntensSlider()

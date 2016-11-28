@@ -62,7 +62,8 @@ public:
   void unSolo();
 
   // locks or unlocks the selected lights 
-  void togglePin();
+  void toggleIntensPin();
+  void toggleColorPin();
 
   void empty();
 
@@ -108,7 +109,8 @@ private:
 
   TextButton _blackout;
   TextButton _solo;
-  TextButton _pin;
+  TextButton _intensPin;
+  TextButton _colorPin;
 
   string _name;
   Slider _intens;
@@ -117,7 +119,8 @@ private:
   bool _isSolo;
 
   // true when every light in the selection is locked
-  bool _isPinned;
+  bool _isIntensPinned;
+  bool _isColorPinned;
 
   double _distThreshold;
 };
