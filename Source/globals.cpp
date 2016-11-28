@@ -401,7 +401,7 @@ GlobalSettings::GlobalSettings()
   _maxMCMCIters = 10;
   _numDisplayClusters = 1;
   _jndThreshold = 25;
-  _viewJndThreshold = 0.01;
+  _viewJndThreshold = 0.045;
   _currentSortMode = "Attribute Default";
   _clusterElemsPerRow = 6;
   _maxReturnedScenes = 100;

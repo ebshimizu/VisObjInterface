@@ -128,6 +128,16 @@ void ColorSampler::sample(Snapshot * state)
   for (int i = 0; i < results.size(); i++) {
     Eigen::Vector3d color = _colors[colorIds[i]];
 
+    // perterb the color a little bit
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    normal_distribution<double> hueDist(0, 0.02);
+    normal_distribution<double> satDist(0, 0.1);
+
+    color[0] += hueDist(gen);
+    color[1] += satDist(gen);
+    color[2] += satDist(gen);
+
     // apply color to each light in the system
     for (string id : systemMap[i].getIds()) {
       if (stateData[id]->paramExists("color")) {

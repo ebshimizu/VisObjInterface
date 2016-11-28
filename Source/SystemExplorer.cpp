@@ -155,7 +155,7 @@ void SystemExplorer::resized()
 
   lbounds.removeFromLeft(5);
   _rowElems->setBounds(lbounds);
-  _container->setSize(lbounds.getWidth(), _rowElems->getMaximumVisibleHeight());
+  _container->setSize(lbounds.getWidth(), _rowElems->getHeight() - _rowElems->getScrollBarThickness());
 }
 
 DeviceSet SystemExplorer::getViewedDevices()
