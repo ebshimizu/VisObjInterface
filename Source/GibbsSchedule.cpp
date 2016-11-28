@@ -10,6 +10,7 @@
 
 #include "GibbsSchedule.h"
 #include "HistogramAttribute.h"
+#include "closure_over_uneven_buckets.h"
 
 Sampler::Sampler(DeviceSet affectedDevices, Rectangle<int> region) : _devices(affectedDevices), _region(region)
 {
@@ -91,7 +92,46 @@ ColorSampler::~ColorSampler()
 
 void ColorSampler::sample(Snapshot * state)
 {
-  // TODO: the sampling
+  // the color sampler will sample by system
+  vector<float> results;
+  vector<DeviceSet> systemMap;
+  auto stateData = state->getRigData();
+
+  auto systems = getRig()->getMetadataValues("system");
+  for (auto s : systems) {
+    DeviceSet localSys(getRig());
+    DeviceSet globalSys = getRig()->select("$system=" + s);
+
+    float avgIntens = 0;
+    for (auto id : globalSys.getIds()) {
+      if (_devices.contains(id)) {
+        localSys.add(id);
+        avgIntens += stateData[id]->getIntensity()->asPercent();
+      }
+    }
+    
+    if (localSys.size() > 0) {
+      avgIntens /= localSys.size();
+      results.push_back(avgIntens);
+      systemMap.push_back(localSys);
+    }
+  }
+
+  vector<int> colorIds;
+  colorIds.resize(results.size());
+
+  // do the sampling
+  ClosureOverUnevenBuckets(results, _weights, colorIds);
+
+  // fill in the results
+  for (int i = 0; i < results.size(); i++) {
+    Eigen::Vector3d color = _colors[colorIds[i]];
+
+    // apply color to each light in the system
+    for (string id : systemMap[i].getIds()) {
+      stateData[id]->getColor()->setHSV(color[0] * 360.0, color[1], color[2]);
+    }
+  }
 }
 
 // =============================================================================
