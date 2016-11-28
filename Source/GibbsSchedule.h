@@ -42,6 +42,8 @@ public:
   void sample(Snapshot* state) override;
 
 private:
+  void normalizeWeights();
+
   vector<Eigen::Vector3d> _colors;
   vector<float> _weights;
 };
@@ -72,39 +74,11 @@ public:
   // Snapshot returned is owned by calling scope and should be deleted there.
   Snapshot* sample(Snapshot* state);
 
-  void setIntensDist(vector<normal_distribution<float> > dists);
-  void setColorDists(vector<normal_distribution<float> > hue, vector<normal_distribution<float> > sat, vector<normal_distribution<float> > val);
-
-  // samples the intensity according to the current schedule
-  void sampleIntensity(vector<float>& result, const vector<GibbsConstraint> constraints);
-
-  // samples the color according to the current schedule
-  void sampleColor(vector<float>& result, const vector<GibbsConstraint> constraints);
-
-  // sample from the specified distribution
-  double sampleSat(int id);
-  double sampleHue(int id);
-
-  // mixing some parameters here while the final interface gets figured out
-  double _avgIntens;
-  double _maxIntens;
-  int _numBrightLights;
-  bool _useSystems;
-  vector<float> _colorWeights;
-
 private:
   default_random_engine _gen;
 
   // list of samplers involved in this schedule
   vector<Sampler*> _samplers;
-
-  vector<normal_distribution<float> > _intensDists;
-
-  // Color is a 3D param, and is specified with three different distributions
-  // all sampled at the same time. It is assumed that the indicies match here.
-  vector<normal_distribution<float> > _hueDists;
-  vector<normal_distribution<float> > _satDists;
-  vector<normal_distribution<float> > _valDists;
 };
 
 

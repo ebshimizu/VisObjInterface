@@ -400,8 +400,8 @@ GlobalSettings::GlobalSettings()
   _editStepSize = 0.25;
   _maxMCMCIters = 10;
   _numDisplayClusters = 1;
-  _jndThreshold = 100;
-  _viewJndThreshold = 0.075;
+  _jndThreshold = 25;
+  _viewJndThreshold = 0.01;
   _currentSortMode = "Attribute Default";
   _clusterElemsPerRow = 6;
   _maxReturnedScenes = 100;
@@ -449,7 +449,7 @@ GlobalSettings::GlobalSettings()
   _numPairs = 100;
   _searchDistMetric = L2PARAM;
   _searchDispMetric = PPAVGLAB;
-  _thresholdDecayRate = 50;
+  _thresholdDecayRate = 1;
   _activeIdea = nullptr;
 
   _imageAttrLoc = File::getCurrentWorkingDirectory().getChildFile("image_attributes");

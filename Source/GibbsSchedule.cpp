@@ -84,6 +84,7 @@ ColorSampler::ColorSampler(DeviceSet affectedDevices, Rectangle<float> region,
   vector<Eigen::Vector3d> colors, vector<float> weights) :
   Sampler(affectedDevices, region), _colors(colors), _weights(weights)
 {
+  normalizeWeights();
 }
 
 ColorSampler::~ColorSampler()
@@ -136,6 +137,20 @@ void ColorSampler::sample(Snapshot * state)
   }
 }
 
+void ColorSampler::normalizeWeights()
+{
+  // compute sum
+  double sum = 0;
+  for (auto w : _weights) {
+    sum += w;
+  }
+
+  // divide
+  for (int i = 0; i < _weights.size(); i++) {
+    _weights[i] /= sum;
+  }
+}
+
 // =============================================================================
 
 GibbsSchedule::GibbsSchedule()
@@ -178,65 +193,3 @@ Snapshot * GibbsSchedule::sample(Snapshot * state)
 
   return newState;
 }
-
-void GibbsSchedule::setIntensDist(vector<normal_distribution<float>> dists)
-{
-  _intensDists = dists;
-}
-
-void GibbsSchedule::setColorDists(vector<normal_distribution<float>> hue, vector<normal_distribution<float>> sat, vector<normal_distribution<float>> val)
-{
-  _hueDists = hue;
-  _satDists = sat;
-  _valDists = val;
-}
-
-void GibbsSchedule::sampleIntensity(vector<float>& result, const vector<GibbsConstraint> constraints)
-{
-  // check that result and constraints are the same length
-  if (result.size() != constraints.size())
-    return;
-
-  // constraints indicates which parameters can be modified and how.
-  
-  // TODO: FIX FOR DIFFERENT SCHEDULES
-  uniform_int_distribution<int> rng(0, _intensDists.size() - 1);
-
-  for (int i = 0; i < result.size(); i++) {
-    if (constraints[i] == FREE) {
-      result[i] = Lumiverse::clamp(_intensDists[rng(_gen)](_gen), 0.0f, 1.0f);
-    }
-  }
-}
-
-void GibbsSchedule::sampleColor(vector<float>& result, const vector<GibbsConstraint> constraints)
-{
-  // check that result / 3 and constraints are the same length
-  if (result.size() / 3 != constraints.size())
-    return;
-
-  // constraints indicates which parameters can be modified and how.
-  
-  // TODO: FIX FOR DIFFERENT SCHEDULES
-  uniform_int_distribution<int> rng(0, _hueDists.size() - 1);
-
-  for (int i = 0; i < constraints.size(); i++) {
-    if (constraints[i] == FREE) {
-      int dist = rng(_gen);
-      result[i * 3] = _hueDists[dist](_gen);
-      result[i * 3 + 1] = Lumiverse::clamp(_satDists[dist](_gen), 0, 1);
-      result[i * 3 + 2] = Lumiverse::clamp(_valDists[dist](_gen), 0, 1);
-    }
-  }
-}
-
-double GibbsSchedule::sampleSat(int id)
-{
-  return _satDists[id](_gen);
-}
-
-double GibbsSchedule::sampleHue(int id)
-{
-  return _hueDists[id](_gen);
-}
-
