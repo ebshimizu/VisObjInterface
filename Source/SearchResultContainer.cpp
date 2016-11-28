@@ -227,42 +227,47 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
     if (_selected.size() != 0) {
       PopupMenu m;
 
-      m.addItem(1, "Lock lights");
+      m.addItem(1, "Pin Intensity and Color");
+      m.addItem(2, "Pin Intensity");
+      m.addItem(3, "Pin Color");
       int result = m.show();
 
-      if (result == 1) {
-        // get the system lights from the rig
-        Snapshot* s = vectorToSnapshot(_result->_scene);
-        auto sd = s->getRigData();
-        for (auto d : _selected.getDevices()) {
+      if (result == 0)
+        return;
+
+      bool pinIntens = (result == 1 || result == 2);
+      bool pinColor = (result == 1 || result == 3);
+
+      // get the system lights from the rig
+      Snapshot* s = vectorToSnapshot(_result->_scene);
+      auto sd = s->getRigData();
+      for (auto d : _selected.getDevices()) {
+        if (pinIntens) {
           d->setParam("intensity", sd[d->getId()]->getIntensity());
-          d->setParam("color", sd[d->getId()]->getColor());
           lockDeviceParam(d->getId(), "intensity");
+        }
+
+        if (pinColor) {
+          d->setParam("color", sd[d->getId()]->getColor());
           lockDeviceParam(d->getId(), "color");
         }
-
-        // set all other unlocked devices to 0
-        DeviceSet all = getRig()->getAllDevices();
-        for (auto d : all.getDevices()) {
-          if (!isDeviceParamLocked(d->getId(), "intensity"))
-            d->setParam("intensity", 0.0);
-        }
-
-        _selectTime = chrono::high_resolution_clock::now().time_since_epoch().count();
-        _wasSelected = true;
-
-        MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-
-        if (mc != nullptr) {
-          mc->arnoldRender(!_isHistoryItem);
-          mc->refreshParams();
-          mc->refreshAttr();
-          mc->redrawResults();
-          getRecorder()->log(ACTION, "User locked DeviceSet: " + _selected.info());
-        }
-
-        getApplicationCommandManager()->invokeDirectly(command::SEARCH, true);
       }
+
+      // leave other devices unaffected
+      _selectTime = chrono::high_resolution_clock::now().time_since_epoch().count();
+      _wasSelected = true;
+
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+      if (mc != nullptr) {
+        mc->arnoldRender(!_isHistoryItem);
+        mc->refreshParams();
+        mc->refreshAttr();
+        mc->redrawResults();
+        getRecorder()->log(ACTION, "User locked DeviceSet: " + _selected.info());
+      }
+
+      getApplicationCommandManager()->invokeDirectly(command::SEARCH, true);
     }
     else {
       PopupMenu m;

@@ -497,18 +497,12 @@ void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
   // this could be threaded, so we access the cached copy of the rig state
   auto rigData = _rigState->getRigData();
 
-  // set all unlocked intensity non-system devices to 0 if not in solo mode
+  // leave lights alone unless in solo mode
   if (!_isSolo) {
     for (auto d : _temp->getRigData()) {
       if (!_selected.contains(d.first)) {
-        if (isDeviceParamLocked(d.first, "intensity")) {
-          // if locked, grab values and update the snapshot
-          d.second->setIntensity(rigData[d.first]->getIntensity()->getVal());
-          d.second->setParam("color", LumiverseTypeUtils::copy(rigData[d.first]->getParam("color")));
-        }
-        else {
-          d.second->setIntensity(0);
-        }
+        d.second->setIntensity(rigData[d.first]->getIntensity()->getVal());
+        d.second->setParam("color", LumiverseTypeUtils::copy(rigData[d.first]->getParam("color")));
       }
       else {
         // sorting data
