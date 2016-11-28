@@ -11,7 +11,7 @@
 #include "GibbsSchedule.h"
 #include "HistogramAttribute.h"
 
-Sampler::Sampler(DeviceSet affectedDevices) : _devices(affectedDevices)
+Sampler::Sampler(DeviceSet affectedDevices, Rectangle<int> region) : _devices(affectedDevices), _region(region)
 {
 }
 
@@ -19,6 +19,8 @@ void Sampler::computeSystemSensitivity()
 {
   int imgWidth = 100;
   int imgHeight = 100;
+  Rectangle<int> cropRegion = Rectangle<int>(_region.getX() * imgWidth, _region.getY() * imgHeight,
+    _region.getWidth() * imgWidth, _region.getHeight() * imgHeight);
 
   _systemSensitivity.clear();
   DeviceSet allDevices = getRig()->getAllDevices();
@@ -53,7 +55,7 @@ void Sampler::computeSystemSensitivity()
     }
 
     // render
-    Image base = renderImage(tmp, imgWidth, imgHeight);
+    Image base = renderImage(tmp, imgWidth, imgHeight).getClippedImage(cropRegion);
 
     // adjust to 51%
     for (auto id : active.getIds()) {
@@ -61,12 +63,12 @@ void Sampler::computeSystemSensitivity()
     }
 
     // render
-    Image brighter = renderImage(tmp, imgWidth, imgHeight);
+    Image brighter = renderImage(tmp, imgWidth, imgHeight).getClippedImage(cropRegion);
 
     // calculate avg per-pixel brightness difference
     double diff = 0;
-    for (int y = 0; y < base.getHeight(); y++) {
-      for (int x = 0; x < base.getWidth(); x++) {
+    for (int y = 0; y < cropRegion.getHeight(); y++) {
+      for (int x = 0; x < cropRegion.getWidth(); x++) {
         diff += brighter.getPixelAt(x, y).getBrightness() - base.getPixelAt(x, y).getBrightness();
       }
     }
@@ -77,8 +79,9 @@ void Sampler::computeSystemSensitivity()
 
 // =============================================================================
 
-ColorSampler::ColorSampler(DeviceSet affectedDevices, vector<Eigen::Vector3d> colors, vector<float> weights) :
-  Sampler(affectedDevices), _colors(colors), _weights(weights)
+ColorSampler::ColorSampler(DeviceSet affectedDevices, Rectangle<int> region,
+  vector<Eigen::Vector3d> colors, vector<float> weights) :
+  Sampler(affectedDevices, region), _colors(colors), _weights(weights)
 {
 }
 

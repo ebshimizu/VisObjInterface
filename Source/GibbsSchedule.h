@@ -19,7 +19,7 @@
 // Samplers are expected to be subclassed based on the needs for each sampling method.
 class Sampler {
 public:
-  Sampler(DeviceSet affectedDevices);
+  Sampler(DeviceSet affectedDevices, Rectangle<int> region);
 
   virtual void sample(Snapshot* state) = 0;
 
@@ -28,7 +28,7 @@ protected:
   void computeSystemSensitivity();
 
   DeviceSet _devices;
-
+  Rectangle<int> _region;
   map<string, double> _systemSensitivity;
 };
 
@@ -36,7 +36,7 @@ protected:
 // Requires: list of colors (HSV format, normalized between 0-1), list of corresponding weights
 class ColorSampler : Sampler {
 public:
-  ColorSampler(DeviceSet affectedDevices, vector<Eigen::Vector3d> colors, vector<float> weights);
+  ColorSampler(DeviceSet affectedDevices,  Rectangle<int> region, vector<Eigen::Vector3d> colors, vector<float> weights);
   ~ColorSampler();
 
   void sample(Snapshot* state) override;
