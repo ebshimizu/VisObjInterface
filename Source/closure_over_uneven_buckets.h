@@ -31,4 +31,10 @@ void ClosureOverUnevenBuckets(const std::vector<float>& object,
   const std::vector<float>& bucket,
   std::vector<int>& bucket_id);
 
+// a version of the above function with some buckets partially pre-filled
+void ClosureOverUnevenBuckets(const std::vector<float>& object,
+  const std::vector<float>& bucket,
+  std::vector<int>& bucket_id,
+  std::vector<float> pre_fill);
+
 #endif

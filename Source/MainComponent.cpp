@@ -114,7 +114,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::CONSTRAINTS, command::START_AUTO, command::END_AUTO, command::LOCK_ALL_SELECTED,
     command::LOCK_SELECTED_INTENSITY, command::LOCK_SELECTED_COLOR, command::UNLOCK_ALL_SELECTED,
     command::UNLOCK_SELECTED_COLOR, command::UNLOCK_SELECTED_INTENSITY, command::RELOAD_ATTRS, command::LOAD_ATTRS,
-    command::RESET_ALL, command::SAVE_IDEAS, command::LOAD_IDEAS
+    command::RESET_ALL, command::SAVE_IDEAS, command::LOAD_IDEAS, command::DELETE_ALL_PINS
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -276,6 +276,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::LOAD_IDEAS:
     result.setInfo("Load Ideas", "Load ideas from a specified folder", "File", 0);
     break;
+  case command::DELETE_ALL_PINS:
+    result.setInfo("Delete All Pinned Regions", "Deletes all currently pinned regions on the stage", "Explore", 0);
+    break;
   default:
     return;
   }
@@ -413,6 +416,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::LOAD_IDEAS:
     loadIdeas();
+    break;
+  case command::DELETE_ALL_PINS:
+    deleteAllPins();
     break;
   default:
     return false;
@@ -1410,6 +1416,12 @@ void MainContentComponent::loadIdeas()
       AlertWindow::showMessageBox(AlertWindow::WarningIcon, "Data file not found", "Cannot find required data.ilib file in selected directory. Check that the file exists in the specified folder and try again.", "OK");
     }
   }
+}
+
+void MainContentComponent::deleteAllPins()
+{
+  getGlobalSettings()->_pinnedRegions.clear();
+  _viewer->repaint();
 }
 
 void MainContentComponent::selectBox(string metadataKey, bool inv, string title)

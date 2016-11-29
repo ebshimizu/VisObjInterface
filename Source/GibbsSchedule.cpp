@@ -97,34 +97,55 @@ void ColorSampler::sample(Snapshot * state)
 {
   // the color sampler will sample by system
   vector<float> results;
+  vector<float> bins;
+  bins.resize(_colors.size());
   vector<DeviceSet> systemMap;
   auto stateData = state->getRigData();
 
+  // ok so here we'll want to do some pre-filling based on what's pinned
+  // process goes like this
+  // - find light's closest color if pinned, add intensity (%) to bin
+  // - If not pinned, add light's intensity to system total
+
   auto systems = getRig()->getMetadataValues("system");
+  int i = 0;
   for (auto s : systems) {
     DeviceSet localSys(getRig());
     DeviceSet globalSys = getRig()->select("$system=" + s);
 
-    float avgIntens = 0;
+    float totalIntens = 0;
     for (auto id : globalSys.getIds()) {
       if (_devices.contains(id)) {
-        localSys = localSys.add(id);
-        avgIntens += stateData[id]->getIntensity()->asPercent();
+        if (!stateData[id]->paramExists("color"))
+          continue;
+
+        if (_colorPins.count(id) == 0) {
+          // unconstrained
+          localSys = localSys.add(id);
+          totalIntens += stateData[id]->getIntensity()->asPercent();
+        }
+        else {
+          // pinned, find closest color
+          int closestColorIndex = getClosestColorIndex(stateData[id]->getColor()->getHSV());
+
+          // add to color bin, note that this is not actually part of the
+          // local system set because it's pinned
+          bins[closestColorIndex] += stateData[id]->getIntensity()->asPercent();
+        }
       }
     }
     
-    if (localSys.size() > 0) {
-      avgIntens /= localSys.size();
-      results.push_back(avgIntens);
-      systemMap.push_back(localSys);
-    }
+    // ensure proper size for results, even if the value is 0
+    results.push_back(totalIntens);
+    systemMap.push_back(localSys);
+    i++;
   }
 
   vector<int> colorIds;
   colorIds.resize(results.size());
 
   // do the sampling
-  ClosureOverUnevenBuckets(results, _weights, colorIds);
+  ClosureOverUnevenBuckets(results, _weights, colorIds, bins);
 
   // fill in the results if not pinned
   for (int i = 0; i < results.size(); i++) {
@@ -161,6 +182,25 @@ void ColorSampler::normalizeWeights()
   for (int i = 0; i < _weights.size(); i++) {
     _weights[i] /= sum;
   }
+}
+
+int ColorSampler::getClosestColorIndex(Eigen::Vector3d color)
+{
+  int closest = 0;
+  double closestDist = DBL_MAX;
+  
+  // normalization factor. Lumiverse returns hue in [0-360]
+  color[0] /= 360.0;
+
+  for (int i = 0; i < _colors.size(); i++) {
+    double dist = (color - _colors[i]).norm();
+    if (dist < closestDist) {
+      closest = 0;
+      closestDist = dist;
+    }
+  }
+  
+  return closest;
 }
 
 // =============================================================================

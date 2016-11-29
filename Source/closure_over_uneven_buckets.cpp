@@ -14,9 +14,23 @@ void ClosureOverUnevenBuckets(const std::vector<float>& object,
   const std::vector<float>& bucket,
   std::vector<int>& bucket_id)
 {
+  std::vector<float> pre_fill;
+  pre_fill.resize(bucket_id.size(), 0);
+
+  ClosureOverUnevenBuckets(object, bucket, bucket_id, pre_fill);
+  
+}
+
+void ClosureOverUnevenBuckets(const std::vector<float>& object, const std::vector<float>& bucket,
+  std::vector<int>& bucket_id, std::vector<float> pre_fill)
+{
   if (bucket_id.size() != object.size())
   {
     bucket_id.resize(object.size(), -1);
+  }
+
+  if (pre_fill.size() != bucket_id.size()) {
+    pre_fill.resize(bucket_id.size(), 0);
   }
 
   float sum_values = 0.0f;
@@ -27,10 +41,16 @@ void ClosureOverUnevenBuckets(const std::vector<float>& object,
     closure_drip_order[i] = i;
   }
 
+  // don't forget to add pre-filled to total capacity
+  for (float v : pre_fill) {
+    sum_values += v;
+  }
+
+  // we have some prefilled buckets, so remove that from the remaining capactiy
   std::vector<float> remaining_bucket_capacity(bucket.size());
   for (int i = 0; i < bucket.size(); ++i)
   {
-    remaining_bucket_capacity[i] = sum_values * bucket[i];
+    remaining_bucket_capacity[i] = sum_values * bucket[i] - pre_fill[i];
   }
 
   // Make a random dripping closure
@@ -56,6 +76,6 @@ void ClosureOverUnevenBuckets(const std::vector<float>& object,
       bucket_id[closure_drip_order[i]] = (int)(it - remaining_bucket_capacity.begin());
     }
     remaining_bucket_capacity[bucket_id[closure_drip_order[i]]] =
-    remaining_bucket_capacity[bucket_id[closure_drip_order[i]]] - object[closure_drip_order[i]];
+      remaining_bucket_capacity[bucket_id[closure_drip_order[i]]] - object[closure_drip_order[i]];
   }
 }

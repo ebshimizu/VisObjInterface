@@ -144,6 +144,9 @@ private:
   void saveIdeas();
   void loadIdeas();
 
+  // region management
+  void deleteAllPins();
+
   // Opens a selection box presenting a dropdown consisting of the selected
   // metadata field
   void selectBox(string metadataKey, bool inv, string title);

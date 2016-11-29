@@ -47,6 +47,7 @@ public:
 
 private:
   void normalizeWeights();
+  int getClosestColorIndex(Eigen::Vector3d color);
 
   vector<Eigen::Vector3d> _colors;
   vector<float> _weights;
