@@ -843,12 +843,16 @@ void IdeaList::updateActiveIdea()
 
 void IdeaList::addIdea(Image i, String name)
 {
-  _ideas.push_back(shared_ptr<Idea>(new Idea(i)));
-  _ideas[_ideas.size() - 1]->setName(name + String(_ideaID));
-  addAndMakeVisible(_ideas[_ideas.size() - 1].get());
+  shared_ptr<Idea> newIdea = shared_ptr<Idea>(new Idea(i));
+  _ideas.push_back(newIdea);
+  newIdea->setName(name + String(_ideaID));
+  addAndMakeVisible(newIdea.get());
+
   clearActiveIdea();
-  _ideas[_ideas.size() - 1]->_selected = true;
+  newIdea->_selected = true;  
   updateActiveIdea();
+
+  getGlobalSettings()->_ideaMap[newIdea] = Rectangle<float>(0, 0, 1, 1);
   resized();
 
   _ideaID++;

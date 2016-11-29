@@ -574,6 +574,7 @@ void MainContentComponent::reset()
 void MainContentComponent::createIdea(Image i, String name)
 {
   _attrs->addIdea(i, name);
+  _viewer->repaint();
 }
 
 void MainContentComponent::openRig() {
