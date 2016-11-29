@@ -430,6 +430,29 @@ void AttributeControls::initPallets()
 GibbsSchedule* AttributeControls::getGibbsSchedule()
 {
   GibbsSchedule* sched = new GibbsSchedule();
+  
+  // gather pinned devices
+  DeviceSet pins;
+  set<string> ip, cp;
+
+  // gather regions of pinned devices
+  for (auto p : getGlobalSettings()->_pinnedRegions) {
+    pins = pins.add(computeAffectedDevices(p));
+  }
+
+  for (auto id : pins.getIds()) {
+    ip.insert(id);
+    cp.insert(id);
+  }
+
+  // manual pins
+  for (auto id : getRig()->getAllDevices().getIds()) {
+    if (isDeviceParamLocked(id, "intensity"))
+      ip.insert(id);
+
+    if (isDeviceParamLocked(id, "color"))
+      cp.insert(id);
+  }
 
   // gather all the samplers from the ideas
   for (auto i : _ic->_ideas->getIdeas()) {
@@ -446,10 +469,15 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
     
     // create a sampler
     if (i->getType() == COLOR_PALETTE) {
-      Sampler* colorSampler = (Sampler*)(new ColorSampler(affected, r, i->getColors(), i->getWeights()));
+      Sampler* colorSampler = (Sampler*)(new ColorSampler(affected, r, ip, cp, i->getColors(), i->getWeights()));
       sched->addSampler(colorSampler);
     }
   }
+
+  // create the pin sampler
+  // note that here the region size is irrelevant and that the pins DeviceSet is also mostly irrelevant
+  Sampler* pinSampler = (Sampler*)(new PinSampler(pins, Rectangle<float>(), ip, cp));
+  sched->addSampler(pinSampler);
 
   return sched;
 }
@@ -541,11 +569,10 @@ void AttributeControls::initAttributes()
   getStatusBar()->setStatusMessage("Loaded " + String(numImage) + " images from " + imageDir.getFullPathName());
 }
 
-DeviceSet AttributeControls::computeAffectedDevices(shared_ptr<Idea> idea, double threshold)
+DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, double threshold)
 {
   // for each device, check if the cropped sensitivity image is above a threshold
   DeviceSet affected(getRig());
-  auto region = getGlobalSettings()->_ideaMap[idea];
 
   Rectangle<int> scaledRegion = Rectangle<int>(region.getX() * 100, region.getY() * 100,
     region.getWidth() * 100, region.getHeight() * 100);
@@ -570,6 +597,22 @@ DeviceSet AttributeControls::computeAffectedDevices(shared_ptr<Idea> idea, doubl
   }
 
   return affected;
+}
+
+DeviceSet AttributeControls::computeAffectedDevices(shared_ptr<Idea> idea, double threshold)
+{
+  return computeAffectedDevices(getGlobalSettings()->_ideaMap[idea], threshold);
+}
+
+void AttributeControls::filterPinnedDevices(DeviceSet& target, set<string> intens, set<string> color)
+{
+  for (auto id : intens) {
+    target = target.remove(id);
+  }
+
+  for (auto id : color) {
+    target = target.remove(id);
+  }
 }
 
 AttributeControls::PaletteControls::PaletteControls()

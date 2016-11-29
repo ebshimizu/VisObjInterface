@@ -19,7 +19,7 @@
 // Samplers are expected to be subclassed based on the needs for each sampling method.
 class Sampler {
 public:
-  Sampler(DeviceSet affectedDevices, Rectangle<float> region);
+  Sampler(DeviceSet affectedDevices, Rectangle<float> region, set<string> intensPins, set<string> colorPins);
 
   virtual void sample(Snapshot* state) = 0;
 
@@ -30,13 +30,17 @@ protected:
   DeviceSet _devices;
   Rectangle<float> _region;
   map<string, double> _systemSensitivity;
+  set<string> _intensPins;
+  set<string> _colorPins;
 };
 
 // A color sampler distributes colors across the specified devices
 // Requires: list of colors (HSV format, normalized between 0-1), list of corresponding weights
 class ColorSampler : Sampler {
 public:
-  ColorSampler(DeviceSet affectedDevices,  Rectangle<float> region, vector<Eigen::Vector3d> colors, vector<float> weights);
+  ColorSampler(DeviceSet affectedDevices, Rectangle<float> region,
+    set<string> intensPins, set<string> colorPins,
+    vector<Eigen::Vector3d> colors, vector<float> weights);
   ~ColorSampler();
 
   void sample(Snapshot* state) override;
@@ -46,6 +50,16 @@ private:
 
   vector<Eigen::Vector3d> _colors;
   vector<float> _weights;
+};
+
+class PinSampler : Sampler {
+public:
+  PinSampler(DeviceSet affectedDevices, Rectangle<float> region, set<string> intensPins, set<string> colorPins);
+  ~PinSampler();
+
+  void sample(Snapshot* state) override;
+
+private:
 };
 
 // Gibbs schedules consist of a distribution for intensity parameters and a

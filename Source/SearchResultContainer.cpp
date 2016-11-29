@@ -302,15 +302,9 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
       if (result == 1) {
         Snapshot* s = vectorToSnapshot(_result->_scene);
         s->loadRig(getRig());
-
-        // lock every single light in the rig
-        for (auto id : s->getRigData()) {
-          lockDeviceParam(id.first, "intensity");
-          lockDeviceParam(id.first, "color");
-        }
-
         delete s;
 
+        // populate system views but don't lock anything (region pins)
         MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
         if (mc != nullptr) {

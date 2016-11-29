@@ -123,7 +123,11 @@ private:
   void initAttributes();
 
   // returns a set of devices that affect the idea's selected region
+  DeviceSet computeAffectedDevices(Rectangle<float> region, double threshold = 0.01);
   DeviceSet computeAffectedDevices(shared_ptr<Idea> idea, double threshold = 0.01);
+
+  // returns a set of devices that do not contain any devices in the intens or color sets
+  void filterPinnedDevices(DeviceSet& target, set<string> intens, set<string> color);
 
   class PaletteControls : public Component {
   public:

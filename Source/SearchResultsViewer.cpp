@@ -77,6 +77,7 @@ SearchResultsViewer::SearchResultsViewer()
   _results = new SearchResultsContainer();
   _viewer = new Viewport();
   _viewer->setViewedComponent(_results);
+  _viewer->setScrollBarsShown(true, false, true, false);
   addAndMakeVisible(_viewer);
 }
 
@@ -99,11 +100,11 @@ void SearchResultsViewer::resized()
 
   // preserve viewer position
   Point<int> pos = _viewer->getViewPosition();
-  _results->updateSize(lbounds.getHeight() - _viewer->getScrollBarThickness(),
-    lbounds.getWidth() - _viewer->getScrollBarThickness());
+  _viewer->setBounds(lbounds);
+  _results->updateSize(_viewer->getHeight() - _viewer->getScrollBarThickness(),
+    _viewer->getWidth() - _viewer->getScrollBarThickness());
   _viewer->setViewPosition(pos);
 
-  _viewer->setBounds(lbounds);
 }
 
 void SearchResultsViewer::cluster()

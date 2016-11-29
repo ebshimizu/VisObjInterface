@@ -12,7 +12,8 @@
 #include "HistogramAttribute.h"
 #include "closure_over_uneven_buckets.h"
 
-Sampler::Sampler(DeviceSet affectedDevices, Rectangle<float> region) : _devices(affectedDevices), _region(region)
+Sampler::Sampler(DeviceSet affectedDevices, Rectangle<float> region, set<string> intensPins, set<string> colorPins) :
+  _devices(affectedDevices), _region(region), _intensPins(intensPins), _colorPins(colorPins)
 {
 }
 
@@ -81,8 +82,9 @@ void Sampler::computeSystemSensitivity()
 // =============================================================================
 
 ColorSampler::ColorSampler(DeviceSet affectedDevices, Rectangle<float> region,
+  set<string> intensPins, set<string> colorPins,
   vector<Eigen::Vector3d> colors, vector<float> weights) :
-  Sampler(affectedDevices, region), _colors(colors), _weights(weights)
+  Sampler(affectedDevices, region, intensPins, colorPins), _colors(colors), _weights(weights)
 {
   normalizeWeights();
 }
@@ -124,7 +126,7 @@ void ColorSampler::sample(Snapshot * state)
   // do the sampling
   ClosureOverUnevenBuckets(results, _weights, colorIds);
 
-  // fill in the results
+  // fill in the results if not pinned
   for (int i = 0; i < results.size(); i++) {
     Eigen::Vector3d color = _colors[colorIds[i]];
 
@@ -140,8 +142,8 @@ void ColorSampler::sample(Snapshot * state)
 
     // apply color to each light in the system
     for (string id : systemMap[i].getIds()) {
-      if (stateData[id]->paramExists("color")) {
-        stateData[id]->getColor()->setHSV(color[0] * 360.0, color[1], color[2]);
+      if (_colorPins.count(id) == 0 && stateData[id]->paramExists("color")) {
+          stateData[id]->getColor()->setHSV(color[0] * 360.0, color[1], color[2]);
       }
     }
   }
@@ -158,6 +160,49 @@ void ColorSampler::normalizeWeights()
   // divide
   for (int i = 0; i < _weights.size(); i++) {
     _weights[i] /= sum;
+  }
+}
+
+// =============================================================================
+PinSampler::PinSampler(DeviceSet affectedDevice, Rectangle<float> region, set<string> intensPins, set <string> colorPins) :
+  Sampler(affectedDevice, region, intensPins, colorPins)
+{
+
+}
+
+PinSampler::~PinSampler()
+{
+}
+
+void PinSampler::sample(Snapshot * state)
+{
+  // the pin sampler takes the pinned values and 'wiggles' them a bit, showing small
+  // variations of the current state of the device parameter
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  normal_distribution<double> hueDist(0, 2);
+  normal_distribution<double> satDist(0, 0.05);
+  normal_distribution<double> intensDist(0, 0.05);
+
+  auto stateData = state->getRigData();
+
+  // intensity
+  for (auto id : _intensPins) {
+    if (stateData[id]->paramExists("intensity")) {
+      double newIntens = stateData[id]->getIntensity()->asPercent() + intensDist(gen);
+      stateData[id]->getIntensity()->setValAsPercent(newIntens);
+    }
+  }
+
+  // color
+  for (auto id : _colorPins) {
+    if (stateData[id]->paramExists("color")) {
+      Eigen::Vector3d hsv = stateData[id]->getColor()->getHSV();
+      hsv[0] += hueDist(gen);
+      hsv[1] += satDist(gen);
+
+      stateData[id]->getColor()->setHSV(hsv[0], hsv[1], hsv[2]);
+    }
   }
 }
 
