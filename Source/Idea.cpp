@@ -339,6 +339,9 @@ void Idea::updateType(bool skipRecompute)
       addAndMakeVisible(_intensControls);
       _headerSize = 24 * 2 + 40;
     }
+    else {
+      _intensControls->updateUI();
+    }
   }
   else {
     if (_intensControls != nullptr) {
@@ -923,14 +926,17 @@ void Idea::IntensityPaletteControls::sliderValueChanged(Slider * s)
   else if (s->getName() == "k") {
     _parent->_k = s->getValue();
   }
-  else if (s->getName() == "Bin Size") {
+  else if (s->getName() == "bin size") {
     _parent->_binSize = s->getValue();
   }
 }
 
 void Idea::IntensityPaletteControls::sliderDragEnded(Slider * s)
 {
-  _parent->updateIntensityParams();
+  if (s->getName() == "bin size") {
+    _parent->updateIntensityParams();
+    updateUI();
+  }
 }
 
 void Idea::IntensityPaletteControls::updateUI()

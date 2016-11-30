@@ -394,7 +394,7 @@ GlobalSettings::GlobalSettings()
   _searchDerivDelta = 1e-4;
   _renderWidth = 0;
   _renderHeight = 0;
-  _thumbnailRenderScale = 0.50;
+  _thumbnailRenderScale = 0.25;
   _startChainLength = 30;
   _clusterDistThreshold = 0.30;
   _editStepSize = 0.25;

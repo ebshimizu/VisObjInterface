@@ -679,6 +679,25 @@ SparseHistogram::SparseHistogram(int dims, vector<float> bounds, float lambda) :
 
 }
 
+SparseHistogram::SparseHistogram(const SparseHistogram & other)
+{
+  _histData = other._histData;
+  _totalWeight = other._totalWeight;
+  _lambda = other._lambda;
+  _bounds = other._bounds;
+  _n = other._n;
+}
+
+SparseHistogram & SparseHistogram::operator=(const SparseHistogram & other)
+{
+  _histData = other._histData;
+  _totalWeight = other._totalWeight;
+  _lambda = other._lambda;
+  _bounds = other._bounds;
+  _n = other._n;
+  return *this;
+}
+
 SparseHistogram::~SparseHistogram() {
 }
 

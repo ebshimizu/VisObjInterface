@@ -470,13 +470,22 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
     // create a sampler
     if (i->getType() == COLOR_PALETTE) {
       Sampler* colorSampler = (Sampler*)(new ColorSampler(affected, r, ip, cp, i->getColors(), i->getWeights()));
+      colorSampler->_name = i->getName().toStdString();
       sched->addSampler(colorSampler);
+    }
+    else if (i->getType() == INTENS_DIST) {
+      IntensitySampler* intensSampler = new IntensitySampler(affected, r, ip, cp, i->_k, i->_meanBright, i->_mean);
+      intensSampler->setBrightnessHistogram(i->_brightness);
+      intensSampler->_name = i->getName().toStdString();
+      
+      sched->addSampler((Sampler*)intensSampler);
     }
   }
 
   // create the pin sampler
   // note that here the region size is irrelevant and that the pins DeviceSet is also mostly irrelevant
   Sampler* pinSampler = (Sampler*)(new PinSampler(pins, Rectangle<float>(), ip, cp));
+  pinSampler->_name = "Pinned";
   sched->addSampler(pinSampler);
 
   return sched;

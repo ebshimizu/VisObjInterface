@@ -235,6 +235,8 @@ private:
 class SparseHistogram {
 public:
   SparseHistogram(int dims, vector<float> bounds, float lambda = -1);
+  SparseHistogram(const SparseHistogram& other);
+  SparseHistogram& operator= (const SparseHistogram& other);
   ~SparseHistogram();
 
   void add(vector<float> pt);

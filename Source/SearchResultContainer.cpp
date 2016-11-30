@@ -108,10 +108,10 @@ void SearchResultContainer::regenToolTip()
     }
   }
 
-  tt = tt + "(" + String(-_result->_objFuncVal) + ")";
+  //tt = tt + "(" + String(-_result->_objFuncVal) + ")";
 
-	for (auto& m : _result->_extraData) {
-		tt = tt + "\n" + m.first + ": " + m.second;
+	for (auto& m : _result->_extraFuncs) {
+		tt = tt + m.first + ": " + String(m.second) + "\n";
 	}
 
   setTooltip(tt);

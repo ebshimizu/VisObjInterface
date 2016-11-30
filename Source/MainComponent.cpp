@@ -752,11 +752,11 @@ void MainContentComponent::saveRender() {
 
     // TEMP: RENDER DOWNSCALED IMAGE FOR A TEST TARGET
     auto p = getAnimationPatch();
-    Image highRes = Image(Image::ARGB, 200, 200, true);
+    Image highRes = Image(Image::ARGB, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight, true);
     uint8* bufptr = Image::BitmapData(highRes, Image::BitmapData::readWrite).getPixelPointer(0, 0);
-    p->setDims(200, 200);
+    p->setDims(getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
 
-    getAnimationPatch()->renderSingleFrameToBuffer(getRig()->getDeviceRaw(), bufptr, 200, 200);
+    getAnimationPatch()->renderSingleFrameToBuffer(getRig()->getDeviceRaw(), bufptr, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
 
     pngif.writeImageToStream(highRes, os);
 

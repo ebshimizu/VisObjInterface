@@ -11,6 +11,7 @@
 #include "GibbsSchedule.h"
 #include "HistogramAttribute.h"
 #include "closure_over_uneven_buckets.h"
+#include "gibbs_with_gaussian_mixture.h"
 
 Sampler::Sampler(DeviceSet affectedDevices, Rectangle<float> region, set<string> intensPins, set<string> colorPins) :
   _devices(affectedDevices), _region(region), _intensPins(intensPins), _colorPins(colorPins)
@@ -253,6 +254,77 @@ void PinSampler::sample(Snapshot * state)
 
 // =============================================================================
 
+IntensitySampler::IntensitySampler(DeviceSet affectedDevices, Rectangle<float> region,
+  set<string> intensPins, set<string> colorPins, int k, float bm, float m) :
+  Sampler(affectedDevices, region, intensPins, colorPins), _k(k), _brightMean(bm), _mean(m), _srcBrightness(1, { 0, 0.1f })
+{
+  computeSystemSensitivity();
+}
+
+IntensitySampler::~IntensitySampler()
+{
+}
+
+void IntensitySampler::sample(Snapshot * state)
+{
+  // the color sampler will sample by system
+  vector<float> results;
+  vector<int> constraint;
+  vector<float> sens;
+  vector<DeviceSet> systemMap;
+  auto stateData = state->getRigData();
+
+  auto systems = getRig()->getMetadataValues("system");
+  int i = 0;
+
+  for (auto system : systems) {
+    DeviceSet globalSys = getRig()->select("$system=" + system);
+    DeviceSet localSys(getRig());
+
+    for (auto id : globalSys.getIds()) {
+      if (_devices.contains(id)) {
+        if (_intensPins.count(id) == 0) {
+          localSys = localSys.add(id);
+        }
+        // some other effect if pinned
+      }
+    }
+
+    if (_devices.size() > 0) {
+      results.push_back(0);
+      constraint.push_back(0);
+      sens.push_back(_systemSensitivity[system]);
+      systemMap.push_back(localSys);
+    }
+  }
+
+  // sample
+  GibbsSamplingGaussianMixture(results, constraint, sens, results.size(), _k, _brightMean, _mean);
+
+  // apply to snapshot
+  for (int i = 0; i < results.size(); i++) {
+    float intens = results[i];
+
+    // apply color to each light in the system
+    for (string id : systemMap[i].getIds()) {
+      if (_intensPins.count(id) == 0 && stateData[id]->paramExists("intensity")) {
+        stateData[id]->getIntensity()->setValAsPercent(intens);
+      }
+    }
+  }
+}
+
+double IntensitySampler::score(Snapshot * state, Image& img)
+{
+  // TODO: fill in with EMD
+  return 0;
+}
+void IntensitySampler::setBrightnessHistogram(SparseHistogram b)
+{
+  _srcBrightness = b;
+}
+// =============================================================================
+
 GibbsSchedule::GibbsSchedule()
 {
 }
@@ -276,6 +348,18 @@ void GibbsSchedule::deleteSamplers()
   for (auto s : _samplers)
     delete s;
   _samplers.clear();
+}
+
+void GibbsSchedule::score(shared_ptr<SearchResult> result, Snapshot* state)
+{
+  int width = getGlobalSettings()->_renderWidth;
+  int height = getGlobalSettings()->_renderHeight;
+  Image render = renderImage(state, getGlobalSettings()->_thumbnailRenderScale * width,
+    getGlobalSettings()->_thumbnailRenderScale * height);
+
+  for (auto s : _samplers) {
+    result->_extraFuncs[s->_name] = s->score(state, render);
+  }
 }
 
 Snapshot * GibbsSchedule::sample(Snapshot * state)

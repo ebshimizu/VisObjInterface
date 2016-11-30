@@ -42,7 +42,7 @@ protected:
 
 // A color sampler distributes colors across the specified devices
 // Requires: list of colors (HSV format, normalized between 0-1), list of corresponding weights
-class ColorSampler : Sampler {
+class ColorSampler : public Sampler {
 public:
   ColorSampler(DeviceSet affectedDevices, Rectangle<float> region,
     set<string> intensPins, set<string> colorPins,
@@ -64,7 +64,7 @@ private:
 };
 
 // A pin sampler samples all the pinned lights.
-class PinSampler : Sampler {
+class PinSampler : public Sampler {
 public:
   PinSampler(DeviceSet affectedDevices, Rectangle<float> region, set<string> intensPins, set<string> colorPins);
   ~PinSampler();
@@ -78,14 +78,17 @@ public:
 // an intensity sampler samples a target average intensity and peak intensity
 // using a few priors at the moment
 // TODO: determine better intensity sampling method from image
-class IntensitySampler : Sampler {
+class IntensitySampler : public Sampler {
 public:
-  IntensitySampler(DeviceSet affectedDevices, Rectangle<float> region, set<string> intensPins, set<string> colorPins);
+  IntensitySampler(DeviceSet affectedDevices, Rectangle<float> region, set<string> intensPins, set<string> colorPins,
+    int k, float bm, float m);
   ~IntensitySampler();
 
   void sample(Snapshot* state) override;
 
-  double score(Snapshot* state, Image& img);
+  double score(Snapshot* state, Image& img) override;
+
+  void setBrightnessHistogram(SparseHistogram b);
 
 private:
   // for computing the score, the histogram of the idea
@@ -114,6 +117,9 @@ public:
 
   // removes all samplers from the schedule
   void deleteSamplers();
+
+  // adds score data to the result for each sampler in the schedule
+  void score(shared_ptr<SearchResult> result, Snapshot* state);
 
   // returns a new snapshot based off of some input state.
   // Snapshot returned is owned by calling scope and should be deleted there.

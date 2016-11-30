@@ -1002,6 +1002,9 @@ void AttributeSearchThread::runGibbsSampling()
   shared_ptr<SearchResult> r = shared_ptr<SearchResult>(new SearchResult());
   r->_scene = snapshotToVector(newSample);
 
+  // run eval functions for each sampler
+  _activeSchedule->score(r, newSample);
+
   // diagnostics
   DebugData data;
   auto& samples = getGlobalSettings()->_samples;
@@ -1013,7 +1016,6 @@ void AttributeSearchThread::runGibbsSampling()
 
   r->_extraData["Thread"] = String(_id);
   r->_extraData["Sample"] = String(data._sampleId);
-  r->_extraFuncs["palette"] = 1;    // TODO: actual eval functions for each sampler
   r->_creationTime = chrono::high_resolution_clock::now();
 
   // at this point all the data has been saved in the search result
