@@ -151,7 +151,6 @@
     <ClCompile Include="..\..\Source\SceneViewer.cpp"/>
     <ClCompile Include="..\..\Source\SettingsEditor.cpp"/>
     <ClCompile Include="..\..\Source\StatusBar.cpp"/>
-    <ClCompile Include="..\..\Source\SparseHistogram.cpp"/>
     <ClCompile Include="..\..\Source\Histogram.cpp"/>
     <ClCompile Include="..\..\Source\closure_over_uneven_buckets.cpp"/>
     <ClCompile Include="..\..\Source\SystemExplorer.cpp"/>
@@ -1757,7 +1756,6 @@
     <ClInclude Include="..\..\Source\SettingsEditor.h"/>
     <ClInclude Include="..\..\Source\StatusBar.h"/>
     <ClInclude Include="..\..\Source\TopComponentContainer.h"/>
-    <ClInclude Include="..\..\Source\SparseHistogram.h"/>
     <ClInclude Include="..\..\Source\Histogram.h"/>
     <ClInclude Include="..\..\Source\closure_over_uneven_buckets.h"/>
     <ClInclude Include="..\..\Source\SystemExplorer.h"/>

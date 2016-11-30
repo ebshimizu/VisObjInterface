@@ -91,6 +91,9 @@ Idea::~Idea()
   if (_colorControls != nullptr) {
     delete _colorControls;
   }
+  if (_intensControls != nullptr) {
+    delete _intensControls;
+  }
 }
 
 void Idea::paint(Graphics & g)
@@ -343,6 +346,8 @@ void Idea::updateType(bool skipRecompute)
       _intensControls = nullptr;
     }
   }
+
+  resized();
 }
 
 Point<float> Idea::localToRelativeImageCoords(Point<float> pt)
@@ -681,7 +686,7 @@ void Idea::updateIntensityParams()
   _k = 2;
   
   // mean
-  auto dim = b.getDimension(1);
+  auto dim = b.getDimension(0);
   double sum = 0;
   for (auto d : dim) {
     sum += d.first * d.second;
@@ -870,6 +875,7 @@ Idea::IntensityPaletteControls::IntensityPaletteControls(Idea* parent) :
   _means.setName("mean");
   _means.setPopupDisplayEnabled(true, nullptr);
   _means.addListener(this);
+  _means.setTextBoxStyle(Slider::NoTextBox, true, 0, 0);
   addAndMakeVisible(_means);
 }
 

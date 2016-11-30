@@ -12,7 +12,7 @@
 #define IDEA_H_INCLUDED
 
 #include "globals.h"
-#include "SparseHistogram.h"
+#include "Histogram.h"
 #include "../JuceLibraryCode/JuceHeader.h"
 
 enum IdeaType {

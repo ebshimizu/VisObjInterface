@@ -13,7 +13,6 @@
 
 #include "AttributeControllerBase.h"
 #include "Histogram.h"
-#include "SparseHistogram.h"
 
 // This is the base class for attribute which use histograms created in the pixel
 // space of the image. The base class automatically creates the histogram of

@@ -83,10 +83,6 @@
               file="Source/TopComponentContainer.h"/>
       </GROUP>
       <GROUP id="{2AE89FBF-419D-C3BF-F7EF-2317DD7C267B}" name="attributes">
-        <FILE id="n5TZHm" name="SparseHistogram.cpp" compile="1" resource="0"
-              file="Source/SparseHistogram.cpp"/>
-        <FILE id="k7OidE" name="SparseHistogram.h" compile="0" resource="0"
-              file="Source/SparseHistogram.h"/>
         <FILE id="UhecUo" name="Histogram.cpp" compile="1" resource="0" file="Source/Histogram.cpp"/>
         <FILE id="aKh6Ff" name="Histogram.h" compile="0" resource="0" file="Source/Histogram.h"/>
         <FILE id="l7OkfP" name="closure_over_uneven_buckets.cpp" compile="1"
