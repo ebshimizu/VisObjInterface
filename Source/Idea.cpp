@@ -14,7 +14,7 @@
 #include "KMeans.h"
 #include "hsvPicker.h"
 
-Idea::Idea(Image src, IdeaType type) : _src(src), _type(type)
+Idea::Idea(Image src, IdeaType type) : _src(src), _type(type), _brightness(1, { 0, 0.1f })
 {
   initUI();
   updateType();
@@ -26,7 +26,7 @@ Idea::Idea(Image src, IdeaType type) : _src(src), _type(type)
   _lock.setToggleState(_isRegionLocked, dontSendNotification);
 }
 
-Idea::Idea(File srcFolder, JSONNode data)
+Idea::Idea(File srcFolder, JSONNode data) : _brightness(1, { 0, 0.1f })
 {
   initUI();
 
@@ -138,6 +138,12 @@ void Idea::resized()
     // they might be null for some reason
     if (_colorControls != nullptr) {
       _colorControls->setBounds(lbounds.removeFromTop(40));
+    }
+  }
+  
+  if (_type == INTENS_DIST) {
+    if (_intensControls != nullptr) {
+      _intensControls->setBounds(lbounds.removeFromTop(40));
     }
   }
 
@@ -316,6 +322,27 @@ void Idea::updateType(bool skipRecompute)
       _colorControls = nullptr;
     }
   }
+
+  if (_type == INTENS_DIST) {
+    // compute intensity histogram
+    if (!_isRegionLocked) {
+      if (!skipRecompute) {
+        updateIntensityParams();
+      }
+    }
+
+    if (_intensControls == nullptr) {
+      _intensControls = new IntensityPaletteControls(this);
+      addAndMakeVisible(_intensControls);
+      _headerSize = 24 * 2 + 40;
+    }
+  }
+  else {
+    if (_intensControls != nullptr) {
+      delete _intensControls;
+      _intensControls = nullptr;
+    }
+  }
 }
 
 Point<float> Idea::localToRelativeImageCoords(Point<float> pt)
@@ -406,6 +433,7 @@ Rectangle<int> Idea::relativeToAbsoluteImageRegion(Rectangle<float> rect)
 void Idea::initUI()
 {
   _typeSelector.addItem("Color Palette", (int)COLOR_PALETTE);
+  _typeSelector.addItem("Intensity Distribution", (int)INTENS_DIST);
   _typeSelector.addListener(this);
   _typeSelector.setSelectedId((int)_type);
   addAndMakeVisible(_typeSelector);
@@ -433,8 +461,10 @@ void Idea::initUI()
 
   _headerSize = 24 * 2;
   _numColors = 5;
+  _binSize = 0.1f;
 
   _colorControls = nullptr;
+  _intensControls = nullptr;
 }
 
 void Idea::generateColorPalette()
@@ -619,6 +649,48 @@ void Idea::updateColorWeights()
   }
 }
 
+void Idea::updateIntensityParams()
+{
+  // get clipped image
+  Image clipped = _src.getClippedImage(relativeToAbsoluteImageRegion(_focusArea));
+
+  // minimum dimensions, otherwise just scale to thumbnail size (25% of source)
+  if (clipped.getWidth() > 200 || clipped.getHeight() > 200) {
+    clipped = clipped.rescaled(0.25 * clipped.getWidth(), 0.25 * clipped.getHeight());
+  }
+
+  // compute brightness histogram
+  SparseHistogram b(1, { 0, _binSize });
+
+  for (int y = 0; y < clipped.getHeight(); y++) {
+    for (int x = 0; x < clipped.getWidth(); x++) {
+      Colour px = clipped.getPixelAt(x, y);
+      vector<float> pts;
+      pts.push_back(px.getBrightness());
+      b.add(pts);
+    }
+  }
+
+  // TODO: adjust variable selection
+  // Compute some intensity distribution values
+
+  // total weight
+  float total = b.getTotalWeight();
+  HistogramFeature brightest = b.getLargestBin();
+  _meanBright = brightest._data._v[0];
+  _k = 2;
+  
+  // mean
+  auto dim = b.getDimension(1);
+  double sum = 0;
+  for (auto d : dim) {
+    sum += d.first * d.second;
+  }
+  _mean = sum / total;
+
+  _brightness = b;
+}
+
 Idea::ColorPaletteControls::ColorPaletteControls(Idea* parent) : _parent(parent)
 {
 }
@@ -774,6 +846,93 @@ void Idea::ColorPaletteControls::showExtraOptions()
   else if (result == 4) {
     _parent->updateColorWeights();
   }
+}
+
+Idea::IntensityPaletteControls::IntensityPaletteControls(Idea* parent) :
+  _parent(parent) {
+  _binSize.setRange(0, 1, 0.01f);
+  _binSize.setValue(_parent->_binSize, dontSendNotification);
+  _binSize.setName("bin size");
+  _binSize.setSliderStyle(Slider::SliderStyle::LinearHorizontal);
+  _binSize.addListener(this);
+  addAndMakeVisible(_binSize);
+
+  _k.setRange(0, getRig()->getMetadataValues("system").size(), 1);
+  _k.setValue(_parent->_k, dontSendNotification);
+  _k.setName("k");
+  _k.setSliderStyle(Slider::SliderStyle::LinearHorizontal);
+  _k.addListener(this);
+  addAndMakeVisible(_k);
+
+  _means.setRange(0, 1, 0.01f);
+  _means.setSliderStyle(Slider::SliderStyle::TwoValueHorizontal);
+  _means.setMinAndMaxValues(_parent->_mean, _parent->_meanBright, dontSendNotification);
+  _means.setName("mean");
+  _means.setPopupDisplayEnabled(true, nullptr);
+  _means.addListener(this);
+  addAndMakeVisible(_means);
+}
+
+Idea::IntensityPaletteControls::~IntensityPaletteControls()
+{
+}
+
+void Idea::IntensityPaletteControls::paint(Graphics & g)
+{
+  auto lbounds = getLocalBounds();
+  auto top = lbounds.removeFromTop(20);
+  g.setColour(Colours::white);
+  g.drawFittedText("Means", top.removeFromLeft(60), Justification::centred, 1);
+
+  auto rowRight = lbounds.removeFromTop(20);
+  auto rowLeft = rowRight.removeFromLeft(rowRight.getWidth() / 2);
+
+  g.drawFittedText("# Bright", rowLeft.removeFromLeft(60), Justification::centred, 1);
+  g.drawFittedText("Bin Size", rowRight.removeFromLeft(60), Justification::centred, 1);
+}
+
+void Idea::IntensityPaletteControls::resized()
+{
+  auto lbounds = getLocalBounds();
+  auto top = lbounds.removeFromTop(20);
+  top.removeFromLeft(60);
+  _means.setBounds(top.reduced(2));
+
+  auto rowRight = lbounds.removeFromTop(20);
+  auto rowLeft = rowRight.removeFromLeft(rowRight.getWidth() / 2);
+
+  rowLeft.removeFromLeft(60);
+  _k.setBounds(rowLeft);
+
+  rowRight.removeFromLeft(60);
+  _binSize.setBounds(rowRight);
+}
+
+void Idea::IntensityPaletteControls::sliderValueChanged(Slider * s)
+{
+  if (s->getName() == "mean") {
+    _parent->_mean = s->getMinValue();
+    _parent->_meanBright = s->getMaxValue();
+  }
+  else if (s->getName() == "k") {
+    _parent->_k = s->getValue();
+  }
+  else if (s->getName() == "Bin Size") {
+    _parent->_binSize = s->getValue();
+  }
+}
+
+void Idea::IntensityPaletteControls::sliderDragEnded(Slider * s)
+{
+  _parent->updateIntensityParams();
+}
+
+void Idea::IntensityPaletteControls::updateUI()
+{ 
+  _means.setMinAndMaxValues(_parent->_mean, _parent->_meanBright, dontSendNotification);
+  _k.setValue(_parent->_k, dontSendNotification);
+  _binSize.setValue(_parent->_binSize, dontSendNotification);
+  resized();
 }
 
 // ============================================================================

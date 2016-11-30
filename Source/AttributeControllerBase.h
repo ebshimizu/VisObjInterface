@@ -11,8 +11,8 @@
 #ifndef ATTRIBUTECONTROLLERBASE_H_INCLUDED
 #define ATTRIBUTECONTROLLERBASE_H_INCLUDED
 
-#include "../JuceLibraryCode/JuceHeader.h"
 #include "globals.h"
+#include "../JuceLibraryCode/JuceHeader.h"
 #include <list>
 
 //==============================================================================

@@ -433,6 +433,12 @@
     <ClCompile Include="..\..\Source\StatusBar.cpp">
       <Filter>AttributesInterface\Source\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\SparseHistogram.cpp">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\Histogram.cpp">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\closure_over_uneven_buckets.cpp">
       <Filter>AttributesInterface\Source\attributes</Filter>
     </ClCompile>
@@ -2300,6 +2306,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\TopComponentContainer.h">
       <Filter>AttributesInterface\Source\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SparseHistogram.h">
+      <Filter>AttributesInterface\Source\attributes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Histogram.h">
+      <Filter>AttributesInterface\Source\attributes</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\closure_over_uneven_buckets.h">
       <Filter>AttributesInterface\Source\attributes</Filter>

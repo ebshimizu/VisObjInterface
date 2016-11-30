@@ -170,6 +170,11 @@ void ColorSampler::sample(Snapshot * state)
   }
 }
 
+double ColorSampler::score(Snapshot * state, Image & img)
+{
+  return 0.0;
+}
+
 void ColorSampler::normalizeWeights()
 {
   // compute sum

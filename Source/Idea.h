@@ -12,13 +12,16 @@
 #define IDEA_H_INCLUDED
 
 #include "globals.h"
+#include "SparseHistogram.h"
 #include "../JuceLibraryCode/JuceHeader.h"
 
 enum IdeaType {
-  COLOR_PALETTE = 1
+  COLOR_PALETTE = 1,
+  INTENS_DIST = 2
 };
 
 class IdeaList;
+class SparseHistogram;
 
 // the Idea class contains information to apply an idea to a particular
 // set of devices on the stage
@@ -61,7 +64,15 @@ public:
   // returns the idea type
   IdeaType getType();
 
+  // intensity params
+  float _binSize;
+  int _k;
+  float _meanBright;
+  float _mean;
+  SparseHistogram _brightness;
+
 private:
+
   class ColorPaletteControls : public Component, public ChangeListener {
   public:
     ColorPaletteControls(Idea* parent);
@@ -76,6 +87,24 @@ private:
 
     int _selectedColorId;
     Idea* _parent;
+  };
+
+  class IntensityPaletteControls : public Component, public SliderListener {
+  public:
+    IntensityPaletteControls(Idea* parent);
+    ~IntensityPaletteControls();
+
+    void paint(Graphics& g) override;
+    void resized() override;
+
+    void sliderValueChanged(Slider* s) override;
+    void sliderDragEnded(Slider* s) override;
+    void updateUI();
+
+    Idea* _parent;
+    Slider _binSize;
+    Slider _k;
+    Slider _means;
   };
 
   // source image
@@ -103,6 +132,7 @@ private:
   // Was considering making this a generic component to make resize easier, but would
   // make code harder to read
   ColorPaletteControls* _colorControls;
+  IntensityPaletteControls* _intensControls;
 
   // size of elements taking up the header of the idea.
   int _headerSize;
@@ -115,6 +145,7 @@ private:
   bool _isRegionLocked;
 
   // type specific variables
+  // color
   vector<Eigen::Vector3d> _colors;
   vector<float> _weights;
   int _numColors;
@@ -140,6 +171,9 @@ private:
 
   // updates the relative frequencies of each color
   void updateColorWeights();
+
+  // updates the intensity parameters of the idea
+  void updateIntensityParams();
 };
 
 class IdeaList : public Component {

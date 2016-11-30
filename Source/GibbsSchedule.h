@@ -21,8 +21,14 @@ class Sampler {
 public:
   Sampler(DeviceSet affectedDevices, Rectangle<float> region, set<string> intensPins, set<string> colorPins);
 
+  // every sampler has to have a sample function
   virtual void sample(Snapshot* state) = 0;
+  
+  // evaluation function for each sampler
+  virtual double score(Snapshot* state, Image& img) = 0;
 
+  // name for id'ing the sampler
+  string _name;
 protected:
   // computes the per-system intensity based on affected devices
   void computeSystemSensitivity();
@@ -45,6 +51,10 @@ public:
 
   void sample(Snapshot* state) override;
 
+  // returns a score based on..... something
+  // TODO: determine what the something is
+  double score(Snapshot* state, Image& img);
+
 private:
   void normalizeWeights();
   int getClosestColorIndex(Eigen::Vector3d color);
@@ -53,22 +63,42 @@ private:
   vector<float> _weights;
 };
 
+// A pin sampler samples all the pinned lights.
 class PinSampler : Sampler {
 public:
   PinSampler(DeviceSet affectedDevices, Rectangle<float> region, set<string> intensPins, set<string> colorPins);
   ~PinSampler();
 
   void sample(Snapshot* state) override;
-
-private:
+  
+  // the pin sampler won't really ever have a useful score
+  double score(Snapshot* state, Image& img) { return 0; }
 };
 
-// Gibbs schedules consist of a distribution for intensity parameters and a
-// distribution for color parameters.
-// Each distribution is a set of gaussians that are sampled from in a particular
-// way. Right now, we'll keep it simple and have the distributions be selected from at
-// random (i.e. uniformly).
-// TODO: Support multivariate sampling distributions
+// an intensity sampler samples a target average intensity and peak intensity
+// using a few priors at the moment
+// TODO: determine better intensity sampling method from image
+class IntensitySampler : Sampler {
+public:
+  IntensitySampler(DeviceSet affectedDevices, Rectangle<float> region, set<string> intensPins, set<string> colorPins);
+  ~IntensitySampler();
+
+  void sample(Snapshot* state) override;
+
+  double score(Snapshot* state, Image& img);
+
+private:
+  // for computing the score, the histogram of the idea
+  SparseHistogram _srcBrightness;
+
+  // parameters for sampling
+  int _k;
+  float _brightMean;
+  float _mean;
+};
+
+// GibbsSchedules consist of a set of samplers that take the current state
+// and return a new sample that may or may not be connected to that current state
 class GibbsSchedule {
 public:
   // create an empty schedule
