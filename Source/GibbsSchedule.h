@@ -72,7 +72,7 @@ public:
   void sample(Snapshot* state) override;
   
   // the pin sampler won't really ever have a useful score
-  double score(Snapshot* state, Image& img) { return 0; }
+  double score(Snapshot* /* state */, Image& /* img */) { return 0; }
 };
 
 // an intensity sampler samples a target average intensity and peak intensity

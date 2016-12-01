@@ -48,9 +48,11 @@ Idea::Idea(File srcFolder, JSONNode data) : _brightness(1, { 0, 0.1f })
   _typeSelector.setSelectedId((int)_type, dontSendNotification);
 
   // bounds
-  auto bounds = data.find("bounds");
-  _focusArea = Rectangle<float>::leftTopRightBottom(bounds->find("topX")->as_float(), bounds->find("topY")->as_float(),
-    bounds->find("botX")->as_float(), bounds->find("botY")->as_float());
+  auto rectbounds = data.find("bounds");
+  _focusArea = Rectangle<float>::leftTopRightBottom((float)rectbounds->find("topX")->as_float(),
+    (float) rectbounds->find("topY")->as_float(),
+    (float) rectbounds->find("botX")->as_float(),
+    (float) rectbounds->find("botY")->as_float());
 
   _selected = false;
   _isBeingDragged = false;
@@ -73,7 +75,7 @@ Idea::Idea(File srcFolder, JSONNode data) : _brightness(1, { 0, 0.1f })
       // color load
       Eigen::Vector3d color(cit->find("hue")->as_float(), cit->find("sat")->as_float(), cit->find("val")->as_float());
       _colors.push_back(color);
-      _weights.push_back(cit->find("weight")->as_float());
+      _weights.push_back((float) cit->find("weight")->as_float());
 
       cit++;
     }
@@ -248,14 +250,14 @@ JSONNode Idea::toJSON()
 
   root.push_back(JSONNode("idea_type", (int)_type));
 
-  JSONNode bounds;
-  bounds.set_name("bounds");
-  bounds.push_back(JSONNode("topX", _focusArea.getTopLeft().getX()));
-  bounds.push_back(JSONNode("topY", _focusArea.getTopLeft().getY()));
-  bounds.push_back(JSONNode("botX", _focusArea.getBottomRight().getX()));
-  bounds.push_back(JSONNode("botY", _focusArea.getBottomRight().getY()));
+  JSONNode rectbounds;
+  rectbounds.set_name("bounds");
+  rectbounds.push_back(JSONNode("topX", _focusArea.getTopLeft().getX()));
+  rectbounds.push_back(JSONNode("topY", _focusArea.getTopLeft().getY()));
+  rectbounds.push_back(JSONNode("botX", _focusArea.getBottomRight().getX()));
+  rectbounds.push_back(JSONNode("botY", _focusArea.getBottomRight().getY()));
 
-  root.push_back(bounds);
+  root.push_back(rectbounds);
   root.push_back(JSONNode("image_name", getName().toStdString() + ".png"));
   root.push_back(JSONNode("region_lock", _isRegionLocked));
 
@@ -420,7 +422,6 @@ Point<float> Idea::relativeImageCoordsToLocal(Point<float> pt)
   }
   // y too big - extra space on Top/Bot sides
   else if (scaleY > scale) {
-    float intendedScale = scaleY * _src.getHeight();
     float actualScale = scale * _src.getHeight();
     float diff = abs((getHeight() - _headerSize) - actualScale);
     float offset = diff / 2;
@@ -434,8 +435,8 @@ Point<float> Idea::relativeImageCoordsToLocal(Point<float> pt)
 
 Rectangle<int> Idea::relativeToAbsoluteImageRegion(Rectangle<float> rect)
 {
-  return Rectangle<int>(rect.getX() * _src.getWidth(), rect.getY() * _src.getHeight(),
-    rect.getWidth() * _src.getWidth(), rect.getHeight() * _src.getHeight());
+  return Rectangle<int>((int) (rect.getX() * _src.getWidth()), (int) (rect.getY() * _src.getHeight()),
+    (int) (rect.getWidth() * _src.getWidth()), (int) (rect.getHeight() * _src.getHeight()));
 }
 
 void Idea::initUI()
@@ -468,7 +469,7 @@ void Idea::initUI()
   addAndMakeVisible(_delete);
 
   _headerSize = 24 * 2;
-  _numColors = 5;
+  _numColors = 3;
   _binSize = 0.1f;
 
   _colorControls = nullptr;
@@ -489,7 +490,7 @@ void Idea::generateColorPalette()
   // pull out the selected image region
   Image img = _src.getClippedImage(relativeToAbsoluteImageRegion(_focusArea));
   double scale = (img.getHeight() > img.getWidth()) ? 100.0 / img.getHeight() : 100.0 / img.getWidth();
-  Image i = img.rescaled(img.getWidth() * scale, img.getHeight() * scale);
+  Image i = img.rescaled((int) (img.getWidth() * scale), (int) (img.getHeight() * scale));
 
   vector<pair<Eigen::VectorXd, int> > pts;
 
@@ -585,7 +586,7 @@ void Idea::altGenerateColorPalette()
 
     int B = substr.getIntValue();
 
-    Colour c(R, G, B);
+    Colour c((uint8)R, (uint8)G, (uint8)B);
 
     Eigen::VectorXf hsv;
     hsv.resize(3);
@@ -613,7 +614,7 @@ void Idea::updateColorWeights()
     // palettize a small, scaled image
   Image img = _src.getClippedImage(relativeToAbsoluteImageRegion(_focusArea));
   double scale = (img.getHeight() > img.getWidth()) ? 100.0 / img.getHeight() : 100.0 / img.getWidth();
-  Image scaled = img.rescaled(img.getWidth() * scale, img.getHeight() * scale);
+  Image scaled = img.rescaled((int) (img.getWidth() * scale), (int) (img.getHeight() * scale));
 
   vector<int> counts;
   counts.resize(_colors.size());
@@ -666,7 +667,7 @@ void Idea::updateIntensityParams()
 
   // max dimension is 200px
   if (scale < 1) {
-    clipped = clipped.rescaled(scale * clipped.getWidth(), scale * clipped.getHeight());
+    clipped = clipped.rescaled((int) (scale * clipped.getWidth()), (int) (scale * clipped.getHeight()));
   }
 
   // compute brightness histogram
@@ -692,9 +693,9 @@ void Idea::updateIntensityParams()
   
   // mean
   auto dim = b.getDimension(0);
-  double sum = 0;
+  float sum = 0;
   for (auto d : dim) {
-    sum += d.first * d.second;
+    sum += (float) (d.first * d.second);
   }
   _mean = sum / total;
 
@@ -714,7 +715,7 @@ void Idea::ColorPaletteControls::paint(Graphics & g)
   if (_parent->_colors.size() > 0) {
     // draws color rectangles
     auto lbounds = getLocalBounds();
-    int elemWidth = lbounds.getWidth() / _parent->_colors.size();
+    int elemWidth = lbounds.getWidth() / (int)_parent->_colors.size();
 
     for (auto c : _parent->_colors) {
       auto region = lbounds.removeFromLeft(elemWidth).reduced(2);
@@ -759,7 +760,7 @@ void Idea::ColorPaletteControls::mouseDown(const MouseEvent & e)
     else {
       // popup a color selector at the proper spot.
       auto lbounds = getLocalBounds();
-      int elemWidth = lbounds.getWidth() / _parent->_colors.size();
+      int elemWidth = lbounds.getWidth() / (int)_parent->_colors.size();
 
       int idx = 0;
       _selectedColorId = -1;
@@ -767,7 +768,7 @@ void Idea::ColorPaletteControls::mouseDown(const MouseEvent & e)
       for (auto c : _parent->_colors) {
         auto region = lbounds.removeFromLeft(elemWidth).reduced(2);
 
-        if (region.contains(e.position.getX(), e.position.getY())) {
+        if (region.contains((int)e.position.getX(), (int)e.position.getY())) {
           _selectedColorId = idx;
           selectedArea = region;
         }
@@ -802,6 +803,7 @@ void Idea::ColorPaletteControls::showExtraOptions()
   m.addItem(2, "Change Number of Colors");
   m.addItem(3, "Edit Weights");
   m.addItem(4, "Recompute Weights");
+  m.addItem(5, "EXPERIMENTAL: Advanced Palette Generation");
 
   int result = m.show();
 
@@ -848,13 +850,17 @@ void Idea::ColorPaletteControls::showExtraOptions()
       // adjust all weights
       for (int i = 0; i < _parent->_weights.size(); i++) {
         String val = w.getTextEditorContents(String(i));
-        _parent->_weights[i] = val.getDoubleValue();
+        _parent->_weights[i] = val.getFloatValue();
       }
       repaint();
     }
   }
   else if (result == 4) {
     _parent->updateColorWeights();
+  }
+  else if (result == 5) {
+    _parent->altGenerateColorPalette();
+    repaint();
   }
 }
 
@@ -865,13 +871,17 @@ Idea::IntensityPaletteControls::IntensityPaletteControls(Idea* parent) :
   _binSize.setName("bin size");
   _binSize.setSliderStyle(Slider::SliderStyle::LinearHorizontal);
   _binSize.addListener(this);
+  _binSize.setPopupDisplayEnabled(true, nullptr);
+  _binSize.setTextBoxStyle(Slider::NoTextBox, true, 0, 0);
   addAndMakeVisible(_binSize);
 
-  _k.setRange(0, getRig()->getMetadataValues("system").size(), 1);
+  _k.setRange(0, (double) getRig()->getMetadataValues("system").size(), 1);
   _k.setValue(_parent->_k, dontSendNotification);
   _k.setName("k");
   _k.setSliderStyle(Slider::SliderStyle::LinearHorizontal);
   _k.addListener(this);
+  _k.setPopupDisplayEnabled(true, nullptr);
+  _k.setTextBoxStyle(Slider::NoTextBox, true, 0, 0);
   addAndMakeVisible(_k);
 
   _means.setRange(0, 1, 0.01f);
@@ -922,14 +932,14 @@ void Idea::IntensityPaletteControls::resized()
 void Idea::IntensityPaletteControls::sliderValueChanged(Slider * s)
 {
   if (s->getName() == "mean") {
-    _parent->_mean = s->getMinValue();
-    _parent->_meanBright = s->getMaxValue();
+    _parent->_mean = (float)s->getMinValue();
+    _parent->_meanBright = (float)s->getMaxValue();
   }
   else if (s->getName() == "k") {
-    _parent->_k = s->getValue();
+    _parent->_k = (int)s->getValue();
   }
   else if (s->getName() == "bin size") {
-    _parent->_binSize = s->getValue();
+    _parent->_binSize = (float)s->getValue();
   }
 }
 
@@ -970,8 +980,8 @@ void IdeaList::resized()
 {
   // the elements are all set to be squares with the width determininning the size
   // update the size first
-  float side = getWidth();
-  setSize(side, side * _ideas.size());
+  int side = getWidth();
+  setSize(side, side * (int)_ideas.size());
 
   auto lbounds = getLocalBounds();
   // position elements
@@ -1211,8 +1221,8 @@ void IdeaList::loadPins(JSONNode pins)
 
   while (i != pins.end()) {
     getGlobalSettings()->_pinnedRegions.add(Rectangle<float>::leftTopRightBottom(
-      i->find("topX")->as_float(), i->find("topY")->as_float(),
-      i->find("botX")->as_float(), i->find("botY")->as_float()));
+      (float)i->find("topX")->as_float(), (float)i->find("topY")->as_float(),
+      (float)i->find("botX")->as_float(), (float)i->find("botY")->as_float()));
 
     i++;
   }
@@ -1237,8 +1247,8 @@ void IdeaList::loadIdeaMap(JSONNode ideaMap)
     if (selected != nullptr) {
       // create the rectangle
       auto region = Rectangle<float>::leftTopRightBottom(
-        i->find("topX")->as_float(), i->find("topY")->as_float(),
-        i->find("botX")->as_float(), i->find("botY")->as_float());
+        (float)i->find("topX")->as_float(), (float)i->find("topY")->as_float(),
+        (float)i->find("botX")->as_float(), (float)i->find("botY")->as_float());
 
       getGlobalSettings()->_ideaMap[selected] = region;
     }

@@ -243,12 +243,12 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
       auto sd = s->getRigData();
       for (auto d : _selected.getDevices()) {
         if (pinIntens) {
-          d->setParam("intensity", sd[d->getId()]->getIntensity());
+          getRig()->getDevice(d->getId())->setParam("intensity", sd[d->getId()]->getIntensity());
           lockDeviceParam(d->getId(), "intensity");
         }
 
         if (pinColor) {
-          d->setParam("color", sd[d->getId()]->getColor());
+          getRig()->getDevice(d->getId())->setParam("color", sd[d->getId()]->getColor());
           lockDeviceParam(d->getId(), "color");
         }
       }
@@ -304,14 +304,14 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
         s->loadRig(getRig());
         delete s;
 
-        // populate system views but don't lock anything (region pins)
+        // dont populate anything, let user select what to keep
         MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
         if (mc != nullptr) {
           mc->arnoldRender(!_isHistoryItem);
           mc->refreshParams();
           mc->refreshAttr();
-          mc->populateSystemViews();
+          //mc->populateSystemViews();
           getRecorder()->log(ACTION, "User picked scene for stage: " + getTooltip().toStdString());
         }
       }
