@@ -316,8 +316,28 @@ void IntensitySampler::sample(Snapshot * state)
 
 double IntensitySampler::score(Snapshot * state, Image& img)
 {
-  // TODO: fill in with EMD
-  return 0;
+  // compute histogram from scaled region
+  Rectangle<int> region = Rectangle<int>(_region.getX() * img.getWidth(), _region.getY() * img.getHeight(),
+    _region.getWidth() * img.getWidth(), _region.getHeight() * img.getHeight());
+  Image clipped = img.getClippedImage(region);
+
+  // scale, 200 max dim
+  float scale = (clipped.getWidth() > clipped.getHeight()) ? 200.0f / clipped.getWidth() : 200.0f / clipped.getHeight();
+
+  // do the thing
+  SparseHistogram stage(1, _srcBrightness.getBounds());
+
+  for (int y = 0; y < clipped.getHeight(); y++) {
+    for (int x = 0; x < clipped.getWidth(); x++) {
+      Colour px = clipped.getPixelAt(x, y);
+      vector<float> pts;
+      pts.push_back(px.getBrightness());
+      stage.add(pts);
+    }
+  }
+
+  // compute the dist
+  return _srcBrightness.EMD(stage);
 }
 void IntensitySampler::setBrightnessHistogram(SparseHistogram b)
 {
@@ -358,6 +378,9 @@ void GibbsSchedule::score(shared_ptr<SearchResult> result, Snapshot* state)
     getGlobalSettings()->_thumbnailRenderScale * height);
 
   for (auto s : _samplers) {
+    if (s->_name == "Pinned")
+      continue;
+
     result->_extraFuncs[s->_name] = s->score(state, render);
   }
 }

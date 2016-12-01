@@ -272,6 +272,9 @@ public:
   // Returns the total weight of the elements in the histogram
   float getTotalWeight();
 
+  // returns a copy of the bounds vector for this histogram
+  vector<float> getBounds();
+
 private:
   // Retrieves the closest bin center to the specified point
   HistogramFeature closestBin(vector<float> pt);

@@ -72,4 +72,14 @@ public:
   string _s;
 };
 
+class ExtraSorter : public AttributeSorter
+{
+public:
+  ExtraSorter(String s) : _key(s) {}
+
+  virtual int compareElements(shared_ptr<SearchResultContainer> first, shared_ptr<SearchResultContainer> second);
+
+  String _key;
+};
+
 #endif  // ATTRIBUTESORTING_H_INCLUDED

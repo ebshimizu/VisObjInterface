@@ -110,3 +110,13 @@ int CacheSorter::compareElements(shared_ptr<SearchResultContainer> first, shared
   else
     return 0;
 }
+
+int ExtraSorter::compareElements(shared_ptr<SearchResultContainer> first, shared_ptr<SearchResultContainer> second)
+{
+  if (first->getSearchResult()->_extraFuncs[_key] < second->getSearchResult()->_extraFuncs[_key])
+    return -1;
+  else if (first->getSearchResult()->_extraFuncs[_key] > second->getSearchResult()->_extraFuncs[_key])
+    return 1;
+  else
+    return 0;
+}

@@ -113,6 +113,13 @@ void SearchResultsContainer::sort()
   // temporary override of the sort function
   // may end up being the actual sort function at some point
   _exp->getContainer()->sort("hs");
+
+  // more temporary tests, autosorts on first extra function value key
+  if (_allResults.size() > 0) {
+    ExtraSorter s(_allResults.begin()->operator->()->getSearchResult()->_extraFuncs.begin()->first);
+    sort(&s);
+  }
+
   resized();
   return;
 

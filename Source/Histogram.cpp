@@ -867,6 +867,11 @@ float SparseHistogram::getTotalWeight()
   return _totalWeight;
 }
 
+vector<float> SparseHistogram::getBounds()
+{
+  return _bounds;
+}
+
 HistogramFeature SparseHistogram::closestBin(vector<float> pt)
 {
   vector<float> bin;

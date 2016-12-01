@@ -662,9 +662,11 @@ void Idea::updateIntensityParams()
   // get clipped image
   Image clipped = _src.getClippedImage(relativeToAbsoluteImageRegion(_focusArea));
 
-  // minimum dimensions, otherwise just scale to thumbnail size (25% of source)
-  if (clipped.getWidth() > 200 || clipped.getHeight() > 200) {
-    clipped = clipped.rescaled(0.25 * clipped.getWidth(), 0.25 * clipped.getHeight());
+  float scale = (clipped.getWidth() > clipped.getHeight()) ? 200.0f / clipped.getWidth() : 200.0f / clipped.getHeight();
+
+  // max dimension is 200px
+  if (scale < 1) {
+    clipped = clipped.rescaled(scale * clipped.getWidth(), scale * clipped.getHeight());
   }
 
   // compute brightness histogram
