@@ -735,6 +735,9 @@ float SparseHistogram::getBin(HistogramFeature pt)
 
 HistogramFeature SparseHistogram::getLargestBin()
 {
+  if (_histData.size() == 0)
+    return HistogramFeature();
+
   HistogramFeature largest = _histData.begin()->first;
   for (auto d : _histData) {
     if (d.first > largest) {

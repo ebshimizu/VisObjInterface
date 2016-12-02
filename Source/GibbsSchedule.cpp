@@ -290,16 +290,22 @@ void IntensitySampler::sample(Snapshot * state)
       }
     }
 
-    if (_devices.size() > 0) {
-      results.push_back(0);
+    results.push_back(0);
+    sens.push_back(_systemSensitivity[system]);
+    systemMap.push_back(localSys);
+
+    if (localSys.size() > 0) {
       constraint.push_back(0);
-      sens.push_back(_systemSensitivity[system]);
-      systemMap.push_back(localSys);
+    }
+    else {
+      // pinned
+      constraint.push_back(3);
     }
   }
 
   // sample
-  GibbsSamplingGaussianMixture(results, constraint, sens, results.size(), _k, _brightMean, _mean);
+  GibbsSamplingGaussianMixturePrior(results, constraint, sens, results.size(), _k, _brightMean, _mean,
+    getGlobalSettings()->_maxAllowedLights, getGlobalSettings()->_maxLightPenalty);
 
   // apply to snapshot
   for (int i = 0; i < results.size(); i++) {

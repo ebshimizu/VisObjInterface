@@ -275,6 +275,8 @@ public:
   DistanceMetric _searchDispMetric;   // Metric to use for determining if a result should be displayed during a search
   double _thresholdDecayRate;   // how quickly the jnd decays for accepting samples. Smaller is faster
   String _showName;             // current show name / file the rig was loaded from
+  int _maxAllowedLights;        // maximum number of allowed lights before a penalty is incurred
+  float _maxLightPenalty;       // base percent chance that a light will still be used even if beyond maximum number of lights
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

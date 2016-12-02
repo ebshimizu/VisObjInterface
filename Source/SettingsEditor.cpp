@@ -137,6 +137,12 @@ void SettingsSlider::setValue(double newValue)
         renderer->setExposure((float)newValue);
     }
   }
+  else if (_id == "Max Allowed Lights") {
+    getGlobalSettings()->_maxAllowedLights = (int)newValue;
+  }
+  else if (_id == "Allowed Light Penalty") {
+    getGlobalSettings()->_maxLightPenalty = newValue;
+  }
 }
 
 double SettingsSlider::getValue() const
@@ -249,6 +255,10 @@ double SettingsSlider::getValue() const
       return 0;
     }
   }
+  else if (_id == "Max Allowed Lights")
+    return getGlobalSettings()->_maxAllowedLights;
+  else if (_id == "Allowed Light Penalty")
+    return getGlobalSettings()->_maxLightPenalty;
 
   return 0;
 }
@@ -530,6 +540,8 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Repulsion Cone K", 0, 2, 0.01));
   searchComponents.add(new SettingsSlider("Repulsion Cost K", 0, 5, 0.01));
   searchComponents.add(new SettingsSlider("Repulsion Num Pairs", 1, 200, 1));
+  searchComponents.add(new SettingsSlider("Max Allowed Lights", 0, 10, 1));
+  searchComponents.add(new SettingsSlider("Allowed Light Penalty", 0, 1, 0.001));
   _settings.addSection("Search", searchComponents);
 
 

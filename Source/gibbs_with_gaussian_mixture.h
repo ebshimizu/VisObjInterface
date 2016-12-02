@@ -7,6 +7,8 @@
 #include <random>
 #include <algorithm>
 #include <cassert>
+#include <math.h>
+#include "LumiverseCore.h"
 
 // Gibbs sampling MCMC schedule to sample `k` number of directed lights in an
 // `n` light system with custom target mean intensity for the directed lights
@@ -40,4 +42,18 @@ void GibbsSamplingGaussianMixture(std::vector<float>& result,
   const float sh = 0.1,
   const float sl = 0.1);
 
+// Gibbs sampler that accounts for current light state and limits the number of sampled
+// lights according to some priors
+void GibbsSamplingGaussianMixturePrior(std::vector<float>& result,
+  const std::vector<int>& c,
+  const std::vector<float>& s,
+  const int n,
+  const int k,
+  const float mh,
+  const float ma,
+  const int maxLights,
+  float penalty,
+  bool use_image_intensity = true,
+  const float sh = 0.1,
+  const float sl = 0.1);
 #endif
