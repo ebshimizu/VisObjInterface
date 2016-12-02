@@ -94,7 +94,7 @@ void GibbsPalletContainer::resized()
   // this component maintains its own height
   int elemWidth = getWidth() / _cols;
   int elemHeight = elemWidth;
-  int rows = ceil((float)_pallets.size() / _cols);
+  int rows = (int)ceil((float)_pallets.size() / _cols);
 
   setSize(getWidth(), elemHeight * rows);
 
@@ -171,7 +171,7 @@ void GibbsColorConstraint::resized()
   _weightInput.setBounds(weightBox.reduced(2));
 }
 
-void GibbsColorConstraint::buttonClicked(Button * b)
+void GibbsColorConstraint::buttonClicked(Button * /* b */)
 {
   // there's only one button here so
   HSVPicker* cs = new HSVPicker();
@@ -184,9 +184,9 @@ void GibbsColorConstraint::buttonClicked(Button * b)
 
 void GibbsColorConstraint::getDistributions(normal_distribution<float>& hue, normal_distribution<float>& sat, normal_distribution<float>& val)
 {
-  hue = normal_distribution<float>(_color.getHue(), 0.01);
-  sat = normal_distribution<float>(_color.getSaturation(), 0.1);
-  val = normal_distribution<float>(_color.getBrightness(), 0.1);
+  hue = normal_distribution<float>(_color.getHue(), 0.01f);
+  sat = normal_distribution<float>(_color.getSaturation(), 0.1f);
+  val = normal_distribution<float>(_color.getBrightness(), 0.1f);
 }
 
 
@@ -231,7 +231,7 @@ GibbsConstraintContainer::GibbsConstraintContainer()
 
   _numLights.setName("bright");
   _numLights.addListener(this);
-  _numLights.setRange(0, getRig()->getAllDevices().size(), 1);
+  _numLights.setRange(0, (double)getRig()->getAllDevices().size(), 1);
   addAndMakeVisible(_numLights);
 
   _add.setName("add");
@@ -308,7 +308,7 @@ void GibbsConstraintContainer::resized()
   _scope.setBounds(bot.removeFromLeft(100).reduced(2));
 }
 
-void GibbsConstraintContainer::sliderValueChanged(Slider * s)
+void GibbsConstraintContainer::sliderValueChanged(Slider * /* s */)
 {
 }
 
@@ -330,7 +330,7 @@ vector<vector<normal_distribution<float>>> GibbsConstraintContainer::getColorDis
 
 normal_distribution<float> GibbsConstraintContainer::getIntensDist()
 {
-  return normal_distribution<float>(_intens.getMinValue());
+  return normal_distribution<float>((float)_intens.getMinValue());
 }
 
 void GibbsConstraintContainer::addColorConstraint()
@@ -428,13 +428,13 @@ bool GibbsConstraintContainer::useSystems()
 void GibbsConstraintContainer::updateBounds()
 {
   if (_scope.getSelectedId() == 1)
-    _numLights.setRange(0, getRig()->getAllDevices().size(), 1);
+    _numLights.setRange(0, (double)getRig()->getAllDevices().size(), 1);
 
   else if (_scope.getSelectedId() == 2)
-    _numLights.setRange(0, getRig()->getMetadataValues("system").size(), 1);
+    _numLights.setRange(0, (double)getRig()->getMetadataValues("system").size(), 1);
 }
 
-void GibbsConstraintContainer::comboBoxChanged(ComboBox * b)
+void GibbsConstraintContainer::comboBoxChanged(ComboBox * /* b */)
 {
   updateBounds();
 }
@@ -450,7 +450,7 @@ vector<float> GibbsConstraintContainer::getColorWeights()
   }
 
   for (int i = 0; i < weights.size(); i++) {
-    weights[i] = _colors[i]->getColorWeight() / sum;
+    weights[i] = (float)(_colors[i]->getColorWeight() / sum);
   }
 
   return weights;

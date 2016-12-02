@@ -93,7 +93,7 @@ public:
 
                   // calculate color
                   double sat = (pt.norm() / radius);
-                  pixels.setPixelColour(x, y, Colour(angle / (M_PI * 2), sat, v, 1.0f));
+                  pixels.setPixelColour(x, y, Colour(angle / (M_PI * 2), (float)sat, v, 1.0f));
                 }
               }
             }

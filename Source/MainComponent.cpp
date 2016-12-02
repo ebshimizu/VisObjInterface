@@ -653,6 +653,7 @@ void MainContentComponent::openRig(String fname)
     }
 
     arnoldRender();
+    _attrs->refreshSettings();
   }
   catch (exception e) {
     getStatusBar()->setStatusMessage("Failed to load " + fname, true);

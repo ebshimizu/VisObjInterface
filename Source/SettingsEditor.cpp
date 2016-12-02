@@ -130,6 +130,13 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_viewJndThreshold = newValue;
   else if (_id == "JND Threshold Decay Rate")
     getGlobalSettings()->_thresholdDecayRate = newValue;
+  else if (_id == "Exposure") {
+    if (getAnimationPatch != nullptr) {
+      CachingArnoldInterface* renderer = dynamic_cast<CachingArnoldInterface*>(getAnimationPatch()->getArnoldInterface());
+      if (renderer)
+        renderer->setExposure((float)newValue);
+    }
+  }
 }
 
 double SettingsSlider::getValue() const
@@ -230,6 +237,18 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_viewJndThreshold;
   else if (_id == "JND Threshold Decay Rate")
     return getGlobalSettings()->_thresholdDecayRate;
+  else if (_id == "Exposure") {
+    if (getAnimationPatch() != nullptr) {
+      CachingArnoldInterface* renderer = dynamic_cast<CachingArnoldInterface*>(getAnimationPatch()->getArnoldInterface());
+      if (renderer) {
+        return renderer->getExposure();
+      }
+      return 0;
+    }
+    else {
+      return 0;
+    }
+  }
 
   return 0;
 }
@@ -543,6 +562,7 @@ SettingsEditor::SettingsEditor()
   //_height = new SettingsSlider("Frame Height", 1, 2160, 1);
   //_width->_other = _height;
   //_height->_other = _width;
+  renderComponents.add(new SettingsSlider("Exposure", 0, 2, 0.01));
   renderComponents.add(new SettingsBoolButton("Grayscale Mode"));
 
 #ifdef USE_ARNOLD
