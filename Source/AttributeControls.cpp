@@ -236,15 +236,8 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   _sort = new ComboBox("sort mode");
   _sort->addListener(this);
   _sort->setEditableText(false);
-  _sort->addItem("Attribute Default", 1);
-  _sort->addItem("Average Hue", 2);
-  //_sort->addItem("Key Hue", 3);
-  _sort->addItem("Average Intensity", 3);
-  _sort->addItem("Side Light Style", 4);
-  //_sort->addItem("Key Intensity", 5);
-  //_sort->addItem("Key Azimuth Angle", 6);
-  _sort->setSelectedId(1);
-  //addAndMakeVisible(_sort);
+  _sort->setSelectedId(0);
+  addAndMakeVisible(_sort);
 
   // tab setup
   addAndMakeVisible(_tabs);
@@ -301,9 +294,9 @@ void AttributeControls::resized()
   //_clusterButton->setBounds(botBounds.removeFromRight(80).reduced(5));
   //_setKeyButton->setBounds(botBounds.removeFromRight(80).reduced(5));
 
-  //auto botRow2 = lbounds.removeFromBottom(30);
-  //botRow2.removeFromLeft(80);
-  //_sort->setBounds(botRow2.reduced(5));
+  auto botRow2 = lbounds.removeFromBottom(30);
+  botRow2.removeFromLeft(80);
+  _sort->setBounds(botRow2.reduced(5));
 
   _tabs.setBounds(lbounds);
   _container->setWidth(_componentView->getMaximumVisibleWidth());
@@ -334,7 +327,7 @@ void AttributeControls::buttonClicked(Button * b)
     getApplicationCommandManager()->invokeDirectly(SEARCH, true);
   }
   else if (b->getName() == "Sort") {
-    String id = _sort->getItemText(_sort->getSelectedId() - 1);
+    String id = _sort->getItemText(_sort->getSelectedId());
     getGlobalSettings()->_currentSortMode = id.toStdString();
 
     // do the re-sort
@@ -527,6 +520,20 @@ void AttributeControls::loadIdeas(File srcFolder)
 {
   _ic->_ideas->loadIdeas(srcFolder);
   _ic->_ideas->resized();
+}
+
+void AttributeControls::updateSortMenu()
+{
+  // each idea generates two different scores: a masked
+  // and unmasked version. The sort keys are the names of the
+  // ideas
+  _sort->clear(dontSendNotification);
+  auto ideas = _ic->_ideas->getIdeas();
+
+  for (int i = 0; i < ideas.size(); i++)  {
+    _sort->addItem(ideas[i]->getName(), i * 2 + 1);
+    _sort->addItem(ideas[i]->getName() + "_masked", i * 2 + 2);
+  }
 }
 
 void AttributeControls::initAttributes()

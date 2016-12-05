@@ -119,6 +119,9 @@ public:
   void saveIdeas(File destFolder);
   void loadIdeas(File srcFolder);
 
+  // updates the sort menu with the set of currently available sort methods
+  void updateSortMenu();
+
 private:
   void initAttributes();
 

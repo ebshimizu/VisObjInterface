@@ -114,33 +114,12 @@ void SearchResultsContainer::sort()
   // may end up being the actual sort function at some point
   _exp->getContainer()->sort("hs");
 
-  // more temporary tests, autosorts on first extra function value key
-  if (_allResults.size() > 0) {
-    ExtraSorter s(_allResults.begin()->operator->()->getSearchResult()->_extraFuncs.begin()->first);
-    sort(&s);
-  }
+  String key = getGlobalSettings()->_currentSortMode;
+
+  ExtraSorter sorter(key);
+  sort(&sorter);
 
   resized();
-  return;
-
-  string id = getGlobalSettings()->_currentSortMode;
-
-  if (id == "Attribute Default") {
-    DefaultSorter sorter;
-    sort(&sorter);
-  }
-  else if (id == "Average Hue") {
-    AvgHueSorter sorter;
-    sort(&sorter);
-  }
-  else if (id == "Average Intensity") {
-    AvgBrightSorter sorter;
-    sort(&sorter);
-  }
-  else if (id == "Side Light Style") {
-    StyleSorter sorter(SIDE_LIGHT);
-    sort(&sorter);
-  }
 }
 
 void SearchResultsContainer::sort(AttributeSorter* s)
