@@ -616,13 +616,7 @@ void MainContentComponent::openRig(String fname)
       // looks for mask.png in same folder as loaded .json
       File mask = selected.getParentDirectory();
       File maskFile = mask.getChildFile("mask.png");
-      FileInputStream in(maskFile);
-
-      if (in.openedOk()) {
-        PNGImageFormat pngReader;
-        getGlobalSettings()->_fgMask = pngReader.decodeImage(in);
-        getGlobalSettings()->_useFGMask = true;
-      }
+      openMask(maskFile);
 
       _attrs->reload();
       // Also should delete history and clear any displayed clusters
@@ -668,20 +662,34 @@ void MainContentComponent::openMask()
     "*.png", true);
 
   if (fc.browseForFileToOpen()) {
-    File selected = fc.getResult();
-    FileInputStream in(selected);
-
-    if (in.openedOk()) {
-      // load image
-      PNGImageFormat pngReader;
-      getGlobalSettings()->_fgMask = pngReader.decodeImage(in);
-      getGlobalSettings()->_useFGMask = true;
-
-			_attrs->reload();
-      getStatusBar()->setStatusMessage("Loaded mask.");
-    }
+    openMask(fc.getResult());
   }
+
   repaint();
+}
+
+void MainContentComponent::openMask(File mask)
+{
+  FileInputStream in(mask);
+
+  if (in.openedOk()) {
+    // load image
+    PNGImageFormat pngReader;
+    getGlobalSettings()->_fgMask = pngReader.decodeImage(in);
+
+    // assert dimensions are the same, otherwise what exactly is being masked?
+    if (getGlobalSettings()->_fgMask.getWidth() != getGlobalSettings()->_renderWidth ||
+      getGlobalSettings()->_fgMask.getHeight() != getGlobalSettings()->_renderHeight) {
+      getStatusBar()->setStatusMessage("Error loading mask: Dimension mismatch", true, false);
+      getGlobalSettings()->_fgMask = Image();
+      return;
+    }
+
+    getGlobalSettings()->_useFGMask = true;
+
+    _attrs->reload();
+    getStatusBar()->setStatusMessage("Loaded mask.");
+  }
 }
 
 void MainContentComponent::saveRig()

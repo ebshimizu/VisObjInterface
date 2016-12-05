@@ -25,7 +25,7 @@ public:
   virtual void sample(Snapshot* state) = 0;
   
   // evaluation function for each sampler
-  virtual double score(Snapshot* state, Image& img) = 0;
+  virtual double score(Snapshot* state, Image& img, bool masked) = 0;
 
   // name for id'ing the sampler
   string _name;
@@ -53,7 +53,7 @@ public:
 
   // returns a score based on..... something
   // TODO: determine what the something is
-  double score(Snapshot* state, Image& img);
+  double score(Snapshot* state, Image& img, bool masked);
 
 private:
   void normalizeWeights();
@@ -72,7 +72,7 @@ public:
   void sample(Snapshot* state) override;
   
   // the pin sampler won't really ever have a useful score
-  double score(Snapshot* /* state */, Image& /* img */) { return 0; }
+  double score(Snapshot* /* state */, Image& /* img */, bool /* masked */) { return 0; }
 };
 
 // an intensity sampler samples a target average intensity and peak intensity
@@ -86,7 +86,7 @@ public:
 
   void sample(Snapshot* state) override;
 
-  double score(Snapshot* state, Image& img) override;
+  double score(Snapshot* state, Image& img, bool masked) override;
 
   void setBrightnessHistogram(SparseHistogram b);
 

@@ -89,15 +89,17 @@ SceneViewer::SceneViewer()
   _hideAllBoxesButton = new TextButton("Hide Targets");
   _showAllBoxesButton->setColour(TextButton::ColourIds::buttonOnColourId, Colour(0xff202020));
   _showAllBoxesButton->setColour(TextButton::ColourIds::textColourOnId, Colours::white);
+  _showMask->setColour(TextButton::ColourIds::buttonOnColourId, Colour(0xff202020));
+  _showMask->setColour(TextButton::ColourIds::textColourOnId, Colours::white);
   _hideAllBoxesButton->setColour(TextButton::ColourIds::buttonOnColourId, Colour(0xff202020));
   _hideAllBoxesButton->setColour(TextButton::ColourIds::textColourOnId, Colours::white);
   _showAllBoxesButton->setToggleState(true, dontSendNotification);
   //_clearMask->addListener(this);
-  //_showMask->addListener(this);
+  _showMask->addListener(this);
   _showAllBoxesButton->addListener(this);
   _hideAllBoxesButton->addListener(this);
   //addAndMakeVisible(_clearMask);
-  //addAndMakeVisible(_showMask);
+  addAndMakeVisible(_showMask);
   addAndMakeVisible(_showAllBoxesButton);
   addAndMakeVisible(_hideAllBoxesButton);
 
@@ -140,6 +142,12 @@ void SceneViewer::paint (Graphics& g)
   }
   else {
     g.drawImageWithin(_currentRender, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
+  }
+
+  if (_drawMask) {
+    g.setOpacity(0.5);
+    g.drawImageWithin(getGlobalSettings()->_fgMask, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
+    g.setOpacity(1);
   }
 
   if (!_hideAllBoxes) {
@@ -200,9 +208,10 @@ void SceneViewer::resized()
 
   _showAllBoxesButton->setBounds(toolbar.removeFromRight(80).reduced(2));
   _hideAllBoxesButton->setBounds(toolbar.removeFromRight(80).reduced(2));
+  _showMask->setBounds(toolbar.removeFromRight(80).reduced(2));
 
-  _clearMask->setBounds(toolbar.removeFromRight(60).reduced(2));
-  _showMask->setBounds(toolbar.removeFromRight(60).reduced(2));
+  //_clearMask->setBounds(toolbar.removeFromRight(60).reduced(2));
+  //_showMask->setBounds(toolbar.removeFromRight(60).reduced(2));
 }
 
 void SceneViewer::renderScene() {

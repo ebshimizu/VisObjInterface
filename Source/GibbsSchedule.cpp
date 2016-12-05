@@ -171,7 +171,7 @@ void ColorSampler::sample(Snapshot * state)
   }
 }
 
-double ColorSampler::score(Snapshot * state, Image & img)
+double ColorSampler::score(Snapshot * state, Image & img, bool masked)
 {
   return 0.0;
 }
@@ -320,25 +320,39 @@ void IntensitySampler::sample(Snapshot * state)
   }
 }
 
-double IntensitySampler::score(Snapshot * state, Image& img)
+double IntensitySampler::score(Snapshot * state, Image& img, bool masked)
 {
   // compute histogram from scaled region
   Rectangle<int> region = Rectangle<int>(_region.getX() * img.getWidth(), _region.getY() * img.getHeight(),
     _region.getWidth() * img.getWidth(), _region.getHeight() * img.getHeight());
   Image clipped = img.getClippedImage(region);
+  Image clippedMask = getGlobalSettings()->_fgMask.rescaled(img.getWidth(), img.getHeight()).getClippedImage(region);
 
   // scale, 200 max dim
   float scale = (clipped.getWidth() > clipped.getHeight()) ? 200.0f / clipped.getWidth() : 200.0f / clipped.getHeight();
+  clipped = clipped.rescaled(scale * clipped.getWidth(), scale * clipped.getHeight());
+  clippedMask = clippedMask.rescaled(clipped.getWidth(), clipped.getHeight());
 
   // do the thing
   SparseHistogram stage(1, _srcBrightness.getBounds());
 
   for (int y = 0; y < clipped.getHeight(); y++) {
     for (int x = 0; x < clipped.getWidth(); x++) {
-      Colour px = clipped.getPixelAt(x, y);
-      vector<float> pts;
-      pts.push_back(px.getBrightness());
-      stage.add(pts);
+      if (masked && getGlobalSettings()->_useFGMask) {
+        if (clippedMask.getPixelAt(x, y).getBrightness() > 0) {
+          Colour px = clipped.getPixelAt(x, y);
+          vector<float> pts;
+          pts.push_back(px.getBrightness());
+          stage.add(pts);
+        }
+      }
+      else {
+        // add everything
+        Colour px = clipped.getPixelAt(x, y);
+        vector<float> pts;
+        pts.push_back(px.getBrightness());
+        stage.add(pts);
+      }
     }
   }
 
@@ -387,7 +401,8 @@ void GibbsSchedule::score(shared_ptr<SearchResult> result, Snapshot* state)
     if (s->_name == "Pinned")
       continue;
 
-    result->_extraFuncs[s->_name] = s->score(state, render);
+    result->_extraFuncs[s->_name] = s->score(state, render, false);
+    result->_extraFuncs[s->_name + "_masked"] = s->score(state, render, true);
   }
 }
 

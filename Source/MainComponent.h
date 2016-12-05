@@ -102,6 +102,7 @@ private:
   void openRig();
   void openRig(String fname);
   void openMask();
+  void openMask(File mask);
 
   void saveRig();
   void saveAs();
