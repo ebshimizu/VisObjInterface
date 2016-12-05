@@ -22,7 +22,7 @@ class SearchResultsContainer;
 // in the rig. When a result is chosen, the specified system is locked and all other
 // views are updated
 class SystemExplorer : public Component, public ComboBoxListener, public ButtonListener,
-  public SliderListener
+  public SliderListener, public ChangeListener
 {
 public:
   SystemExplorer(string name, string system);
@@ -42,6 +42,7 @@ public:
   DeviceSet getViewedDevices();
 
   virtual void comboBoxChanged(ComboBox* c);
+  virtual void changeListenerCallback(ChangeBroadcaster* source) override;
 
   // sorts the elements in the explorer by a specified criteria
   void sort(string method);
@@ -111,6 +112,9 @@ private:
   TextButton _solo;
   TextButton _intensPin;
   TextButton _colorPin;
+  TextButton _color;
+
+  Colour _currentColor;
 
   string _name;
   Slider _intens;

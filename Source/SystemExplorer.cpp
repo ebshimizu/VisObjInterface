@@ -10,6 +10,7 @@
 
 #include "SystemExplorer.h"
 #include "MainComponent.h"
+#include "hsvPicker.h"
 
 //==============================================================================
 
@@ -151,7 +152,9 @@ void SystemExplorer::resized()
 
   auto left = lbounds.removeFromLeft(200);
 
-  _intens.setBounds(left.removeFromBottom(24));
+  auto bot = left.removeFromBottom(24);
+  _color.setBounds(bot.removeFromRight(60).reduced(2));
+  _intens.setBounds(bot);
 
   lbounds.removeFromLeft(5);
   _rowElems->setBounds(lbounds);
@@ -177,6 +180,31 @@ void SystemExplorer::comboBoxChanged(ComboBox * c)
   updateAllImages(new Snapshot(getRig()));
 }
 
+void SystemExplorer::changeListenerCallback(ChangeBroadcaster * source)
+{
+  HSVPicker* cs = dynamic_cast<HSVPicker*>(source);
+  _currentColor = cs->getCurrentColour();
+
+  for (auto id : _selected.getIds()) {
+    if (!isDeviceParamLocked(id, "color") && cs != nullptr) {
+      getRig()->getDevice(id)->getColor()->setColorChannel("Red", _currentColor.getFloatRed());
+      getRig()->getDevice(id)->getColor()->setColorChannel("Green", _currentColor.getFloatGreen());
+      getRig()->getDevice(id)->getColor()->setColorChannel("Blue", _currentColor.getFloatBlue());
+
+      getGlobalSettings()->invalidateCache();
+
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+      if (mc != nullptr) {
+        mc->refreshParams();
+        mc->refreshAttr();
+      }
+    }
+  }
+
+  // render calls should be handled by user, takes too long to deal with here
+}
+
 void SystemExplorer::sort(string method)
 {
   CacheSorter sorter = CacheSorter(method);
@@ -199,16 +227,27 @@ void SystemExplorer::init()
   _rigState = new Snapshot(*_currentState);
   auto data = _currentState->getRigData();
 
-  // isolate selected devices
+  // isolate selected devices & compute average color
   float avgIntens = 0;
+  Eigen::Vector3d hsv(0, 0, 0);
+  int ct = 0;
+
   for (auto d : _currentState->getDevices()) {
     if (!_selected.contains(d->getId())) {
-      d->setIntensity(0);
+      d->setIntensity(0);      
     }
     else {
       avgIntens += d->getIntensity()->asPercent();
+
+      if (d->paramExists("color")) {
+        hsv += d->getColor()->getHSV();
+        ct++;
+      }
     }
   }
+
+  hsv /= ct;
+  _currentColor = Colour((float)(hsv[0] / 360.0f), (float)hsv[1], (float)hsv[2], 1.0f);
 
   _distThreshold = getGlobalSettings()->_viewJndThreshold;
 
@@ -234,6 +273,9 @@ void SystemExplorer::init()
   _solo.setName("S");
   _blackout.setName("B");
 
+  _color.setButtonText("Color");
+  _color.setName("Color");
+
   _intensPin.setColour(TextButton::buttonOnColourId, Colours::darkred);
   _colorPin.setColour(TextButton::buttonOnColourId, Colours::darkred);
   _solo.setColour(TextButton::buttonOnColourId, Colours::darkgoldenrod);
@@ -247,10 +289,12 @@ void SystemExplorer::init()
   _colorPin.addListener(this);
   _solo.addListener(this);
   _blackout.addListener(this);
+  _color.addListener(this);
   addAndMakeVisible(_intensPin);
   addAndMakeVisible(_colorPin);
   addAndMakeVisible(_solo);
   addAndMakeVisible(_blackout);
+  addAndMakeVisible(_color);
 
   updatePinState();
 }
@@ -278,6 +322,22 @@ void SystemExplorer::buttonClicked(Button * b)
   }
   else if (b->getName() == "C") {
     toggleColorPin();
+  }
+  else if (b->getName() == "Color") {
+    HSVPicker* cs = new HSVPicker();
+    cs->setName("color");
+    cs->setCurrentColour(_currentColor);
+    cs->setSize(300, 400);
+    cs->addChangeListener(this);
+
+    auto lbounds = getLocalBounds();
+    auto left = lbounds.removeFromLeft(200);
+    auto bot = left.removeFromBottom(24);
+    auto pos = bot.removeFromRight(60);
+    Rectangle<int> loc(this->getScreenBounds().getX() + pos.getX(), this->getScreenBounds().getY() + pos.getY(),
+      pos.getWidth(), pos.getHeight());
+
+    CallOutBox::launchAsynchronously(cs, loc, nullptr);
   }
 }
 
@@ -481,6 +541,8 @@ void SystemExplorer::sliderValueChanged(Slider * s)
   for (auto d : _selected.getIds()) {
     getRig()->getDevice(d)->getIntensity()->setValAsPercent(s->getValue() / 100.0);
   }
+
+  getGlobalSettings()->invalidateCache();
 }
 
 void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)

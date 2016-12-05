@@ -801,14 +801,16 @@ void Idea::ColorPaletteControls::showExtraOptions()
   PopupMenu m;
   m.addItem(1, "Reset Colors");
   m.addItem(2, "Change Number of Colors");
-  m.addItem(3, "Edit Weights");
-  m.addItem(4, "Recompute Weights");
-  m.addItem(5, "EXPERIMENTAL: Advanced Palette Generation");
+  m.addItem(3, "Use Full Value Colors");
+  m.addItem(4, "Edit Weights");
+  m.addItem(5, "Recompute Weights");
+  m.addItem(6, "EXPERIMENTAL: Advanced Palette Generation");
 
   int result = m.show();
 
   if (result == 1) {
     _parent->updateType();
+    repaint();
   }
   else if (result == 2) {
     // dialog box for changing number of colors
@@ -832,6 +834,14 @@ void Idea::ColorPaletteControls::showExtraOptions()
     }
   }
   else if (result == 3) {
+    for (int i = 0; i < _parent->_colors.size(); i++) {
+      // hsv, make value 100%
+      _parent->_colors[i][2] = 1;
+    }
+
+    repaint();
+  }
+  else if (result == 4) {
     // dialog for changing weightsw
     AlertWindow w("Edit Weights",
       "Edit the relative frequency of each color. Weights do not have to sum to 1.",
@@ -855,10 +865,10 @@ void Idea::ColorPaletteControls::showExtraOptions()
       repaint();
     }
   }
-  else if (result == 4) {
+  else if (result == 5) {
     _parent->updateColorWeights();
   }
-  else if (result == 5) {
+  else if (result == 6) {
     _parent->altGenerateColorPalette();
     repaint();
   }

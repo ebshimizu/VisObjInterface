@@ -882,6 +882,7 @@ void MainContentComponent::refreshAttr()
 void MainContentComponent::arnoldRender(bool add)
 {
   _viewer->renderScene();
+  redrawResults();
 
   // sometimes add history item
   if (add)
