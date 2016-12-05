@@ -327,7 +327,7 @@ void AttributeControls::buttonClicked(Button * b)
     getApplicationCommandManager()->invokeDirectly(SEARCH, true);
   }
   else if (b->getName() == "Sort") {
-    String id = _sort->getItemText(_sort->getSelectedId());
+    String id = _sort->getItemText(_sort->getSelectedId() - 1);
     getGlobalSettings()->_currentSortMode = id.toStdString();
 
     // do the re-sort
