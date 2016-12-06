@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="eoLPJP" name="AttributesInterface" projectType="guiapp" version="0.11"
+<JUCERPROJECT id="eoLPJP" name="AttributesInterface" projectType="guiapp" version="0.12"
               bundleIdentifier="edu.cmu.cs.AttributeInterface" includeBinaryInAppConfig="1"
               jucerVersion="4.2.4" companyName="Carnegie Mellon University"
               companyWebsite="cs.cmu.edu" companyEmail="eshimizu@cs.cmu.edu">
