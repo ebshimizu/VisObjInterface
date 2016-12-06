@@ -387,6 +387,10 @@ public:
   shared_ptr<Idea> _activeIdea;
 
   Array<Rectangle<float> > _pinnedRegions;
+
+  // updated before every search, the list of currently pinned devices
+  set<string> _intensityPins;
+  set<string> _colorPins;
 };
 
 // Results that eventually get returned to the UI layer

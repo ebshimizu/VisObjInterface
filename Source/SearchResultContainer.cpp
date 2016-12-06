@@ -288,28 +288,28 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
     else {
       PopupMenu m;
       m.addItem(1, "Move to Stage");
-      m.addItem(2, "Repeat Search with Selected");
-      m.addItem(3, "Transfer Selected to Stage");
+      m.addItem(2, "Move Unpinned to Stage");
+      m.addItem(3, "Move Selected to Stage");
 
       PopupMenu subTransferArea;
-      StringArray areas;
-      for (auto area : getRig()->getMetadataValues("area")) {
-        areas.add(area);
-      }
 
-      for (int i = 0; i < areas.size(); i++) {
-        subTransferArea.addItem(i + 4, areas[i]);
+      // The id of each menu command corresponds to a lumiverse query that
+      // selects the proper devices
+      int startId = m.getNumItems() + 1;
+      map<int, string> commands;
+
+      for (auto area : getRig()->getMetadataValues("area")) {
+        subTransferArea.addItem(startId, area);
+        commands[startId] = "$area=" + area;
+        startId++;
       }
       m.addSubMenu("Transfer Area to Stage", subTransferArea);
 
       PopupMenu subTransferSystem;
-      StringArray systems;
       for (auto system : getRig()->getMetadataValues("system")) {
-        systems.add(system);
-      }
-
-      for (int i = 0; i < systems.size(); i++) {
-        subTransferSystem.addItem(i + 4 + areas.size(), systems[i]);
+        subTransferSystem.addItem(startId++, system);
+        commands[startId] = "$system=" + system;
+        startId++;
       }
       m.addSubMenu("Transfer System to Stage", subTransferSystem);
 
@@ -333,15 +333,17 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
       }
       else if (result == 2) {
         Snapshot* s = vectorToSnapshot(_result->_scene);
-        s->loadRig(getRig());
-        delete s;
+
         MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
         if (mc != nullptr) {
+          mc->transferSelected(s, getRig()->getAllDevices(), false);
           mc->refreshParams();
           mc->refreshAttr();
-          mc->search();
+          mc->redrawResults();
         }
+
+        delete s;
       }
       else if (result == 3) {
         Snapshot* s = vectorToSnapshot(_result->_scene);
@@ -357,29 +359,17 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
 
         delete s;
       }
-      else if (result >= 4 && result < areas.size() + 4) {
+      else {
+        string query = commands[result];
         Snapshot* s = vectorToSnapshot(_result->_scene);
 
         MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
         if (mc != nullptr) {
-          mc->transferSelected(s, getRig()->select("$area=" + areas[result - 4].toStdString()));
+          mc->transferSelected(s, getRig()->select(query));
           mc->refreshParams();
           mc->refreshAttr();
           mc->redrawResults();
-        }
-
-        delete s;
-      }
-      else if (result >= areas.size() + 4) {
-        Snapshot* s = vectorToSnapshot(_result->_scene);
-
-        MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-
-        if (mc != nullptr) {
-          mc->transferSelected(s, getRig()->select("$system=" + systems[result - 4 - areas.size()].toStdString()));
-          mc->refreshParams();
-          mc->refreshAttr();
         }
 
         delete s;

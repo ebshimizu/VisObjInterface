@@ -506,7 +506,7 @@ void MainContentComponent::transferSelected(Snapshot * source)
   arnoldRender();
 }
 
-void MainContentComponent::transferSelected(Snapshot * source, DeviceSet devices)
+void MainContentComponent::transferSelected(Snapshot * source, DeviceSet devices, bool transferPinned)
 {
   auto ids = devices.getIds();
 
@@ -515,7 +515,23 @@ void MainContentComponent::transferSelected(Snapshot * source, DeviceSet devices
     Device* targetDevice = getRig()->getDevice(id);
 
     for (string param : sourceDevice->getParamNames()) {
-      LumiverseTypeUtils::copyByVal(sourceDevice->getParam(param), targetDevice->getParam(param));
+      if (transferPinned) {
+        LumiverseTypeUtils::copyByVal(sourceDevice->getParam(param), targetDevice->getParam(param));
+      }
+      else {
+        // lots of checks, the pin cache doesn't take user actions after the search in to account, but
+        // we probably should here
+        if (param == "intensity" && getGlobalSettings()->_intensityPins.count(id) == 0 &&
+            !isDeviceParamLocked(id, "intensity")) {
+          LumiverseTypeUtils::copyByVal(sourceDevice->getParam(param), targetDevice->getParam(param));
+        }
+        else if (param == "color" && getGlobalSettings()->_colorPins.count(id) == 0 && !isDeviceParamLocked(id, "color")) {
+          LumiverseTypeUtils::copyByVal(sourceDevice->getParam(param), targetDevice->getParam(param));
+        }
+        else if (param != "intensity" && param != "color") {
+          LumiverseTypeUtils::copyByVal(sourceDevice->getParam(param), targetDevice->getParam(param));
+        }
+      }
     }
   }
 

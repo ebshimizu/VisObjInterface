@@ -75,7 +75,7 @@ public:
   // Transfers the currently selected devices from the source snapshot to the
   // stage. Selected devices are as stored in the param controls
   void transferSelected(Snapshot* source);
-  void transferSelected(Snapshot* source, DeviceSet devices);
+  void transferSelected(Snapshot* source, DeviceSet devices, bool transferPinned = true);
 
   void redrawResults();
 
