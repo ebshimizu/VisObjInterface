@@ -227,35 +227,49 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
     if (_selected.size() != 0) {
       PopupMenu m;
 
-      m.addItem(1, "Pin Intensity and Color");
-      m.addItem(2, "Pin Intensity");
-      m.addItem(3, "Pin Color");
+      m.addItem(1, "Transfer to Stage");
+      m.addSeparator();
+      m.addItem(2, "Pin Intensity and Color");
+      m.addItem(3, "Pin Intensity");
+      m.addItem(4, "Pin Color");
       int result = m.show();
 
       if (result == 0)
         return;
 
-      bool pinIntens = (result == 1 || result == 2);
-      bool pinColor = (result == 1 || result == 3);
-
-      // get the system lights from the rig
       Snapshot* s = vectorToSnapshot(_result->_scene);
       auto sd = s->getRigData();
-      for (auto d : _selected.getDevices()) {
-        if (pinIntens) {
+
+      if (result == 1) {
+        for (auto d : _selected.getDevices()) {
           getRig()->getDevice(d->getId())->setParam("intensity", sd[d->getId()]->getIntensity());
-          lockDeviceParam(d->getId(), "intensity");
+
+          if (getRig()->getDevice(d->getId())->paramExists("color")) {
+            getRig()->getDevice(d->getId())->setParam("color", sd[d->getId()]->getColor());
+          }
         }
 
-        if (pinColor) {
-          getRig()->getDevice(d->getId())->setParam("color", sd[d->getId()]->getColor());
-          lockDeviceParam(d->getId(), "color");
+        // leave other devices unaffected
+        _selectTime = chrono::high_resolution_clock::now().time_since_epoch().count();
+        _wasSelected = true;
+      }
+      else {
+        bool pinIntens = (result == 2 || result == 3);
+        bool pinColor = (result == 2 || result == 4);
+        
+        // get the system lights from the rig
+        for (auto d : _selected.getDevices()) {
+          if (pinIntens) {
+            getRig()->getDevice(d->getId())->setParam("intensity", sd[d->getId()]->getIntensity());
+            lockDeviceParam(d->getId(), "intensity");
+          }
+
+          if (pinColor) {
+            getRig()->getDevice(d->getId())->setParam("color", sd[d->getId()]->getColor());
+            lockDeviceParam(d->getId(), "color");
+          }
         }
       }
-
-      // leave other devices unaffected
-      _selectTime = chrono::high_resolution_clock::now().time_since_epoch().count();
-      _wasSelected = true;
 
       MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
@@ -264,10 +278,12 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
         mc->refreshParams();
         mc->refreshAttr();
         mc->redrawResults();
-        getRecorder()->log(ACTION, "User locked DeviceSet: " + _selected.info());
+        getRecorder()->log(ACTION, "User Transferred DeviceSet: " + _selected.info());
       }
 
-      getApplicationCommandManager()->invokeDirectly(command::SEARCH, true);
+      if (result != 1) {
+        getApplicationCommandManager()->invokeDirectly(command::SEARCH, true);
+      }
     }
     else {
       PopupMenu m;
