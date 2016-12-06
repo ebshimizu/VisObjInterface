@@ -43,6 +43,7 @@ public:
 
   virtual void comboBoxChanged(ComboBox* c);
   virtual void changeListenerCallback(ChangeBroadcaster* source) override;
+  virtual void mouseDown(const MouseEvent& event) override;
 
   // sorts the elements in the explorer by a specified criteria
   void sort(string method);
@@ -94,6 +95,19 @@ private:
     virtual void resized() override;
 
     Array<shared_ptr<SearchResultContainer> > _results;
+  };
+
+  class ParamShifter : public Component {
+  public:
+    ParamShifter(SliderListener* listener);
+
+    void resized() override;
+    void paint(Graphics& g) override;
+
+  private:
+    Slider _intens;
+    Slider _hue;
+    Slider _sat;
   };
 
   SystemExplorerResults* _container;

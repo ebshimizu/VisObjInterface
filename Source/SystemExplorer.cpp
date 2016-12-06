@@ -205,6 +205,22 @@ void SystemExplorer::changeListenerCallback(ChangeBroadcaster * source)
   // render calls should be handled by user, takes too long to deal with here
 }
 
+void SystemExplorer::mouseDown(const MouseEvent & event)
+{
+  if (event.mods.isRightButtonDown()) {
+    // bring up intens/hue/sat shift component (which is just 3 sliders really)
+    ParamShifter* ps = new ParamShifter(this);
+    ps->setSize(300, 24 * 3);
+
+    auto lbounds = getLocalBounds();
+    auto left = lbounds.removeFromLeft(200);
+    Rectangle<int> loc(this->getScreenBounds().getX() + left.getX(), this->getScreenBounds().getY() + left.getY(),
+      left.getWidth(), left.getHeight());
+
+    CallOutBox::launchAsynchronously(ps, loc, nullptr);
+  }
+}
+
 void SystemExplorer::sort(string method)
 {
   CacheSorter sorter = CacheSorter(method);
@@ -252,6 +268,7 @@ void SystemExplorer::init()
   _distThreshold = getGlobalSettings()->_viewJndThreshold;
 
   // set intensity slider
+  _intens.setName("intens");
   _intens.setRange(0, 100, 0.01);
   _intens.setValue(100.0 * avgIntens / _selected.size(), dontSendNotification);
   _intens.addListener(this);
@@ -531,18 +548,59 @@ void SystemExplorer::sliderDragEnded(Slider * s)
     mc->redrawResults();
   }
 
+  if (s->getName() == "intens shift" || s->getName() == "hue shift" || s->getName() == "sat shift") {
+    s->setValue(0, dontSendNotification);
+    mc->arnoldRenderNoPopup();
+  }
+
   getApplicationCommandManager()->invokeDirectly(command::ARNOLD_RENDER, true);
 }
 
 void SystemExplorer::sliderValueChanged(Slider * s)
 {
-  // due to this happening fairly frequently while drawing, we update the rig
-  // by itself here
-  for (auto d : _selected.getIds()) {
-    getRig()->getDevice(d)->getIntensity()->setValAsPercent(s->getValue() / 100.0);
-  }
+  if (s->getName() == "intens") {
+    // due to this happening fairly frequently while drawing, we update the rig
+    // by itself here
+    for (auto d : _selected.getIds()) {
+      getRig()->getDevice(d)->getIntensity()->setValAsPercent(s->getValue() / 100.0);
+    }
 
-  getGlobalSettings()->invalidateCache();
+    getGlobalSettings()->invalidateCache();
+  }
+  else if (s->getName() == "intens shift") {
+    // relative intensity change
+    float delta = s->getValue() / 100.0;
+
+    auto data = _currentState->getRigData();
+    for (auto id : _selected.getIds()) {
+      float currentIntens = data[id]->getIntensity()->asPercent();
+      getRig()->getDevice(id)->getIntensity()->setValAsPercent(currentIntens + delta);
+    }
+  }
+  else if (s->getName() == "hue shift") {
+    // relative hue change
+    double delta = s->getValue();
+
+    auto data = _currentState->getRigData();
+    for (auto id : _selected.getIds()) {
+      if (data[id]->paramExists("color")) {
+        Eigen::Vector3d color = data[id]->getColor()->getHSV();
+        getRig()->getDevice(id)->getColor()->setHSV(color[0] + delta, color[1], color[2]);
+      }
+    }
+  }
+  else if (s->getName() == "sat shift") {
+    // relative hue change
+    double delta = s->getValue() / 100.0;
+
+    auto data = _currentState->getRigData();
+    for (auto id : _selected.getIds()) {
+      if (data[id]->paramExists("color")) {
+        Eigen::Vector3d color = data[id]->getColor()->getHSV();
+        getRig()->getDevice(id)->getColor()->setHSV(color[0], color[1] + delta, color[2]);
+      }
+    }
+  }
 }
 
 void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
@@ -661,6 +719,57 @@ void SystemExplorer::SystemExplorerResults::resized()
   }
 }
 
+SystemExplorer::ParamShifter::ParamShifter(SliderListener* listener)
+{
+  _intens.setName("intens shift");
+  _hue.setName("hue shift");
+  _sat.setName("sat shift");
+
+  _intens.setSliderStyle(Slider::SliderStyle::LinearBar);
+  _hue.setSliderStyle(Slider::SliderStyle::LinearBar);
+  _sat.setSliderStyle(Slider::SliderStyle::LinearBar);
+
+  _intens.setRange(-25, 25, 0.01f);
+  _hue.setRange(-30, 30, 0.1f);
+  _sat.setRange(-25, 25, 0.1f);
+
+  _intens.setValue(0, dontSendNotification);
+  _hue.setValue(0, dontSendNotification);
+  _sat.setValue(0, dontSendNotification);
+
+  _intens.addListener(listener);
+  _hue.addListener(listener);
+  _sat.addListener(listener);
+
+  addAndMakeVisible(_intens);
+  addAndMakeVisible(_hue);
+  addAndMakeVisible(_sat);
+}
+
+void SystemExplorer::ParamShifter::resized()
+{
+  auto lbounds = getLocalBounds();
+
+  // labels
+  lbounds.removeFromLeft(60);
+
+  _intens.setBounds(lbounds.removeFromTop(24).reduced(2));
+  _hue.setBounds(lbounds.removeFromTop(24).reduced(2));
+  _sat.setBounds(lbounds.removeFromTop(24).reduced(2));
+}
+
+void SystemExplorer::ParamShifter::paint(Graphics & g)
+{
+  g.fillAll(Colour(0xff333333));
+
+  auto lbounds = getLocalBounds();
+  auto labels = lbounds.removeFromLeft(60);
+
+  g.setColour(Colours::white);
+  g.drawFittedText("Intensity", labels.removeFromTop(24).reduced(2), Justification::centredRight, 1);
+  g.drawFittedText("Hue", labels.removeFromTop(24).reduced(2), Justification::centredRight, 1);
+  g.drawFittedText("Sat", labels.removeFromTop(24).reduced(2), Justification::centredRight, 1);
+}
 
 //==============================================================================
 
