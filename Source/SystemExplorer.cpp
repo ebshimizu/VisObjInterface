@@ -810,8 +810,18 @@ void SystemExplorerContainer::buttonClicked(Button * b)
 
     // populate areas
     for (auto a : getRig()->getMetadataValues("area")) {
-      area.addItem(i, a);
+      PopupMenu perAreaSys;
+
+      // populate per-area system
+      for (auto s : getRig()->getMetadataValues("system")) {
+        perAreaSys.addItem(i, s);
+        cmdMap[i] = "$area=" + a + "[$system=" + s + "]";
+        i++;
+      }
+
+      area.addSubMenu(a, perAreaSys, true, nullptr, false, i);
       cmdMap[i] = "$area=" + a;
+
       i++;
     }
 
@@ -876,6 +886,10 @@ void SystemExplorerContainer::buttonClicked(Button * b)
     else {
       // selected command
       string cmd = cmdMap[result];
+      if (getRig()->select(cmd).size() == 0) {
+        getStatusBar()->setStatusMessage("Can't add new view, selection is empty.", false, true);
+        return;
+      }
 
       getStatusBar()->setStatusMessage("Added new view using query \"" + cmd + "\"");
 
