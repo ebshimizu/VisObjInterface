@@ -10,6 +10,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "SceneViewer.h"
+#include "MainComponent.h"
 #include <thread>
 #include <chrono>
 
@@ -310,21 +311,33 @@ void SceneViewer::mouseDown(const MouseEvent & event)
       auto pt = getRelativeImageCoords(event.position);
       if (!_hideAllBoxes) {
         PopupMenu menu;
-        map<int, shared_ptr<Idea> > ids;
+
+        map<int,shared_ptr<Idea> > ids;
         int i = 1;
         
         for (auto b : getGlobalSettings()->_ideaMap) {
           if (b.second.contains(pt)) {
             ids[i] = b.first;
             menu.addItem(i, b.first->getName() + ": Delete");
+
+            i++;
+            menu.addItem(i, b.first->getName() + ": [DEBUG] What Lights Are Here?");
           }
           i++;
         }
 
         int result = menu.show();
-        if (result > 0) {
+        if (result % 2 == 1) {
           getGlobalSettings()->_ideaMap.erase(ids[result]);
           repaint();
+        }
+        else {
+          // want to pop up a dialog showing what's in the box
+          MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+          if (mc != nullptr) {
+            mc->debugShowAffectedDevices(getGlobalSettings()->_ideaMap[ids[result - 1]]);
+          }
         }
       }
       else {
@@ -348,15 +361,25 @@ void SceneViewer::mouseDown(const MouseEvent & event)
       for (auto b : getGlobalSettings()->_pinnedRegions) {
         if (b.contains(pt)) {
           menu.addItem(i, String(i) + ": Delete");
+
+          i++;
+          menu.addItem(i, String(i) + ": [DEBUG] What Lights Are Here?");
         }
         i++;
       }
 
       if (menu.getNumItems() > 0) {
         int toDelete = menu.show();
-        if (toDelete > 0) {
+        if (toDelete % 2 == 1) {
           getGlobalSettings()->_pinnedRegions.removeRange(toDelete - 1, 1);
           repaint();
+        }
+        else {
+          MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+          if (mc != nullptr) {
+            mc->debugShowAffectedDevices(getGlobalSettings()->_pinnedRegions[(toDelete - 1) / 2]);
+          }
         }
       }
     }

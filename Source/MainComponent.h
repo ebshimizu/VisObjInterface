@@ -97,6 +97,9 @@ public:
   // adds an idea to the ideas panel based on the specified image
   void createIdea(Image i, String name);
 
+  // shows a dialog box containing the devices affected by the selected region
+  void debugShowAffectedDevices(Rectangle<float> region);
+
 private:
   // Open a Lumiverse file
   void openRig();

@@ -599,6 +599,14 @@ void MainContentComponent::createIdea(Image i, String name)
   _viewer->repaint();
 }
 
+void MainContentComponent::debugShowAffectedDevices(Rectangle<float> region)
+{
+  // attribute controls has a function for this
+  DeviceSet affected = _attrs->computeAffectedDevices(region);
+
+  AlertWindow::showMessageBox(AlertWindow::AlertIconType::InfoIcon, "Region Contents", affected.info());
+}
+
 void MainContentComponent::openRig() {
   FileChooser fc("Load Show (pick a .rig.json or .playback.json file)", File::getCurrentWorkingDirectory(),
     "*.rig.json;*.playback.json", true);

@@ -460,6 +460,11 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
     // compute affected devices
     DeviceSet affected = computeAffectedDevices(i);
     
+    // don't do anything with things that have a zero-size selection,
+    // can cause problems with evaluating scores n stuff
+    if (affected.size() == 0)
+      continue;
+
     // create a sampler
     if (i->getType() == COLOR_PALETTE) {
       ColorSampler* colorSampler = new ColorSampler(affected, r, ip, cp, i->getColors(), i->getWeights());
