@@ -124,6 +124,7 @@ public:
 
   // returns a set of devices that affect the idea's selected region
   DeviceSet computeAffectedDevices(Rectangle<float> region, double threshold = 0.01);
+  DeviceSet computeAffectedDevices(Rectangle<float> region, map<string, double>& debugInfo, double threshold = 0.01);
   DeviceSet computeAffectedDevices(shared_ptr<Idea> idea, double threshold = 0.01);
 private:
   void initAttributes();

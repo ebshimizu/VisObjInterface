@@ -626,6 +626,41 @@ DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, dou
   return affected;
 }
 
+DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, map<string, double>& debugInfo, double threshold)
+{
+  // for each device, check if the cropped sensitivity image is above a threshold
+  DeviceSet affected(getRig());
+
+  int width = getGlobalSettings()->_sensitivityCache.begin()->second.i50.getWidth();
+  int height = getGlobalSettings()->_sensitivityCache.begin()->second.i50.getHeight();
+
+  Rectangle<int> scaledRegion = Rectangle<int>(region.getX() * width, region.getY() * height,
+    region.getWidth() * width, region.getHeight() * height);
+
+  for (auto id : getRig()->getAllDevices().getIds()) {
+    // compute sensitivity from cache cropped from bounding box
+    Image i50Crop = getGlobalSettings()->_sensitivityCache[id].i50.getClippedImage(scaledRegion);
+    Image i51Crop = getGlobalSettings()->_sensitivityCache[id].i51.getClippedImage(scaledRegion);
+
+    double diff = 0;
+    for (int y = 0; y < i50Crop.getHeight(); y++) {
+      for (int x = 0; x < i50Crop.getWidth(); x++) {
+        diff += i51Crop.getPixelAt(x, y).getBrightness() - i50Crop.getPixelAt(x, y).getBrightness();
+      }
+    }
+
+    double sens = diff / (i50Crop.getHeight() * i50Crop.getWidth()) * 100;
+    debugInfo[id] = sens;
+
+    if (sens > threshold) {
+      affected = affected.add(id);
+    }
+  }
+
+  return affected;
+}
+
+
 DeviceSet AttributeControls::computeAffectedDevices(shared_ptr<Idea> idea, double threshold)
 {
   return computeAffectedDevices(getGlobalSettings()->_ideaMap[idea], threshold);

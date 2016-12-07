@@ -602,9 +602,19 @@ void MainContentComponent::createIdea(Image i, String name)
 void MainContentComponent::debugShowAffectedDevices(Rectangle<float> region)
 {
   // attribute controls has a function for this
-  DeviceSet affected = _attrs->computeAffectedDevices(region);
+  map<string, double> sens;
+  DeviceSet affected = _attrs->computeAffectedDevices(region, sens);
 
-  AlertWindow::showMessageBox(AlertWindow::AlertIconType::InfoIcon, "Region Contents", affected.info());
+  String data = "Threshold: 0.01";
+  for (auto d : sens) {
+    data += "\n" + d.first + ": " + String(d.second);
+
+    if (d.second > 0.01) {
+      data += " [selected]";
+    }
+  }
+ 
+  AlertWindow::showMessageBox(AlertWindow::AlertIconType::InfoIcon, "Light Sensitivity within Selected Region", data);
 }
 
 void MainContentComponent::openRig() {
