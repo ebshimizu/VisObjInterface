@@ -462,9 +462,10 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
     
     // create a sampler
     if (i->getType() == COLOR_PALETTE) {
-      Sampler* colorSampler = (Sampler*)(new ColorSampler(affected, r, ip, cp, i->getColors(), i->getWeights()));
+      ColorSampler* colorSampler = new ColorSampler(affected, r, ip, cp, i->getColors(), i->getWeights());
       colorSampler->_name = i->getName().toStdString();
-      sched->addSampler(colorSampler);
+      colorSampler->setColorHistogram(i->_color);
+      sched->addSampler((Sampler*)colorSampler);
     }
     else if (i->getType() == INTENS_DIST) {
       IntensitySampler* intensSampler = new IntensitySampler(affected, r, ip, cp, i->_k, i->_meanBright, i->_mean);
@@ -592,8 +593,11 @@ DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, dou
   // for each device, check if the cropped sensitivity image is above a threshold
   DeviceSet affected(getRig());
 
-  Rectangle<int> scaledRegion = Rectangle<int>(region.getX() * 100, region.getY() * 100,
-    region.getWidth() * 100, region.getHeight() * 100);
+  int width = getGlobalSettings()->_sensitivityCache.begin()->second.i50.getWidth();
+  int height = getGlobalSettings()->_sensitivityCache.begin()->second.i50.getHeight();
+
+  Rectangle<int> scaledRegion = Rectangle<int>(region.getX() * width, region.getY() * height,
+    region.getWidth() * width, region.getHeight() * height);
 
   for (auto id : getRig()->getAllDevices().getIds()) {
     // compute sensitivity from cache cropped from bounding box

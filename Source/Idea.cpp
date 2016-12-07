@@ -14,7 +14,8 @@
 #include "KMeans.h"
 #include "hsvPicker.h"
 
-Idea::Idea(Image src, IdeaType type) : _src(src), _type(type), _brightness(1, { 0, 0.1f })
+Idea::Idea(Image src, IdeaType type) : _src(src), _type(type), _brightness(1, { 0, 0.1f }),
+  _color(3, { 0, 0.05f, 0, 0.2f, 0, 0.2f })
 {
   initUI();
   updateType();
@@ -26,7 +27,7 @@ Idea::Idea(Image src, IdeaType type) : _src(src), _type(type), _brightness(1, { 
   _lock.setToggleState(_isRegionLocked, dontSendNotification);
 }
 
-Idea::Idea(File srcFolder, JSONNode data) : _brightness(1, { 0, 0.1f })
+Idea::Idea(File srcFolder, JSONNode data) : _brightness(1, { 0, 0.1f }), _color(3, { 0, 0.05f, 0, 0.2f, 0, 0.2f })
 {
   initUI();
 
@@ -486,18 +487,20 @@ void Idea::generateColorPalette()
   // k = 5 for now
 
   // compute a HSV histogram and pull out stats about the intensity and color
-  SparseHistogram imgHist(3, { 0, 10, 0, 0.2f, 0, 0.2f });
+  SparseHistogram imgHist(3, { 0, 0.05f, 0, 0.2f, 0, 0.2f });
 
   // pull out the selected image region
   Image img = _src.getClippedImage(relativeToAbsoluteImageRegion(_focusArea));
-  double scale = (img.getHeight() > img.getWidth()) ? 100.0 / img.getHeight() : 100.0 / img.getWidth();
-  Image i = img.rescaled((int) (img.getWidth() * scale), (int) (img.getHeight() * scale));
+  double scale = (img.getHeight() > img.getWidth()) ? 200.0 / img.getHeight() : 200.0 / img.getWidth();
+
+  if (scale < 1)
+    img = img.rescaled((int) (img.getWidth() * scale), (int) (img.getHeight() * scale));
 
   vector<pair<Eigen::VectorXd, int> > pts;
 
-  for (int y = 0; y < i.getHeight(); y++) {
-    for (int x = 0; x < i.getWidth(); x++) {
-      auto p = i.getPixelAt(x, y);
+  for (int y = 0; y < img.getHeight(); y++) {
+    for (int x = 0; x < img.getWidth(); x++) {
+      auto p = img.getPixelAt(x, y);
       Eigen::VectorXf hsv;
       hsv.resize(3);
 
@@ -509,6 +512,12 @@ void Idea::generateColorPalette()
       pt[1] = hsv[1];
       pt[2] = hsv[2];
       pts.push_back(pair<Eigen::VectorXd, int>(pt, 0));
+
+      vector<float> hpt;
+      hpt.push_back(pt[0]);
+      hpt.push_back(pt[1]);
+      hpt.push_back(pt[2]);
+      imgHist.addToBin(1, hpt);
     }
   }
 
@@ -520,6 +529,8 @@ void Idea::generateColorPalette()
   for (auto c : centers) {
     _colors.push_back(c);
   }
+
+  _color = imgHist;
 
   updateColorWeights();
 }
@@ -614,16 +625,18 @@ void Idea::updateColorWeights()
 {
     // palettize a small, scaled image
   Image img = _src.getClippedImage(relativeToAbsoluteImageRegion(_focusArea));
-  double scale = (img.getHeight() > img.getWidth()) ? 100.0 / img.getHeight() : 100.0 / img.getWidth();
-  Image scaled = img.rescaled((int) (img.getWidth() * scale), (int) (img.getHeight() * scale));
+  double scale = (img.getHeight() > img.getWidth()) ? 200.0 / img.getHeight() : 200.0 / img.getWidth();
+
+  if (scale < 1)
+    img = img.rescaled((int) (img.getWidth() * scale), (int) (img.getHeight() * scale));
 
   vector<int> counts;
   counts.resize(_colors.size());
 
-  for (auto y = 0; y < scaled.getHeight(); y++) {
-    for (auto x = 0; x < scaled.getWidth(); x++) {
+  for (auto y = 0; y < img.getHeight(); y++) {
+    for (auto x = 0; x < img.getWidth(); x++) {
       // find closest color
-      Colour px = scaled.getPixelAt(x, y);
+      Colour px = img.getPixelAt(x, y);
       
       Eigen::VectorXd pt;
       pt.resize(3);
@@ -655,7 +668,7 @@ void Idea::updateColorWeights()
   _weights.clear();
   _weights.resize(_colors.size());
   for (int i = 0; i < counts.size(); i++) {
-    _weights[i] = (float)counts[i] / (float)(scaled.getHeight() * scaled.getWidth());
+    _weights[i] = (float)counts[i] / (float)(img.getHeight() * img.getWidth());
   }
 }
 

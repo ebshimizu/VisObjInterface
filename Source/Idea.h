@@ -71,6 +71,9 @@ public:
   float _mean;
   SparseHistogram _brightness;
 
+  // color histogram
+  SparseHistogram _color;
+
 private:
 
   class ColorPaletteControls : public Component, public ChangeListener {

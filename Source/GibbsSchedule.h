@@ -55,12 +55,16 @@ public:
   // TODO: determine what the something is
   double score(Snapshot* state, Image& img, bool masked);
 
+  void setColorHistogram(SparseHistogram c);
 private:
   void normalizeWeights();
   int getClosestColorIndex(Eigen::Vector3d color);
 
   vector<Eigen::Vector3d> _colors;
   vector<float> _weights;
+
+  // for computing a score
+  SparseHistogram _srcColor;
 };
 
 // A pin sampler samples all the pinned lights.

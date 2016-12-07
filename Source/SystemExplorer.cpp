@@ -462,7 +462,7 @@ void SystemExplorer::toggleIntensPin()
     _isIntensPinned = false;
 
     // run search
-    getApplicationCommandManager()->invokeDirectly(command::SEARCH, true);
+    //getApplicationCommandManager()->invokeDirectly(command::SEARCH, true);
   }
   else {
     // lock
@@ -488,7 +488,7 @@ void SystemExplorer::toggleColorPin()
     _isColorPinned = false;
 
     // run search
-    getApplicationCommandManager()->invokeDirectly(command::SEARCH, true);
+    //getApplicationCommandManager()->invokeDirectly(command::SEARCH, true);
   }
   else {
     // lock
