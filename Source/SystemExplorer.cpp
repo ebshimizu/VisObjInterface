@@ -186,7 +186,7 @@ void SystemExplorer::changeListenerCallback(ChangeBroadcaster * source)
   _currentColor = cs->getCurrentColour();
 
   for (auto id : _selected.getIds()) {
-    if (!isDeviceParamLocked(id, "color") && cs != nullptr) {
+    if (cs != nullptr && getRig()->getDevice(id)->paramExists("color")) {
       getRig()->getDevice(id)->getColor()->setColorChannel("Red", _currentColor.getFloatRed());
       getRig()->getDevice(id)->getColor()->setColorChannel("Green", _currentColor.getFloatGreen());
       getRig()->getDevice(id)->getColor()->setColorChannel("Blue", _currentColor.getFloatBlue());

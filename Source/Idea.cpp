@@ -210,6 +210,7 @@ void Idea::buttonClicked(Button * b)
   if (b->getName() == "lock") {
     _isRegionLocked = !_isRegionLocked;
     b->setToggleState(_isRegionLocked, dontSendNotification);
+    _typeSelector.setEnabled(!_isRegionLocked);
     repaint();
   }
   if (b->getName() == "delete") {
@@ -715,11 +716,18 @@ void Idea::ColorPaletteControls::paint(Graphics & g)
   if (_parent->_colors.size() > 0) {
     // draws color rectangles
     auto lbounds = getLocalBounds();
-    int elemWidth = lbounds.getWidth() / (int)_parent->_colors.size();
+    int width = lbounds.getWidth();
 
-    for (auto c : _parent->_colors) {
-      auto region = lbounds.removeFromLeft(elemWidth).reduced(2);
+    // normalize weight
+    float sum = 0;
+    for (auto w : _parent->_weights) {
+      sum += w;
+    }
 
+    for (int i = 0; i < _parent->_colors.size(); i++) {
+      auto region = lbounds.removeFromLeft((_parent->_weights[i] / sum) * width).reduced(2);
+
+      Eigen::Vector3d c = _parent->_colors[i];
       Colour dc((float)c[0], (float)c[1], (float)c[2], 1.0f);
       g.setColour(dc);
       g.fillRect(region);
@@ -760,13 +768,19 @@ void Idea::ColorPaletteControls::mouseDown(const MouseEvent & e)
     else {
       // popup a color selector at the proper spot.
       auto lbounds = getLocalBounds();
-      int elemWidth = lbounds.getWidth() / (int)_parent->_colors.size();
+      int width = lbounds.getWidth();
+
+      // normalize weight
+      float sum = 0;
+      for (auto w : _parent->_weights) {
+        sum += w;
+      }
 
       int idx = 0;
       _selectedColorId = -1;
       Rectangle<int> selectedArea;
-      for (auto c : _parent->_colors) {
-        auto region = lbounds.removeFromLeft(elemWidth).reduced(2);
+      for (int i = 0; i < _parent->_colors.size(); i++) {
+        auto region = lbounds.removeFromLeft((_parent->_weights[i] / sum) * width).reduced(2);
 
         if (region.contains((int)e.position.getX(), (int)e.position.getY())) {
           _selectedColorId = idx;
