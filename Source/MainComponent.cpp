@@ -617,6 +617,11 @@ void MainContentComponent::debugShowAffectedDevices(Rectangle<float> region)
   AlertWindow::showMessageBox(AlertWindow::AlertIconType::InfoIcon, "Light Sensitivity within Selected Region", data);
 }
 
+DeviceSet MainContentComponent::computeAffectedDevices(Rectangle<float> region)
+{
+  return _attrs->computeAffectedDevices(region);
+}
+
 void MainContentComponent::openRig() {
   FileChooser fc("Load Show (pick a .rig.json or .playback.json file)", File::getCurrentWorkingDirectory(),
     "*.rig.json;*.playback.json", true);

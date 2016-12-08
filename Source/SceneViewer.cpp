@@ -301,10 +301,63 @@ void SceneViewer::mouseDown(const MouseEvent & event)
     return;
 
   if (event.mods.isLeftButtonDown()) {
-    _startPoint = getRelativeImageCoords(event.position);
+    if (event.mods.isCommandDown()) {
+      // check regions, select one to add a popup controller to
+      auto pt = getRelativeImageCoords(event.position);
+      PopupMenu menu;
+
+      map<int, shared_ptr<Idea> > ids;
+      int i = 1;
+
+      for (auto b : getGlobalSettings()->_ideaMap) {
+        if (b.second.contains(pt)) {
+          ids[i] = b.first;
+          menu.addItem(i, b.first->getName() + ": Modify Intensity / Color");
+        }
+        i++;
+      }
+
+      int result = 0;
+      if (ids.size() == 1) {
+        result = 1;
+      }
+      else if (ids.size() == 0) {
+        return;
+      }
+      else {
+        result = menu.show();
+      }
+
+      auto targetRegion = getGlobalSettings()->_ideaMap[ids[result]];
+
+      // get affected devices
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+      DeviceSet affected = mc->computeAffectedDevices(targetRegion);
+
+      // create a popup window
+      ParamShifter* ps = new ParamShifter(affected);
+      ps->setSize(300, 24 * 3);
+
+      auto lbounds = getLocalBounds();
+      
+      vector<Point<float> > pts;
+      pts.push_back(getWorldImageCoords(targetRegion.getTopLeft()));
+      pts.push_back(getWorldImageCoords(targetRegion.getBottomRight()));
+      Rectangle<float> absRegion = Rectangle<float>::findAreaContainingPoints(pts.data(), 2);
+      
+      Rectangle<int> loc(this->getScreenBounds().getX() + absRegion.getX(),
+        this->getScreenBounds().getY() + absRegion.getY() + _toolbarHeight,
+        absRegion.getWidth(), absRegion.getHeight());
+
+      CallOutBox::launchAsynchronously(ps, loc, nullptr);
+      
+    }
+    else {
+      _startPoint = getRelativeImageCoords(event.position);
+    }
   }
 
-  if (event.mods.isRightButtonDown()) {
+  if (event.mods.isRightButtonDown()) {    
     // context menus
     if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD) {
       // check idea rectangle
@@ -327,6 +380,10 @@ void SceneViewer::mouseDown(const MouseEvent & event)
         }
 
         int result = menu.show();
+
+        if (result == 0)
+          return;
+        
         if (result % 2 == 1) {
           getGlobalSettings()->_ideaMap.erase(ids[result]);
           repaint();
@@ -370,6 +427,10 @@ void SceneViewer::mouseDown(const MouseEvent & event)
 
       if (menu.getNumItems() > 0) {
         int toDelete = menu.show();
+
+        if (toDelete == 0)
+          return;
+
         if (toDelete % 2 == 1) {
           getGlobalSettings()->_pinnedRegions.removeRange(toDelete - 1, 1);
           repaint();
@@ -562,4 +623,120 @@ Point<float> SceneViewer::getAbsImageCoords(const Point<float>& pt)
   auto relPt = getRelativeImageCoords(pt);
   
   return Point<float>(relPt.getX() * _currentRender.getWidth(), relPt.getY() * _currentRender.getHeight());
+}
+
+SceneViewer::ParamShifter::ParamShifter(DeviceSet affected) : _affected(affected) {
+  _intens.setName("intens shift");
+  _hue.setName("hue shift");
+  _sat.setName("sat shift");
+
+  _intens.setSliderStyle(Slider::SliderStyle::LinearBar);
+  _hue.setSliderStyle(Slider::SliderStyle::LinearBar);
+  _sat.setSliderStyle(Slider::SliderStyle::LinearBar);
+
+  _intens.setRange(-25, 25, 0.01f);
+  _hue.setRange(-30, 30, 0.1f);
+  _sat.setRange(-25, 25, 0.1f);
+
+  _intens.setValue(0, dontSendNotification);
+  _hue.setValue(0, dontSendNotification);
+  _sat.setValue(0, dontSendNotification);
+
+  _intens.addListener(this);
+  _hue.addListener(this);
+  _sat.addListener(this);
+
+  addAndMakeVisible(_intens);
+  addAndMakeVisible(_hue);
+  addAndMakeVisible(_sat);
+
+  _state = new Snapshot(getRig());
+}
+
+SceneViewer::ParamShifter::~ParamShifter()
+{
+  delete _state;
+}
+
+void SceneViewer::ParamShifter::resized()
+{
+  auto lbounds = getLocalBounds();
+
+  // labels
+  lbounds.removeFromLeft(60);
+
+  _intens.setBounds(lbounds.removeFromTop(24).reduced(2));
+  _hue.setBounds(lbounds.removeFromTop(24).reduced(2));
+  _sat.setBounds(lbounds.removeFromTop(24).reduced(2));
+}
+
+void SceneViewer::ParamShifter::paint(Graphics & g)
+{
+  g.fillAll(Colour(0xff333333));
+
+  auto lbounds = getLocalBounds();
+  auto labels = lbounds.removeFromLeft(60);
+
+  g.setColour(Colours::white);
+  g.drawFittedText("Intensity", labels.removeFromTop(24).reduced(2), Justification::centredRight, 1);
+  g.drawFittedText("Hue", labels.removeFromTop(24).reduced(2), Justification::centredRight, 1);
+  g.drawFittedText("Sat", labels.removeFromTop(24).reduced(2), Justification::centredRight, 1);
+}
+
+void SceneViewer::ParamShifter::sliderDragEnded(Slider * s)
+{
+  // Trigger re-render
+  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+  if (mc != nullptr) {
+    mc->refreshParams();
+    mc->refreshAttr();
+    mc->redrawResults();
+  }
+
+  if (s->getName() == "intens shift" || s->getName() == "hue shift" || s->getName() == "sat shift") {
+    s->setValue(0, dontSendNotification);
+    mc->arnoldRenderNoPopup();
+  }
+
+  delete _state;
+  _state = new Snapshot(getRig());
+}
+
+void SceneViewer::ParamShifter::sliderValueChanged(Slider * s)
+{
+  if (s->getName() == "intens shift") {
+    // relative intensity change
+    float delta = s->getValue() / 100.0;
+
+    auto data = _state->getRigData();
+    for (auto id : _affected.getIds()) {
+      float currentIntens = data[id]->getIntensity()->asPercent();
+      getRig()->getDevice(id)->getIntensity()->setValAsPercent(currentIntens + delta);
+    }
+  }
+  else if (s->getName() == "hue shift") {
+    // relative hue change
+    double delta = s->getValue();
+
+    auto data = _state->getRigData();
+    for (auto id : _affected.getIds()) {
+      if (data[id]->paramExists("color")) {
+        Eigen::Vector3d color = data[id]->getColor()->getHSV();
+        getRig()->getDevice(id)->getColor()->setHSV(color[0] + delta, color[1], color[2]);
+      }
+    }
+  }
+  else if (s->getName() == "sat shift") {
+    // relative hue change
+    double delta = s->getValue() / 100.0;
+
+    auto data = _state->getRigData();
+    for (auto id : _affected.getIds()) {
+      if (data[id]->paramExists("color")) {
+        Eigen::Vector3d color = data[id]->getColor()->getHSV();
+        getRig()->getDevice(id)->getColor()->setHSV(color[0], color[1] + delta, color[2]);
+      }
+    }
+  }
 }

@@ -99,6 +99,7 @@ public:
 
   // shows a dialog box containing the devices affected by the selected region
   void debugShowAffectedDevices(Rectangle<float> region);
+  DeviceSet computeAffectedDevices(Rectangle<float> region);
 
 private:
   // Open a Lumiverse file

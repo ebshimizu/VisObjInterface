@@ -79,6 +79,26 @@ public:
   void paintRect(Rectangle<float> pt, Colour c);
 
 private:
+  class ParamShifter : public Component, public SliderListener {
+  public:
+    ParamShifter(DeviceSet affected);
+    ~ParamShifter();
+
+    void resized() override;
+    void paint(Graphics& g) override;
+
+    void sliderDragEnded(Slider* s) override;
+    void sliderValueChanged(Slider* s) override;
+
+  private:
+    DeviceSet _affected;
+    Snapshot* _state;
+
+    Slider _intens;
+    Slider _hue;
+    Slider _sat;
+  };
+
   // returns image coordinates normalized between 0 and 1
   Point<float> getRelativeImageCoords(const Point<float>& pt);
 
