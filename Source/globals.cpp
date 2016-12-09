@@ -593,16 +593,33 @@ void computeLightSensitivity()
     Image brighter = renderImage(tmp, imgWidth, imgHeight);
     cache.i51 = brighter;
 
-    getGlobalSettings()->_sensitivityCache[active] = cache;
+    // render a 100% image
+    tmpData[active]->getIntensity()->setValAsPercent(1.0);
+    Image brightest = renderImage(tmp, imgWidth, imgHeight);
+    cache.i100 = brightest;
+    cache.pxAbove50 = 0;
+    cache.pxAbove75 = 0;
+    cache.pxAbove25 = 0;
     
     // calculate avg per-pixel brightness difference
     double diff = 0;
     for (int y = 0; y < base.getHeight(); y++) {
       for (int x = 0; x < base.getWidth(); x++) {
         diff += brighter.getPixelAt(x, y).getBrightness() - base.getPixelAt(x, y).getBrightness();
+
+        if (brightest.getPixelAt(x, y).getBrightness() > 0.25) {
+          cache.pxAbove25++;
+        }
+        if (brightest.getPixelAt(x, y).getBrightness() > 0.5) {
+          cache.pxAbove50++;
+        }
+        if (brightest.getPixelAt(x, y).getBrightness() > 0.75) {
+          cache.pxAbove75++;
+        }
       }
     }
 
+    getGlobalSettings()->_sensitivityCache[active] = cache;
     getGlobalSettings()->_sensitivity[active] = diff / (base.getHeight() * base.getWidth()) * 100;
   }
 

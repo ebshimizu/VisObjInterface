@@ -205,6 +205,10 @@ struct GibbsScheduleConstraint {
 struct sensCache {
   Image i50;
   Image i51;
+  Image i100;
+  int pxAbove25;
+  int pxAbove50;    // count of number of pixels above 0.5 brightness
+  int pxAbove75;
 };
 
 // A container for various things that the entire application may want to access

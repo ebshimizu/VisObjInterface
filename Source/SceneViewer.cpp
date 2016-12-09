@@ -326,6 +326,8 @@ void SceneViewer::mouseDown(const MouseEvent & event)
       }
       else {
         result = menu.show();
+        if (result == 0)
+          return;
       }
 
       auto targetRegion = getGlobalSettings()->_ideaMap[ids[result]];
