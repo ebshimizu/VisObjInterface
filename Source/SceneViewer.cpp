@@ -668,6 +668,7 @@ void SceneViewer::showSelection(DeviceSet selected)
 
   _showSelectionMode = true;
   _exitSelectView->setVisible(true);
+  delete toRender;
 }
 
 void SceneViewer::hideSelection()

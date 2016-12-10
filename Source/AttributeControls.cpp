@@ -595,11 +595,7 @@ void AttributeControls::initAttributes()
 
 DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, double threshold)
 {
-  // criteria for device inclusion:
-  // > 50% of bbox pixels contain over 50% brightness pixels from the cached image
-  // or total number of 50% brightness pixels inside bbox is > 75% of all bright pixels in the cached image
-  // in simpler terms: if bbox contains the entire light or if the light covers the bbox, accept
-  
+  // for each device, check if the cropped sensitivity image is above a threshold
   DeviceSet affected(getRig());
 
   int width = getGlobalSettings()->_sensitivityCache.begin()->second.i100.getWidth();
@@ -610,22 +606,27 @@ DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, dou
 
   for (auto id : getRig()->getAllDevices().getIds()) {
     // compute sensitivity from cache cropped from bounding box
-    Image i100Crop = getGlobalSettings()->_sensitivityCache[id].i100.getClippedImage(scaledRegion);
+    sensCache cache = getGlobalSettings()->_sensitivityCache[id];
+    Image i100Crop = cache.i100.getClippedImage(scaledRegion);
 
-    // iterate through, count number of pixels that are brighter than 50%
+    // iterate through, count number of pixels that are at or above the 50th percentile
     int numBright = 0;
+    int numMaxBr = 0;
     for (int y = 0; y < i100Crop.getHeight(); y++) {
       for (int x = 0; x < i100Crop.getWidth(); x++) {
-        if (i100Crop.getPixelAt(x, y).getBrightness() > 0.5) {
+        if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.avgVal) {
           numBright++;
+        }
+        if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.maxBr * 0.9) {
+          numMaxBr++;
         }
       }
     }
 
     float coverageRatio = (float)(numBright) / (i100Crop.getHeight() * i100Crop.getWidth());
-    float contentsRatio = (float)(numBright) / getGlobalSettings()->_sensitivityCache[id].pxAbove50;
+    float contentsRatio = (float)(numBright) / cache.numAboveAvg;
+    float maxContents = (float)(numMaxBr) / cache.numMaxBr;
 
-    if (coverageRatio > 0.5 || contentsRatio > 0.75) {
       affected = affected.add(id);
     }
   }
@@ -646,24 +647,30 @@ DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, map
 
   for (auto id : getRig()->getAllDevices().getIds()) {
     // compute sensitivity from cache cropped from bounding box
-    Image i100Crop = getGlobalSettings()->_sensitivityCache[id].i100.getClippedImage(scaledRegion);
+    sensCache cache = getGlobalSettings()->_sensitivityCache[id];
+    Image i100Crop = cache.i100.getClippedImage(scaledRegion);
 
-    // iterate through, count number of pixels that are brighter than 50%
+    // iterate through, count number of pixels that are at or above the 50th percentile
     int numBright = 0;
+    int numMaxBr = 0;
     for (int y = 0; y < i100Crop.getHeight(); y++) {
       for (int x = 0; x < i100Crop.getWidth(); x++) {
-        if (i100Crop.getPixelAt(x, y).getBrightness() > 0.25) {
+        if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.avgVal) {
           numBright++;
+        }
+        if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.maxBr * 0.9) {
+          numMaxBr++;
         }
       }
     }
 
     float coverageRatio = (float)(numBright) / (i100Crop.getHeight() * i100Crop.getWidth());
-    float contentsRatio = (float)(numBright) / getGlobalSettings()->_sensitivityCache[id].pxAbove25;
+    float contentsRatio = (float)(numBright) / cache.numAboveAvg;
+    float maxContents = (float)(numMaxBr) / cache.numMaxBr;
     debugInfo[id + " coverage"] = coverageRatio;
     debugInfo[id + " contents"] = contentsRatio;
+    debugInfo[id + " max"] = maxContents;
 
-    if (coverageRatio > 0.2 || contentsRatio > 0.65) {
       affected = affected.add(id);
     }
   }

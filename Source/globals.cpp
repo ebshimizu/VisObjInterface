@@ -597,24 +597,41 @@ void computeLightSensitivity()
     tmpData[active]->getIntensity()->setValAsPercent(1.0);
     Image brightest = renderImage(tmp, imgWidth, imgHeight);
     cache.i100 = brightest;
-    cache.pxAbove50 = 0;
-    cache.pxAbove75 = 0;
-    cache.pxAbove25 = 0;
-    
+    cache.maxBr = 0;
+
     // calculate avg per-pixel brightness difference
     double diff = 0;
+    int ct = 0;
+    float sum = 0;
+
     for (int y = 0; y < base.getHeight(); y++) {
       for (int x = 0; x < base.getWidth(); x++) {
         diff += brighter.getPixelAt(x, y).getBrightness() - base.getPixelAt(x, y).getBrightness();
 
-        if (brightest.getPixelAt(x, y).getBrightness() > 0.25) {
-          cache.pxAbove25++;
+        float brightpx = brightest.getPixelAt(x, y).getBrightness();
+
+        if (brightpx > 0.01) {
+          ct++;
+          sum += brightpx;
         }
-        if (brightest.getPixelAt(x, y).getBrightness() > 0.5) {
-          cache.pxAbove50++;
+        if (brightpx > cache.maxBr) {
+          cache.maxBr = brightpx;
         }
-        if (brightest.getPixelAt(x, y).getBrightness() > 0.75) {
-          cache.pxAbove75++;
+      }
+    }
+
+    // average of all non-zero pixels
+    cache.avgVal = sum / ct;
+    cache.numAboveAvg = 0;
+    cache.numMaxBr = 0;
+
+    for (int y = 0; y < base.getHeight(); y++) {
+      for (int x = 0; x < base.getWidth(); x++) {
+        if (brightest.getPixelAt(x, y).getBrightness() > cache.avgVal)
+          cache.numAboveAvg++;
+
+        if (brightest.getPixelAt(x, y).getBrightness() > cache.maxBr * 0.9) {
+          cache.numMaxBr++;
         }
       }
     }
