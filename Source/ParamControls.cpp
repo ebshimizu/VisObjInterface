@@ -704,3 +704,15 @@ StringArray ParamControls::getSelectedIds()
 {
   return _selected;
 }
+
+void ParamControls::setSelectedIds(DeviceSet selection)
+{
+  _table.deselectAllRows();
+  set<Device*> devices = selection.getDevices();
+  for (auto d : devices) {
+    _table.selectRow(_ids.indexOf(String(d->getId())), true, false);
+  }
+
+  _table.updateContent();
+  _table.repaint();
+}

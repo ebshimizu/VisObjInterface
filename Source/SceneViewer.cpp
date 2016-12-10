@@ -407,6 +407,7 @@ void SceneViewer::mouseDown(const MouseEvent & event)
         else if (result % 3 == 2) {
           DeviceSet affected = mc->computeAffectedDevices(getGlobalSettings()->_ideaMap[ids[result - 1]]);
           showSelection(affected);
+          mc->setSelectedIds(affected);
         }
         else {
           // want to pop up a dialog showing what's in the box

@@ -618,6 +618,11 @@ DeviceSet MainContentComponent::computeAffectedDevices(Rectangle<float> region)
   return _attrs->computeAffectedDevices(region);
 }
 
+void MainContentComponent::setSelectedIds(DeviceSet selection)
+{
+  _attrs->getParamController()->setSelectedIds(selection);
+}
+
 void MainContentComponent::openRig() {
   FileChooser fc("Load Show (pick a .rig.json or .playback.json file)", File::getCurrentWorkingDirectory(),
     "*.rig.json;*.playback.json", true);

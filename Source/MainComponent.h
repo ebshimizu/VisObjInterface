@@ -101,6 +101,8 @@ public:
   void debugShowAffectedDevices(Rectangle<float> region);
   DeviceSet computeAffectedDevices(Rectangle<float> region);
 
+  void setSelectedIds(DeviceSet selection);
+
 private:
   // Open a Lumiverse file
   void openRig();
