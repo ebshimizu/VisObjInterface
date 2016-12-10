@@ -627,6 +627,7 @@ DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, dou
     float contentsRatio = (float)(numBright) / cache.numAboveAvg;
     float maxContents = (float)(numMaxBr) / cache.numMaxBr;
 
+    if (coverageRatio > 0.25 || contentsRatio > 0.60 || maxContents > 0.75) {
       affected = affected.add(id);
     }
   }
@@ -671,6 +672,7 @@ DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, map
     debugInfo[id + " contents"] = contentsRatio;
     debugInfo[id + " max"] = maxContents;
 
+    if (coverageRatio > 0.25 || contentsRatio > 0.60 || maxContents > 0.75) {
       affected = affected.add(id);
     }
   }
