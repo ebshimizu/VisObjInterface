@@ -312,7 +312,7 @@ void AttributeControls::reload()
 {
   // Delete everything and reload attributes
   _container->removeAllControllers();
-  initAttributes();
+  //initAttributes();
   initPallets();
 
   _tempConstraints->updateBounds();

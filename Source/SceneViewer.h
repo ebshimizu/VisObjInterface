@@ -125,6 +125,14 @@ private:
   int _toolbarHeight = 25;
   float _brushSize;
   bool _hideAllBoxes;
+  
+  // vars for managing selection state
+  bool _showSelectionMode;
+  Image _selectionRender;
+  TextButton* _exitSelectView;
+
+  void showSelection(DeviceSet selected);
+  void hideSelection();
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SceneViewer)
 };

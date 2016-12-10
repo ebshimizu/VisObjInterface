@@ -86,6 +86,7 @@ SceneViewer::SceneViewer()
 
   _clearMask = new TextButton("Clear Mask");
   _showMask = new TextButton("Show Mask");
+  _exitSelectView = new TextButton("Return to Stage");
   _showAllBoxesButton = new TextButton("Show Targets");
   _hideAllBoxesButton = new TextButton("Hide Targets");
   _showAllBoxesButton->setColour(TextButton::ColourIds::buttonOnColourId, Colour(0xff202020));
@@ -99,14 +100,17 @@ SceneViewer::SceneViewer()
   _showMask->addListener(this);
   _showAllBoxesButton->addListener(this);
   _hideAllBoxesButton->addListener(this);
+  _exitSelectView->addListener(this);
   //addAndMakeVisible(_clearMask);
   addAndMakeVisible(_showMask);
   addAndMakeVisible(_showAllBoxesButton);
   addAndMakeVisible(_hideAllBoxesButton);
+  addChildComponent(_exitSelectView);
 
   //_showMask->setColour(TextButton::ColourIds::buttonOnColourId, Colours::lightblue);
   _drawMask = false;
   _hideAllBoxes = false;
+  _showSelectionMode = false;
   _brushSize = 50;
 }
 
@@ -120,6 +124,7 @@ SceneViewer::~SceneViewer()
   delete _showMask;
   delete _showAllBoxesButton;
   delete _hideAllBoxesButton;
+  delete _exitSelectView;
 }
 
 void SceneViewer::paint (Graphics& g)
@@ -140,6 +145,9 @@ void SceneViewer::paint (Graphics& g)
 
   if (getGlobalSettings()->_showThumbnailImg) {
     g.drawImageWithin(_preview, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
+  }
+  else if (_showSelectionMode) {
+    g.drawImageWithin(_selectionRender, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
   }
   else {
     g.drawImageWithin(_currentRender, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
@@ -210,6 +218,7 @@ void SceneViewer::resized()
   _showAllBoxesButton->setBounds(toolbar.removeFromRight(80).reduced(2));
   _hideAllBoxesButton->setBounds(toolbar.removeFromRight(80).reduced(2));
   _showMask->setBounds(toolbar.removeFromRight(80).reduced(2));
+  _exitSelectView->setBounds(toolbar.removeFromRight(80).reduced(2));
 
   //_clearMask->setBounds(toolbar.removeFromRight(60).reduced(2));
   //_showMask->setBounds(toolbar.removeFromRight(60).reduced(2));
@@ -374,9 +383,12 @@ void SceneViewer::mouseDown(const MouseEvent & event)
           if (b.second.contains(pt)) {
             ids[i] = b.first;
             menu.addItem(i, b.first->getName() + ": Delete");
-
             i++;
-            menu.addItem(i, b.first->getName() + ": [DEBUG] What Lights Are Here?");
+
+            menu.addItem(i, b.first->getName() + ": Show Selection");
+            i++;
+
+            menu.addItem(i, b.first->getName() + ": [DEBUG] Display Selection Info");
           }
           i++;
         }
@@ -386,17 +398,19 @@ void SceneViewer::mouseDown(const MouseEvent & event)
         if (result == 0)
           return;
         
-        if (result % 2 == 1) {
+        MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+        if (result % 3 == 1) {
           getGlobalSettings()->_ideaMap.erase(ids[result]);
           repaint();
         }
+        else if (result % 3 == 2) {
+          DeviceSet affected = mc->computeAffectedDevices(getGlobalSettings()->_ideaMap[ids[result - 1]]);
+          showSelection(affected);
+        }
         else {
           // want to pop up a dialog showing what's in the box
-          MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-
-          if (mc != nullptr) {
-            mc->debugShowAffectedDevices(getGlobalSettings()->_ideaMap[ids[result - 1]]);
-          }
+          mc->debugShowAffectedDevices(getGlobalSettings()->_ideaMap[ids[result - 2]]);
         }
       }
       else {
@@ -507,6 +521,9 @@ void SceneViewer::buttonClicked(Button * b)
   }
   else if (b->getName() == "Show Mask") {
     showMask();
+  }
+  else if (b->getName() == "Return to Stage") {
+    hideSelection();
   }
   else if (b->getName() == "Show Targets") {
     if (_hideAllBoxes) {
@@ -625,6 +642,37 @@ Point<float> SceneViewer::getAbsImageCoords(const Point<float>& pt)
   auto relPt = getRelativeImageCoords(pt);
   
   return Point<float>(relPt.getX() * _currentRender.getWidth(), relPt.getY() * _currentRender.getHeight());
+}
+
+void SceneViewer::showSelection(DeviceSet selected)
+{
+  // render out the scene with only the selected devices
+  Snapshot* toRender = new Snapshot(getRig());
+  auto data = toRender->getRigData();
+
+  for (auto d : data) {
+    d.second->getIntensity()->setValAsPercent(0);
+    
+    if (d.second->paramExists("color")) {
+      d.second->getColor()->setRGB(1, 1, 1);
+    }
+  }
+
+  for (auto id : selected.getIds()) {
+    data[id]->getIntensity()->setValAsPercent(1);
+  }
+
+  // render
+  _selectionRender = renderImage(toRender, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
+
+  _showSelectionMode = true;
+  _exitSelectView->setVisible(true);
+}
+
+void SceneViewer::hideSelection()
+{
+  _showSelectionMode = false;
+  _exitSelectView->setVisible(false);
 }
 
 SceneViewer::ParamShifter::ParamShifter(DeviceSet affected) : _affected(affected) {
