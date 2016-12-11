@@ -49,14 +49,14 @@ public:
     vector<Eigen::Vector3d> colors, vector<float> weights);
   ~ColorSampler();
 
-  void sample(Snapshot* state) override;
+  virtual void sample(Snapshot* state) override;
 
   // returns a score based on..... something
   // TODO: determine what the something is
-  double score(Snapshot* state, Image& img, bool masked);
+  virtual double score(Snapshot* state, Image& img, bool masked);
 
   void setColorHistogram(SparseHistogram c);
-private:
+protected:
   void normalizeWeights();
   int getClosestColorIndex(Eigen::Vector3d color);
 
@@ -102,6 +102,35 @@ private:
   int _k;
   float _brightMean;
   float _mean;
+};
+
+class MonochromeSampler : public Sampler {
+public:
+  MonochromeSampler(DeviceSet affectedDevices, Rectangle<float> region, set<string> intensPins,
+    set<string> colorPins, Colour color);
+  ~MonochromeSampler();
+
+  void sample(Snapshot* state) override;
+
+  double score(Snapshot* state, Image& img, bool masked) override;
+
+private:
+  Colour _target;
+};
+
+class TheatricalSampler : public ColorSampler {
+public:
+  TheatricalSampler(DeviceSet affectedDevices, Rectangle<float> region,
+    set<string> intensPins, set<string> colorPins,
+    vector<Eigen::Vector3d> colors, vector<float> weights);
+  ~TheatricalSampler();
+
+  void sample(Snapshot* state) override;
+
+private:
+  Eigen::Vector3d cctToRgb(int cct);
+
+  DeviceSet front;
 };
 
 // GibbsSchedules consist of a set of samplers that take the current state

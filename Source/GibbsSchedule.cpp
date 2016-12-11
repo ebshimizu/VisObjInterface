@@ -406,6 +406,206 @@ void IntensitySampler::setBrightnessHistogram(SparseHistogram b)
 {
   _srcBrightness = b;
 }
+
+MonochromeSampler::MonochromeSampler(DeviceSet affectedDevices, Rectangle<float> region,
+  set<string> intensPins, set<string> colorPins, Colour color) :
+  Sampler(affectedDevices, region, intensPins, colorPins), _target(color)
+{
+}
+
+MonochromeSampler::~MonochromeSampler()
+{
+}
+
+void MonochromeSampler::sample(Snapshot * state)
+{
+  // this one is pretty easy
+  // we just pick a color close to the target, and adjust the satration a bit
+  // the color sampler will sample by system
+  vector<DeviceSet> systemMap;
+  auto stateData = state->getRigData();
+
+  auto systems = getRig()->getMetadataValues("system");
+  int i = 0;
+
+  for (auto system : systems) {
+    DeviceSet globalSys = getRig()->select("$system=" + system);
+    DeviceSet localSys(getRig());
+
+    for (auto id : globalSys.getIds()) {
+      if (_devices.contains(id)) {
+        if (_colorPins.count(id) == 0) {
+          localSys = localSys.add(id);
+        }
+      }
+    }
+
+    systemMap.push_back(localSys);
+  }
+
+  // sample
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  normal_distribution<double> hueDist(0, 0.01);
+  normal_distribution<double> satDist(0, 0.2);
+  float hue = _target.getHue() + hueDist(gen);
+  float sat = _target.getSaturation() + satDist(gen);
+
+  // apply to snapshot
+  for (int i = 0; i < systemMap.size(); i++) {
+
+    // apply color to each light in the system
+    for (string id : systemMap[i].getIds()) {
+      if (_colorPins.count(id) == 0 && stateData[id]->paramExists("color")) {
+        stateData[id]->getColor()->setHSV(hue * 360, sat, _target.getBrightness());
+      }
+    }
+  }
+}
+
+double MonochromeSampler::score(Snapshot * state, Image & img, bool masked)
+{
+  Eigen::Vector3f t;
+  _target.getHSB(t[0], t[1], t[2]);
+
+  float sum = 0;
+  // per-pixel average difference from target
+  for (int y = 0; y < img.getHeight(); y++) {
+    for (int x = 0; x < img.getWidth(); x++) {
+      Eigen::Vector3f px;
+      img.getPixelAt(x, y).getHSB(px[0], px[1], px[2]);
+
+      sum += (t - px).norm();
+    }
+  }
+
+  return sum / (img.getHeight() * img.getWidth());
+}
+
+TheatricalSampler::TheatricalSampler(DeviceSet affectedDevices, Rectangle<float> region,
+  set<string> intensPins, set<string> colorPins,
+  vector<Eigen::Vector3d> colors, vector<float> weights) :
+  ColorSampler(affectedDevices, region, intensPins, colorPins, colors, weights),
+  front(getRig()) 
+{
+  DeviceSet other(getRig());
+
+  // separate front devices
+  for (auto id : _devices.getIds()) {
+    string system = getRig()->getDevice(id)->getMetadata("system");
+    if (system == "front" || system == "front left" || system == "front right") {
+      front = front.add(id);
+    }
+    else {
+      other = other.add(id);
+    }
+  }
+  
+  // update internal affected devices
+  _devices = other;
+}
+
+TheatricalSampler::~TheatricalSampler()
+{
+}
+
+void TheatricalSampler::sample(Snapshot * state)
+{
+  // this sampler handles the front lights, everything else is handled by the parent class
+  auto data = state->getRigData();
+  vector<DeviceSet> systemMap;
+
+  vector<string> systems = { "front", "front left", "front right" };
+  int i = 0;
+
+  for (auto system : systems) {
+    DeviceSet globalSys = getRig()->select("$system=" + system);
+    DeviceSet localSys(getRig());
+
+    for (auto id : globalSys.getIds()) {
+      if (_devices.contains(id)) {
+        if (_colorPins.count(id) == 0) {
+          localSys = localSys.add(id);
+        }
+      }
+    }
+
+    systemMap.push_back(localSys);
+  }
+
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  uniform_int_distribution<int> ctb(6500, 12000);
+  uniform_int_distribution<int> ctw(1900, 6500);
+  uniform_int_distribution<int> all(1900, 12000);
+  vector<Eigen::Vector3d> colors;
+  colors.push_back(cctToRgb(ctb(gen)));
+  colors.push_back(cctToRgb(ctw(gen)));
+  colors.push_back(cctToRgb(all(gen)));
+
+  // assign to systems in random order
+  shuffle(systemMap.begin(), systemMap.end(), gen);
+
+  // apply to snapshot
+  for (int i = 0; i < systemMap.size(); i++) {
+    Eigen::Vector3d color = colors[i];
+
+    // apply color to each light in the system
+    for (string id : systemMap[i].getIds()) {
+      if (_colorPins.count(id) == 0 && data[id]->paramExists("color")) {
+        data[id]->getColor()->setRGBRaw(color[0], color[1], color[2]);
+      }
+    }
+  }
+
+  // sample remaining colors
+  ColorSampler::sample(state);
+}
+
+Eigen::Vector3d TheatricalSampler::cctToRgb(int cct)
+{
+  // based on http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/ 
+  float temp = cct / 100.0f;
+
+  // red
+  float red = 0;
+  if (temp <= 66) {
+    red = 255;
+  }
+  else {
+    red = temp - 60;
+    red = 329.698727446 * pow(red, -0.1332047592);
+    red = Lumiverse::clamp(red, 0, 255);
+  }
+
+  float green;
+  if (temp <= 66) {
+    green = temp;
+    green = 99.4708025861 * log(green) - 161.1195681661;
+  }
+  else {
+    green = temp - 60;
+    green = 288.1221695283 * pow(green, -0.0755148492);
+  }
+  green = Lumiverse::clamp(green, 0, 255);
+
+  float blue;
+  if (temp >= 66) {
+    blue = 255;
+  }
+  else {
+    if (temp <= 19)
+      blue = 0;
+    else {
+      blue = temp - 10;
+      blue = 138.5177312231 * log(blue) - 305.0447927307;
+    }
+  }
+
+  return Eigen::Vector3d(red / 255.0f, green / 255.0f, blue / 255.0f);
+}
+
+
 // =============================================================================
 
 GibbsSchedule::GibbsSchedule()
@@ -464,3 +664,4 @@ Snapshot * GibbsSchedule::sample(Snapshot * state)
 
   return newState;
 }
+
