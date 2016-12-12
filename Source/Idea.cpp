@@ -308,7 +308,7 @@ IdeaType Idea::getType()
 
 void Idea::updateType(bool skipRecompute)
 {
-  if (_type == COLOR_PALETTE) {
+  if (_type == COLOR_PALETTE || _type == THEATRICAL) {
     // generate color palette if not locked
     if (!_isRegionLocked) {
       if (!skipRecompute) {
@@ -445,6 +445,8 @@ void Idea::initUI()
 {
   _typeSelector.addItem("Color Palette", (int)COLOR_PALETTE);
   _typeSelector.addItem("Intensity Distribution", (int)INTENS_DIST);
+  _typeSelector.addItem("Monochrome Palette", (int)MONOCHROME);
+  _typeSelector.addItem("Theatrical Palette", (int)THEATRICAL);
   _typeSelector.addListener(this);
   _typeSelector.setSelectedId((int)_type);
   addAndMakeVisible(_typeSelector);

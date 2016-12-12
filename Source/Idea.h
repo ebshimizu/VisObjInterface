@@ -17,7 +17,9 @@
 
 enum IdeaType {
   COLOR_PALETTE = 1,
-  INTENS_DIST = 2
+  INTENS_DIST = 2,
+  MONOCHROME = 3,
+  THEATRICAL = 4
 };
 
 class IdeaList;

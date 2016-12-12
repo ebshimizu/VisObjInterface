@@ -472,6 +472,12 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
       colorSampler->setColorHistogram(i->_color);
       sched->addSampler((Sampler*)colorSampler);
     }
+    else if (i->getType() == THEATRICAL) {
+      TheatricalSampler* theatricalSampler = new TheatricalSampler(affected, r, ip, cp, i->getColors(), i->getWeights());
+      theatricalSampler->_name = i->getName().toStdString();
+      theatricalSampler->setColorHistogram(i->_color);
+      sched->addSampler((Sampler*)theatricalSampler);
+    }
     else if (i->getType() == INTENS_DIST) {
       IntensitySampler* intensSampler = new IntensitySampler(affected, r, ip, cp, i->_k, i->_meanBright, i->_mean);
       intensSampler->setBrightnessHistogram(i->_brightness);

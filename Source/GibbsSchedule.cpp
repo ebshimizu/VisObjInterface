@@ -493,7 +493,7 @@ TheatricalSampler::TheatricalSampler(DeviceSet affectedDevices, Rectangle<float>
   // separate front devices
   for (auto id : _devices.getIds()) {
     string system = getRig()->getDevice(id)->getMetadata("system");
-    if (system == "front" || system == "front left" || system == "front right") {
+    if (system == "front" || system == "front left" || system == "front right" || system == "key" || system == "fill") {
       front = front.add(id);
     }
     else {
@@ -515,7 +515,7 @@ void TheatricalSampler::sample(Snapshot * state)
   auto data = state->getRigData();
   vector<DeviceSet> systemMap;
 
-  vector<string> systems = { "front", "front left", "front right" };
+  vector<string> systems = { "front", "front left", "front right", "key", "fill" };
   int i = 0;
 
   for (auto system : systems) {
@@ -523,14 +523,15 @@ void TheatricalSampler::sample(Snapshot * state)
     DeviceSet localSys(getRig());
 
     for (auto id : globalSys.getIds()) {
-      if (_devices.contains(id)) {
+      if (front.contains(id)) {
         if (_colorPins.count(id) == 0) {
           localSys = localSys.add(id);
         }
       }
     }
 
-    systemMap.push_back(localSys);
+    if (localSys.size() > 0)
+      systemMap.push_back(localSys);
   }
 
   std::random_device rd;
@@ -539,9 +540,18 @@ void TheatricalSampler::sample(Snapshot * state)
   uniform_int_distribution<int> ctw(1900, 6500);
   uniform_int_distribution<int> all(1900, 12000);
   vector<Eigen::Vector3d> colors;
-  colors.push_back(cctToRgb(ctb(gen)));
-  colors.push_back(cctToRgb(ctw(gen)));
-  colors.push_back(cctToRgb(all(gen)));
+
+  if (systemMap.size() == 1) {
+    colors.push_back(cctToRgb(all(gen)));
+  }
+  else {
+    colors.push_back(cctToRgb(ctb(gen)));
+    colors.push_back(cctToRgb(ctw(gen)));
+
+    for (int i = 0; i < ((int)systemMap.size()) - 2; i++) {
+      colors.push_back(cctToRgb(all(gen)));
+    }
+  }
 
   // assign to systems in random order
   shuffle(systemMap.begin(), systemMap.end(), gen);
