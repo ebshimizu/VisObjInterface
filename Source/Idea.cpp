@@ -140,7 +140,7 @@ void Idea::resized()
   auto top = lbounds.removeFromTop(24);
   _typeSelector.setBounds(top.reduced(2));
 
-  if (_type == COLOR_PALETTE) {
+  if (_type == COLOR_PALETTE || _type == MONOCHROME || _type == THEATRICAL) {
     // they might be null for some reason
     if (_colorControls != nullptr) {
       _colorControls->setBounds(lbounds.removeFromTop(40));
@@ -309,6 +309,8 @@ IdeaType Idea::getType()
 void Idea::updateType(bool skipRecompute)
 {
   if (_type == COLOR_PALETTE || _type == THEATRICAL) {
+    _numColors = 3;
+
     // generate color palette if not locked
     if (!_isRegionLocked) {
       if (!skipRecompute) {
@@ -322,6 +324,26 @@ void Idea::updateType(bool skipRecompute)
       addAndMakeVisible(_colorControls);
       _headerSize = 24 * 2 + 40;
     }
+    _colorControls->_rightClickMenuEnabled = true;
+  }
+  else if (_type == MONOCHROME) {
+    _numColors = 1;
+
+    if (!_isRegionLocked) {
+      if (!skipRecompute) {
+        generateColorPalette();
+      }
+    }
+
+    // update ui
+    if (_colorControls == nullptr) {
+      _colorControls = new ColorPaletteControls(this);
+      addAndMakeVisible(_colorControls);
+      _headerSize = 24 * 2 + 40;
+    }
+
+    _colorControls->_rightClickMenuEnabled = false;
+    repaint();
   }
   else {
     if (_colorControls != nullptr) {
@@ -720,6 +742,7 @@ void Idea::updateIntensityParams()
 
 Idea::ColorPaletteControls::ColorPaletteControls(Idea* parent) : _parent(parent)
 {
+  _rightClickMenuEnabled = true;
 }
 
 Idea::ColorPaletteControls::~ColorPaletteControls()
@@ -777,7 +800,7 @@ void Idea::ColorPaletteControls::mouseDown(const MouseEvent & e)
 {
   // if we're not locked
   if (!_parent->_isRegionLocked) {
-    if (e.mods.isRightButtonDown()) {
+    if (e.mods.isRightButtonDown() && _rightClickMenuEnabled) {
       showExtraOptions();
     }
     else {

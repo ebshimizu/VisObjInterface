@@ -92,6 +92,7 @@ private:
 
     int _selectedColorId;
     Idea* _parent;
+    bool _rightClickMenuEnabled;
   };
 
   class IntensityPaletteControls : public Component, public SliderListener {
