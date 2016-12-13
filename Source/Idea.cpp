@@ -710,10 +710,15 @@ void Idea::updateIntensityParams()
 
   // compute brightness histogram
   SparseHistogram b(1, { 0, _binSize });
+  float mean = 0;
+  int ct = 0;
 
   for (int y = 0; y < clipped.getHeight(); y++) {
     for (int x = 0; x < clipped.getWidth(); x++) {
       Colour px = clipped.getPixelAt(x, y);
+      mean += px.getBrightness();
+      ct++;
+
       vector<float> pts;
       pts.push_back(px.getBrightness());
       b.add(pts);
@@ -722,20 +727,45 @@ void Idea::updateIntensityParams()
 
   // TODO: adjust variable selection
   // Compute some intensity distribution values
+  mean /= ct;
 
-  // total weight
-  float total = b.getTotalWeight();
-  HistogramFeature brightest = b.getLargestBin();
-  _meanBright = brightest._data._v[0];
-  _k = 2;
-  
-  // mean
-  auto dim = b.getDimension(0);
-  float sum = 0;
-  for (auto d : dim) {
-    sum += (float) (d.first * d.second);
+  float lowMean = 0;
+  float highMean = 0;
+  int ctLow = 0;
+  int ctHigh = 0;
+
+  // stats
+  for (int y = 0; y < clipped.getHeight(); y++) {
+    for (int x = 0; x < clipped.getWidth(); x++) {
+      Colour px = clipped.getPixelAt(x, y);
+
+      if (px.getBrightness() >= mean) {
+        highMean += px.getBrightness();
+        ctHigh++;
+      }
+      else {
+        lowMean += px.getBrightness();
+        ctLow++;
+      }
+    }
   }
-  _mean = sum / total;
+
+  if (ctLow == 0) {
+    highMean /= ctHigh;
+    lowMean = highMean;
+  }
+  else {
+    highMean /= ctHigh;
+    lowMean /= ctLow;
+  }
+
+  _meanBright = highMean;
+  _mean = mean;
+
+  // num bright lights
+  float pctBright = (float)ctHigh / (float)ct;
+  _k = ceil(pctBright * 4);
+
 
   _brightness = b;
 }
