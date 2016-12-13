@@ -173,7 +173,7 @@ void SceneViewer::paint (Graphics& g)
       Point<float> bottomRight = getWorldImageCoords(b.second.getBottomRight());
       g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
 
-      Rectangle<int> textBox = Rectangle<int>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight - 12, bottomRight.x, topLeft.y + _toolbarHeight - 2);
+      Rectangle<int> textBox = Rectangle<int>::leftTopRightBottom((int)topLeft.x, (int)topLeft.y + _toolbarHeight - 12, (int)bottomRight.x, (int)topLeft.y + _toolbarHeight - 2);
       g.drawFittedText(String(b.first->getName()), textBox, Justification::bottomLeft, 1);
     }
 
@@ -181,8 +181,8 @@ void SceneViewer::paint (Graphics& g)
     if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_PIN) {
       // draw current
       Array<Point<float> > pts;
-      pts.add(getWorldImageCoords(_startPoint) + Point<float>(0, _toolbarHeight));
-      pts.add(getWorldImageCoords(_currentPoint) + Point<float>(0, _toolbarHeight));
+      pts.add(getWorldImageCoords(_startPoint) + Point<float>(0, (float)_toolbarHeight));
+      pts.add(getWorldImageCoords(_currentPoint) + Point<float>(0, (float)_toolbarHeight));
       Rectangle<float> region = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
 
       g.drawRect(region, 2);
@@ -195,7 +195,7 @@ void SceneViewer::paint (Graphics& g)
 
       g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
 
-      Rectangle<int> textBox = Rectangle<int>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight - 12, bottomRight.x, topLeft.y + _toolbarHeight - 2);
+      Rectangle<int> textBox = Rectangle<int>::leftTopRightBottom((int)topLeft.x, (int)topLeft.y + _toolbarHeight - 12, (int)bottomRight.x, (int)topLeft.y + _toolbarHeight - 2);
       g.drawFittedText(String(i), textBox, Justification::bottomLeft, 1);
 
       i++;
@@ -356,9 +356,9 @@ void SceneViewer::mouseDown(const MouseEvent & event)
       pts.push_back(getWorldImageCoords(targetRegion.getBottomRight()));
       Rectangle<float> absRegion = Rectangle<float>::findAreaContainingPoints(pts.data(), 2);
       
-      Rectangle<int> loc(this->getScreenBounds().getX() + absRegion.getX(),
-        this->getScreenBounds().getY() + absRegion.getY() + _toolbarHeight,
-        absRegion.getWidth(), absRegion.getHeight());
+      Rectangle<int> loc(this->getScreenBounds().getX() + (int)absRegion.getX(),
+        this->getScreenBounds().getY() + (int)absRegion.getY() + _toolbarHeight,
+        (int)absRegion.getWidth(), (int)absRegion.getHeight());
 
       CallOutBox::launchAsynchronously(ps, loc, nullptr);
       
@@ -764,7 +764,7 @@ void SceneViewer::ParamShifter::sliderValueChanged(Slider * s)
 {
   if (s->getName() == "intens shift") {
     // relative intensity change
-    float delta = s->getValue() / 100.0;
+    float delta = (float)s->getValue() / 100.0f;
 
     auto data = _state->getRigData();
     for (auto id : _affected.getIds()) {

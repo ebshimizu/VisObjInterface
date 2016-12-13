@@ -322,14 +322,14 @@ bool SearchResultsContainer::addNewResult(shared_ptr<SearchResult> r, int callin
       // add result to new results queue
 
       // do the fullsize render here - actually now 25% render
-      width = getGlobalSettings()->_renderWidth * 0.25;
-      height = getGlobalSettings()->_renderHeight * 0.25;
+      width = (int)(getGlobalSettings()->_renderWidth * 0.25);
+      height = (int)(getGlobalSettings()->_renderHeight * 0.25);
       p->setDims(width, height);
 
       Image fullSizeImg = Image(Image::ARGB, width, height, true);
       uint8* fullBufptr = Image::BitmapData(fullSizeImg, Image::BitmapData::readWrite).getPixelPointer(0, 0);
 
-      auto renderStart = chrono::high_resolution_clock::now();
+      renderStart = chrono::high_resolution_clock::now();
       p->renderSingleFrameToBuffer(s->getDevices(), fullBufptr, width, height);
       getGlobalSettings()->_timings[callingThreadId]._addResultRenderTime += chrono::duration<float>(chrono::high_resolution_clock::now() - renderStart).count();
 
@@ -1392,7 +1392,7 @@ Array<shared_ptr<SearchResultContainer>> SearchResultsContainer::getKCenters(int
   // cluster on top 50%
   DefaultSorter sorter;
   all.sort(sorter);
-  all.removeRange(all.size() * 0.50, all.size());
+  all.removeRange((int)(all.size() * 0.50), all.size());
 
   distFuncType f = [metric](SearchResultContainer* x, SearchResultContainer* y) {
     return x->dist(y, metric, false, false);

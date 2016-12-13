@@ -140,9 +140,6 @@ public:
   // create an empty schedule
   GibbsSchedule();
   
-  // create a schedule from an image
-  GibbsSchedule(Image& img);
-
   ~GibbsSchedule();
 
   // add a new sampler to the schedule

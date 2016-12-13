@@ -1152,7 +1152,7 @@ void MainContentComponent::startAuto()
 
     default_random_engine gen(std::random_device{}());
     uniform_real_distribution<float> udist(50, 500);
-    uniform_real_distribution<float> edist(0, getGlobalSettings()->_edits.size());
+    uniform_real_distribution<float> edist(0, (float)getGlobalSettings()->_edits.size());
 
     Snapshot* target = new Snapshot(getRig());
 
@@ -1310,7 +1310,7 @@ void MainContentComponent::endAuto()
     float timeSinceStart = chrono::duration<float>(r->getSearchResult()->_creationTime - getGlobalSettings()->_searchStartTime).count();
     
     // lab distance to target
-    Snapshot* s = vectorToSnapshot(r->getSearchResult()->_scene);
+    s = vectorToSnapshot(r->getSearchResult()->_scene);
     double labDist = attr->avgLabDistance(s);
     delete s;
 
@@ -1363,22 +1363,21 @@ void MainContentComponent::endAuto()
     if (i > 10)
       break;
 
-    Snapshot* s = vectorToSnapshot(results[it->second]->getSearchResult()->_scene);
+    s = vectorToSnapshot(results[it->second]->getSearchResult()->_scene);
     auto p = getAnimationPatch();
 
     // with caching we can render at full and then scale down
-    Image img = Image(Image::ARGB, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight, true);
-    uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+    Image render = Image(Image::ARGB, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight, true);
+    uint8* bufptr = Image::BitmapData(render, Image::BitmapData::readWrite).getPixelPointer(0, 0);
     p->setDims(getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
 
-    getAnimationPatch()->renderSingleFrameToBuffer(s->getDevices(), bufptr, img.getWidth(), img.getHeight());
+    getAnimationPatch()->renderSingleFrameToBuffer(s->getDevices(), bufptr, render.getWidth(), render.getHeight());
     File imgf = resultsFolder.getChildFile(String(i) + "-" + String(results[it->second]->getSearchResult()->_sampleNo) + ".png");
-    FileOutputStream os(imgf);
-    PNGImageFormat pngif;
+    FileOutputStream os2(imgf);
 
     // get the attribute image (the original)
     // the attribute should be the only one in the controls
-    pngif.writeImageToStream(img, os);
+    pngif.writeImageToStream(render, os2);
     i++;
   }
 
@@ -1571,7 +1570,7 @@ void MainContentComponent::stopSearch()
   getStatusBar()->setStatusMessage("Search stopped.");
 
   // calculate per-thread stats, ignore thread id -1
-  float avgSamples;
+  float avgSamples = 0;
   int count = 0;
   int totalSamples = 0;
   for (auto threadData : getGlobalSettings()->_timings) {

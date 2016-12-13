@@ -115,8 +115,8 @@ void SystemExplorer::updateAllImages(Snapshot* rigState)
       }
     }
 
-    _currentImg = renderImage(_currentState, getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale,
-      getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
+    _currentImg = renderImage(_currentState, (int)(getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale),
+      (int)(getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale));
   }
 }
 
@@ -275,8 +275,8 @@ void SystemExplorer::init()
   _intens.setSliderStyle(Slider::SliderStyle::LinearBar);
   addAndMakeVisible(_intens);
 
-  _currentImg = renderImage(_currentState, getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale,
-    getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
+  _currentImg = renderImage(_currentState, (int)(getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale),
+    (int)(getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale));
   _isBlackout = false;
   _isSolo = false;
   _temp = new Snapshot(*_currentState);
@@ -385,8 +385,8 @@ void SystemExplorer::blackout()
     }
   }
 
-  _currentImg = renderImage(tmp, getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale,
-    getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
+  _currentImg = renderImage(tmp, (int)(getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale),
+    (int)(getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale));
   delete tmp;
 
   _blackout.setToggleState(_isBlackout, dontSendNotification);
@@ -419,8 +419,8 @@ void SystemExplorer::unBlackout()
     }
   }
 
-  _currentImg = renderImage(_currentState, getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale,
-    getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale);
+  _currentImg = renderImage(_currentState, (int)(getGlobalSettings()->_renderWidth * getGlobalSettings()->_thumbnailRenderScale),
+    (int)(getGlobalSettings()->_renderHeight * getGlobalSettings()->_thumbnailRenderScale));
   _blackout.setToggleState(_isBlackout, dontSendNotification);
 }
 
@@ -562,14 +562,14 @@ void SystemExplorer::sliderValueChanged(Slider * s)
     // due to this happening fairly frequently while drawing, we update the rig
     // by itself here
     for (auto d : _selected.getIds()) {
-      getRig()->getDevice(d)->getIntensity()->setValAsPercent(s->getValue() / 100.0);
+      getRig()->getDevice(d)->getIntensity()->setValAsPercent((float)s->getValue() / 100.0f);
     }
 
     getGlobalSettings()->invalidateCache();
   }
   else if (s->getName() == "intens shift") {
     // relative intensity change
-    float delta = s->getValue() / 100.0;
+    float delta = (float)s->getValue() / 100.0f;
 
     auto data = _currentState->getRigData();
     for (auto id : _selected.getIds()) {
@@ -653,7 +653,7 @@ void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
 
   // now render the thing
   // we'll render at 25% of full res for now, to test speed
-  Image preview = renderImage(_temp, getGlobalSettings()->_renderWidth * 0.25, getGlobalSettings()->_renderHeight * 0.25);
+  Image preview = renderImage(_temp, (int)(getGlobalSettings()->_renderWidth * 0.25), (int)(getGlobalSettings()->_renderHeight * 0.25));
   result->setImage(preview);
 
   // search data
@@ -664,7 +664,7 @@ void SystemExplorer::updateSingleImage(shared_ptr<SearchResultContainer> result)
   result->_sortVals["hue"] = hsv[0];
 
   // hsv combined
-  float hsCombo = round(hsv[0]) + hsv[1];
+  double hsCombo = round(hsv[0]) + hsv[1];
   result->_sortVals["hs"] = hsCombo;
 }
 
@@ -1012,7 +1012,7 @@ void SystemExplorerContainer::buttonClicked(Button * b)
     // this is a delete button
     String toDelete = b->getName();
 
-    SystemExplorer* toRemove;
+    SystemExplorer* toRemove = nullptr;
     for (auto v : _explorers) {
       if (v->getName() == toDelete) {
         toRemove = v;
@@ -1096,7 +1096,7 @@ void ExplorerPanel::paint(Graphics & g)
   g.fillAll(Colour(0xff333333));
 }
 
-void ExplorerPanel::buttonClicked(Button * b)
+void ExplorerPanel::buttonClicked(Button * /*b*/)
 {
 }
 

@@ -172,5 +172,4 @@ typedef struct
 
 } cmaes_t; 
 
-
 #endif 

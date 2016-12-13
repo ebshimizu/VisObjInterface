@@ -222,15 +222,15 @@ void GibbsSamplingGaussianMixturePrior(std::vector<float>& result,
     if (c[i] != 3)
       continue;
 
-    int n_left = n - n_sampled;
+    // int n_left = n - n_sampled;
 
     // Target number of directed lights
-    int target_k = (k - sample_k > 0) ? (k - sample_k) : 0; // clip at zero
+    //int target_k = (k - sample_k > 0) ? (k - sample_k) : 0; // clip at zero
                                                             // Target mean for the rest of the samples
-    float target_ma = ((float)n * ma - (float)n_sampled * sample_mean) / (float)n_left;
+    //float target_ma = ((float)n * ma - (float)n_sampled * sample_mean) / (float)n_left;
 
     // Target mean for the low intensity gaussian
-    float target_ml = ((float)n_left * target_ma - (float)target_k * mh) / ((float)n_left - (float)target_k);
+    //float target_ml = ((float)n_left * target_ma - (float)target_k * mh) / ((float)n_left - (float)target_k);
 
     float current_sample = result[i];
 
@@ -299,7 +299,7 @@ void GibbsSamplingGaussianMixturePrior(std::vector<float>& result,
     // with increasing n_sampled past 4, the chance of actually using a light
     // drops lower and lower. Generally past this number of systems, things start getting washed out
     // and should be used in moderation
-    float sampleChance = (n_sampled < maxLights) ? 1 : Lumiverse::clamp(pow(penalty, n_sampled - maxLights), 0.05, 1);
+    float sampleChance = (n_sampled < maxLights) ? 1 : Lumiverse::clamp(pow(penalty, n_sampled - maxLights), 0.05f, 1);
 
     if (sampleChance < uniform_0_1(gen)) {
       unconstrained_samples[i] = 0;

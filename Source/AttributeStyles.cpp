@@ -27,7 +27,7 @@ double getStyleTerm(Style st, Snapshot* s, Image& img)
   }
 }
 
-double sideLightStyle(Snapshot * s, Image & img)
+double sideLightStyle(Snapshot * s, Image & /* img */)
 {
   double sideIntens = 0;
   double otherIntens = 0;
@@ -48,7 +48,7 @@ double sideLightStyle(Snapshot * s, Image & img)
   return r * 30;
 }
 
-double directionalLightStyle(Snapshot * s, Image & img)
+double directionalLightStyle(Snapshot * s, Image & /*img*/)
 {
   map<string, double> sysIntens;
 
@@ -73,7 +73,7 @@ double directionalLightStyle(Snapshot * s, Image & img)
   return (maxIntens / totalIntens) * 30;
 }
 
-double flatLightStyle(Snapshot* s, Image& img) {
+double flatLightStyle(Snapshot* s, Image& /*img*/) {
   double frontIntens = 0;
   double backIntens = 0;
 

@@ -22,8 +22,8 @@ void Sampler::computeSystemSensitivity()
 {
   int imgWidth = 100;
   int imgHeight = 100;
-  Rectangle<int> cropRegion = Rectangle<int>(_region.getX() * imgWidth, _region.getY() * imgHeight,
-    _region.getWidth() * imgWidth, _region.getHeight() * imgHeight);
+  Rectangle<int> cropRegion = Rectangle<int>((int)(_region.getX() * imgWidth), (int)(_region.getY() * imgHeight),
+    (int)(_region.getWidth() * imgWidth), (int)(_region.getHeight() * imgHeight));
 
   _systemSensitivity.clear();
   DeviceSet allDevices = getRig()->getAllDevices();
@@ -62,7 +62,7 @@ void Sampler::computeSystemSensitivity()
 
     // adjust to 51%
     for (auto id : active.getIds()) {
-      tmpData[id]->getIntensity()->setValAsPercent(0.51);
+      tmpData[id]->getIntensity()->setValAsPercent(0.51f);
     }
 
     // render
@@ -150,8 +150,8 @@ void ColorSampler::sample(Snapshot * state)
   ClosureOverUnevenBuckets(results, _weights, colorIds, bins);
 
   // fill in the results if not pinned
-  for (int i = 0; i < results.size(); i++) {
-    Eigen::Vector3d color = _colors[colorIds[i]];
+  for (int j = 0; j < results.size(); j++) {
+    Eigen::Vector3d color = _colors[colorIds[j]];
 
     // perterb the color a little bit
     std::random_device rd;
@@ -164,7 +164,7 @@ void ColorSampler::sample(Snapshot * state)
     color[2] += satDist(gen);
 
     // apply color to each light in the system
-    for (string id : systemMap[i].getIds()) {
+    for (string id : systemMap[j].getIds()) {
       if (_colorPins.count(id) == 0 && stateData[id]->paramExists("color")) {
           stateData[id]->getColor()->setHSV(color[0] * 360.0, color[1], color[2]);
       }
@@ -172,17 +172,17 @@ void ColorSampler::sample(Snapshot * state)
   }
 }
 
-double ColorSampler::score(Snapshot * state, Image & img, bool masked)
+double ColorSampler::score(Snapshot * /* state */, Image & img, bool masked)
 {
   // compute histogram from scaled region
-  Rectangle<int> region = Rectangle<int>(_region.getX() * img.getWidth(), _region.getY() * img.getHeight(),
-    _region.getWidth() * img.getWidth(), _region.getHeight() * img.getHeight());
+  Rectangle<int> region = Rectangle<int>((int)(_region.getX() * img.getWidth()), (int)(_region.getY() * img.getHeight()),
+    (int)(_region.getWidth() * img.getWidth()), (int)(_region.getHeight() * img.getHeight()));
   Image clipped = img.getClippedImage(region);
   Image clippedMask = getGlobalSettings()->_fgMask.rescaled(img.getWidth(), img.getHeight()).getClippedImage(region);
 
   // scale, 200 max dim
   float scale = (clipped.getWidth() > clipped.getHeight()) ? 200.0f / clipped.getWidth() : 200.0f / clipped.getHeight();
-  clipped = clipped.rescaled(scale * clipped.getWidth(), scale * clipped.getHeight());
+  clipped = clipped.rescaled((int)(scale * clipped.getWidth()), (int)(scale * clipped.getHeight()));
   clippedMask = clippedMask.rescaled(clipped.getWidth(), clipped.getHeight());
 
   // do the thing
@@ -229,7 +229,7 @@ void ColorSampler::normalizeWeights()
 
   // divide
   for (int i = 0; i < _weights.size(); i++) {
-    _weights[i] /= sum;
+    _weights[i] /= (float)sum;
   }
 }
 
@@ -279,7 +279,7 @@ void PinSampler::sample(Snapshot * state)
   for (auto id : _intensPins) {
     if (stateData[id]->paramExists("intensity")) {
       double newIntens = stateData[id]->getIntensity()->asPercent() + intensDist(gen);
-      stateData[id]->getIntensity()->setValAsPercent(newIntens);
+      stateData[id]->getIntensity()->setValAsPercent((float)newIntens);
     }
   }
 
@@ -318,7 +318,6 @@ void IntensitySampler::sample(Snapshot * state)
   auto stateData = state->getRigData();
 
   auto systems = getRig()->getMetadataValues("system");
-  int i = 0;
 
   for (auto system : systems) {
     DeviceSet globalSys = getRig()->select("$system=" + system);
@@ -334,7 +333,7 @@ void IntensitySampler::sample(Snapshot * state)
     }
 
     results.push_back(0);
-    sens.push_back(_systemSensitivity[system]);
+    sens.push_back((float)(_systemSensitivity[system]));
     systemMap.push_back(localSys);
 
     if (localSys.size() > 0) {
@@ -347,15 +346,15 @@ void IntensitySampler::sample(Snapshot * state)
   }
 
   // sample
-  GibbsSamplingGaussianMixturePrior(results, constraint, sens, results.size(), _k, _brightMean, _mean,
+  GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), _k, _brightMean, _mean,
     getGlobalSettings()->_maxAllowedLights, getGlobalSettings()->_maxLightPenalty);
 
   // apply to snapshot
-  for (int i = 0; i < results.size(); i++) {
-    float intens = results[i];
+  for (int j = 0; j < results.size(); j++) {
+    float intens = results[j];
 
     // apply color to each light in the system
-    for (string id : systemMap[i].getIds()) {
+    for (string id : systemMap[j].getIds()) {
       if (_intensPins.count(id) == 0 && stateData[id]->paramExists("intensity")) {
         stateData[id]->getIntensity()->setValAsPercent(intens);
       }
@@ -363,17 +362,17 @@ void IntensitySampler::sample(Snapshot * state)
   }
 }
 
-double IntensitySampler::score(Snapshot * state, Image& img, bool masked)
+double IntensitySampler::score(Snapshot * /*state*/, Image& img, bool masked)
 {
   // compute histogram from scaled region
-  Rectangle<int> region = Rectangle<int>(_region.getX() * img.getWidth(), _region.getY() * img.getHeight(),
-    _region.getWidth() * img.getWidth(), _region.getHeight() * img.getHeight());
+  Rectangle<int> region = Rectangle<int>((int)(_region.getX() * img.getWidth()), (int)(_region.getY() * img.getHeight()),
+    (int)(_region.getWidth() * img.getWidth()), (int)(_region.getHeight() * img.getHeight()));
   Image clipped = img.getClippedImage(region);
   Image clippedMask = getGlobalSettings()->_fgMask.rescaled(img.getWidth(), img.getHeight()).getClippedImage(region);
 
   // scale, 200 max dim
   float scale = (clipped.getWidth() > clipped.getHeight()) ? 200.0f / clipped.getWidth() : 200.0f / clipped.getHeight();
-  clipped = clipped.rescaled(scale * clipped.getWidth(), scale * clipped.getHeight());
+  clipped = clipped.rescaled((int)(scale * clipped.getWidth()), (int)(scale * clipped.getHeight()));
   clippedMask = clippedMask.rescaled(clipped.getWidth(), clipped.getHeight());
 
   // do the thing
@@ -426,8 +425,6 @@ void MonochromeSampler::sample(Snapshot * state)
   auto stateData = state->getRigData();
 
   auto systems = getRig()->getMetadataValues("system");
-  int i = 0;
-
   for (auto system : systems) {
     DeviceSet globalSys = getRig()->select("$system=" + system);
     DeviceSet localSys(getRig());
@@ -446,16 +443,16 @@ void MonochromeSampler::sample(Snapshot * state)
   // sample
   std::random_device rd;
   std::mt19937 gen(rd());
-  normal_distribution<double> hueDist(0, 0.01);
-  normal_distribution<double> satDist(0, 0.2);
+  normal_distribution<float> hueDist(0, 0.01f);
+  normal_distribution<float> satDist(0, 0.2f);
   float hue = _target.getHue() + hueDist(gen);
   float sat = _target.getSaturation() + satDist(gen);
 
   // apply to snapshot
-  for (int i = 0; i < systemMap.size(); i++) {
+  for (int j = 0; j < systemMap.size(); j++) {
 
     // apply color to each light in the system
-    for (string id : systemMap[i].getIds()) {
+    for (string id : systemMap[j].getIds()) {
       if (_colorPins.count(id) == 0 && stateData[id]->paramExists("color")) {
         stateData[id]->getColor()->setHSV(hue * 360, sat, _target.getBrightness());
       }
@@ -463,23 +460,44 @@ void MonochromeSampler::sample(Snapshot * state)
   }
 }
 
-double MonochromeSampler::score(Snapshot * state, Image & img, bool masked)
+double MonochromeSampler::score(Snapshot * /*state*/, Image & img, bool masked)
 {
+  // compute histogram from scaled region
+  Rectangle<int> region = Rectangle<int>((int)(_region.getX() * img.getWidth()), (int)(_region.getY() * img.getHeight()),
+    (int)(_region.getWidth() * img.getWidth()), (int)(_region.getHeight() * img.getHeight()));
+  Image clipped = img.getClippedImage(region);
+  Image clippedMask = getGlobalSettings()->_fgMask.rescaled(img.getWidth(), img.getHeight()).getClippedImage(region);
+
+  // scale, 200 max dim
+  float scale = (clipped.getWidth() > clipped.getHeight()) ? 200.0f / clipped.getWidth() : 200.0f / clipped.getHeight();
+  clipped = clipped.rescaled((int)(scale * clipped.getWidth()), (int)(scale * clipped.getHeight()));
+  clippedMask = clippedMask.rescaled(clipped.getWidth(), clipped.getHeight());
+
   Eigen::Vector3f t;
   _target.getHSB(t[0], t[1], t[2]);
 
   float sum = 0;
   // per-pixel average difference from target
-  for (int y = 0; y < img.getHeight(); y++) {
-    for (int x = 0; x < img.getWidth(); x++) {
-      Eigen::Vector3f px;
-      img.getPixelAt(x, y).getHSB(px[0], px[1], px[2]);
+  for (int y = 0; y < clipped.getHeight(); y++) {
+    for (int x = 0; x < clipped.getWidth(); x++) {
+      if (masked && getGlobalSettings()->_useFGMask) {
+        if (clippedMask.getPixelAt(x, y).getBrightness() > 0) {
+          Eigen::Vector3f px;
+          img.getPixelAt(x, y).getHSB(px[0], px[1], px[2]);
 
-      sum += (t - px).norm();
+          sum += (t - px).norm();
+        }
+      }
+      else {
+        Eigen::Vector3f px;
+        img.getPixelAt(x, y).getHSB(px[0], px[1], px[2]);
+
+        sum += (t - px).norm();
+      }
     }
   }
 
-  return sum / (img.getHeight() * img.getWidth());
+  return sum / (clipped.getHeight() * clipped.getWidth());
 }
 
 TheatricalSampler::TheatricalSampler(DeviceSet affectedDevices, Rectangle<float> region,
@@ -516,7 +534,6 @@ void TheatricalSampler::sample(Snapshot * state)
   vector<DeviceSet> systemMap;
 
   vector<string> systems = { "front", "front left", "front right", "key", "fill" };
-  int i = 0;
 
   for (auto system : systems) {
     DeviceSet globalSys = getRig()->select("$system=" + system);
@@ -548,7 +565,7 @@ void TheatricalSampler::sample(Snapshot * state)
     colors.push_back(cctToRgb(ctb(gen)));
     colors.push_back(cctToRgb(ctw(gen)));
 
-    for (int i = 0; i < ((int)systemMap.size()) - 2; i++) {
+    for (int j = 0; j < ((int)systemMap.size()) - j; j++) {
       colors.push_back(cctToRgb(all(gen)));
     }
   }
@@ -584,20 +601,20 @@ Eigen::Vector3d TheatricalSampler::cctToRgb(int cct)
   }
   else {
     red = temp - 60;
-    red = 329.698727446 * pow(red, -0.1332047592);
-    red = Lumiverse::clamp(red, 0, 255);
+    red = 329.698727446f * pow(red, -0.1332047592f);
+    red = Lumiverse::clamp(red, 0, 255.f);
   }
 
   float green;
   if (temp <= 66) {
     green = temp;
-    green = 99.4708025861 * log(green) - 161.1195681661;
+    green = 99.4708025861f * log(green) - 161.1195681661f;
   }
   else {
     green = temp - 60;
-    green = 288.1221695283 * pow(green, -0.0755148492);
+    green = 288.1221695283f * pow(green, -0.0755148492f);
   }
-  green = Lumiverse::clamp(green, 0, 255);
+  green = Lumiverse::clamp(green, 0, 255.f);
 
   float blue;
   if (temp >= 66) {
@@ -608,7 +625,7 @@ Eigen::Vector3d TheatricalSampler::cctToRgb(int cct)
       blue = 0;
     else {
       blue = temp - 10;
-      blue = 138.5177312231 * log(blue) - 305.0447927307;
+      blue = 138.5177312231f * log(blue) - 305.0447927307f;
     }
   }
 
@@ -619,10 +636,6 @@ Eigen::Vector3d TheatricalSampler::cctToRgb(int cct)
 // =============================================================================
 
 GibbsSchedule::GibbsSchedule()
-{
-}
-
-GibbsSchedule::GibbsSchedule(Image & img)
 {
 }
 
@@ -647,8 +660,8 @@ void GibbsSchedule::score(shared_ptr<SearchResult> result, Snapshot* state)
 {
   int width = getGlobalSettings()->_renderWidth;
   int height = getGlobalSettings()->_renderHeight;
-  Image render = renderImage(state, getGlobalSettings()->_thumbnailRenderScale * width,
-    getGlobalSettings()->_thumbnailRenderScale * height);
+  Image render = renderImage(state, (int)(getGlobalSettings()->_thumbnailRenderScale * width),
+    (int)(getGlobalSettings()->_thumbnailRenderScale * height));
 
   for (auto s : _samplers) {
     if (s->_name == "Pinned")

@@ -93,7 +93,7 @@ public:
 
                   // calculate color
                   double sat = (pt.norm() / radius);
-                  pixels.setPixelColour(x, y, Colour(angle / (M_PI * 2), (float)sat, v, 1.0f));
+                  pixels.setPixelColour(x, y, Colour((float)(angle / (M_PI * 2)), (float)sat, v, 1.0f));
                 }
               }
             }
@@ -114,8 +114,8 @@ public:
 
     void mouseDrag (const MouseEvent& e) override
     {
-      float centerX = (getWidth() - edge * 2) / 2;
-      float centerY = (getHeight() - edge * 2) / 2;
+      float centerX = (float) ((getWidth() - edge * 2) / 2);
+      float centerY = (float) ((getHeight() - edge * 2) / 2);
 
       // this is a radial map of the HSV color space
       float radius = centerX;
@@ -131,10 +131,10 @@ public:
 
       // out of bounds
       if (pt.norm() > radius) {
-        owner.setHS(angle / (M_PI * 2), 1);
+        owner.setHS((float)(angle / (M_PI * 2)), 1);
       }
       else {
-        owner.setHS(angle / (M_PI * 2), pt.norm() / radius);
+        owner.setHS((float)(angle / (M_PI * 2)), (float)(pt.norm() / radius));
       }
     }
 

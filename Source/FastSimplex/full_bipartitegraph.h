@@ -76,7 +76,10 @@ namespace lemon {
     int maxNodeId() const { return _node_num - 1; }
     long long maxArcId() const { return _arc_num - 1; }
 
+#pragma warning(push)
+#pragma warning(disable : 4244)
     Node source(Arc arc) const { return arc / _n2; }
+#pragma warning(pop)
     Node target(Arc arc) const { return (arc % _n2) + _n1; }
 
     static int id(Node node) { return node; }

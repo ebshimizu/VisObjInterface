@@ -14,6 +14,8 @@
      License: see file cmaes.c
 */
 #include "cmaes.h"
+#pragma warning(push)
+#pragma warning(disable : 4706)
 
 /* --------------------------------------------------------- */
 /* ------------------ Interface ---------------------------- */
@@ -66,3 +68,4 @@ void           cmaes_FATAL(char const *s1, char const *s2, char const *s3,
 } // end extern "C"
 #endif
 
+#pragma warning(pop)

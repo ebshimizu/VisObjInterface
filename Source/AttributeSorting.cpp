@@ -87,8 +87,11 @@ int StyleSorter::compareElements(shared_ptr<SearchResultContainer> first, shared
   Snapshot* s1 = vectorToSnapshot(first->getSearchResult()->_scene);
   Snapshot* s2 = vectorToSnapshot(second->getSearchResult()->_scene);
 
-  double sv1 = getStyleTerm(_s, s1, first->getImage());
-  double sv2 = getStyleTerm(_s, s2, second->getImage());
+  Image i1 = first->getImage();
+  Image i2 = second->getImage();
+
+  double sv1 = getStyleTerm(_s, s1, i1);
+  double sv2 = getStyleTerm(_s, s2, i2);
 
   delete s1;
   delete s2;

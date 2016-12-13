@@ -480,7 +480,7 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
     }
     else if (i->getType() == MONOCHROME) {
       auto target = i->getColors()[0];
-      Colour c((float)target[0], target[1], target[2], 1.0f);
+      Colour c((float)target[0], (float)target[1], (float)target[2], 1.0f);
       MonochromeSampler* monochromeSampler = new MonochromeSampler(affected, r, ip, cp, c);
       monochromeSampler->_name = i->getName().toStdString();
       sched->addSampler((Sampler*)monochromeSampler);
@@ -614,8 +614,8 @@ DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, dou
   int width = getGlobalSettings()->_sensitivityCache.begin()->second.i100.getWidth();
   int height = getGlobalSettings()->_sensitivityCache.begin()->second.i100.getHeight();
 
-  Rectangle<int> scaledRegion = Rectangle<int>(region.getX() * width, region.getY() * height,
-    region.getWidth() * width, region.getHeight() * height);
+  Rectangle<int> scaledRegion = Rectangle<int>((int)(region.getX() * width), (int)(region.getY() * height),
+    (int)(region.getWidth() * width), (int)(region.getHeight() * height));
 
   for (auto id : getRig()->getAllDevices().getIds()) {
     // compute sensitivity from cache cropped from bounding box
@@ -656,8 +656,8 @@ DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, map
   int width = getGlobalSettings()->_sensitivityCache.begin()->second.i100.getWidth();
   int height = getGlobalSettings()->_sensitivityCache.begin()->second.i100.getHeight();
 
-  Rectangle<int> scaledRegion = Rectangle<int>(region.getX() * width, region.getY() * height,
-    region.getWidth() * width, region.getHeight() * height);
+  Rectangle<int> scaledRegion = Rectangle<int>((int)(region.getX() * width), (int)(region.getY() * height),
+    (int)(region.getWidth() * width), (int)(region.getHeight() * height));
 
   for (auto id : getRig()->getAllDevices().getIds()) {
     // compute sensitivity from cache cropped from bounding box

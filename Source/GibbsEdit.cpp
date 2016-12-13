@@ -40,7 +40,7 @@ void GibbsEdit::setAffected(string field, EditParam param)
   }
 }
 
-void GibbsEdit::performEdit(Snapshot * s, double stepSize)
+void GibbsEdit::performEdit(Snapshot * s, double /*stepSize*/)
 {
   // here instead of using a delta we set all device sets and their parameters
   // according to a gibbs sampling process. 
@@ -51,7 +51,7 @@ void GibbsEdit::performEdit(Snapshot * s, double stepSize)
   results.resize(_affectedSets.size());
 
   vector<int> constraint;
-  for (auto s : _affectedSets) {
+  for (auto sn : _affectedSets) {
     constraint.push_back(0);
   }
 

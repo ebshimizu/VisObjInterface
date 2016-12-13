@@ -200,8 +200,6 @@ ColorPickerButton::~ColorPickerButton()
 
 void ColorPickerButton::paint(Graphics & g)
 {
-  LookAndFeel& lf = getLookAndFeel();
-
   if (isDeviceParamLocked(_id, _param)) {
     g.setColour(Colour(0xFFFF3838));
   }
@@ -407,7 +405,7 @@ int ParamControls::getNumRows()
   return _ids.size();
 }
 
-void ParamControls::paintRowBackground(Graphics & g, int rowNumber, int width, int height, bool rowIsSelected)
+void ParamControls::paintRowBackground(Graphics & g, int /* rowNumber */, int /* width */, int /* height */, bool rowIsSelected)
 {
   if (rowIsSelected)
     g.fillAll(Colours::lightblue);
@@ -452,7 +450,7 @@ void ParamControls::paintCell(Graphics & g, int rowNumber, int columnId, int wid
   }
 }
 
-Component * ParamControls::refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, Component * existingComponentToUpdate)
+Component * ParamControls::refreshComponentForCell(int rowNumber, int columnId, bool /* isRowSelected */, Component * existingComponentToUpdate)
 {
   if (columnId == 2) {
     Slider* intensSlider = static_cast<Slider*>(existingComponentToUpdate);
@@ -526,7 +524,7 @@ void ParamControls::selectedRowsChanged(int lastRowSelected)
   repaint();
 }
 
-void ParamControls::cellClicked(int rowNumber, int columnId, const MouseEvent & e)
+void ParamControls::cellClicked(int rowNumber, int columnId, const MouseEvent & /*e*/)
 {
   if (columnId == 3) {
     toggleDeviceParamLock(_ids[rowNumber].toStdString(), "intensity");
@@ -543,7 +541,7 @@ void ParamControls::cellClicked(int rowNumber, int columnId, const MouseEvent & 
 void ParamControls::sliderValueChanged(Slider * s)
 {
   if (s->getName() == "Group Intensity") {
-    float val = s->getValue() / 100.0f;
+    float val = (float)s->getValue() / 100.0f;
     for (auto& id : _selected) {
       getRig()->getDevice(id.toStdString())->getIntensity()->setValAsPercent(val);
     }
@@ -551,7 +549,7 @@ void ParamControls::sliderValueChanged(Slider * s)
     refreshParams();
   }
   else {
-    getRig()->getDevice(s->getName().toStdString())->getIntensity()->setValAsPercent(s->getValue() / 100);
+    getRig()->getDevice(s->getName().toStdString())->getIntensity()->setValAsPercent((float)s->getValue() / 100.f);
   }
 
   getGlobalSettings()->invalidateCache();

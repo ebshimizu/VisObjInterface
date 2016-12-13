@@ -127,7 +127,7 @@ float EditStats::variance() {
     vals[i] = _vals[i];
   }
 
-  Eigen::VectorXf shifted = (vals - mean * Eigen::VectorXf::Ones(_vals.size()));
+  Eigen::VectorXf shifted = (vals - (float)mean * Eigen::VectorXf::Ones(_vals.size()));
   shifted = shifted.cwiseProduct(shifted);
   return shifted.sum() / _vals.size();
 }
@@ -619,9 +619,6 @@ void AttributeSearchThread::runSearchNoInnerLoop()
   int depth = 0;
   Edit* e = nullptr;
 
-  // magic number alert
-  int iters = getGlobalSettings()->_maxMCMCIters;
-
   // depth increases when scenes are rejected from the viewer
   while (depth < _maxDepth) {
     if (threadShouldExit()) {
@@ -845,9 +842,6 @@ void AttributeSearchThread::runRepulsionKMCMC()
   int depth = 0;
   Edit* e = nullptr;
 
-  // magic number alert
-  int iters = getGlobalSettings()->_maxMCMCIters;
-
   // depth increases when scenes are rejected from the viewer
   while (depth < _maxDepth) {
     if (threadShouldExit()) {
@@ -1044,7 +1038,7 @@ Eigen::VectorXd AttributeSearchThread::CMAESHelper(const Eigen::VectorXd & start
   const float baseStdDev = 0.01f;
   cmaes_t opt;
 
-  const int dimension = startingPoint.size();
+  const int dimension = (int)startingPoint.size();
   vector<double> xStart, stdDev;
   for (int i = 0; i < startingPoint.size(); i++) {
     stdDev.push_back(baseStdDev);
@@ -1159,7 +1153,7 @@ void AttributeSearchThread::randomizeStart()
 {
   default_random_engine gen(std::random_device{}());
   uniform_real_distribution<float> udist(50, 500);
-  uniform_real_distribution<float> edist(0, getGlobalSettings()->_edits.size());
+  uniform_real_distribution<float> edist(0, (float)getGlobalSettings()->_edits.size());
 
   // only use the edits in globals to maintain consistency
   for (int i = 0; i < (int)udist(gen); i++) {
@@ -1181,7 +1175,6 @@ Eigen::VectorXd AttributeSearchThread::performLMGD(Snapshot* scene, double& fina
   double eps2 = 1e-6;
   double tau = 1e-3;
   double fx = _fsq(&xs, _id, _currentStyle);
-  double forig = fx;
 
   Eigen::MatrixXd J = getJacobian(xs);
   Eigen::MatrixXd H = J.transpose() * J;		// may need to replace with actual calculation of Hessian
@@ -1258,7 +1251,7 @@ void AttributeSearchThread::setLocalWeightsUniform()
 {
   _localEditWeights.clear();
 
-  float sum = _edits.size();
+  float sum = (float)_edits.size();
 
   for (int i = 0; i < _edits.size(); i++) {
     _localEditWeights[(i + 1) / sum] = _edits[i];
@@ -1310,7 +1303,7 @@ void AttributeSearchThread::updateEditWeights(Edit* lastUsed, double gain)
 
     // then the weights are normalized
     for (auto e : _edits) {
-      sum += (double)_editStats[e]._success / (_editStats[e]._success + _editStats[e]._failure);
+      sum += (float)_editStats[e]._success / (_editStats[e]._success + _editStats[e]._failure);
       weights[sum / totalWeight] = e;
     }
 
@@ -1519,7 +1512,7 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
       else if (kvp.second.second == A_EQUAL) {
         if (startImg.getWidth() == 0) {
           auto renderStart = chrono::high_resolution_clock::now();
-          Image startImg = _active.begin()->second.first->generateImage(_start);
+          startImg = _active.begin()->second.first->generateImage(_start);
           getGlobalSettings()->_timings[callingThreadId]._sampleRenderTime += chrono::duration<float>(chrono::high_resolution_clock::now() - renderStart).count();
         }
         auto evalStart = chrono::high_resolution_clock::now();
@@ -1532,7 +1525,7 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
     if (_useMask) {
       if (startImg.getWidth() == 0) {
         auto renderStart = chrono::high_resolution_clock::now();
-        Image startImg = _active.begin()->second.first->generateImage(_start);
+        startImg = _active.begin()->second.first->generateImage(_start);
         getGlobalSettings()->_timings[callingThreadId]._sampleRenderTime += chrono::duration<float>(chrono::high_resolution_clock::now() - renderStart).count();
       }
       sum += avgLabMaskedImgDiff(img, startImg, _freezeMask);
@@ -1548,7 +1541,7 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
 
   // this function is not instrumented at the moment due it it only being used in LMGD, which is not
   // actively being looked at.
-  _fsq = [this](Snapshot* s, int callingThreadId, Style st) {
+  _fsq = [this](Snapshot* s, int /* callingThreadId */, Style st) {
     if (_active.size() == 0)
       return 0.0;
 
@@ -1567,7 +1560,7 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
       }
       else if (kvp.second.second == A_EQUAL) {
         if (startImg.getWidth() == 0) {
-          Image startImg = _active.begin()->second.first->generateImage(_start);
+          startImg = _active.begin()->second.first->generateImage(_start);
         }
         sum += pow(kvp.second.first->evaluateScene(s, img) - kvp.second.first->evaluateScene(_start, startImg), 2);
       }
@@ -1576,7 +1569,7 @@ void AttributeSearch::setState(Snapshot* start, map<string, AttributeControllerB
     // freeze region penalty
     if (_useMask) {
       if (startImg.getWidth() == 0) {
-        Image startImg = _active.begin()->second.first->generateImage(_start);
+        startImg = _active.begin()->second.first->generateImage(_start);
       }
       sum += avgLabMaskedImgDiff(img, startImg, _freezeMask);
     }

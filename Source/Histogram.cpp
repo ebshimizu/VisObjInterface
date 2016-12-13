@@ -291,9 +291,9 @@ Histogram3D::~Histogram3D()
 void Histogram3D::addValToBin(double x, double y, double z)
 {
   // scale x, y, z to proper values and find what bin they're in
-  int xbin = (int)Lumiverse::clamp(((x - _xmin) / (_xmax - _xmin)) * _x, 0, _x - 1);
-  int ybin = (int)Lumiverse::clamp(((y - _ymin) / (_ymax - _ymin)) * _y, 0, _y - 1);
-  int zbin = (int)Lumiverse::clamp(((z - _zmin) / (_zmax - _zmin)) * _z, 0, _z - 1);
+  int xbin = (int)Lumiverse::clamp((float)((x - _xmin) / (_xmax - _xmin)) * _x, 0.0f, _x - 1.0f);
+  int ybin = (int)Lumiverse::clamp((float)((y - _ymin) / (_ymax - _ymin)) * _y, 0.0f, _y - 1.0f);
+  int zbin = (int)Lumiverse::clamp((float)((z - _zmin) / (_zmax - _zmin)) * _z, 0.0f, _z - 1.0f);
 
   addToBin(1, xbin, ybin, zbin);
 }
@@ -580,21 +580,21 @@ void LabxyHistogram::addProportional(float weight, vector<double> coord, vector<
   if (weight == 0)
     return;
 
-  int currentDepth = bin.size();
+  int currentDepth = (int)bin.size();
   int idx = currentDepth * 2;
-  double binVal = Lumiverse::clamp((coord[currentDepth] - _bounds[idx]) / ((_bounds[idx + 1] - _bounds[idx]) / (_bins[currentDepth] - 1)), 0, _bins[currentDepth] - 1);
-  int high = ceil(binVal);
-  int low = floor(binVal);
+  double binVal = Lumiverse::clamp((float)((coord[currentDepth] - _bounds[idx]) / ((_bounds[idx + 1] - _bounds[idx]) / (_bins[currentDepth] - 1))), 0, _bins[currentDepth] - 1.0f);
+  int high = (int)ceil(binVal);
+  int low = (int)floor(binVal);
 
   // % of weight in high bin.
   // this is not necessarily the closest bin.
   float a;
 
   if (abs(binVal - high) < abs(binVal - low)) {
-    a = 1 - abs(binVal - high);
+    a = 1 - (float)abs(binVal - high);
   }
   else {
-    a = abs(binVal - low);
+    a = (float)abs(binVal - low);
   }
 
   // 4 is max depth here, the y bin axis, base case
@@ -620,7 +620,7 @@ int LabxyHistogram::nearest(double val, int axis)
   int idx = axis * 2;
 
   double binVal = (val - _bounds[idx]) / ((_bounds[idx + 1] - _bounds[idx]) / (_bins[axis] - 1));
-  binVal = Lumiverse::clamp(binVal, 0, _bins[axis] - 1);
+  binVal = Lumiverse::clamp((float)binVal, 0, _bins[axis] - 1.0f);
 
   return (int)round(binVal);
 }
@@ -775,8 +775,8 @@ float SparseHistogram::EMD(SparseHistogram & other)
   vector<float> weights1 = normalizedWeights(f1);
   vector<float> weights2 = other.negNormalizedWeights(f2);
 
-  unsigned int n1 = f1.size();
-  unsigned int n2 = f2.size();
+  unsigned int n1 = (unsigned int)f1.size();
+  unsigned int n2 = (unsigned int)f2.size();
 
   Digraph di(n1, n2);
   NetworkSimplexSimple<Digraph, float, float, unsigned int> net(di, true, n1 + n2, n1 * n2, 1000);
@@ -790,7 +790,7 @@ float SparseHistogram::EMD(SparseHistogram & other)
   }
 
   net.supplyMap(&weights1[0], n1, &weights2[0], n2);
-  int ret = net.run();
+  /* int ret = */ net.run();
 
   double resultDist = net.totalCost();
   return (float)resultDist;
@@ -847,7 +847,7 @@ vector<float> SparseHistogram::negNormalizedWeights(vector<feature_tt>& out)
 
 void SparseHistogram::setLambda(double lambda)
 {
-  _lambda = lambda;
+  _lambda = (float)lambda;
 }
 
 int SparseHistogram::getDims()

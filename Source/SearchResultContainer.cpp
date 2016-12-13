@@ -870,8 +870,8 @@ double SearchResultContainer::l2GrayParamDist(SearchResultContainer * y)
     if (ycolor != nullptr)
       yc = ycolor->getRGB() * yintens;
 
-    xintens = xc.mean() * xintens;
-    yintens = yc.mean() * yintens;
+    xintens = (float)xc.mean() * xintens;
+    yintens = (float)yc.mean() * yintens;
 
     float diff = xintens - yintens;
 

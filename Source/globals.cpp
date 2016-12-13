@@ -587,14 +587,14 @@ void computeLightSensitivity()
     cache.i50 = base;
 
     // adjust to 51%
-    tmpData[active]->getIntensity()->setValAsPercent(0.51);
+    tmpData[active]->getIntensity()->setValAsPercent(0.51f);
 
     // render
     Image brighter = renderImage(tmp, imgWidth, imgHeight);
     cache.i51 = brighter;
 
     // render a 100% image
-    tmpData[active]->getIntensity()->setValAsPercent(1.0);
+    tmpData[active]->getIntensity()->setValAsPercent(1.0f);
     Image brightest = renderImage(tmp, imgWidth, imgHeight);
     cache.i100 = brightest;
     cache.maxBr = 0;
@@ -665,7 +665,7 @@ void computeLightSensitivity()
 
     // adjust to 51%
     for (auto id : active.getIds()) {
-      tmpData[id]->getIntensity()->setValAsPercent(0.51);
+      tmpData[id]->getIntensity()->setValAsPercent(0.51f);
     }
 
     // render

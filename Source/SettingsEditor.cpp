@@ -113,7 +113,7 @@ void SettingsSlider::setValue(double newValue)
   else if (_id == "L-M Max Iterations")
     getGlobalSettings()->_maxGradIters = (int)newValue;
   else if (_id == "Expected Value Weight")
-    getGlobalSettings()->_evWeight = newValue;
+    getGlobalSettings()->_evWeight = (float)newValue;
   else if (_id == "Switching Time")
     getGlobalSettings()->_resampleTime = (int)newValue;
   else if (_id == "Movable Threads")
@@ -141,7 +141,7 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_maxAllowedLights = (int)newValue;
   }
   else if (_id == "Allowed Light Penalty") {
-    getGlobalSettings()->_maxLightPenalty = newValue;
+    getGlobalSettings()->_maxLightPenalty = (float)newValue;
   }
 }
 

@@ -765,7 +765,7 @@ namespace lemon {
         NetworkSimplexSimple& reset() {
             // Resize vectors
             _node_num = _init_nb_nodes;
-            _arc_num = _init_nb_arcs;
+            _arc_num = (int)_init_nb_arcs;
             int all_node_num = _node_num + 1;
             int max_arc_num = _arc_num + 2 * _node_num;
             

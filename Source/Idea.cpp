@@ -538,9 +538,9 @@ void Idea::generateColorPalette()
       pts.push_back(pair<Eigen::VectorXd, int>(pt, 0));
 
       vector<float> hpt;
-      hpt.push_back(pt[0]);
-      hpt.push_back(pt[1]);
-      hpt.push_back(pt[2]);
+      hpt.push_back((float)pt[0]);
+      hpt.push_back((float)pt[1]);
+      hpt.push_back((float)pt[2]);
       imgHist.addToBin(1, hpt);
     }
   }
@@ -764,7 +764,7 @@ void Idea::updateIntensityParams()
 
   // num bright lights
   float pctBright = (float)ctHigh / (float)ct;
-  _k = ceil(pctBright * 4);
+  _k = (int)ceil(pctBright * 4);
 
 
   _brightness = b;
@@ -793,7 +793,7 @@ void Idea::ColorPaletteControls::paint(Graphics & g)
     }
 
     for (int i = 0; i < _parent->_colors.size(); i++) {
-      auto region = lbounds.removeFromLeft((_parent->_weights[i] / sum) * width).reduced(2);
+      auto region = lbounds.removeFromLeft((int)((_parent->_weights[i] / sum) * width)).reduced(2);
 
       Eigen::Vector3d c = _parent->_colors[i];
       Colour dc((float)c[0], (float)c[1], (float)c[2], 1.0f);
@@ -848,7 +848,7 @@ void Idea::ColorPaletteControls::mouseDown(const MouseEvent & e)
       _selectedColorId = -1;
       Rectangle<int> selectedArea;
       for (int i = 0; i < _parent->_colors.size(); i++) {
-        auto region = lbounds.removeFromLeft((_parent->_weights[i] / sum) * width).reduced(2);
+        auto region = lbounds.removeFromLeft((int)((_parent->_weights[i] / sum) * width)).reduced(2);
 
         if (region.contains((int)e.position.getX(), (int)e.position.getY())) {
           _selectedColorId = idx;
