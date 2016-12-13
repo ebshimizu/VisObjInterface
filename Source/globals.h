@@ -52,6 +52,7 @@ enum command {
 
   // Render
   ARNOLD_RENDER = 0x3000,
+  TOGGLE_SELECT_VIEW = 0x3001,
 
   // Edit
   SETTINGS = 0x4000,

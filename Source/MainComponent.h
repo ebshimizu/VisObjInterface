@@ -103,6 +103,9 @@ public:
 
   void setSelectedIds(DeviceSet selection);
 
+  // toggles if the selection view is being shown
+  void toggleSelectView();
+
 private:
   // Open a Lumiverse file
   void openRig();

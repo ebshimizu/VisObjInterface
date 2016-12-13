@@ -78,6 +78,12 @@ public:
   // paint in the selected region of the image. coordinates of rect should be image space
   void paintRect(Rectangle<float> pt, Colour c);
 
+  void showSelection(DeviceSet selected);
+  void hideSelection();
+
+  // returns the display status of the viewer
+  bool isInSelectionMode();
+
 private:
   class ParamShifter : public Component, public SliderListener {
   public:
@@ -130,9 +136,6 @@ private:
   bool _showSelectionMode;
   Image _selectionRender;
   TextButton* _exitSelectView;
-
-  void showSelection(DeviceSet selected);
-  void hideSelection();
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SceneViewer)
 };

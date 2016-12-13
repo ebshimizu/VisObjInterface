@@ -114,7 +114,8 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::CONSTRAINTS, command::START_AUTO, command::END_AUTO, command::LOCK_ALL_SELECTED,
     command::LOCK_SELECTED_INTENSITY, command::LOCK_SELECTED_COLOR, command::UNLOCK_ALL_SELECTED,
     command::UNLOCK_SELECTED_COLOR, command::UNLOCK_SELECTED_INTENSITY, command::RELOAD_ATTRS, command::LOAD_ATTRS,
-    command::RESET_ALL, command::SAVE_IDEAS, command::LOAD_IDEAS, command::DELETE_ALL_PINS
+    command::RESET_ALL, command::SAVE_IDEAS, command::LOAD_IDEAS, command::DELETE_ALL_PINS,
+    command::TOGGLE_SELECT_VIEW
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -279,6 +280,10 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::DELETE_ALL_PINS:
     result.setInfo("Delete All Pinned Regions", "Deletes all currently pinned regions on the stage", "Explore", 0);
     break;
+  case command::TOGGLE_SELECT_VIEW:
+    result.setInfo("Toggle Selection View", "Hide or show the current selection of lights", "Render", 0);
+    result.addDefaultKeypress('s', ModifierKeys::noModifiers);
+    break;
   default:
     return;
   }
@@ -419,6 +424,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::DELETE_ALL_PINS:
     deleteAllPins();
+    break;
+  case command::TOGGLE_SELECT_VIEW:
+    toggleSelectView();
     break;
   default:
     return false;
@@ -621,6 +629,19 @@ DeviceSet MainContentComponent::computeAffectedDevices(Rectangle<float> region)
 void MainContentComponent::setSelectedIds(DeviceSet selection)
 {
   _attrs->getParamController()->setSelectedIds(selection);
+}
+
+void MainContentComponent::toggleSelectView()
+{
+  if (_viewer->isInSelectionMode()) {
+    _viewer->hideSelection();
+  }
+  else {
+    DeviceSet selected = _attrs->computeAffectedDevices(getGlobalSettings()->_activeIdea);
+    _viewer->showSelection(selected);
+  }
+
+  _viewer->repaint();
 }
 
 void MainContentComponent::openRig() {

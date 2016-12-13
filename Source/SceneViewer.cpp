@@ -677,6 +677,11 @@ void SceneViewer::hideSelection()
   _exitSelectView->setVisible(false);
 }
 
+bool SceneViewer::isInSelectionMode()
+{
+  return _showSelectionMode;
+}
+
 SceneViewer::ParamShifter::ParamShifter(DeviceSet affected) : _affected(affected) {
   _intens.setName("intens shift");
   _hue.setName("hue shift");
