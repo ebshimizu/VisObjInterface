@@ -435,9 +435,6 @@ void SceneViewer::mouseDown(const MouseEvent & event)
       for (auto b : getGlobalSettings()->_pinnedRegions) {
         if (b.contains(pt)) {
           menu.addItem(i, String(i) + ": Delete");
-
-          i++;
-          menu.addItem(i, String(i) + ": [DEBUG] What Lights Are Here?");
         }
         i++;
       }
@@ -448,17 +445,8 @@ void SceneViewer::mouseDown(const MouseEvent & event)
         if (toDelete == 0)
           return;
 
-        if (toDelete % 2 == 1) {
-          getGlobalSettings()->_pinnedRegions.removeRange(toDelete - 1, 1);
-          repaint();
-        }
-        else {
-          MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-
-          if (mc != nullptr) {
-            mc->debugShowAffectedDevices(getGlobalSettings()->_pinnedRegions[(toDelete - 1) / 2]);
-          }
-        }
+        getGlobalSettings()->_pinnedRegions.removeRange(toDelete - 1, 1);
+        repaint();
       }
     }
   }

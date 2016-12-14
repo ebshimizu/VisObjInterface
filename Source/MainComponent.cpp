@@ -614,8 +614,12 @@ void MainContentComponent::debugShowAffectedDevices(Rectangle<float> region)
   DeviceSet affected = _attrs->computeAffectedDevices(region, sens);
 
   String data = "Accept criteria: Coverage 0.2, Contents 0.65";
+  int i = 0;
   for (auto d : sens) {
-    data += "\n" + d.first + ": " + String(d.second);
+    if (i % 3 == 0)
+      data += "\n";
+    data += d.first + ": " + String(d.second) + " ";
+    i++;
   }
  
   AlertWindow::showMessageBox(AlertWindow::AlertIconType::InfoIcon, "Light Sensitivity within Selected Region", data);
