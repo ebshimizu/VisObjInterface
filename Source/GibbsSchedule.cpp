@@ -18,6 +18,11 @@ Sampler::Sampler(DeviceSet affectedDevices, Rectangle<float> region, set<string>
 {
 }
 
+Rectangle<float> Sampler::getRegion()
+{
+  return _region;
+}
+
 void Sampler::computeSystemSensitivity()
 {
   int imgWidth = 100;
@@ -646,7 +651,31 @@ GibbsSchedule::~GibbsSchedule()
 
 void GibbsSchedule::addSampler(Sampler * s)
 {
-  _samplers.push_back(s);
+  // want to insert the sampler after the smallest region
+  // that contains it
+  // assert: before operation, list is in order (i.e. if a sampler
+  // contains another sampler, it will show up before that sampler)
+  vector<Sampler*>::iterator insertBefore = _samplers.end();
+  for (vector<Sampler*>::iterator it = _samplers.begin(); it != _samplers.end(); ) {
+    if ((*it)->getRegion().contains(s->getRegion())) {
+      insertBefore = ++it;
+    }
+    else if (s->getRegion().contains((*it)->getRegion())) {
+      insertBefore = it++;
+
+      // as soon as this contains something else, exit to place it there
+      break;
+    }
+    // if it intersects instead, insert after element (latest takes precidence)
+    else if (s->getRegion().intersects((*it)->getRegion())) {
+      insertBefore = ++it;
+    }
+    else {
+      it++;
+    }
+  }
+  
+  _samplers.insert(insertBefore, s);
 }
 
 void GibbsSchedule::deleteSamplers()

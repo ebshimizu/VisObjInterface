@@ -27,6 +27,9 @@ public:
   // evaluation function for each sampler
   virtual double score(Snapshot* state, Image& img, bool masked) = 0;
 
+  // returns the affected region of the sampler
+  Rectangle<float> getRegion();
+
   // name for id'ing the sampler
   string _name;
 protected:
