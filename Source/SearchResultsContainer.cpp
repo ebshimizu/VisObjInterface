@@ -87,7 +87,7 @@ void SearchResultsContainer::resized()
   auto lbounds = getLocalBounds();
 
   auto viewPt = _unclusteredViewer->getViewPosition();
-  _unclusteredResults->setCols(3);
+  _unclusteredResults->setCols(getGlobalSettings()->_clusterElemsPerRow);
   _unclusteredResults->setWidth(_unclusteredViewer->getMaximumVisibleWidth());
   _unclusteredViewer->setBounds(lbounds);
   _unclusteredViewer->setViewPosition(viewPt);

@@ -546,6 +546,7 @@ SettingsEditor::SettingsEditor()
 
 
   Array<PropertyComponent*> clusterComponents;
+  clusterComponents.add(new SettingsSlider("Thumbnails Per Row", 1, 20, 1));
 	clusterComponents.add(new SettingsChoice("Cluster Display Mode", { "Columns", "Grid" }));
   clusterComponents.add(new SettingsChoice("Primary Clustering Method", { "K-Means", "Mean Shift", "Spectral Clustering",
     "Divisive K-Means", "Thresholded Devisive", "Styles" }));
