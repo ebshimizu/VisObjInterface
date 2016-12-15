@@ -549,6 +549,17 @@ void Idea::generateColorPalette()
 
   // use the centers to create the distribution
   for (auto c : centers) {
+    // check for nan
+    for (int i = 0; i < c.size(); i++) {
+      if (isnan(c[i])) {
+        // if any part of the vector is nan, invalidate it and set it to black
+        c[0] = 0;
+        c[1] = 0;
+        c[2] = 0;
+        break;
+      }
+    }
+
     _colors.push_back(c);
   }
 

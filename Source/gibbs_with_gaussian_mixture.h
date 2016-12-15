@@ -51,8 +51,6 @@ void GibbsSamplingGaussianMixturePrior(std::vector<float>& result,
   const int k,
   const float mh,
   const float ma,
-  const int maxLights,
-  float penalty,
   bool use_image_intensity = true,
   const float sh = 0.1,
   const float sl = 0.1);

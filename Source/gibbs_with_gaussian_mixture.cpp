@@ -198,7 +198,7 @@ void GibbsSamplingGaussianMixture(std::vector<float>& result,
 void GibbsSamplingGaussianMixturePrior(std::vector<float>& result,
   const std::vector<int>& c, const std::vector<float>& s, int n, int k,
   const float mh, const float ma,
-  const int maxLights, float penalty, bool use_image_intensity,
+  bool use_image_intensity,
   const float sh, const float sl)
 {
   if (result.size() != n)

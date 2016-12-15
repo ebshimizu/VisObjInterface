@@ -351,8 +351,7 @@ void IntensitySampler::sample(Snapshot * state)
   }
 
   // sample
-  GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), _k, _brightMean, _mean,
-    getGlobalSettings()->_maxAllowedLights, getGlobalSettings()->_maxLightPenalty);
+  GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), _k, _brightMean, _mean);
 
   // apply to snapshot
   for (int j = 0; j < results.size(); j++) {
