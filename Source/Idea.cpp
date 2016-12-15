@@ -1289,6 +1289,7 @@ void IdeaList::deleteIdea(Idea* idea)
   getGlobalSettings()->_ideaMap.erase(*todelete);
 
   _ideas.erase(todelete);
+  removeChildComponent(todelete->get());
   resized();
 
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
@@ -1296,6 +1297,12 @@ void IdeaList::deleteIdea(Idea* idea)
   if (mc != nullptr) {
     mc->repaintRenderArea();
   }
+}
+
+void IdeaList::deleteAllIdeas()
+{
+  _ideas.clear();
+  resized();
 }
 
 vector<shared_ptr<Idea>> IdeaList::getIdeas()

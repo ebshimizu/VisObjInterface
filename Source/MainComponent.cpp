@@ -574,6 +574,17 @@ void MainContentComponent::setColors(vector<Eigen::VectorXd> colors, double inte
 
 void MainContentComponent::reset()
 {
+  AlertWindow alert("Reset Scene",
+    "Reset the interface? This will delete all active ideas, views, and search results from the interface.",
+    AlertWindow::AlertIconType::WarningIcon);
+  alert.addButton("OK", 1);
+  alert.addButton("Cancel", 0);
+  int result = alert.runModalLoop();
+
+  if (result == 0) {
+    return;
+  }
+
   stopSearch();
 
   // unlock devices
@@ -596,6 +607,12 @@ void MainContentComponent::reset()
 
   // clear the mask?
   _viewer->clearMask();
+
+  // delete ideas
+  _attrs->deleteIdeas();
+
+  getGlobalSettings()->_ideaMap.clear();
+  getGlobalSettings()->_pinnedRegions.clear();
 
   // re-render
   arnoldRender();

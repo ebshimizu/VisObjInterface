@@ -208,6 +208,9 @@ public:
   // typically called after a child deletes itself
   void deleteIdea(Idea* idea);
 
+  // deletes all ideas from the list
+  void deleteAllIdeas();
+
   // returns the list of ideas contained in the list
   vector<shared_ptr<Idea> > getIdeas();
 

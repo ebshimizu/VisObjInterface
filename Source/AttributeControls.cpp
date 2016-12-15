@@ -543,6 +543,11 @@ void AttributeControls::loadIdeas(File srcFolder)
   _ic->_ideas->resized();
 }
 
+void AttributeControls::deleteIdeas()
+{
+  _ic->_ideas->deleteAllIdeas();
+}
+
 void AttributeControls::updateSortMenu()
 {
   // each idea generates two different scores: a masked
