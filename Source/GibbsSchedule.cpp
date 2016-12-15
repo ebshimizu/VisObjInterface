@@ -151,16 +151,44 @@ void ColorSampler::sample(Snapshot * state)
   vector<int> colorIds;
   colorIds.resize(results.size());
 
+  // here we do a bit of re-weighting of the color buckets.
+  vector<float> sampleWeights;
+  sampleWeights.resize(_weights.size());
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<float> dist(0, 1);
+  float rnd = dist(gen);
+  int idx = 0;
+
+  // pick a color to be the "big bucket"
+  for ( ; idx < _weights.size(); idx++) {
+    if (rnd < _weights[idx])
+      break;
+
+    rnd -= _weights[idx];
+  }
+
+  // reassign weights. the bucket indicated by i gets n%, everything else
+  // proportional to the original weight
+  float bigWeight = 0.75f;    // TODO: put in global settings
+  sampleWeights[idx] = bigWeight;
+
+  float remainingWeight = 1 - bigWeight;
+  for (int j = 0; j < _weights.size(); j++) {
+    if (idx == j)
+      continue;
+
+    sampleWeights[j] = _weights[j] * remainingWeight;
+  }
+
   // do the sampling
-  ClosureOverUnevenBuckets(results, _weights, colorIds, bins);
+  ClosureOverUnevenBuckets(results, sampleWeights, colorIds, bins);
 
   // fill in the results if not pinned
   for (int j = 0; j < results.size(); j++) {
     Eigen::Vector3d color = _colors[colorIds[j]];
 
-    // perterb the color a little bit
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    // perterb the color a little bit 
     normal_distribution<double> hueDist(0, 0.02);
     normal_distribution<double> satDist(0, 0.1);
 
