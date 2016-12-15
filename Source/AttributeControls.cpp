@@ -625,6 +625,9 @@ DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, dou
     // iterate through, count number of pixels that are at or above the 50th percentile
     int numBright = 0;
     int numMaxBr = 0;
+
+    int num75 = 0;
+
     for (int y = 0; y < i100Crop.getHeight(); y++) {
       for (int x = 0; x < i100Crop.getWidth(); x++) {
         if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.avgVal) {
@@ -633,14 +636,18 @@ DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, dou
         if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.maxBr * 0.9) {
           numMaxBr++;
         }
+
+        if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.data["95pct"]) {
+          num75++;
+        }
       }
     }
 
-    float coverageRatio = (float)(numBright) / (i100Crop.getHeight() * i100Crop.getWidth());
-    float contentsRatio = (float)(numBright) / cache.numAboveAvg;
+    float coverageRatio = (float)(num75) / (i100Crop.getHeight() * i100Crop.getWidth());
+    float contentsRatio = (float)(num75) / cache.data["95pct_ct"];
     float maxContents = (float)(numMaxBr) / cache.numMaxBr;
 
-    if (coverageRatio > 0.25 || contentsRatio > 0.60 || maxContents > 0.75) {
+    if (coverageRatio > 0.25 || contentsRatio > 0.60) {
       affected = affected.add(id);
     }
   }

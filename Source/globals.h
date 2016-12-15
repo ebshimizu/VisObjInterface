@@ -213,6 +213,9 @@ struct sensCache {
 
   float avgVal;
   int numAboveAvg;
+
+  // generic cache, since i keep adding additional fields
+  map<string, float> data;
 };
 
 // A container for various things that the entire application may want to access

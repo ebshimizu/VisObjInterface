@@ -598,6 +598,7 @@ void computeLightSensitivity()
     Image brightest = renderImage(tmp, imgWidth, imgHeight);
     cache.i100 = brightest;
     cache.maxBr = 0;
+    Histogram1D bhist(100);
 
     // calculate avg per-pixel brightness difference
     double diff = 0;
@@ -613,6 +614,7 @@ void computeLightSensitivity()
         if (brightpx > 0.01) {
           ct++;
           sum += brightpx;
+          bhist.addValToBin(brightpx);
         }
         if (brightpx > cache.maxBr) {
           cache.maxBr = brightpx;
@@ -624,6 +626,8 @@ void computeLightSensitivity()
     cache.avgVal = sum / ct;
     cache.numAboveAvg = 0;
     cache.numMaxBr = 0;
+    cache.data["95pct"] = bhist.percentile(95);
+    cache.data["95pct_ct"] = 0;
 
     for (int y = 0; y < base.getHeight(); y++) {
       for (int x = 0; x < base.getWidth(); x++) {
@@ -632,6 +636,10 @@ void computeLightSensitivity()
 
         if (brightest.getPixelAt(x, y).getBrightness() > cache.maxBr * 0.9) {
           cache.numMaxBr++;
+        }
+
+        if (brightest.getPixelAt(x, y).getBrightness() > cache.data["95pct"]) {
+          cache.data["95pct_ct"] += 1;
         }
       }
     }
