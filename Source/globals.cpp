@@ -611,7 +611,7 @@ void computeLightSensitivity()
 
         float brightpx = brightest.getPixelAt(x, y).getBrightness();
 
-        if (brightpx > 0.01) {
+        if (brightpx > 0.02) {
           ct++;
           sum += brightpx;
           bhist.addValToBin(brightpx);
@@ -626,6 +626,8 @@ void computeLightSensitivity()
     cache.avgVal = sum / ct;
     cache.numAboveAvg = 0;
     cache.numMaxBr = 0;
+    cache.data["85pct"] = bhist.percentile(85);
+    cache.data["85pct_ct"] = 0;
     cache.data["95pct"] = bhist.percentile(95);
     cache.data["95pct_ct"] = 0;
 
@@ -638,6 +640,9 @@ void computeLightSensitivity()
           cache.numMaxBr++;
         }
 
+        if (brightest.getPixelAt(x, y).getBrightness() > cache.data["85pct"]) {
+          cache.data["85pct_ct"] += 1;
+        }
         if (brightest.getPixelAt(x, y).getBrightness() > cache.data["95pct"]) {
           cache.data["95pct_ct"] += 1;
         }

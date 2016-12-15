@@ -624,30 +624,34 @@ DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, dou
 
     // iterate through, count number of pixels that are at or above the 50th percentile
     int numBright = 0;
-    int numMaxBr = 0;
 
-    int num75 = 0;
+    int num85 = 0;
+    int num95 = 0;
 
     for (int y = 0; y < i100Crop.getHeight(); y++) {
       for (int x = 0; x < i100Crop.getWidth(); x++) {
         if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.avgVal) {
           numBright++;
         }
-        if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.maxBr * 0.9) {
-          numMaxBr++;
+        if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.data["85pct"]) {
+          num85++;
         }
-
         if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.data["95pct"]) {
-          num75++;
+          num95++;
         }
       }
     }
 
-    float coverageRatio = (float)(num75) / (i100Crop.getHeight() * i100Crop.getWidth());
-    float contentsRatio = (float)(num75) / cache.data["95pct_ct"];
-    float maxContents = (float)(numMaxBr) / cache.numMaxBr;
+    // does the light cover the bbox?
+    float coverageRatio = (float)(num85) / (i100Crop.getHeight() * i100Crop.getWidth());
 
-    if (coverageRatio > 0.25 || contentsRatio > 0.60) {
+    // is the light contained in the bbox?
+    float contentsRatio = (float)(num85) / cache.data["85pct_ct"];
+
+    // is there a particularly bright spot in the bbox?
+    float highlight = num95 / cache.data["95pct_ct"];
+
+    if (coverageRatio > 0.25 || contentsRatio > 0.50 || highlight > 0.05) {
       affected = affected.add(id);
     }
   }
@@ -673,26 +677,38 @@ DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, map
 
     // iterate through, count number of pixels that are at or above the 50th percentile
     int numBright = 0;
-    int numMaxBr = 0;
+
+    int num85 = 0;
+    int num95 = 0;
+
     for (int y = 0; y < i100Crop.getHeight(); y++) {
       for (int x = 0; x < i100Crop.getWidth(); x++) {
         if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.avgVal) {
           numBright++;
         }
-        if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.maxBr * 0.9) {
-          numMaxBr++;
+        if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.data["85pct"]) {
+          num85++;
+        }
+        if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.data["95pct"]) {
+          num95++;
         }
       }
     }
 
-    float coverageRatio = (float)(numBright) / (i100Crop.getHeight() * i100Crop.getWidth());
-    float contentsRatio = (float)(numBright) / cache.numAboveAvg;
-    float maxContents = (float)(numMaxBr) / cache.numMaxBr;
+    // does the light cover the bbox?
+    float coverageRatio = (float)(num85) / (i100Crop.getHeight() * i100Crop.getWidth());
+
+    // is the light contained in the bbox?
+    float contentsRatio = (float)(num85) / cache.data["85pct_ct"];
+
+    // is there a particularly bright spot in the bbox?
+    float highlight = num95 / cache.data["95pct_ct"];
+
     debugInfo[id + " coverage"] = coverageRatio;
     debugInfo[id + " contents"] = contentsRatio;
-    debugInfo[id + " max"] = maxContents;
+    debugInfo[id + " highlight"] = highlight;
 
-    if (coverageRatio > 0.25 || contentsRatio > 0.60 || maxContents > 0.75) {
+    if (coverageRatio > 0.25 || contentsRatio > 0.50 || highlight > 0.05) {
       affected = affected.add(id);
     }
   }

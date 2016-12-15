@@ -613,7 +613,7 @@ void MainContentComponent::debugShowAffectedDevices(Rectangle<float> region)
   map<string, double> sens;
   DeviceSet affected = _attrs->computeAffectedDevices(region, sens);
 
-  String data = "Accept criteria: Coverage 0.2, Contents 0.65";
+  String data = "";
   int i = 0;
   for (auto d : sens) {
     if (i % 3 == 0)
