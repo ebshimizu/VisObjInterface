@@ -128,7 +128,7 @@ void SystemExplorer::paint(Graphics & g)
   lbounds.removeFromLeft(24);
   auto left = lbounds.removeFromLeft(200);
   left.removeFromBottom(24);
-  g.drawFittedText(getName() + ": " + _name, left.removeFromTop(24), Justification::centredLeft, 2);
+  g.drawText(getName() + ": " + _name, left.removeFromTop(24), Justification::centredLeft, true);
 
   auto line = lbounds.removeFromLeft(5);
   g.setColour(Colours::white);

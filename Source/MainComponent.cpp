@@ -675,6 +675,8 @@ void MainContentComponent::openRig(String fname)
 
       getRig()->init();
 
+      _exp->clear();
+      getGlobalSettings()->_useFGMask = false;
       loadComponents();
 
       // try to auto load mask
