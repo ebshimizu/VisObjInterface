@@ -296,68 +296,56 @@ void GibbsSamplingGaussianMixturePrior(std::vector<float>& result,
 
     int n_left = n - n_sampled;
 
-    // with increasing n_sampled past 4, the chance of actually using a light
-    // drops lower and lower. Generally past this number of systems, things start getting washed out
-    // and should be used in moderation
-    float sampleChance = (n_sampled < maxLights) ? 1 : Lumiverse::clamp(pow(penalty, n_sampled - maxLights), 0.05f, 1);
+    // Target number of directed lights
+    int target_k = (k - sample_k > 0) ? (k - sample_k) : 0; // clip at zero
 
-    if (sampleChance < uniform_0_1(gen)) {
-      unconstrained_samples[i] = 0;
-      n_sampled++;
-      sample_mean = ((n_sampled - 1) * sample_mean + 0) / n_sampled;
+                                                            // Target high gaussian mixture weight
+    float target_wh = ((float)target_k / (float)n_left < 1.0f) ? ((float)target_k / (float)n_left) : 1.0f; // clip highest at one
+
+                                                                                                           // Target low gaussian mixture weight (Not used, here for completeness)
+                                                                                                           // float target_wl = 1.0f - target_wh;
+
+                                                                                                           // Target mean for the rest of the samples
+    float target_ma = ((float)n * ma - (float)n_sampled * sample_mean) / (float)n_left;
+
+    // Target mean for the low intensity gaussian
+    float target_ml = ((float)n_left * target_ma - (float)target_k * mh) / ((float)n_left - (float)target_k);
+
+    // Begin: Sample from the mixture
+    // Sample uniform from (0 1) and decide which gaussian to sample based
+    // on mixture weights such that:
+    // (0 target_wh): sample from high gaussian
+    // (target_wh 1): sample from low gaussian
+    float current_sample = 0.0f;
+    float current_mixture = uniform_0_1(gen);
+
+    // Constraints to get as close number of high intensity lights
+    if (sample_k >= k) // Enough already :)
+      current_mixture = 1.0f;
+    else if (k - sample_k >= n_left) // Not enough
+      current_mixture = 0.0f;
+
+    if (current_mixture < target_wh)
+      current_sample = high_gaussian(gen);
+    else
+    {
+      std::normal_distribution<float> low_gaussian(target_ml, sl);
+      current_sample = low_gaussian(gen);
     }
-    else {
-      // Target number of directed lights
-      int target_k = (k - sample_k > 0) ? (k - sample_k) : 0; // clip at zero
 
-                                                              // Target high gaussian mixture weight
-      float target_wh = ((float)target_k / (float)n_left < 1.0f) ? ((float)target_k / (float)n_left) : 1.0f; // clip highest at one
+    // Clip to [0 1]
+    if (current_sample > 1.0f)
+      current_sample = 1.0f;
+    else if (current_sample < 0.0f)
+      current_sample = 0.0f;
 
-                                                                                                             // Target low gaussian mixture weight (Not used, here for completeness)
-                                                                                                             // float target_wl = 1.0f - target_wh;
+    // Assume all lights within one sigma of high intensity mean are high
+    if (current_sample > mh - sh)
+      sample_k++;
 
-                                                                                                             // Target mean for the rest of the samples
-      float target_ma = ((float)n * ma - (float)n_sampled * sample_mean) / (float)n_left;
-
-      // Target mean for the low intensity gaussian
-      float target_ml = ((float)n_left * target_ma - (float)target_k * mh) / ((float)n_left - (float)target_k);
-
-      // Begin: Sample from the mixture
-      // Sample uniform from (0 1) and decide which gaussian to sample based
-      // on mixture weights such that:
-      // (0 target_wh): sample from high gaussian
-      // (target_wh 1): sample from low gaussian
-      float current_sample = 0.0f;
-      float current_mixture = uniform_0_1(gen);
-
-      // Constraints to get as close number of high intensity lights
-      if (sample_k >= k) // Enough already :)
-        current_mixture = 1.0f;
-      else if (k - sample_k >= n_left) // Not enough
-        current_mixture = 0.0f;
-
-      if (current_mixture < target_wh)
-        current_sample = high_gaussian(gen);
-      else
-      {
-        std::normal_distribution<float> low_gaussian(target_ml, sl);
-        current_sample = low_gaussian(gen);
-      }
-
-      // Clip to [0 1]
-      if (current_sample > 1.0f)
-        current_sample = 1.0f;
-      else if (current_sample < 0.0f)
-        current_sample = 0.0f;
-
-      // Assume all lights within one sigma of high intensity mean are high
-      if (current_sample > mh - sh)
-        sample_k++;
-
-      unconstrained_samples[i] = current_sample;
-      n_sampled++;
-      sample_mean = ((n_sampled - 1) * sample_mean + current_sample) / n_sampled;
-    }
+    unconstrained_samples[i] = current_sample;
+    n_sampled++;
+    sample_mean = ((n_sampled - 1) * sample_mean + current_sample) / n_sampled;
   }
 
   std::shuffle(unconstrained_samples.begin(), unconstrained_samples.end(), gen);

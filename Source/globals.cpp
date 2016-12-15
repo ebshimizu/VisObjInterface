@@ -451,8 +451,6 @@ GlobalSettings::GlobalSettings()
   _searchDispMetric = PPAVGLAB;
   _thresholdDecayRate = 1;
   _activeIdea = nullptr;
-  _maxAllowedLights = 4;
-  _maxLightPenalty = 0.75f;
 
   _imageAttrLoc = File::getCurrentWorkingDirectory().getChildFile("image_attributes");
   _tempDir = File::getCurrentWorkingDirectory().getChildFile("tmp");
