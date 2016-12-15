@@ -309,8 +309,6 @@ IdeaType Idea::getType()
 void Idea::updateType(bool skipRecompute)
 {
   if (_type == COLOR_PALETTE || _type == THEATRICAL) {
-    _numColors = 3;
-
     // generate color palette if not locked
     if (!_isRegionLocked) {
       if (!skipRecompute) {
