@@ -130,6 +130,8 @@ void SettingsSlider::setValue(double newValue)
     getGlobalSettings()->_viewJndThreshold = newValue;
   else if (_id == "JND Threshold Decay Rate")
     getGlobalSettings()->_thresholdDecayRate = newValue;
+  else if (_id == "Big Color Bucket Weight")
+    getGlobalSettings()->_bigBucketSize = newValue;
   else if (_id == "Exposure") {
     if (getAnimationPatch != nullptr) {
       CachingArnoldInterface* renderer = dynamic_cast<CachingArnoldInterface*>(getAnimationPatch()->getArnoldInterface());
@@ -237,6 +239,8 @@ double SettingsSlider::getValue() const
     return getGlobalSettings()->_viewJndThreshold;
   else if (_id == "JND Threshold Decay Rate")
     return getGlobalSettings()->_thresholdDecayRate;
+  else if (_id == "Big Color Bucket Weight")
+    return getGlobalSettings()->_bigBucketSize;
   else if (_id == "Exposure") {
     if (getAnimationPatch() != nullptr) {
       CachingArnoldInterface* renderer = dynamic_cast<CachingArnoldInterface*>(getAnimationPatch()->getArnoldInterface());
@@ -297,6 +301,9 @@ void SettingsBoolButton::setState(bool newState)
   else if (_id == "Use Styles") {
     getGlobalSettings()->_useSearchStyles = newState;
   }
+  else if (_id == "Recompute Color Weights") {
+    getGlobalSettings()->_recalculateWeights = newState;
+  }
 
   refresh();
 }
@@ -321,6 +328,8 @@ bool SettingsBoolButton::getState() const
     return getGlobalSettings()->_continuousSort;
   else if (_id == "Use Styles")
     return getGlobalSettings()->_useSearchStyles;
+  else if (_id == "Recompute Color Weights")
+    return getGlobalSettings()->_recalculateWeights;
 
   return false;
 }
@@ -530,6 +539,8 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Repulsion Cone K", 0, 2, 0.01));
   searchComponents.add(new SettingsSlider("Repulsion Cost K", 0, 5, 0.01));
   searchComponents.add(new SettingsSlider("Repulsion Num Pairs", 1, 200, 1));
+  searchComponents.add(new SettingsSlider("Big Color Bucket Weight", 0, 1, 0.001));
+  searchComponents.add(new SettingsBoolButton("Recompute Color Weights"));
   _settings.addSection("Search", searchComponents);
 
 

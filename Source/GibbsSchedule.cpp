@@ -170,7 +170,7 @@ void ColorSampler::sample(Snapshot * state)
 
   // reassign weights. the bucket indicated by i gets n%, everything else
   // proportional to the original weight
-  float bigWeight = 0.75f;    // TODO: put in global settings
+  float bigWeight = getGlobalSettings()->_bigBucketSize;
   sampleWeights[idx] = bigWeight;
   float rem = 1 - _weights[idx];
 
@@ -183,7 +183,12 @@ void ColorSampler::sample(Snapshot * state)
   }
 
   // do the sampling
-  ClosureOverUnevenBuckets(results, sampleWeights, colorIds, bins);
+  if (getGlobalSettings()->_recalculateWeights) {
+    ClosureOverUnevenBuckets(results, sampleWeights, colorIds, bins);
+  }
+  else {
+    ClosureOverUnevenBuckets(results, _weights, colorIds, bins);
+  }
 
   // fill in the results if not pinned
   for (int j = 0; j < results.size(); j++) {

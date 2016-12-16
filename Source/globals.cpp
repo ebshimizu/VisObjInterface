@@ -451,6 +451,8 @@ GlobalSettings::GlobalSettings()
   _searchDispMetric = PPAVGLAB;
   _thresholdDecayRate = 1;
   _activeIdea = nullptr;
+  _bigBucketSize = 0.75;
+  _recalculateWeights = true;
 
   _imageAttrLoc = File::getCurrentWorkingDirectory().getChildFile("image_attributes");
   _tempDir = File::getCurrentWorkingDirectory().getChildFile("tmp");
