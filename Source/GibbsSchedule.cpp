@@ -172,13 +172,14 @@ void ColorSampler::sample(Snapshot * state)
   // proportional to the original weight
   float bigWeight = 0.75f;    // TODO: put in global settings
   sampleWeights[idx] = bigWeight;
+  float rem = 1 - _weights[idx];
 
-  float remainingWeight = 1 - bigWeight;
+  float smallWeight = 1 - bigWeight;
   for (int j = 0; j < _weights.size(); j++) {
     if (idx == j)
       continue;
 
-    sampleWeights[j] = _weights[j] * remainingWeight;
+    sampleWeights[j] = (_weights[j] / rem) * smallWeight;
   }
 
   // do the sampling
