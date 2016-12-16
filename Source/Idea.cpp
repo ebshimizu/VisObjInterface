@@ -1299,8 +1299,8 @@ void IdeaList::deleteIdea(Idea* idea)
 
   getGlobalSettings()->_ideaMap.erase(*todelete);
 
-  _ideas.erase(todelete);
   removeChildComponent(todelete->get());
+  _ideas.erase(todelete);
   resized();
 
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
