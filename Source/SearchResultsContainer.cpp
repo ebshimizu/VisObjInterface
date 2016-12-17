@@ -397,9 +397,38 @@ void SearchResultsContainer::showNewResults()
     // integrate new results
     // goes into unclustered for display, all results for record
     for (auto r : _newResults) {
-      _unclusteredResults->addResult(r);
       _allResults.add(r);
       _exp->getContainer()->addResult(r);
+
+      // autocluster is an option that places new scenes as children of the closest existing scene
+      // in the top-level unclustered results after a threshold has been reached.
+      // typically this threshold is just based on how many things we can display on one "screen"
+      // of the results
+      if (getGlobalSettings()->_autoCluster) {
+        int threshold = getGlobalSettings()->_clusterElemsPerRow * 2;
+
+        if (_allResults.size() > threshold) {
+          // find closest container
+          shared_ptr<SearchResultContainer> closestContainer = nullptr;
+          double closest = DBL_MAX;
+          for (auto c : _unclusteredResults->getAllResults()) {
+            double dist = c->dist(r.get(), getGlobalSettings()->_searchDispMetric, false, false);
+
+            if (dist < closest) {
+              closestContainer = c;
+              closest = dist;
+            }
+          }
+
+          closestContainer->addToCluster(r);
+        }
+        else {
+          _unclusteredResults->addResult(r);
+        }
+      }
+      else {
+        _unclusteredResults->addResult(r);
+      }
     }
     _newResults.clear();
 

@@ -304,6 +304,9 @@ void SettingsBoolButton::setState(bool newState)
   else if (_id == "Recompute Color Weights") {
     getGlobalSettings()->_recalculateWeights = newState;
   }
+  else if (_id == "Auto Cluster") {
+    getGlobalSettings()->_autoCluster = newState;
+  }
 
   refresh();
 }
@@ -330,6 +333,8 @@ bool SettingsBoolButton::getState() const
     return getGlobalSettings()->_useSearchStyles;
   else if (_id == "Recompute Color Weights")
     return getGlobalSettings()->_recalculateWeights;
+  else if (_id == "Auto Cluster")
+    return getGlobalSettings()->_autoCluster;
 
   return false;
 }
@@ -545,6 +550,7 @@ SettingsEditor::SettingsEditor()
 
 
   Array<PropertyComponent*> clusterComponents;
+  clusterComponents.add(new SettingsBoolButton("Auto Cluster"));
   clusterComponents.add(new SettingsSlider("Thumbnails Per Row", 1, 20, 1));
 	clusterComponents.add(new SettingsChoice("Cluster Display Mode", { "Columns", "Grid" }));
   clusterComponents.add(new SettingsChoice("Primary Clustering Method", { "K-Means", "Mean Shift", "Spectral Clustering",

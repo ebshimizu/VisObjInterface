@@ -289,6 +289,7 @@ public:
   String _showName;             // current show name / file the rig was loaded from
   float _bigBucketSize;         // weight of the large bucket for color sampling
   bool _recalculateWeights;     // In the color sampler, use the old version or the new version (defualt = true)
+  bool _autoCluster;            // turns on or turns off automatic cluster mode
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results
