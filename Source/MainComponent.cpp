@@ -658,11 +658,22 @@ void MainContentComponent::toggleSelectView()
     _viewer->hideSelection();
   }
   else {
-    DeviceSet selected = _attrs->computeAffectedDevices(getGlobalSettings()->_activeIdea);
-    _viewer->showSelection(selected);
+    if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD) {
+      DeviceSet selected = _attrs->computeAffectedDevices(getGlobalSettings()->_activeIdea);
+      _viewer->showSelection(selected);
+    }
+    else if (getGlobalSettings()->_freezeDrawMode == DrawMode::SELECT_ONLY) {
+      _viewer->showSelection();
+    }
   }
 
   _viewer->repaint();
+}
+
+void MainContentComponent::createView(DeviceSet selection)
+{
+  _exp->getContainer()->addContainer(selection);
+  _exp->resized();
 }
 
 void MainContentComponent::openRig() {

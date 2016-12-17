@@ -156,6 +156,7 @@ public:
   void sort(string method);
   void addContainer(string system);
   void addContainer();
+  void addContainer(DeviceSet devices);
   void addResult(shared_ptr<SearchResultContainer> result);
   void clear();
   void empty(); // remove results but not delete

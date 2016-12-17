@@ -160,6 +160,25 @@ void SceneViewer::paint (Graphics& g)
     g.setOpacity(1);
   }
 
+  // selection mode always visible
+  if (getGlobalSettings()->_freezeDrawMode == DrawMode::SELECT_ONLY) {
+    g.setColour(Colours::red);
+
+    // draw current
+    Array<Point<float> > pts;
+    pts.add(getWorldImageCoords(_startPoint) + Point<float>(0, (float)_toolbarHeight));
+    pts.add(getWorldImageCoords(_currentPoint) + Point<float>(0, (float)_toolbarHeight));
+    Rectangle<float> region = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+
+    g.drawRect(region, 2);
+
+    // draw saved
+    Point<float> topLeft = getWorldImageCoords(_selectedRegion.getTopLeft());
+    Point<float> bottomRight = getWorldImageCoords(_selectedRegion.getBottomRight());
+
+    g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
+  }
+
   if (!_hideAllBoxes) {
     // draw all bounding boxes on the image. Currently they aren't labeled, but may want to add that
     for (auto b : getGlobalSettings()->_ideaMap) {
@@ -316,35 +335,45 @@ void SceneViewer::mouseDown(const MouseEvent & event)
       auto pt = getRelativeImageCoords(event.position);
       PopupMenu menu;
 
-      map<int, shared_ptr<Idea> > ids;
-      int i = 1;
+      DeviceSet affected;
+      Rectangle<float> region;
+      if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD) {
+        map<int, shared_ptr<Idea> > ids;
+        int i = 1;
 
-      for (auto b : getGlobalSettings()->_ideaMap) {
-        if (b.second.contains(pt)) {
-          ids[i] = b.first;
-          menu.addItem(i, b.first->getName() + ": Modify Intensity / Color");
+        for (auto b : getGlobalSettings()->_ideaMap) {
+          if (b.second.contains(pt)) {
+            ids[i] = b.first;
+            menu.addItem(i, b.first->getName() + ": Modify Intensity / Color");
+          }
+          i++;
         }
-        i++;
-      }
 
-      int result = 0;
-      if (ids.size() == 1) {
-        result = 1;
+        int result = 0;
+        if (ids.size() == 1) {
+          result = 1;
+        }
+        else if (ids.size() == 0) {
+          return;
+        }
+        else {
+          result = menu.show();
+          if (result == 0)
+            return;
+        }
+
+        region = getGlobalSettings()->_ideaMap[ids[result]];
       }
-      else if (ids.size() == 0) {
-        return;
+      else if (getGlobalSettings()->_freezeDrawMode == DrawMode::SELECT_ONLY) {
+        region = _selectedRegion;
       }
       else {
-        result = menu.show();
-        if (result == 0)
-          return;
+        return;
       }
-
-      auto targetRegion = getGlobalSettings()->_ideaMap[ids[result]];
 
       // get affected devices
       MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-      DeviceSet affected = mc->computeAffectedDevices(targetRegion);
+      affected = mc->computeAffectedDevices(region);
 
       // create a popup window
       ParamShifter* ps = new ParamShifter(affected);
@@ -353,8 +382,8 @@ void SceneViewer::mouseDown(const MouseEvent & event)
       auto lbounds = getLocalBounds();
       
       vector<Point<float> > pts;
-      pts.push_back(getWorldImageCoords(targetRegion.getTopLeft()));
-      pts.push_back(getWorldImageCoords(targetRegion.getBottomRight()));
+      pts.push_back(getWorldImageCoords(region.getTopLeft()));
+      pts.push_back(getWorldImageCoords(region.getBottomRight()));
       Rectangle<float> absRegion = Rectangle<float>::findAreaContainingPoints(pts.data(), 2);
       
       Rectangle<int> loc(this->getScreenBounds().getX() + (int)absRegion.getX(),
@@ -362,10 +391,11 @@ void SceneViewer::mouseDown(const MouseEvent & event)
         (int)absRegion.getWidth(), (int)absRegion.getHeight());
 
       CallOutBox::launchAsynchronously(ps, loc, nullptr);
-      
     }
     else {
+      clearSelection();
       _startPoint = getRelativeImageCoords(event.position);
+      _currentPoint = getRelativeImageCoords(event.position);
     }
   }
 
@@ -450,6 +480,56 @@ void SceneViewer::mouseDown(const MouseEvent & event)
         repaint();
       }
     }
+    else if (getGlobalSettings()->_freezeDrawMode == DrawMode::SELECT_ONLY) {
+      // selection manipulation options
+      PopupMenu menu;
+
+      menu.addItem(1, "Select Devices");
+      menu.addItem(2, "Show Selection");
+      menu.addItem(3, "Create View from Selection");
+
+      PopupMenu systems;
+      int i = 4;
+      auto systemNames = getRig()->getMetadataValues("system");
+      vector<string> indexedSystems;
+      for (auto s : systemNames) {
+        indexedSystems.push_back(s);
+        systems.addItem(i, s);
+        i++;
+      }
+
+      menu.addSubMenu("Create View from Selected System", systems);
+
+      int result = menu.show();
+
+      if (result == 0)
+        return;
+
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+      DeviceSet affected = mc->computeAffectedDevices(_selectedRegion);
+
+      if (result == 1) {
+        mc->setSelectedIds(affected);
+      }
+      else if (result == 2) {
+        showSelection(affected);
+      }
+      else if (result == 3) {
+        mc->createView(affected);
+      }
+      else if (result >= 4) {
+        // filter by system
+        DeviceSet filtered(getRig());
+        string sys = indexedSystems[result - 4];
+
+        for (auto id : affected.getIds()) {
+          if (getRig()->getDevice(id)->getMetadata("system") == sys)
+            filtered = filtered.add(id);
+        }
+
+        mc->createView(filtered);
+      }
+    }
   }
 
   repaint();
@@ -471,6 +551,17 @@ void SceneViewer::mouseUp(const MouseEvent & event)
       getGlobalSettings()->_pinnedRegions.add(region);
     }
   }
+  else if (getGlobalSettings()->_freezeDrawMode == DrawMode::SELECT_ONLY) {
+    if (event.mods.isLeftButtonDown()) {
+      _currentPoint = getRelativeImageCoords(event.position);
+      Array<Point<float> > pts;
+      pts.add(_startPoint);
+      pts.add(_currentPoint);
+      Rectangle<float> region = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+
+      _selectedRegion = region;
+    }
+  }
 
   _startPoint = Point<float>(0, 0);
   _currentPoint = Point<float>(0, 0);
@@ -488,9 +579,9 @@ void SceneViewer::mouseDrag(const MouseEvent & event)
     Array<Point<float> > pts;
     pts.add(_startPoint);
     pts.add(_currentPoint);
-    Rectangle<float> region = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
 
     if (getGlobalSettings()->_activeIdea != nullptr && getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD) {
+      Rectangle<float> region = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
       getGlobalSettings()->_ideaMap[getGlobalSettings()->_activeIdea] = region;
     }
   }
@@ -637,6 +728,12 @@ Point<float> SceneViewer::getAbsImageCoords(const Point<float>& pt)
   return Point<float>(relPt.getX() * _currentRender.getWidth(), relPt.getY() * _currentRender.getHeight());
 }
 
+void SceneViewer::showSelection()
+{
+  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+  showSelection(mc->computeAffectedDevices(_selectedRegion));
+}
+
 void SceneViewer::showSelection(DeviceSet selected)
 {
   // render out the scene with only the selected devices
@@ -672,6 +769,11 @@ void SceneViewer::hideSelection()
 bool SceneViewer::isInSelectionMode()
 {
   return _showSelectionMode;
+}
+
+void SceneViewer::clearSelection()
+{
+  _selectedRegion = Rectangle<float>();
 }
 
 SceneViewer::ParamShifter::ParamShifter(DeviceSet affected) : _affected(affected) {

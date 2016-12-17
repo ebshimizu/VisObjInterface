@@ -846,6 +846,12 @@ void SystemExplorerContainer::addContainer()
   addContainer(e);
 }
 
+void SystemExplorerContainer::addContainer(DeviceSet devices)
+{
+  SystemExplorer* e = new SystemExplorer(_rc->getAllResults(), devices.info(), devices);
+  addContainer(e);
+}
+
 void SystemExplorerContainer::addResult(shared_ptr<SearchResultContainer> result)
 {
   for (auto e : _explorers) {

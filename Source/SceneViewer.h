@@ -78,12 +78,16 @@ public:
   // paint in the selected region of the image. coordinates of rect should be image space
   void paintRect(Rectangle<float> pt, Colour c);
 
+  void showSelection();
   void showSelection(DeviceSet selected);
   void hideSelection();
 
   // returns the display status of the viewer
   bool isInSelectionMode();
 
+  // clears the selection rectangle
+  void clearSelection();
+  
 private:
   class ParamShifter : public Component, public SliderListener {
   public:
@@ -113,6 +117,9 @@ private:
 
   // Returns image coordinates in the image coordinate space from a screen-space mouse click
   Point<float> getAbsImageCoords(const Point<float>& pt);
+
+  // region used just for selection purposes
+  Rectangle<float> _selectedRegion;
 
   Image _currentRender;
   Image _preview;

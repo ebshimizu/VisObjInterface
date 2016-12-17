@@ -106,6 +106,9 @@ public:
   // toggles if the selection view is being shown
   void toggleSelectView();
 
+  // creates view in the explorer panel from the selected devices
+  void createView(DeviceSet selection);
+
 private:
   // Open a Lumiverse file
   void openRig();
