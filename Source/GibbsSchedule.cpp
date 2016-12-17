@@ -171,6 +171,10 @@ void ColorSampler::sample(Snapshot * state)
   // reassign weights. the bucket indicated by i gets n%, everything else
   // proportional to the original weight
   float bigWeight = getGlobalSettings()->_bigBucketSize;
+
+  if (bigWeight < _weights[idx])
+    bigWeight = _weights[idx];
+
   sampleWeights[idx] = bigWeight;
   float rem = 1 - _weights[idx];
 

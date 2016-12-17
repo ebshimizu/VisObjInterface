@@ -76,6 +76,7 @@ SceneViewer::SceneViewer()
   // initialize toolbar
   _tools.add(new ToggleButton("Idea Target"));
   _tools.add(new ToggleButton("Add Pin"));
+  _tools.add(new ToggleButton("Select"));
 
   _tools.getFirst()->triggerClick();
   for (auto b : _tools) {
@@ -504,6 +505,9 @@ void SceneViewer::buttonClicked(Button * b)
   }
   else if (b->getName() == "Add Pin") {
     getGlobalSettings()->_freezeDrawMode = DrawMode::RECT_PIN;
+  }
+  else if (b->getName() == "Select") {
+    getGlobalSettings()->_freezeDrawMode = DrawMode::SELECT_ONLY;
   }
   else if (b->getName() == "Clear Mask") {
     clearMask();

@@ -167,7 +167,8 @@ enum EditSelectMode {
 
 enum DrawMode {
   RECT_ADD,
-  RECT_PIN
+  RECT_PIN,
+  SELECT_ONLY
 };
 
 enum GibbsConstraint {
