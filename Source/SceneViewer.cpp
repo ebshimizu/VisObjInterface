@@ -551,17 +551,6 @@ void SceneViewer::mouseUp(const MouseEvent & event)
       getGlobalSettings()->_pinnedRegions.add(region);
     }
   }
-  else if (getGlobalSettings()->_freezeDrawMode == DrawMode::SELECT_ONLY) {
-    if (event.mods.isLeftButtonDown()) {
-      _currentPoint = getRelativeImageCoords(event.position);
-      Array<Point<float> > pts;
-      pts.add(_startPoint);
-      pts.add(_currentPoint);
-      Rectangle<float> region = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
-
-      _selectedRegion = region;
-    }
-  }
 
   _startPoint = Point<float>(0, 0);
   _currentPoint = Point<float>(0, 0);
@@ -574,7 +563,7 @@ void SceneViewer::mouseDrag(const MouseEvent & event)
   if (_currentRender.getWidth() <= 0)
     return;
 
-  if (event.mods.isLeftButtonDown()) {
+  if (event.mods.isLeftButtonDown() && !event.mods.isCommandDown()) {
     _currentPoint = getRelativeImageCoords(event.position);
     Array<Point<float> > pts;
     pts.add(_startPoint);
@@ -583,6 +572,9 @@ void SceneViewer::mouseDrag(const MouseEvent & event)
     if (getGlobalSettings()->_activeIdea != nullptr && getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD) {
       Rectangle<float> region = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
       getGlobalSettings()->_ideaMap[getGlobalSettings()->_activeIdea] = region;
+    }
+    else if (getGlobalSettings()->_freezeDrawMode == DrawMode::SELECT_ONLY) {
+      _selectedRegion = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
     }
   }
 
