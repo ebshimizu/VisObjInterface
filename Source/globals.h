@@ -86,9 +86,12 @@ enum command {
   UNLOCK_SELECTED_INTENSITY = 0x5017,
   UNLOCK_SELECTED_COLOR = 0x5018,
   UNLOCK_ALL_SELECTED = 0x5019,
-  DELETE_ALL_PINS = 0x501a
+  DELETE_ALL_PINS = 0x501a,
 
   // Window
+  INTERFACE_OLD = 0x6001,
+  INTERFACE_NEW = 0x6002,
+  INTERFACE_ALL = 0x6003
 };
 
 // Flags for indicating what attributes should be considered

@@ -242,12 +242,12 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   // tab setup
   addAndMakeVisible(_tabs);
   //_tabs.addTab("Attributes", Colour(0xff333333), _componentView, true);
-  _tabs.addTab("Lights", Colour(0xff333333), _paramControls, true);
-  _tabs.addTab("Ideas", Colour(0xff333333), _ic, true);
-  _tabs.addTab("Visual Research", Colour(0xff333333), _vr, true);
-  _tabs.addTab("History", Colour(0xff333333), _historyViewer, true);
-  _tabs.addTab("Settings", Colour(0xff333333), _settings, true);
-  _tabs.addTab("Debug", Colour(0xff333333), _tempConstraints, true);
+  _tabs.addTab("Lights", Colour(0xff333333), _paramControls, false);
+  _tabs.addTab("Ideas", Colour(0xff333333), _ic, false);
+  _tabs.addTab("Visual Research", Colour(0xff333333), _vr, false);
+  _tabs.addTab("History", Colour(0xff333333), _historyViewer, false);
+  _tabs.addTab("Settings", Colour(0xff333333), _settings, false);
+  _tabs.addTab("Debug", Colour(0xff333333), _tempConstraints, false);
   _tabs.setCurrentTabIndex(0);
 
   _reset.addListener(this);
@@ -270,6 +270,10 @@ AttributeControls::~AttributeControls()
   delete _tempConstraints;
   delete _ic;
   delete _vr;
+
+  delete _paramControls;
+  delete _historyViewer;
+  delete _settings;
 }
 
 void AttributeControls::paint (Graphics& g)
@@ -725,6 +729,35 @@ DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, map
 DeviceSet AttributeControls::computeAffectedDevices(shared_ptr<Idea> idea, double threshold)
 {
   return computeAffectedDevices(getGlobalSettings()->_ideaMap[idea], threshold);
+}
+
+void AttributeControls::toggleOldInterface()
+{
+  _tabs.clearTabs();
+  _tabs.addTab("Lights", Colour(0xff333333), _paramControls, false);
+  _tabs.addTab("History", Colour(0xff333333), _historyViewer, false);
+  _tabs.setCurrentTabIndex(0);
+}
+
+void AttributeControls::toggleNewInterface()
+{
+  _tabs.clearTabs();
+  _tabs.addTab("Ideas", Colour(0xff333333), _ic, false);
+  _tabs.addTab("Visual Research", Colour(0xff333333), _vr, false);
+  _tabs.addTab("History", Colour(0xff333333), _historyViewer, false);
+  _tabs.setCurrentTabIndex(0);
+}
+
+void AttributeControls::toggleAllInterface()
+{
+  _tabs.clearTabs();
+  _tabs.addTab("Lights", Colour(0xff333333), _paramControls, false);
+  _tabs.addTab("Ideas", Colour(0xff333333), _ic, false);
+  _tabs.addTab("Visual Research", Colour(0xff333333), _vr, false);
+  _tabs.addTab("History", Colour(0xff333333), _historyViewer, false);
+  _tabs.addTab("Settings", Colour(0xff333333), _settings, false);
+  _tabs.addTab("Debug", Colour(0xff333333), _tempConstraints, false);
+  _tabs.setCurrentTabIndex(0);
 }
 
 void AttributeControls::filterPinnedDevices(DeviceSet& target, set<string> intens, set<string> color)

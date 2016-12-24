@@ -33,17 +33,17 @@ MainContentComponent::MainContentComponent()
 
   _searchWorker = new AttributeSearch(_search);
 
-  _horizResizer.setItemLayout(0, -0.2, -0.8, -0.5);
+  _horizResizer.setItemLayout(0, -0.05, -0.8, -0.5);
   _horizResizer.setItemLayout(1, 5, 5, 5);
-  _horizResizer.setItemLayout(2, -0.2, -0.8, -0.5);
+  _horizResizer.setItemLayout(2, -0.05, -0.8, -0.5);
 
-  _vertResizer.setItemLayout(0, -0.2, -1, -0.75);
+  _vertResizer.setItemLayout(0, -0.05, -1, -0.75);
   _vertResizer.setItemLayout(1, 5, 5, 5);
   _vertResizer.setItemLayout(2, 30, -0.5, -0.25);
 
-  _viewerSearchResizer.setItemLayout(0, -0.2, -0.8, -0.5);
+  _viewerSearchResizer.setItemLayout(0, -0.05, -0.8, -0.5);
   _viewerSearchResizer.setItemLayout(1, 5, 5, 5);
-  _viewerSearchResizer.setItemLayout(2, -0.2, -0.8, -0.5);
+  _viewerSearchResizer.setItemLayout(2, -0.05, -0.8, -0.5);
 
   setSize (1600, 900);
 
@@ -115,7 +115,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::LOCK_SELECTED_INTENSITY, command::LOCK_SELECTED_COLOR, command::UNLOCK_ALL_SELECTED,
     command::UNLOCK_SELECTED_COLOR, command::UNLOCK_SELECTED_INTENSITY, command::RELOAD_ATTRS, command::LOAD_ATTRS,
     command::RESET_ALL, command::SAVE_IDEAS, command::LOAD_IDEAS, command::DELETE_ALL_PINS,
-    command::TOGGLE_SELECT_VIEW
+    command::TOGGLE_SELECT_VIEW, command::INTERFACE_OLD, command::INTERFACE_NEW, command::INTERFACE_ALL
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -284,6 +284,15 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Toggle Selection View", "Hide or show the current selection of lights", "Render", 0);
     result.addDefaultKeypress('s', ModifierKeys::noModifiers);
     break;
+  case command::INTERFACE_NEW:
+    result.setInfo("Switch to Visual Interface", "Switches to the new experimental interface", "Window", 0);
+    break;
+  case command::INTERFACE_OLD:
+    result.setInfo("Switch to Standard Interface", "Switches to the standard interface", "Window", 0);
+    break;
+  case command::INTERFACE_ALL:
+    result.setInfo("Switch to Debug Interface", "Switches to the debug interface", "Window", 0);
+    break;
   default:
     return;
   }
@@ -427,6 +436,15 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::TOGGLE_SELECT_VIEW:
     toggleSelectView();
+    break;
+  case command::INTERFACE_NEW:
+    _attrs->toggleNewInterface();
+    break;
+  case command::INTERFACE_OLD:
+    _attrs->toggleOldInterface();
+    break;
+  case command::INTERFACE_ALL:
+    _attrs->toggleAllInterface();
     break;
   default:
     return false;

@@ -129,6 +129,11 @@ public:
   DeviceSet computeAffectedDevices(Rectangle<float> region, double threshold = 0.01);
   DeviceSet computeAffectedDevices(Rectangle<float> region, map<string, double>& debugInfo, double threshold = 0.01);
   DeviceSet computeAffectedDevices(shared_ptr<Idea> idea, double threshold = 0.01);
+
+  void toggleOldInterface();
+  void toggleNewInterface();
+  void toggleAllInterface();
+
 private:
   void initAttributes();
 

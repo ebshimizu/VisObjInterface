@@ -25,7 +25,7 @@ MainMenu::~MainMenu()
 }
 
 StringArray MainMenu::getMenuBarNames() {
-  const char* names[] = { "File", "Edit", "Explore", "Analyze", nullptr };
+  const char* names[] = { "File", "Edit", "Explore", "Analyze", "Window", nullptr };
   return StringArray(names);
 }
 
@@ -89,6 +89,11 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& /* menu
     menu.addSeparator();
     menu.addCommandItem(cm, command::LOAD_TRACES);
     menu.addCommandItem(cm, command::PICK_TRACE);
+  }
+  else if (topLevelMenuIndex == 4) {
+    menu.addCommandItem(cm, command::INTERFACE_NEW);
+    menu.addCommandItem(cm, command::INTERFACE_OLD);
+    menu.addCommandItem(cm, command::INTERFACE_ALL);
   }
 
   return menu;
