@@ -762,7 +762,7 @@ void Idea::updateIntensityParams()
   }
 
   float pct = hist.percentile(85);
-  float highAvg;
+  float highAvg = 0;
   int ctHigh2 = 0;
 
   // want the average of the highest percentage of bright pixels
