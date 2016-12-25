@@ -30,11 +30,17 @@ public:
   // returns the affected region of the sampler
   Rectangle<float> getRegion();
 
+  // returns string contining the settings and affected devices in the sampler;
+  virtual string info() = 0;
+
   // name for id'ing the sampler
   string _name;
 protected:
   // computes the per-system intensity based on affected devices
   void computeSystemSensitivity();
+
+  // lists ids of affected devices
+  string getAffectedDevices();
 
   DeviceSet _devices;
   Rectangle<float> _region;
@@ -59,6 +65,9 @@ public:
   virtual double score(Snapshot* state, Image& img, bool masked);
 
   void setColorHistogram(SparseHistogram c);
+
+  string info() override;
+
 protected:
   void normalizeWeights();
   int getClosestColorIndex(Eigen::Vector3d color);
@@ -80,6 +89,8 @@ public:
   
   // the pin sampler won't really ever have a useful score
   double score(Snapshot* /* state */, Image& /* img */, bool /* masked */) { return 0; }
+
+  string info() override;
 };
 
 // an intensity sampler samples a target average intensity and peak intensity
@@ -96,6 +107,8 @@ public:
   double score(Snapshot* state, Image& img, bool masked) override;
 
   void setBrightnessHistogram(SparseHistogram b);
+
+  string info() override;
 
 private:
   // for computing the score, the histogram of the idea
@@ -116,6 +129,8 @@ public:
   void sample(Snapshot* state) override;
 
   double score(Snapshot* state, Image& img, bool masked) override;
+
+  string info() override;
 
 private:
   Colour _target;
@@ -157,6 +172,9 @@ public:
   // returns a new snapshot based off of some input state.
   // Snapshot returned is owned by calling scope and should be deleted there.
   Snapshot* sample(Snapshot* state);
+
+  // logs info about all the active samplers to a file
+  void log();
 
 private:
   default_random_engine _gen;

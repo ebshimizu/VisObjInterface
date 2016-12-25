@@ -21,7 +21,9 @@ using namespace std;
 enum actionType {
   SYSTEM,   // Actions that don't deal with the Lumiverse Rig
   ACTION,   // Actions that do deal with the Lumiverse Rig
-  RENDER    // A render call
+  RENDER,   // A render call
+  HOVER,    // A hovered scene
+  STATE     // Current state of the rig
 };
 
 //==============================================================================

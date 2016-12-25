@@ -400,6 +400,7 @@ void SearchResultContainer::mouseEnter(const MouseEvent & /* event */)
   getGlobalSettings()->_showThumbnailImg = true;
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
   mc->setThumbImage(_render);
+  getRecorder()->log(HOVER, vectorToString(_result->_scene).toStdString());
   mc->repaint();
   _clusterContents->repaint();
   getParentComponent()->repaint();

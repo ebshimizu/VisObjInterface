@@ -266,9 +266,13 @@ void SceneViewer::renderScene() {
   _currentRender = Image(Image::ARGB, width, height, true);
   uint8* bufptr = Image::BitmapData(_currentRender, Image::BitmapData::readWrite).getPixelPointer(0,0);
 
-  getRecorder()->log(RENDER, "Render started.");
   (new RenderBackgroundThread(p, bufptr))->runThread();
-  getRecorder()->log(RENDER, "Render finished.");
+
+  // snapshot to vector string
+  Snapshot* state = new Snapshot(getRig());
+  Eigen::VectorXd vstate = snapshotToVector(state);
+  getRecorder()->log(RENDER, vectorToString(vstate).toStdString());
+  delete state;
 
   getGlobalSettings()->updateCache();
   //getGlobalSettings()->setCache(_currentRender);
@@ -302,9 +306,13 @@ void SceneViewer::renderSceneNoPopup()
   _currentRender = Image(Image::ARGB, width, height, true);
   uint8* bufptr = Image::BitmapData(_currentRender, Image::BitmapData::readWrite).getPixelPointer(0, 0);
 
-  getRecorder()->log(RENDER, "Render started.");
   p->renderSingleFrameToBuffer(getRig()->getDeviceRaw(), bufptr, width, height);
-  getRecorder()->log(RENDER, "Render finished.");
+
+  // snapshot to vector string
+  Snapshot* state = new Snapshot(getRig());
+  Eigen::VectorXd vstate = snapshotToVector(state);
+  getRecorder()->log(RENDER, vectorToString(vstate).toStdString());
+  delete state;
 
   repaint();
 }

@@ -18,6 +18,17 @@ MainContentComponent::MainContentComponent()
 {
   Lumiverse::Logger::setLogLevel(INFO);
   addAndMakeVisible(getStatusBar());
+
+  // create log file for this session
+  time_t rawtime;
+  struct tm * timeinfo;
+  char buffer[80];
+
+  time(&rawtime);
+  timeinfo = localtime(&rawtime);
+
+  strftime(buffer, 80, "actions-%F-%H-%M-%S.log", timeinfo);
+  getRecorder()->setFilename(string(buffer));
   
   // Init components and resizers
   addAndMakeVisible(_search = new SearchResultsViewer());

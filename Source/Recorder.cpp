@@ -29,7 +29,6 @@ Recorder::Recorder()
 
 Recorder::~Recorder()
 {
-  _file << "================================================================================\n";
   _file.close();
 }
 
@@ -54,7 +53,12 @@ void Recorder::log(actionType type, string message)
     t = "[a]";
   else if (type == RENDER)
     t = "[r]";
+  else if (type == HOVER)
+    t = "[h]";
 
-  _file << t << " (" << seconds.count() << ")\t" << message << "\n";
+  char buf[10];
+  snprintf(buf, 10, "%8.2f", seconds.count());
+
+  _file << t << " (" << buf << ")\t" << message << "\n";
   _file.flush();
 }

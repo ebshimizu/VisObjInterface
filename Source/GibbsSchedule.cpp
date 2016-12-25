@@ -85,6 +85,24 @@ void Sampler::computeSystemSensitivity()
   }
 }
 
+string Sampler::getAffectedDevices()
+{
+  string devices = "";
+
+  bool first = true;
+  for (auto id : _devices.getIds()) {
+    if (first) {
+      devices += id;
+      first = false;
+    }
+    else {
+      devices += ", " + id;
+    }
+  }
+
+  return devices;
+}
+
 // =============================================================================
 
 ColorSampler::ColorSampler(DeviceSet affectedDevices, Rectangle<float> region,
@@ -262,6 +280,23 @@ void ColorSampler::setColorHistogram(SparseHistogram c)
   _srcColor = c;
 }
 
+string ColorSampler::info()
+{
+  String colors = "[";
+  String weights = "[";
+  for (int i = 0; i < _colors.size(); i++) {
+    auto c = _colors[i];
+    colors << i << String(": (") << c[0] << String(",") << c[1] << String(",") << c[2] << String(") ");
+    weights << i << ": " << _weights[i] << String(" ");
+  }
+  colors << "]";
+  weights << "]";
+
+  String info;
+  info << "Colors: " << colors << "\nWeights: " << weights << "\nDevices: " << getAffectedDevices();
+  return info.toStdString();
+}
+
 void ColorSampler::normalizeWeights()
 {
   // compute sum
@@ -336,6 +371,11 @@ void PinSampler::sample(Snapshot * state)
       stateData[id]->getColor()->setHSV(hsv[0], hsv[1], hsv[2]);
     }
   }
+}
+
+string PinSampler::info()
+{
+  return "Devices: " + getAffectedDevices();
 }
 
 // =============================================================================
@@ -448,6 +488,14 @@ void IntensitySampler::setBrightnessHistogram(SparseHistogram b)
   _srcBrightness = b;
 }
 
+string IntensitySampler::info()
+{
+  String info;
+  info << "Average: " << _mean << ", Bright: " << _brightMean << ", Bright Lights: " << _k << "\n";
+  info << "Devices: " << getAffectedDevices();
+  return info.toStdString();
+}
+
 MonochromeSampler::MonochromeSampler(DeviceSet affectedDevices, Rectangle<float> region,
   set<string> intensPins, set<string> colorPins, Colour color) :
   Sampler(affectedDevices, region, intensPins, colorPins), _target(color)
@@ -540,6 +588,14 @@ double MonochromeSampler::score(Snapshot * /*state*/, Image & img, bool masked)
   }
 
   return sum / (clipped.getHeight() * clipped.getWidth());
+}
+
+string MonochromeSampler::info()
+{
+  String info;
+  info << "Target Color: " << _target.toString();
+  info << "\nDevices: " << getAffectedDevices();
+  return info.toStdString();
 }
 
 TheatricalSampler::TheatricalSampler(DeviceSet affectedDevices, Rectangle<float> region,
@@ -752,5 +808,14 @@ Snapshot * GibbsSchedule::sample(Snapshot * state)
   }
 
   return newState;
+}
+
+void GibbsSchedule::log()
+{
+  string log;
+  for (auto s : _samplers) {
+    log += s->_name + "\n" + s->info() + "\n";
+  }
+  getRecorder()->log(SYSTEM, log);
 }
 

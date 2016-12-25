@@ -414,10 +414,10 @@ void AttributeControls::initPallets()
 
       _vr->_palettes->addPallet(new GibbsPalette(name, originalImg));
       
-      getRecorder()->log(SYSTEM, "Loaded image for pallet " + name.toStdString());
+      getRecorder()->log(SYSTEM, "Loaded image " + name.toStdString());
     }
     else {
-      getRecorder()->log(SYSTEM, "Failed to load image for pallet " + name.toStdString());
+      getRecorder()->log(SYSTEM, "Failed to load image " + name.toStdString());
     }
   }
 
@@ -505,6 +505,9 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
   sched->addSampler(pinSampler);
   getGlobalSettings()->_intensityPins = ip;
   getGlobalSettings()->_colorPins = cp;
+
+  // log info about the entire sampler
+  sched->log();
 
   return sched;
 }

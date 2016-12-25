@@ -473,6 +473,7 @@ void SystemExplorer::toggleIntensPin()
   }
 
   _intensPin.setToggleState(_isIntensPinned, dontSendNotification);
+  getRecorder()->log(ACTION, "Intensity lock for " + getName().toStdString() + " set to " + String(_isIntensPinned).toStdString());
   getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, true);
 }
 
@@ -499,6 +500,7 @@ void SystemExplorer::toggleColorPin()
   }
 
   _colorPin.setToggleState(_isColorPinned, dontSendNotification);
+  getRecorder()->log(ACTION, "Color lock for " + getName().toStdString() + " set to " + String(_isColorPinned).toStdString());
   getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, true);
 }
 
@@ -541,6 +543,7 @@ void SystemExplorer::sliderDragEnded(Slider * s)
 {
   // Trigger re-render
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+  getRecorder()->log(ACTION, "Adjusted view " + getName().toStdString() + " devices' " + s->getName().toStdString() + " by " + String(s->getValue()).toStdString());
 
   if (mc != nullptr) {
     mc->refreshParams();
@@ -1027,6 +1030,7 @@ void SystemExplorerContainer::buttonClicked(Button * b)
 
     _explorers.removeAllInstancesOf(toRemove);
     _deleteButtons.removeAllInstancesOf((TextButton*)b);
+    getRecorder()->log(ACTION, "Deleted View " + toRemove->getName().toStdString());
     delete b;
     delete toRemove;
     resized();
@@ -1037,6 +1041,7 @@ void SystemExplorerContainer::addContainer(SystemExplorer * e)
 {
   addAndMakeVisible(e);
   _explorers.add(e);
+  getRecorder()->log(ACTION, "Added View " + e->getName().toStdString() + " containing devices " + e->getViewedDevices().info());
 
   // create delete button
   TextButton* del = new TextButton("x");
