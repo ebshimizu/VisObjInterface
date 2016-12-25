@@ -742,11 +742,13 @@ void Idea::updateIntensityParams()
   float highMean = 0;
   int ctLow = 0;
   int ctHigh = 0;
+  Histogram1D hist(50);
 
   // stats
   for (int y = 0; y < clipped.getHeight(); y++) {
     for (int x = 0; x < clipped.getWidth(); x++) {
       Colour px = clipped.getPixelAt(x, y);
+      hist.addValToBin(px.getBrightness());
 
       if (px.getBrightness() >= mean) {
         highMean += px.getBrightness();
@@ -759,6 +761,24 @@ void Idea::updateIntensityParams()
     }
   }
 
+  float pct = hist.percentile(85);
+  float highAvg;
+  int ctHigh2 = 0;
+
+  // want the average of the highest percentage of bright pixels
+  for (int y = 0; y < clipped.getHeight(); y++) {
+    for (int x = 0; x < clipped.getWidth(); x++) {
+      Colour px = clipped.getPixelAt(x, y);
+
+      if (px.getBrightness() > pct) {
+        highAvg += px.getBrightness();
+        ctHigh2++;
+      }
+    }
+  }
+
+  highAvg /= ctHigh2;
+
   if (ctLow == 0) {
     highMean /= ctHigh;
     lowMean = highMean;
@@ -768,13 +788,12 @@ void Idea::updateIntensityParams()
     lowMean /= ctLow;
   }
 
-  _meanBright = highMean;
+  _meanBright = highAvg;
   _mean = mean;
 
   // num bright lights
   float pctBright = (float)ctHigh / (float)ct;
-  _k = (int)ceil(pctBright * 4);
-
+  _k = (int)ceil(pctBright * (getRig()->getMetadataValues("system").size() - 1));
 
   _brightness = b;
 }
