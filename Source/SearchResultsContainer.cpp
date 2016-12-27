@@ -349,8 +349,10 @@ bool SearchResultsContainer::addNewResult(shared_ptr<SearchResult> r, int callin
 
         Lumiverse::Logger::log(INFO, "Adding new result. In queue: " + String(_newResults.size()).toStdString());
         _resultsSinceLastSort += 1;
-        _attempts += 1;
-        updateThreshold();
+
+        // actually attempts tracks failures, if we succeeded, dont update the threshold
+        //_attempts += 1;
+        //updateThreshold();
       }
     }
     else {
@@ -1579,5 +1581,5 @@ void SearchResultsContainer::ppsd(String prefix)
 void SearchResultsContainer::updateThreshold()
 {
   // floor is a jnd of 0.1.
-  _currentThreshold = max(_initThreshold / (_attempts / _thresholdDecayRate + 1), 0.1);
+  _currentThreshold = max(_initThreshold / (_attempts * _thresholdDecayRate + 1), 0.1);
 }

@@ -50,7 +50,7 @@ void Sampler::computeSystemSensitivity()
 
     // render image at 50% with selected devices
     for (auto id : allDevices.getIds()) {
-      if (active.contains(id)) {
+      if (active.contains(id) && _intensPins.count(id) == 0) {
         tmpData[id]->getIntensity()->setValAsPercent(0.5);
 
         if (tmpData[id]->paramExists("color")) {
@@ -256,7 +256,9 @@ double ColorSampler::score(Snapshot * /* state */, Image & img, bool masked)
           Colour px = clipped.getPixelAt(x, y);
           vector<float> pts;
           pts.resize(3);
-          px.getHSB(pts[0], pts[1], pts[2]);
+          pts[0] = px.getFloatRed();
+          pts[1] = px.getFloatGreen();
+          pts[2] = px.getFloatBlue();
           stage.add(pts);
         }
       }
@@ -265,7 +267,9 @@ double ColorSampler::score(Snapshot * /* state */, Image & img, bool masked)
         Colour px = clipped.getPixelAt(x, y);
         vector<float> pts;
         pts.resize(3);
-        px.getHSB(pts[0], pts[1], pts[2]);
+        pts[0] = px.getFloatRed();
+        pts[1] = px.getFloatGreen();
+        pts[2] = px.getFloatBlue();
         stage.add(pts);
       }
     }
@@ -351,24 +355,55 @@ void PinSampler::sample(Snapshot * state)
   normal_distribution<double> satDist(0, 0.05);
   normal_distribution<double> intensDist(0, 0.05);
 
+  // do this on a system-level, not device-level
+  auto systems = getRig()->getMetadataValues("system");
+  vector<DeviceSet> localIntens, localColor;
+
+  for (auto system : systems) {
+    DeviceSet globalSys = getRig()->select("$system=" + system);
+    DeviceSet localI(getRig());
+    DeviceSet localC(getRig());
+
+    for (auto id : globalSys.getIds()) {
+      if (_intensPins.count(id) > 0) {
+        localI = localI.add(id);
+      }
+      if (_colorPins.count(id) > 0) {
+        localC = localC.add(id);
+      }
+    }
+
+    localIntens.push_back(localI);
+    localColor.push_back(localC);
+  }
+
   auto stateData = state->getRigData();
 
   // intensity
-  for (auto id : _intensPins) {
-    if (stateData[id]->paramExists("intensity")) {
-      double newIntens = stateData[id]->getIntensity()->asPercent() + intensDist(gen);
-      stateData[id]->getIntensity()->setValAsPercent((float)newIntens);
+  for (auto ds : localIntens) {
+    double delta = intensDist(gen);
+
+    for (auto id : ds.getIds()) {
+      if (stateData[id]->paramExists("intensity")) {
+        double newIntens = stateData[id]->getIntensity()->asPercent() + delta;
+        stateData[id]->getIntensity()->setValAsPercent((float)newIntens);
+      }
     }
   }
 
   // color
-  for (auto id : _colorPins) {
-    if (stateData[id]->paramExists("color")) {
-      Eigen::Vector3d hsv = stateData[id]->getColor()->getHSV();
-      hsv[0] += hueDist(gen);
-      hsv[1] += satDist(gen);
+  for (auto ds : localColor) {
+    double hueDelta = hueDist(gen);
+    double satDelta = satDist(gen);
 
-      stateData[id]->getColor()->setHSV(hsv[0], hsv[1], hsv[2]);
+    for (auto id : ds.getIds()) {
+      if (stateData[id]->paramExists("color")) {
+        Eigen::Vector3d hsv = stateData[id]->getColor()->getHSV();
+        hsv[0] += hueDelta;
+        hsv[1] += satDelta;
+
+        stateData[id]->getColor()->setHSV(hsv[0], hsv[1], hsv[2]);
+      }
     }
   }
 }

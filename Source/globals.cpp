@@ -400,7 +400,7 @@ GlobalSettings::GlobalSettings()
   _editStepSize = 0.25;
   _maxMCMCIters = 10;
   _numDisplayClusters = 1;
-  _jndThreshold = 25;
+  _jndThreshold = 20;
   _viewJndThreshold = 0.045;
   _currentSortMode = "Attribute Default";
   _clusterElemsPerRow = 6;
@@ -449,7 +449,7 @@ GlobalSettings::GlobalSettings()
   _numPairs = 100;
   _searchDistMetric = L2PARAM;
   _searchDispMetric = PPAVGLAB;
-  _thresholdDecayRate = 1;
+  _thresholdDecayRate = 0.1;
   _activeIdea = nullptr;
   _bigBucketSize = 0.75;
   _recalculateWeights = false;
