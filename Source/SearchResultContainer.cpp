@@ -114,7 +114,8 @@ void SearchResultContainer::regenToolTip()
 		tt = tt + m.first + ": " + String(m.second) + "\n";
 	}
 
-  setTooltip(tt);
+  _debugInfo = tt;
+  //setTooltip(tt);
 }
 
 void SearchResultContainer::paint (Graphics& g)
@@ -401,6 +402,7 @@ void SearchResultContainer::mouseEnter(const MouseEvent & /* event */)
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
   mc->setThumbImage(_render);
   getRecorder()->log(HOVER, vectorToString(_result->_scene).toStdString());
+  getStatusBar()->setStatusMessage(_debugInfo, false, false);
   mc->repaint();
   _clusterContents->repaint();
   getParentComponent()->repaint();

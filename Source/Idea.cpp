@@ -1105,6 +1105,11 @@ IdeaList::~IdeaList()
 void IdeaList::paint(Graphics & g)
 {
   g.fillAll(Colour(0xff333333));
+
+  if (_ideas.size() == 0) {
+    g.setColour(Colours::white);
+    g.drawFittedText("You have not created any visual concepts.", getLocalBounds(), Justification::centred, 1);
+  }
 }
 
 void IdeaList::resized()
@@ -1112,7 +1117,7 @@ void IdeaList::resized()
   // the elements are all set to be squares with the width determininning the size
   // update the size first
   int side = getWidth();
-  setSize(side, side * (int)_ideas.size());
+  setSize(side, max(side * (int)_ideas.size(), 30));
 
   auto lbounds = getLocalBounds();
   // position elements

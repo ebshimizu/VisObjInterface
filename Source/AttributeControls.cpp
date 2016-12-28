@@ -243,7 +243,7 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   addAndMakeVisible(_tabs);
   //_tabs.addTab("Attributes", Colour(0xff333333), _componentView, true);
   _tabs.addTab("Lights", Colour(0xff333333), _paramControls, false);
-  _tabs.addTab("Ideas", Colour(0xff333333), _ic, false);
+  _tabs.addTab("Concepts", Colour(0xff333333), _ic, false);
   _tabs.addTab("Visual Research", Colour(0xff333333), _vr, false);
   _tabs.addTab("History", Colour(0xff333333), _historyViewer, false);
   _tabs.addTab("Settings", Colour(0xff333333), _settings, false);
@@ -331,9 +331,9 @@ void AttributeControls::buttonClicked(Button * b)
     getApplicationCommandManager()->invokeDirectly(SEARCH, true);
   }
   else if (b->getName() == "Sort") {
-    String id = _sort->getItemText(_sort->getSelectedId() - 1);
+    String id = _sort->getItemText(_sort->getSelectedItemIndex());
     getGlobalSettings()->_currentSortMode = id.toStdString();
-
+    
     // do the re-sort
     MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
@@ -563,10 +563,13 @@ void AttributeControls::updateSortMenu()
   _sort->clear(dontSendNotification);
   auto ideas = _ic->_ideas->getIdeas();
 
-  for (int i = 0; i < ideas.size(); i++)  {
-    _sort->addItem(ideas[i]->getName(), i * 2 + 1);
-    _sort->addItem(ideas[i]->getName() + "_masked", i * 2 + 2);
+  _sort->addItem("Sample ID", 1);
+  for (int i = 1; i < ideas.size() + 1; i++)  {
+    _sort->addItem(ideas[i - 1]->getName(), i * 2 + 1);
+    _sort->addItem(ideas[i - 1]->getName() + " - foreground", i * 2 + 2);
   }
+
+  _sort->setSelectedId(1);
 }
 
 void AttributeControls::initAttributes()
@@ -745,7 +748,7 @@ void AttributeControls::toggleOldInterface()
 void AttributeControls::toggleNewInterface()
 {
   _tabs.clearTabs();
-  _tabs.addTab("Ideas", Colour(0xff333333), _ic, false);
+  _tabs.addTab("Concepts", Colour(0xff333333), _ic, false);
   _tabs.addTab("Visual Research", Colour(0xff333333), _vr, false);
   _tabs.addTab("History", Colour(0xff333333), _historyViewer, false);
   _tabs.setCurrentTabIndex(0);
@@ -755,7 +758,7 @@ void AttributeControls::toggleAllInterface()
 {
   _tabs.clearTabs();
   _tabs.addTab("Lights", Colour(0xff333333), _paramControls, false);
-  _tabs.addTab("Ideas", Colour(0xff333333), _ic, false);
+  _tabs.addTab("Concepts", Colour(0xff333333), _ic, false);
   _tabs.addTab("Visual Research", Colour(0xff333333), _vr, false);
   _tabs.addTab("History", Colour(0xff333333), _historyViewer, false);
   _tabs.addTab("Settings", Colour(0xff333333), _settings, false);

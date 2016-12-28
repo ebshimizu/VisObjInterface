@@ -182,6 +182,9 @@ private:
   bool _isMostRecent;
   bool _wasSelected;
 
+  // was formerly the tooltip
+  String _debugInfo;
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SearchResultContainer)
 };
 

@@ -296,7 +296,7 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.addDefaultKeypress('s', ModifierKeys::noModifiers);
     break;
   case command::INTERFACE_NEW:
-    result.setInfo("Switch to Visual Interface", "Switches to the new experimental interface", "Window", 0);
+    result.setInfo("Switch to Concepts Interface", "Switches to the new experimental interface", "Window", 0);
     break;
   case command::INTERFACE_OLD:
     result.setInfo("Switch to Standard Interface", "Switches to the standard interface", "Window", 0);

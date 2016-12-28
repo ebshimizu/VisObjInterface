@@ -290,8 +290,13 @@ string ColorSampler::info()
   String weights = "[";
   for (int i = 0; i < _colors.size(); i++) {
     auto c = _colors[i];
-    colors << i << String(": (") << c[0] << String(",") << c[1] << String(",") << c[2] << String(") ");
-    weights << i << ": " << _weights[i] << String(" ");
+    colors << i << String(": (") << c[0] << String(",") << c[1] << String(",") << c[2] << String(")");
+    weights << i << ": " << _weights[i];
+    
+    if (i != _colors.size() - 1) {
+      weights << String(" ");
+      colors << String(" ");
+    }
   }
   colors << "]";
   weights << "]";
@@ -825,7 +830,7 @@ void GibbsSchedule::score(shared_ptr<SearchResult> result, Snapshot* state)
       continue;
 
     result->_extraFuncs[s->_name] = s->score(state, render, false);
-    result->_extraFuncs[s->_name + "_masked"] = s->score(state, render, true);
+    result->_extraFuncs[s->_name + " - foreground"] = s->score(state, render, true);
   }
 }
 
