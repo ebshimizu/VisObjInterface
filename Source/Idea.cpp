@@ -109,7 +109,15 @@ void Idea::paint(Graphics & g)
   auto lbounds = getLocalBounds();
   lbounds.removeFromTop(_headerSize);
 
-  g.drawImageWithin(_src, lbounds.getX(), lbounds.getY(), lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
+  if (_type == INTENS_DIST) {
+    Image bw = Image(_src);
+    bw.duplicateIfShared();
+    bw.desaturate();
+    g.drawImageWithin(bw, lbounds.getX(), lbounds.getY(), lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
+  }
+  else {
+    g.drawImageWithin(_src, lbounds.getX(), lbounds.getY(), lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
+  }
 
   g.setColour(Colour(0xffb3b3b3));
   if (_isBeingDragged) {
@@ -323,6 +331,7 @@ void Idea::updateType(bool skipRecompute)
       _headerSize = 24 * 2 + 40;
     }
     _colorControls->_rightClickMenuEnabled = true;
+    repaint();
   }
   else if (_type == MONOCHROME) {
     _numColors = 1;
@@ -366,6 +375,8 @@ void Idea::updateType(bool skipRecompute)
     else {
       _intensControls->updateUI();
     }
+
+    repaint();
   }
   else {
     if (_intensControls != nullptr) {
