@@ -178,19 +178,26 @@ void GibbsSamplingGaussianMixture(std::vector<float>& result,
 
   if (use_image_intensity)
   {
-    float sum_s = 0.0f;
+    // our goal is to keep mean intensity as close to prescribed mean as possible. 
+    // hence, sum_inv_s should be 1. (Because of the capping it will go a bit down,
+    // but it is ok.)
+    std::vector<float> inv_s;
+    inv_s.resize(n);
+    float sum_inv_s = 0.0f;
+
     for (int i = 0; i < n; ++i)
     {
-      float current_s = (result[i] / s[i] > 1.0f) ? (result[i] / 1.0f) : s[i];
-      result[i] = result[i] / current_s;
-      sum_s += current_s;
+      inv_s[i] = 1.0f / s[i];
+      sum_inv_s += inv_s[i];
+    }
+    for (int i = 0; i < n; ++i)
+    {
+      inv_s[i] = inv_s[i] / sum_inv_s * (float)n;
     }
 
-    sum_s = sum_s / (float)n;
-
     for (int i = 0; i < n; ++i)
     {
-      result[i] = result[i] * sum_s;
+      result[i] = (result[i] * inv_s[i] > 1.0f) ? 1.0f : (result[i] * inv_s[i]);
     }
   }
 }
@@ -362,19 +369,26 @@ void GibbsSamplingGaussianMixturePrior(std::vector<float>& result,
 
   if (use_image_intensity)
   {
-    float sum_s = 0.0f;
+    // our goal is to keep mean intensity as close to prescribed mean as possible. 
+    // hence, sum_inv_s should be 1. (Because of the capping it will go a bit down,
+    // but it is ok.)
+    std::vector<float> inv_s;
+    inv_s.resize(n);
+    float sum_inv_s = 0.0f;
+
     for (int i = 0; i < n; ++i)
     {
-      float current_s = (result[i] / s[i] > 1.0f) ? (result[i] / 1.0f) : s[i];
-      result[i] = result[i] / current_s;
-      sum_s += current_s;
+      inv_s[i] = 1.0f / s[i];
+      sum_inv_s += inv_s[i];
+    }
+    for (int i = 0; i < n; ++i)
+    {
+      inv_s[i] = inv_s[i] / sum_inv_s * (float)n;
     }
 
-    sum_s = sum_s / (float)n;
-
     for (int i = 0; i < n; ++i)
     {
-      result[i] = result[i] * sum_s;
+      result[i] = (result[i] * inv_s[i] > 1.0f) ? 1.0f : (result[i] * inv_s[i]);
     }
   }
 }
