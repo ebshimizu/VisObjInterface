@@ -185,6 +185,20 @@ private:
   // was formerly the tooltip
   String _debugInfo;
 
+  class FullThumbRenderThread : public Thread {
+  public:
+    FullThumbRenderThread(SearchResultContainer* parent);
+    ~FullThumbRenderThread();
+
+    void run() override;
+
+  private:
+    SearchResultContainer* _parent;
+  };
+
+  FullThumbRenderThread _renderer;
+  bool _fullResAvailable;
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SearchResultContainer)
 };
 

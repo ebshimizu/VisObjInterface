@@ -69,10 +69,9 @@ void SearchResultBlender::sliderValueChanged(Slider * s)
   }
 }
 
-
 //==============================================================================
 SearchResultContainer::SearchResultContainer(shared_ptr<SearchResult> result, bool isHistoryItem) :
-  _result(result), _isHistoryItem(isHistoryItem)
+  _result(result), _isHistoryItem(isHistoryItem), _renderer(this), _fullResAvailable(false)
 {
   // In your constructor, you should add any child components, and
   // initialise any special settings that your component needs.
@@ -90,6 +89,7 @@ SearchResultContainer::SearchResultContainer(shared_ptr<SearchResult> result, bo
 
 SearchResultContainer::~SearchResultContainer()
 {
+  _renderer.stopThread(500);
   delete _clusterContents;
 }
 
@@ -406,6 +406,10 @@ void SearchResultContainer::mouseEnter(const MouseEvent & /* event */)
   mc->repaint();
   _clusterContents->repaint();
   getParentComponent()->repaint();
+
+  if (!_fullResAvailable && !_renderer.isThreadRunning()) {
+    _renderer.startThread();
+  }
 }
 
 void SearchResultContainer::mouseExit(const MouseEvent & /* event */)
@@ -935,4 +939,30 @@ double repulsionTerm(SearchResultContainer * s, Array<shared_ptr<SearchResultCon
   }
 
   return sum * c;
+}
+
+SearchResultContainer::FullThumbRenderThread::FullThumbRenderThread(SearchResultContainer * parent) :
+  _parent(parent), Thread("Thumbnail Full-Size Render Thread")
+{
+
+}
+
+SearchResultContainer::FullThumbRenderThread::~FullThumbRenderThread()
+{
+}
+
+void SearchResultContainer::FullThumbRenderThread::run()
+{
+  Snapshot* scene = vectorToSnapshot(_parent->_result->_scene);
+  Image full = renderImage(scene, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
+
+  _parent->_render = full;
+  _parent->_fullResAvailable = true;
+  _parent->repaint();
+
+  MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+  if (_parent->_isHovered) {
+    mc->setThumbImage(_parent->_render);
+  }
+  mc->repaint();
 }

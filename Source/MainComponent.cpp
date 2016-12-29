@@ -52,9 +52,9 @@ MainContentComponent::MainContentComponent()
   _vertResizer.setItemLayout(1, 5, 5, 5);
   _vertResizer.setItemLayout(2, 30, -0.5, -0.25);
 
-  _viewerSearchResizer.setItemLayout(0, -0.05, -0.8, -0.5);
+  _viewerSearchResizer.setItemLayout(0, -0.05, -0.8, -0.75);
   _viewerSearchResizer.setItemLayout(1, 5, 5, 5);
-  _viewerSearchResizer.setItemLayout(2, -0.05, -0.8, -0.5);
+  _viewerSearchResizer.setItemLayout(2, -0.05, -0.8, -0.25);
 
   setSize (1600, 900);
 
