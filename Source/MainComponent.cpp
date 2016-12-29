@@ -622,7 +622,7 @@ void MainContentComponent::reset()
   // reset to open white
   auto devices = getRig()->getAllDevices();
   for (auto id : devices.getIds()) {
-    getRig()->getDevice(id)->getIntensity()->setValAsPercent(0.5);
+    getRig()->getDevice(id)->getIntensity()->setValAsPercent(0.15);
 
     if (getRig()->getDevice(id)->paramExists("color"))
       getRig()->getDevice(id)->setColorRGBRaw("color", 1, 1, 1);
