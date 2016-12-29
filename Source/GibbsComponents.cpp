@@ -53,7 +53,7 @@ void GibbsPalette::mouseDown(const MouseEvent & event)
   }
   else if (event.mods.isRightButtonDown()) {
     PopupMenu menu;
-    menu.addItem(1, "New Idea");
+    menu.addItem(1, "New Concept");
 
     int result = menu.show();
 

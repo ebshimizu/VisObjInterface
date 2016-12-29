@@ -42,7 +42,7 @@ void Sampler::computeSystemSensitivity()
     DeviceSet active(getRig());
 
     // gather devices
-    for (auto id : getRig()->getAllDevices().getIds()) {
+    for (auto id : fullSystem.getIds()) {
       if (_devices.contains(id)) {
         active = active.add(id);
       }
@@ -81,7 +81,7 @@ void Sampler::computeSystemSensitivity()
       }
     }
 
-    _systemSensitivity[system] = diff / (base.getHeight() * base.getWidth()) * 100;
+    _systemSensitivity[system] = (diff / (base.getHeight() * base.getWidth())) * 100;
   }
 }
 
