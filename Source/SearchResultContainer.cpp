@@ -958,11 +958,11 @@ void SearchResultContainer::FullThumbRenderThread::run()
 
   _parent->_render = full;
   _parent->_fullResAvailable = true;
-  _parent->repaint();
+  //_parent->repaint();
 
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
   if (_parent->_isHovered) {
     mc->setThumbImage(_parent->_render);
   }
-  mc->repaint();
+  //mc->repaint();
 }
