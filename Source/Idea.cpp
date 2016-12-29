@@ -167,7 +167,7 @@ void Idea::resized()
 void Idea::mouseDown(const MouseEvent & e)
 {
   // uses right click drag to select regions
-  if (e.mods.isRightButtonDown() && !_isRegionLocked) {
+  if (e.mods.isLeftButtonDown() && e.mods.isShiftDown() && !_isRegionLocked) {
     _firstPt = e.position;
     _secondPt = e.position;
     _isBeingDragged = true;
@@ -185,7 +185,7 @@ void Idea::mouseDown(const MouseEvent & e)
 
 void Idea::mouseDrag(const MouseEvent & e)
 {
-  if (e.mods.isRightButtonDown() && !_isRegionLocked) {
+  if (e.mods.isLeftButtonDown() && e.mods.isShiftDown() && !_isRegionLocked) {
     _secondPt = e.position;
     repaint();
   }
@@ -193,7 +193,7 @@ void Idea::mouseDrag(const MouseEvent & e)
 
 void Idea::mouseUp(const MouseEvent & e)
 {
-  if (e.mods.isRightButtonDown() && !_isRegionLocked) {
+  if (e.mods.isLeftButtonDown() && e.mods.isShiftDown() && !_isRegionLocked) {
     // save the rectangle
     vector<Point<float> > pts;
     pts.push_back(localToRelativeImageCoords(_firstPt));
@@ -573,6 +573,13 @@ void Idea::generateColorPalette()
     _colors.push_back(c);
   }
 
+  _originalColors = _colors;
+
+  // default is use full value colors
+  for (int i = 0; i < _colors.size(); i++) {
+    _colors[i][2] = 1;
+  }
+
   _color = imgHist;
 
   updateColorWeights();
@@ -658,6 +665,7 @@ void Idea::altGenerateColorPalette()
     start = end + 1;
   }
 
+  _originalColors = _colors;
   updateColorWeights();
 
   // step 5: show in interface
@@ -922,9 +930,10 @@ void Idea::ColorPaletteControls::showExtraOptions()
   m.addItem(1, "Reset Colors");
   m.addItem(2, "Change Number of Colors");
   m.addItem(3, "Use Full Value Colors");
-  m.addItem(4, "Edit Weights");
-  m.addItem(5, "Recompute Weights");
-  m.addItem(6, "EXPERIMENTAL: Advanced Palette Generation");
+  m.addItem(4, "Use True Value Colors");
+  m.addItem(5, "Edit Weights");
+  m.addItem(6, "Recompute Weights");
+  m.addItem(7, "EXPERIMENTAL: Advanced Palette Generation");
 
   int result = m.show();
 
@@ -962,6 +971,10 @@ void Idea::ColorPaletteControls::showExtraOptions()
     repaint();
   }
   else if (result == 4) {
+    _parent->_colors = _parent->_originalColors;
+    repaint();
+  }
+  else if (result == 5) {
     // dialog for changing weightsw
     AlertWindow w("Edit Weights",
       "Edit the relative frequency of each color. Weights do not have to sum to 1.",
@@ -985,10 +998,10 @@ void Idea::ColorPaletteControls::showExtraOptions()
       repaint();
     }
   }
-  else if (result == 5) {
+  else if (result == 6) {
     _parent->updateColorWeights();
   }
-  else if (result == 6) {
+  else if (result == 7) {
     _parent->altGenerateColorPalette();
     repaint();
   }

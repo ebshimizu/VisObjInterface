@@ -445,9 +445,14 @@ void IntensitySampler::sample(Snapshot * state)
   for (auto system : systems) {
     DeviceSet globalSys = getRig()->select("$system=" + system);
     DeviceSet localSys(getRig());
+    float avgIntens = 0;
+    int ct = 0;
 
     for (auto id : globalSys.getIds()) {
       if (_devices.contains(id)) {
+        avgIntens += stateData[id]->getIntensity()->asPercent();
+        ct++;
+
         if (_intensPins.count(id) == 0) {
           localSys = localSys.add(id);
         }
@@ -455,7 +460,9 @@ void IntensitySampler::sample(Snapshot * state)
       }
     }
 
-    results.push_back(0);
+    // calculate avg intens
+    results.push_back(avgIntens / ct);
+
     sens.push_back((float)(_systemSensitivity[system]));
     systemMap.push_back(localSys);
 

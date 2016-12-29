@@ -153,6 +153,7 @@ private:
   // type specific variables
   // color
   vector<Eigen::Vector3d> _colors;
+  vector<Eigen::Vector3d> _originalColors;
   vector<float> _weights;
   int _numColors;
 
