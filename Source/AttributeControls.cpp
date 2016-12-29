@@ -533,9 +533,9 @@ void AttributeControls::refreshSettings()
   _settings->refresh();
 }
 
-void AttributeControls::addIdea(Image i, String name)
+void AttributeControls::addIdea(Image i, String name, IdeaType type)
 {
-  _ic->_ideas->addIdea(i, name);
+  _ic->_ideas->addIdea(i, name, type);
   _ic->_ideas->resized();
 }
 

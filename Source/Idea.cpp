@@ -476,7 +476,6 @@ void Idea::initUI()
 {
   _typeSelector.addItem("Color Palette", (int)COLOR_PALETTE);
   _typeSelector.addItem("Intensity Distribution", (int)INTENS_DIST);
-  _typeSelector.addItem("Monochrome Palette", (int)MONOCHROME);
   _typeSelector.addItem("Theatrical Palette", (int)THEATRICAL);
   _typeSelector.addListener(this);
   _typeSelector.setSelectedId((int)_type);
@@ -1160,9 +1159,9 @@ void IdeaList::updateActiveIdea()
   }
 }
 
-void IdeaList::addIdea(Image i, String name)
+void IdeaList::addIdea(Image i, String name, IdeaType type)
 {
-  shared_ptr<Idea> newIdea = shared_ptr<Idea>(new Idea(i));
+  shared_ptr<Idea> newIdea = shared_ptr<Idea>(new Idea(i, type));
   _ideas.push_back(newIdea);
   newIdea->setName(name + String(_ideaID));
   addAndMakeVisible(newIdea.get());

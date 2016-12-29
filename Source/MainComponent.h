@@ -95,7 +95,7 @@ public:
   void reset();
 
   // adds an idea to the ideas panel based on the specified image
-  void createIdea(Image i, String name);
+  void createIdea(Image i, String name, IdeaType type);
 
   // shows a dialog box containing the devices affected by the selected region
   void debugShowAffectedDevices(Rectangle<float> region);

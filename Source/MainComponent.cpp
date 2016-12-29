@@ -647,9 +647,9 @@ void MainContentComponent::reset()
   arnoldRender();
 }
 
-void MainContentComponent::createIdea(Image i, String name)
+void MainContentComponent::createIdea(Image i, String name, IdeaType type)
 {
-  _attrs->addIdea(i, name);
+  _attrs->addIdea(i, name, type);
   _viewer->repaint();
 }
 

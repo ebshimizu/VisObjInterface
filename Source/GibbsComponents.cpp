@@ -53,7 +53,9 @@ void GibbsPalette::mouseDown(const MouseEvent & event)
   }
   else if (event.mods.isRightButtonDown()) {
     PopupMenu menu;
-    menu.addItem(1, "New Concept");
+    menu.addItem(1, "New Color Concept");
+    menu.addItem(2, "New Intensity Concept");
+    menu.addItem(3, "New Color and Intensity Concepts");
 
     int result = menu.show();
 
@@ -61,7 +63,22 @@ void GibbsPalette::mouseDown(const MouseEvent & event)
       MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
       if (mc != nullptr) {
-        mc->createIdea(_img, _name);
+        mc->createIdea(_img, _name, COLOR_PALETTE);
+      }
+    }
+    else if (result == 2) {
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+      if (mc != nullptr) {
+        mc->createIdea(_img, _name, INTENS_DIST);
+      }
+    }
+    else if (result == 3) {
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+
+      if (mc != nullptr) {
+        mc->createIdea(_img, _name, COLOR_PALETTE);
+        mc->createIdea(_img, _name, INTENS_DIST);
       }
     }
   }

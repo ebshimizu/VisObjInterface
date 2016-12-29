@@ -115,7 +115,7 @@ public:
 
   void refreshSettings();
 
-  void addIdea(Image i, String name);
+  void addIdea(Image i, String name, IdeaType type);
   void saveIdeas(File destFolder);
   void loadIdeas(File srcFolder);
 

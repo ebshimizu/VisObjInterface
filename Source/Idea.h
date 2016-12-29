@@ -196,7 +196,7 @@ public:
   void updateActiveIdea();
 
   // adds an idea to the list.
-  void addIdea(Image i, String name);
+  void addIdea(Image i, String name, IdeaType type);
 
   // serialization function. Saves all ideas to a specified folder
   void saveIdeas(File destFolder);
