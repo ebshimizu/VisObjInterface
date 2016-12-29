@@ -1332,6 +1332,9 @@ void IdeaList::deleteIdea(Idea* idea)
     }
   }
 
+  if (getGlobalSettings()->_activeIdea == *todelete)
+    getGlobalSettings()->_activeIdea = nullptr;
+
   getGlobalSettings()->_ideaMap.erase(*todelete);
 
   removeChildComponent(todelete->get());

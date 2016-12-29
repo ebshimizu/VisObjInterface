@@ -346,31 +346,12 @@ void SceneViewer::mouseDown(const MouseEvent & event)
       DeviceSet affected;
       Rectangle<float> region;
       if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD) {
-        map<int, shared_ptr<Idea> > ids;
-        int i = 1;
+        auto active = getGlobalSettings()->_activeIdea;
 
-        for (auto b : getGlobalSettings()->_ideaMap) {
-          if (b.second.contains(pt)) {
-            ids[i] = b.first;
-            menu.addItem(i, b.first->getName() + ": Modify Intensity / Color");
-          }
-          i++;
-        }
-
-        int result = 0;
-        if (ids.size() == 1) {
-          result = 1;
-        }
-        else if (ids.size() == 0) {
+        if (active == nullptr)
           return;
-        }
-        else {
-          result = menu.show();
-          if (result == 0)
-            return;
-        }
 
-        region = getGlobalSettings()->_ideaMap[ids[result]];
+        region = getGlobalSettings()->_ideaMap[active];
       }
       else if (getGlobalSettings()->_freezeDrawMode == DrawMode::SELECT_ONLY) {
         region = _selectedRegion;
@@ -412,24 +393,14 @@ void SceneViewer::mouseDown(const MouseEvent & event)
     if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD) {
       // check idea rectangle
       auto pt = getRelativeImageCoords(event.position);
-      if (!_hideAllBoxes) {
+      if (!_hideAllBoxes && getGlobalSettings()->_activeIdea != nullptr) {
         PopupMenu menu;
+        auto active = getGlobalSettings()->_activeIdea;
 
-        map<int,shared_ptr<Idea> > ids;
-        int i = 1;
-        
-        for (auto b : getGlobalSettings()->_ideaMap) {
-          if (b.second.contains(pt)) {
-            ids[i] = b.first;
-            menu.addItem(i, b.first->getName() + ": Delete");
-            i++;
-
-            menu.addItem(i, b.first->getName() + ": Show Selection");
-            i++;
-
-            menu.addItem(i, b.first->getName() + ": [DEBUG] Display Selection Info");
-          }
-          i++;
+        if (getGlobalSettings()->_ideaMap[active].contains(pt)) {
+            menu.addItem(1, active->getName() + ": Delete Target");
+            menu.addItem(2, active->getName() + ": Show Selection");
+            menu.addItem(3, active->getName() + ": [DEBUG] Display Selection Info");
         }
 
         int result = menu.show();
@@ -439,29 +410,18 @@ void SceneViewer::mouseDown(const MouseEvent & event)
         
         MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
-        if (result % 3 == 1) {
-          getGlobalSettings()->_ideaMap.erase(ids[result]);
+        if (result == 1) {
+          getGlobalSettings()->_ideaMap.erase(active);
           repaint();
         }
-        else if (result % 3 == 2) {
-          DeviceSet affected = mc->computeAffectedDevices(getGlobalSettings()->_ideaMap[ids[result - 1]]);
+        else if (result == 2) {
+          DeviceSet affected = mc->computeAffectedDevices(getGlobalSettings()->_ideaMap[active]);
           showSelection(affected);
           mc->setSelectedIds(affected);
         }
         else {
           // want to pop up a dialog showing what's in the box
-          mc->debugShowAffectedDevices(getGlobalSettings()->_ideaMap[ids[result - 2]]);
-        }
-      }
-      else {
-        if (getGlobalSettings()->_ideaMap[getGlobalSettings()->_activeIdea].contains(pt)) {
-          PopupMenu menu;
-          menu.addItem(1, "Delete");
-          int result = menu.show();
-
-          if (result == 1) {
-            getGlobalSettings()->_ideaMap.erase(getGlobalSettings()->_activeIdea);
-          }
+          mc->debugShowAffectedDevices(getGlobalSettings()->_ideaMap[active]);
         }
       }
     }
