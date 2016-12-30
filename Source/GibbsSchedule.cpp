@@ -448,16 +448,25 @@ void IntensitySampler::sample(Snapshot * state)
     float avgIntens = 0;
     int ct = 0;
 
+    bool noDevicesInLocal = true;
+
     for (auto id : globalSys.getIds()) {
       if (_devices.contains(id)) {
         avgIntens += stateData[id]->getIntensity()->asPercent();
         ct++;
+        noDevicesInLocal = false;
 
         if (_intensPins.count(id) == 0) {
           localSys = localSys.add(id);
         }
         // some other effect if pinned
       }
+    }
+
+    // skip if there's nothing actually in the local set
+    // from this system
+    if (noDevicesInLocal) {
+      continue;
     }
 
     // calculate avg intens
@@ -526,6 +535,10 @@ double IntensitySampler::score(Snapshot * /*state*/, Image& img, bool masked)
       }
     }
   }
+
+  // mask may not be present in region
+  if (stage.getTotalWeight() == 0)
+    return 0;
 
   // compute the dist
   return _srcBrightness.EMD(stage);
