@@ -275,6 +275,9 @@ double ColorSampler::score(Snapshot * /* state */, Image & img, bool masked)
     }
   }
 
+  if (stage.getTotalWeight() == 0)
+    return;
+
   // compute the dist
   return _srcColor.EMD(stage);
 }
