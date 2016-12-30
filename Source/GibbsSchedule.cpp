@@ -866,3 +866,27 @@ void GibbsSchedule::log()
   getRecorder()->log(SYSTEM, log);
 }
 
+void GibbsSchedule::moveIntensityUp()
+{
+  vector<Sampler*> intens;
+  vector<Sampler*> other;
+
+  for (auto s : _samplers) {
+    if (s->getType() == "intensity") {
+      intens.push_back(s);
+    }
+    else {
+      other.push_back(s);
+    }
+  }
+
+  // recombine
+  _samplers.clear();
+  for (auto i : intens) {
+    _samplers.push_back(i);
+  }
+  for (auto o : other) {
+    _samplers.push_back(o);
+  }
+}
+

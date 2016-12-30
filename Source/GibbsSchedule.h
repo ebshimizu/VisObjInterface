@@ -35,6 +35,8 @@ public:
 
   // name for id'ing the sampler
   string _name;
+
+  virtual string getType() = 0;
 protected:
   // computes the per-system intensity based on affected devices
   void computeSystemSensitivity();
@@ -67,6 +69,7 @@ public:
   void setColorHistogram(SparseHistogram c);
 
   string info() override;
+  string getType() { return "color"; }
 
 protected:
   void normalizeWeights();
@@ -91,6 +94,7 @@ public:
   double score(Snapshot* /* state */, Image& /* img */, bool /* masked */) { return 0; }
 
   string info() override;
+  string getType() { return "pin"; }
 };
 
 // an intensity sampler samples a target average intensity and peak intensity
@@ -109,6 +113,7 @@ public:
   void setBrightnessHistogram(SparseHistogram b);
 
   string info() override;
+  string getType() { return "intensity"; }
 
 private:
   // for computing the score, the histogram of the idea
@@ -132,6 +137,7 @@ public:
 
   string info() override;
 
+  string getType() { return "monochrome"; }
 private:
   Colour _target;
 };
@@ -144,6 +150,7 @@ public:
   ~TheatricalSampler();
 
   void sample(Snapshot* state) override;
+  string getType() { return "theatrical"; }
 
 private:
   Eigen::Vector3d cctToRgb(int cct);
@@ -175,6 +182,9 @@ public:
 
   // logs info about all the active samplers to a file
   void log();
+  
+  // makes sure intensity samplers happen first.
+  void moveIntensityUp();
 
 private:
   default_random_engine _gen;

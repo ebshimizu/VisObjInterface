@@ -503,6 +503,10 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
   Sampler* pinSampler = (Sampler*)(new PinSampler(pins, Rectangle<float>(), ip, cp));
   pinSampler->_name = "Pinned";
   sched->addSampler(pinSampler);
+
+  // move intensity to top of stack
+  sched->moveIntensityUp();
+
   getGlobalSettings()->_intensityPins = ip;
   getGlobalSettings()->_colorPins = cp;
 
