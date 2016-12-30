@@ -306,13 +306,13 @@ void GibbsSamplingGaussianMixturePrior(std::vector<float>& result,
     // Target number of directed lights
     int target_k = (k - sample_k > 0) ? (k - sample_k) : 0; // clip at zero
 
-                                                            // Target high gaussian mixture weight
+    // Target high gaussian mixture weight
     float target_wh = ((float)target_k / (float)n_left < 1.0f) ? ((float)target_k / (float)n_left) : 1.0f; // clip highest at one
 
-                                                                                                           // Target low gaussian mixture weight (Not used, here for completeness)
-                                                                                                           // float target_wl = 1.0f - target_wh;
+    // Target low gaussian mixture weight (Not used, here for completeness)
+    // float target_wl = 1.0f - target_wh;
 
-                                                                                                           // Target mean for the rest of the samples
+    // Target mean for the rest of the samples
     float target_ma = ((float)n * ma - (float)n_sampled * sample_mean) / (float)n_left;
 
     // Target mean for the low intensity gaussian
