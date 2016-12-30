@@ -575,14 +575,14 @@ void Idea::generateColorPalette()
 
   _originalColors = _colors;
 
+  _color = imgHist;
+
+  updateColorWeights();
+
   // default is use full value colors
   for (int i = 0; i < _colors.size(); i++) {
     _colors[i][2] = 1;
   }
-
-  _color = imgHist;
-
-  updateColorWeights();
 }
 
 void Idea::altGenerateColorPalette()
