@@ -127,7 +127,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::UNLOCK_SELECTED_COLOR, command::UNLOCK_SELECTED_INTENSITY, command::RELOAD_ATTRS, command::LOAD_ATTRS,
     command::RESET_ALL, command::SAVE_IDEAS, command::LOAD_IDEAS, command::DELETE_ALL_PINS,
     command::TOGGLE_SELECT_VIEW, command::INTERFACE_OLD, command::INTERFACE_NEW, command::INTERFACE_ALL,
-    command::RESET_TIMER
+    command::RESET_TIMER, command::SHOW_PROMPT
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -308,6 +308,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::RESET_TIMER:
     result.setInfo("Reset Log Timer", "resets the log timer", "Edit", 0);
     break;
+  case command::SHOW_PROMPT:
+    result.setInfo("Show Prompt", "Displays the prompt for this experiment", "Window", 0);
+    break;
   default:
     return;
   }
@@ -463,6 +466,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::RESET_TIMER:
     getRecorder()->resetTimer();
+    break;
+  case command::SHOW_PROMPT:
+    showPrompt();
     break;
   default:
     return false;
@@ -1610,6 +1616,19 @@ void MainContentComponent::selectBox(string metadataKey, bool inv, string title)
     }
   }
 #endif
+}
+
+void MainContentComponent::showPrompt()
+{
+  Device* d = getRig()->getDevice("par_H1_2");
+
+  if (d == nullptr) {
+    getStatusBar()->setStatusMessage("No prompt found", false, true);
+  }
+  else {
+    string prompt = d->getMetadata("prompt");
+    AlertWindow::showMessageBox(AlertWindow::AlertIconType::InfoIcon, "Prompt", prompt);
+  }
 }
 
 void MainContentComponent::search()

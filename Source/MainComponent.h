@@ -164,6 +164,8 @@ private:
   // metadata field
   void selectBox(string metadataKey, bool inv, string title);
 
+  void showPrompt();
+
   // Private vars
   File _parentDir;
   String _showName;
