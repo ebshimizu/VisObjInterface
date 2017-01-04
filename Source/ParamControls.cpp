@@ -580,23 +580,35 @@ void ParamControls::buttonClicked(Button * b)
   else if (b->getName() == "qsArea") {
     // get all areas
     auto areaSet = getRig()->getMetadataValues("area");
+    int i = 1;
+    map<int, string> cmdMap;
 
-    vector<string> areas;
-    for (auto a : areaSet)
-      areas.push_back(a);
+    PopupMenu area;
 
-    PopupMenu m;
-    for (int i = 0; i < areas.size(); i++) {
-      m.addItem(i + 1, areas[i]);
+    // populate areas
+    for (auto a : getRig()->getMetadataValues("area")) {
+      PopupMenu perAreaSys;
+
+      // populate per-area system
+      for (auto s : getRig()->getMetadataValues("system")) {
+        perAreaSys.addItem(i, s);
+        cmdMap[i] = "$area=" + a + "[$system=" + s + "]";
+        i++;
+      }
+
+      area.addSubMenu(a, perAreaSys, true, nullptr, false, i);
+      cmdMap[i] = "$area=" + a;
+
+      i++;
     }
 
-    int result = m.showAt(&_qsArea);
+    int result = area.showAt(&_qsArea);
 
     if (result == 0)
       return;
 
     _table.deselectAllRows();
-    auto selected = getRig()->select("$area=" + areas[result - 1]);
+    auto selected = getRig()->select(cmdMap[result]);
     set<Device*> devices = selected.getDevices();
     for (auto d : devices) {
       _table.selectRow(_ids.indexOf(String(d->getId())), true, false);
