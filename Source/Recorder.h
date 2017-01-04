@@ -39,6 +39,7 @@ public:
 
   void setFilename(string filename);
   void log(actionType type, string message);
+  void resetTimer();
 
 private:
   string _filename;

@@ -154,7 +154,7 @@ private:
   void loadImageAttrsFromDir();
 
   // idea serialization
-  void saveIdeas();
+  void saveIdeas(bool backup = false);
   void loadIdeas();
 
   // region management

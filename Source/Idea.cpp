@@ -1198,7 +1198,12 @@ void IdeaList::saveIdeas(File destFolder)
   JSONNode root;
 
   // can't match by ID, have to load all ideas then match name to get active
-  root.push_back(JSONNode("active_idea", getActiveIdea()->getName().toStdString()));
+  if (getActiveIdea() == nullptr) {
+    root.push_back(JSONNode("active_idea", "NULL"));
+  }
+  else {
+    root.push_back(JSONNode("active_idea", getActiveIdea()->getName().toStdString()));
+  }
 
   for (auto i : _ideas) {
     // create json node

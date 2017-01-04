@@ -126,7 +126,8 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::LOCK_SELECTED_INTENSITY, command::LOCK_SELECTED_COLOR, command::UNLOCK_ALL_SELECTED,
     command::UNLOCK_SELECTED_COLOR, command::UNLOCK_SELECTED_INTENSITY, command::RELOAD_ATTRS, command::LOAD_ATTRS,
     command::RESET_ALL, command::SAVE_IDEAS, command::LOAD_IDEAS, command::DELETE_ALL_PINS,
-    command::TOGGLE_SELECT_VIEW, command::INTERFACE_OLD, command::INTERFACE_NEW, command::INTERFACE_ALL
+    command::TOGGLE_SELECT_VIEW, command::INTERFACE_OLD, command::INTERFACE_NEW, command::INTERFACE_ALL,
+    command::RESET_TIMER
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -304,6 +305,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::INTERFACE_ALL:
     result.setInfo("Switch to Debug Interface", "Switches to the debug interface", "Window", 0);
     break;
+  case command::RESET_TIMER:
+    result.setInfo("Reset Log Timer", "resets the log timer", "Edit", 0);
+    break;
   default:
     return;
   }
@@ -457,6 +461,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
   case command::INTERFACE_ALL:
     _attrs->toggleAllInterface();
     break;
+  case command::RESET_TIMER:
+    getRecorder()->resetTimer();
+    break;
   default:
     return false;
   }
@@ -475,6 +482,12 @@ void MainContentComponent::addHistory()
   r->_scene = snapshotToVector(current);
   delete current;
 
+  // also save to disk in temporary file in case app crashes
+  getRig()->save(File::getCurrentWorkingDirectory().getChildFile("backup.rig.json").getFullPathName().toStdString(), true);
+  
+  // and save the ideas
+  saveIdeas(true);
+
   r->_sampleNo = h->getHistorySize() + 1;
 
   SearchResultContainer* c = new SearchResultContainer(r, true);
@@ -483,6 +496,7 @@ void MainContentComponent::addHistory()
   h->addHistoryItem(c);
   _search->resized();
   _search->repaint();
+
 }
 
 void MainContentComponent::sortCluster()
@@ -771,7 +785,7 @@ void MainContentComponent::openRig(String fname)
       getRecorder()->log(SYSTEM, "Failed to load \"" + selected.getFullPathName().toStdString() + "\"");
     }
 
-    arnoldRender();
+    arnoldRender(false);
     _attrs->refreshSettings();
   }
   catch (exception e) {
@@ -1504,31 +1518,36 @@ void MainContentComponent::loadImageAttrsFromDir()
   }
 }
 
-void MainContentComponent::saveIdeas()
+void MainContentComponent::saveIdeas(bool backup)
 {
-  FileChooser fc("Select Folder to Save Ideas",
-    File::getCurrentWorkingDirectory(),
-    "", true);
+  if (backup) {
+    _attrs->saveIdeas(File::getCurrentWorkingDirectory().getChildFile("idea_backup"));
+  }
+  else {
+    FileChooser fc("Select Folder to Save Ideas",
+      File::getCurrentWorkingDirectory(),
+      "", true);
 
-  if (fc.browseForDirectory())
-  {
-    File selected = fc.getResult();
+    if (fc.browseForDirectory())
+    {
+      File selected = fc.getResult();
 
-    if (selected.getNumberOfChildFiles(File::TypesOfFileToFind::findFilesAndDirectories) > 0) {
-      // warn user
-      AlertWindow alert("Existing Files May Be Overwritten",
-        "Files contained within the selected directory may be overwirrten or deleted by saving the current ideas. Is this OK?",
-        AlertWindow::AlertIconType::WarningIcon);
-      alert.addButton("OK", 1);
-      alert.addButton("Cancel", 0);
-      int result = alert.runModalLoop();
+      if (selected.getNumberOfChildFiles(File::TypesOfFileToFind::findFilesAndDirectories) > 0) {
+        // warn user
+        AlertWindow alert("Existing Files May Be Overwritten",
+          "Files contained within the selected directory may be overwirrten or deleted by saving the current ideas. Is this OK?",
+          AlertWindow::AlertIconType::WarningIcon);
+        alert.addButton("OK", 1);
+        alert.addButton("Cancel", 0);
+        int result = alert.runModalLoop();
 
-      if (result == 0) {
-        return;
+        if (result == 0) {
+          return;
+        }
       }
-    }
 
-    _attrs->saveIdeas(selected);
+      _attrs->saveIdeas(selected);
+    }
   }
 }
 

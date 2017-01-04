@@ -62,3 +62,9 @@ void Recorder::log(actionType type, string message)
   _file << t << " (" << buf << ")\t" << message << "\n";
   _file.flush();
 }
+
+void Recorder::resetTimer()
+{
+  _start = chrono::steady_clock::now();
+  log(SYSTEM, "Timer Reset");
+}

@@ -796,6 +796,10 @@ void SceneViewer::ParamShifter::paint(Graphics & g)
 
 void SceneViewer::ParamShifter::sliderDragEnded(Slider * s)
 {
+  // log
+  String msg = "Slider " + s->getName() + " drag ended at " + String(s->getValue());
+  getRecorder()->log(ACTION, msg.toStdString());
+
   // Trigger re-render
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 

@@ -59,6 +59,7 @@ enum command {
   GET_FROM_ARNOLD = 0x4003,
   CONSTRAINTS = 0x4004,
   RESET_ALL = 0x4005,
+  RESET_TIMER = 0x4006,
 
   // Explore
   SEARCH = 0x5000,
