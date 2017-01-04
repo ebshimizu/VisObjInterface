@@ -62,6 +62,9 @@ SystemExplorer::~SystemExplorer()
 
 void SystemExplorer::addNewResult(shared_ptr<SearchResultContainer> result)
 {
+  // SHORT CIRCUIT BECAUSE THIS ELEMENT IS NOW HIDDEN
+  return;
+
   auto nr = shared_ptr<SearchResultContainer>(new SearchResultContainer(shared_ptr<SearchResult>(result->getSearchResult())));
   nr->setSystem(_selected);
 
@@ -130,11 +133,11 @@ void SystemExplorer::paint(Graphics & g)
   left.removeFromBottom(24);
   g.drawText(getName() + ": " + _name, left.removeFromTop(24), Justification::centredLeft, true);
 
-  auto line = lbounds.removeFromLeft(5);
-  g.setColour(Colours::white);
-  line.removeFromLeft(2);
-  line.removeFromRight(2);
-  g.fillRect(line);
+  //auto line = lbounds.removeFromLeft(5);
+  //g.setColour(Colours::white);
+  //line.removeFromLeft(2);
+  //line.removeFromRight(2);
+  //g.fillRect(line);
 
   g.drawImageWithin(_currentImg, left.getX(), left.getY(), left.getWidth(), left.getHeight(), RectanglePlacement::centred);
 }
@@ -156,9 +159,9 @@ void SystemExplorer::resized()
   _color.setBounds(bot.removeFromRight(60).reduced(2));
   _intens.setBounds(bot);
 
-  lbounds.removeFromLeft(5);
-  _rowElems->setBounds(lbounds);
-  _container->setSize(lbounds.getWidth(), _rowElems->getHeight() - _rowElems->getScrollBarThickness());
+  //lbounds.removeFromLeft(5);
+  //_rowElems->setBounds(lbounds);
+  //_container->setSize(lbounds.getWidth(), _rowElems->getHeight() - _rowElems->getScrollBarThickness());
 }
 
 DeviceSet SystemExplorer::getViewedDevices()
@@ -234,9 +237,9 @@ void SystemExplorer::init()
   // create viewport and container
   _rowElems = new Viewport();
   _container = new SystemExplorerResults();
-  addAndMakeVisible(_container);
+  //addAndMakeVisible(_container);
   _rowElems->setViewedComponent(_container, true);
-  addAndMakeVisible(_rowElems);
+  //addAndMakeVisible(_rowElems);
 
   // create the image and current state
   _currentState = new Snapshot(getRig());

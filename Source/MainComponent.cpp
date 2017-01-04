@@ -657,6 +657,9 @@ void MainContentComponent::reset()
   // clear the mask?
   _viewer->clearMask();
 
+  // clear selection mode
+  _viewer->hideSelection();
+
   // delete ideas
   _attrs->deleteIdeas();
 
