@@ -746,8 +746,8 @@ SceneViewer::ParamShifter::ParamShifter(DeviceSet affected) : _affected(affected
   _sat.setSliderStyle(Slider::SliderStyle::LinearBar);
 
   _intens.setRange(-25, 25, 0.01f);
-  _hue.setRange(-30, 30, 0.1f);
-  _sat.setRange(-25, 25, 0.1f);
+  _hue.setRange(-90, 90, 0.1f);
+  _sat.setRange(-50, 50, 0.1f);
 
   _intens.setValue(0, dontSendNotification);
   _hue.setValue(0, dontSendNotification);

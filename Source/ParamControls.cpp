@@ -30,6 +30,8 @@ FloatPropertySlider::FloatPropertySlider(string id, string param, LumiverseFloat
   else {
     slider.setValue(val->getVal());
   }
+
+  slider.setTextBoxIsEditable(false);
 }
 
 FloatPropertySlider::~FloatPropertySlider()
