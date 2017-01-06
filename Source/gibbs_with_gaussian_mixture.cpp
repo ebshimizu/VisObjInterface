@@ -378,7 +378,12 @@ void GibbsSamplingGaussianMixturePrior(std::vector<float>& result,
 
     for (int i = 0; i < n; ++i)
     {
-      inv_s[i] = 1.0f / s[i];
+      if (s[i] == 0) {
+        inv_s[i] = 1.0f;
+      }
+      else {
+        inv_s[i] = 1.0f / s[i];
+      }
       sum_inv_s += inv_s[i];
     }
     for (int i = 0; i < n; ++i)

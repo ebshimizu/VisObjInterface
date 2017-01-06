@@ -120,114 +120,182 @@ ColorSampler::~ColorSampler()
 
 void ColorSampler::sample(Snapshot * state)
 {
-  // the color sampler will sample by system
-  vector<float> results;
-  vector<float> bins;
-  bins.resize(_colors.size());
-  vector<DeviceSet> systemMap;
-  auto stateData = state->getRigData();
+  if (getGlobalSettings()->_unconstrained) {
+    // the color sampler will sample by individual lights (lol)
+    vector<float> results;
+    vector<float> bins;
+    bins.resize(_colors.size());
+    vector<string> ids;
+    auto stateData = state->getRigData();
 
-  // ok so here we'll want to do some pre-filling based on what's pinned
-  // process goes like this
-  // - find light's closest color if pinned, add intensity (%) to bin
-  // - If not pinned, add light's intensity to system total
-
-  auto systems = getRig()->getMetadataValues("system");
-  int i = 0;
-  for (auto s : systems) {
-    DeviceSet localSys(getRig());
-    DeviceSet globalSys = getRig()->select("$system=" + s);
-
-    float totalIntens = 0;
-    for (auto id : globalSys.getIds()) {
-      if (_devices.contains(id)) {
-        if (!stateData[id]->paramExists("color"))
+    // ok so here we'll want to do some pre-filling based on what's pinned
+    // process goes like this
+    // - find light's closest color if pinned, add intensity (%) to bin
+    // - If not pinned, add light's intensity to system total
+    int i = 0;
+    for (auto id : stateData) {
+      if (_devices.contains(id.first)) {
+        if (!stateData[id.first]->paramExists("color"))
           continue;
 
-        if (_colorPins.count(id) == 0) {
+        if (_colorPins.count(id.first) == 0) {
           // unconstrained
-          localSys = localSys.add(id);
-          totalIntens += stateData[id]->getIntensity()->asPercent();
         }
         else {
           // pinned, find closest color
-          int closestColorIndex = getClosestColorIndex(stateData[id]->getColor()->getHSV());
+          int closestColorIndex = getClosestColorIndex(stateData[id.first]->getColor()->getHSV());
 
           // add to color bin, note that this is not actually part of the
           // local system set because it's pinned
-          bins[closestColorIndex] += stateData[id]->getIntensity()->asPercent();
+          bins[closestColorIndex] += stateData[id.first]->getIntensity()->asPercent();
         }
       }
+
+      // ensure proper size for results, even if the value is 0
+      results.push_back(stateData[id.first]->getIntensity()->asPercent());
+      ids.push_back(id.first);
+      i++;
     }
-    
-    // ensure proper size for results, even if the value is 0
-    results.push_back(totalIntens);
-    systemMap.push_back(localSys);
-    i++;
-  }
 
-  vector<int> colorIds;
-  colorIds.resize(results.size());
+    vector<int> colorIds;
+    colorIds.resize(results.size());
 
-  // here we do a bit of re-weighting of the color buckets.
-  vector<float> sampleWeights;
-  sampleWeights.resize(_weights.size());
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::uniform_real_distribution<float> dist(0, 1);
-  float rnd = dist(gen);
-  int idx = 0;
+    ClosureOverUnevenBuckets(results, _weights, colorIds, bins);
 
-  // pick a color to be the "big bucket"
-  for ( ; idx < _weights.size(); idx++) {
-    if (rnd < _weights[idx])
-      break;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dist(0, 1);
+    float rnd = dist(gen);
 
-    rnd -= _weights[idx];
-  }
+    // fill in the results if not pinned
+    for (int j = 0; j < results.size(); j++) {
+      Eigen::Vector3d color = _colors[colorIds[j]];
 
-  // reassign weights. the bucket indicated by i gets n%, everything else
-  // proportional to the original weight
-  float bigWeight = getGlobalSettings()->_bigBucketSize;
+      // perterb the color a little bit 
+      normal_distribution<double> hueDist(0, 0.02);
+      normal_distribution<double> satDist(0, 0.1);
 
-  if (bigWeight < _weights[idx])
-    bigWeight = _weights[idx];
+      color[0] += hueDist(gen);
+      color[1] += satDist(gen);
+      color[2] += satDist(gen);
 
-  sampleWeights[idx] = bigWeight;
-  float rem = 1 - _weights[idx];
-
-  float smallWeight = 1 - bigWeight;
-  for (int j = 0; j < _weights.size(); j++) {
-    if (idx == j)
-      continue;
-
-    sampleWeights[j] = (_weights[j] / rem) * smallWeight;
-  }
-
-  // do the sampling
-  if (getGlobalSettings()->_recalculateWeights) {
-    ClosureOverUnevenBuckets(results, sampleWeights, colorIds, bins);
+      // apply color to each light in the system
+      string id = ids[j];
+      if (_colorPins.count(id) == 0 && stateData[id]->paramExists("color")) {
+        stateData[id]->getColor()->setHSV(color[0] * 360.0, color[1], color[2]);
+      }
+    }
   }
   else {
-    ClosureOverUnevenBuckets(results, _weights, colorIds, bins);
-  }
+    // the color sampler will sample by system
+    vector<float> results;
+    vector<float> bins;
+    bins.resize(_colors.size());
+    vector<DeviceSet> systemMap;
+    auto stateData = state->getRigData();
 
-  // fill in the results if not pinned
-  for (int j = 0; j < results.size(); j++) {
-    Eigen::Vector3d color = _colors[colorIds[j]];
+    // ok so here we'll want to do some pre-filling based on what's pinned
+    // process goes like this
+    // - find light's closest color if pinned, add intensity (%) to bin
+    // - If not pinned, add light's intensity to system total
 
-    // perterb the color a little bit 
-    normal_distribution<double> hueDist(0, 0.02);
-    normal_distribution<double> satDist(0, 0.1);
+    auto systems = getRig()->getMetadataValues("system");
+    int i = 0;
+    for (auto s : systems) {
+      DeviceSet localSys(getRig());
+      DeviceSet globalSys = getRig()->select("$system=" + s);
 
-    color[0] += hueDist(gen);
-    color[1] += satDist(gen);
-    color[2] += satDist(gen);
+      float totalIntens = 0;
+      for (auto id : globalSys.getIds()) {
+        if (_devices.contains(id)) {
+          if (!stateData[id]->paramExists("color"))
+            continue;
 
-    // apply color to each light in the system
-    for (string id : systemMap[j].getIds()) {
-      if (_colorPins.count(id) == 0 && stateData[id]->paramExists("color")) {
+          if (_colorPins.count(id) == 0) {
+            // unconstrained
+            localSys = localSys.add(id);
+            totalIntens += stateData[id]->getIntensity()->asPercent();
+          }
+          else {
+            // pinned, find closest color
+            int closestColorIndex = getClosestColorIndex(stateData[id]->getColor()->getHSV());
+
+            // add to color bin, note that this is not actually part of the
+            // local system set because it's pinned
+            bins[closestColorIndex] += stateData[id]->getIntensity()->asPercent();
+          }
+        }
+      }
+
+      // ensure proper size for results, even if the value is 0
+      results.push_back(totalIntens);
+      systemMap.push_back(localSys);
+      i++;
+    }
+
+    vector<int> colorIds;
+    colorIds.resize(results.size());
+
+    // here we do a bit of re-weighting of the color buckets.
+    vector<float> sampleWeights;
+    sampleWeights.resize(_weights.size());
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dist(0, 1);
+    float rnd = dist(gen);
+    int idx = 0;
+
+    // pick a color to be the "big bucket"
+    for (; idx < _weights.size(); idx++) {
+      if (rnd < _weights[idx])
+        break;
+
+      rnd -= _weights[idx];
+    }
+
+    // reassign weights. the bucket indicated by i gets n%, everything else
+    // proportional to the original weight
+    float bigWeight = getGlobalSettings()->_bigBucketSize;
+
+    if (bigWeight < _weights[idx])
+      bigWeight = _weights[idx];
+
+    sampleWeights[idx] = bigWeight;
+    float rem = 1 - _weights[idx];
+
+    float smallWeight = 1 - bigWeight;
+    for (int j = 0; j < _weights.size(); j++) {
+      if (idx == j)
+        continue;
+
+      sampleWeights[j] = (_weights[j] / rem) * smallWeight;
+    }
+
+    // do the sampling
+    if (getGlobalSettings()->_recalculateWeights) {
+      ClosureOverUnevenBuckets(results, sampleWeights, colorIds, bins);
+    }
+    else {
+      ClosureOverUnevenBuckets(results, _weights, colorIds, bins);
+    }
+
+    // fill in the results if not pinned
+    for (int j = 0; j < results.size(); j++) {
+      Eigen::Vector3d color = _colors[colorIds[j]];
+
+      // perterb the color a little bit 
+      normal_distribution<double> hueDist(0, 0.02);
+      normal_distribution<double> satDist(0, 0.1);
+
+      color[0] += hueDist(gen);
+      color[1] += satDist(gen);
+      color[2] += satDist(gen);
+
+      // apply color to each light in the system
+      for (string id : systemMap[j].getIds()) {
+        if (_colorPins.count(id) == 0 && stateData[id]->paramExists("color")) {
           stateData[id]->getColor()->setHSV(color[0] * 360.0, color[1], color[2]);
+        }
       }
     }
   }
@@ -436,68 +504,106 @@ IntensitySampler::~IntensitySampler()
 
 void IntensitySampler::sample(Snapshot * state)
 {
-  // the color sampler will sample by system
-  vector<float> results;
-  vector<int> constraint;
-  vector<float> sens;
-  vector<DeviceSet> systemMap;
-  auto stateData = state->getRigData();
+  if (getGlobalSettings()->_unconstrained) {
+    vector<float> results;
+    vector<int> constraint;
+    vector<float> sens;
+    vector<string> ids;
+    auto stateData = state->getRigData();
 
-  auto systems = getRig()->getMetadataValues("system");
+    for (auto id : stateData) {
+      if (_devices.contains(id.first)) {
+        sens.push_back(getGlobalSettings()->_sensitivity[id.first]);
+        ids.push_back(id.first);
+        results.push_back(id.second->getIntensity()->asPercent());
 
-  for (auto system : systems) {
-    DeviceSet globalSys = getRig()->select("$system=" + system);
-    DeviceSet localSys(getRig());
-    float avgIntens = 0;
-    int ct = 0;
-
-    bool noDevicesInLocal = true;
-
-    for (auto id : globalSys.getIds()) {
-      if (_devices.contains(id)) {
-        avgIntens += stateData[id]->getIntensity()->asPercent();
-        ct++;
-        noDevicesInLocal = false;
-
-        if (_intensPins.count(id) == 0) {
-          localSys = localSys.add(id);
+        if (_intensPins.count(id.first) == 0) {
+          constraint.push_back(0);
         }
-        // some other effect if pinned
+        else {
+          constraint.push_back(3);
+        }
       }
     }
 
-    // skip if there's nothing actually in the local set
-    // from this system
-    if (noDevicesInLocal) {
-      continue;
-    }
+    // sample
+    GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), _k, _brightMean, _mean);
 
-    // calculate avg intens
-    results.push_back(avgIntens / ct);
+    // apply to snapshot
+    for (int j = 0; j < results.size(); j++) {
+      float intens = results[j];
 
-    sens.push_back((float)(_systemSensitivity[system]));
-    systemMap.push_back(localSys);
-
-    if (localSys.size() > 0) {
-      constraint.push_back(0);
-    }
-    else {
-      // pinned
-      constraint.push_back(3);
-    }
-  }
-
-  // sample
-  GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), _k, _brightMean, _mean);
-
-  // apply to snapshot
-  for (int j = 0; j < results.size(); j++) {
-    float intens = results[j];
-
-    // apply color to each light in the system
-    for (string id : systemMap[j].getIds()) {
+      // apply color to each light in the system
+      string id = ids[j];
       if (_intensPins.count(id) == 0 && stateData[id]->paramExists("intensity")) {
         stateData[id]->getIntensity()->setValAsPercent(intens);
+      }
+    }
+  }
+  else {
+    // the color sampler will sample by system
+    vector<float> results;
+    vector<int> constraint;
+    vector<float> sens;
+    vector<DeviceSet> systemMap;
+    auto stateData = state->getRigData();
+
+    auto systems = getRig()->getMetadataValues("system");
+
+    for (auto system : systems) {
+      DeviceSet globalSys = getRig()->select("$system=" + system);
+      DeviceSet localSys(getRig());
+      float avgIntens = 0;
+      int ct = 0;
+
+      bool noDevicesInLocal = true;
+
+      for (auto id : globalSys.getIds()) {
+        if (_devices.contains(id)) {
+          avgIntens += stateData[id]->getIntensity()->asPercent();
+          ct++;
+          noDevicesInLocal = false;
+
+          if (_intensPins.count(id) == 0) {
+            localSys = localSys.add(id);
+          }
+          // some other effect if pinned
+        }
+      }
+
+      // skip if there's nothing actually in the local set
+      // from this system
+      if (noDevicesInLocal) {
+        continue;
+      }
+
+      // calculate avg intens
+      results.push_back(avgIntens / ct);
+
+      sens.push_back((float)(_systemSensitivity[system]));
+      systemMap.push_back(localSys);
+
+      if (localSys.size() > 0) {
+        constraint.push_back(0);
+      }
+      else {
+        // pinned
+        constraint.push_back(3);
+      }
+    }
+
+    // sample
+    GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), _k, _brightMean, _mean);
+
+    // apply to snapshot
+    for (int j = 0; j < results.size(); j++) {
+      float intens = results[j];
+
+      // apply color to each light in the system
+      for (string id : systemMap[j].getIds()) {
+        if (_intensPins.count(id) == 0 && stateData[id]->paramExists("intensity")) {
+          stateData[id]->getIntensity()->setValAsPercent(intens);
+        }
       }
     }
   }

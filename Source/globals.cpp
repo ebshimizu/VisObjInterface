@@ -454,6 +454,7 @@ GlobalSettings::GlobalSettings()
   _bigBucketSize = 0.75;
   _recalculateWeights = false;
   _autoCluster = true;
+  _unconstrained = false;
 
   _imageAttrLoc = File::getCurrentWorkingDirectory().getChildFile("image_attributes");
   _tempDir = File::getCurrentWorkingDirectory().getChildFile("tmp");

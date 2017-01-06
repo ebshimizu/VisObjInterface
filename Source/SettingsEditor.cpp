@@ -307,6 +307,9 @@ void SettingsBoolButton::setState(bool newState)
   else if (_id == "Auto Cluster") {
     getGlobalSettings()->_autoCluster = newState;
   }
+  else if (_id == "Unconstrained") {
+    getGlobalSettings()->_unconstrained = newState;
+  }
 
   refresh();
 }
@@ -335,6 +338,8 @@ bool SettingsBoolButton::getState() const
     return getGlobalSettings()->_recalculateWeights;
   else if (_id == "Auto Cluster")
     return getGlobalSettings()->_autoCluster;
+  else if (_id == "Unconstrained")
+    return getGlobalSettings()->_unconstrained;
 
   return false;
 }
@@ -546,6 +551,7 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Repulsion Num Pairs", 1, 200, 1));
   searchComponents.add(new SettingsSlider("Big Color Bucket Weight", 0, 1, 0.001));
   searchComponents.add(new SettingsBoolButton("Recompute Color Weights"));
+  searchComponents.add(new SettingsBoolButton("Unconstrained"));
   _settings.addSection("Search", searchComponents);
 
 
