@@ -296,6 +296,7 @@ public:
   bool _recalculateWeights;     // In the color sampler, use the old version or the new version (defualt = true)
   bool _autoCluster;            // turns on or turns off automatic cluster mode
   bool _unconstrained;          // Turns off constraints in the samplers
+  bool _pxIntensDist;           // Alternate mode for intensity sampler: samples pixel distribution in image
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

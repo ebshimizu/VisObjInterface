@@ -455,6 +455,7 @@ GlobalSettings::GlobalSettings()
   _recalculateWeights = false;
   _autoCluster = true;
   _unconstrained = false;
+  _pxIntensDist = false;
 
   _imageAttrLoc = File::getCurrentWorkingDirectory().getChildFile("image_attributes");
   _tempDir = File::getCurrentWorkingDirectory().getChildFile("tmp");

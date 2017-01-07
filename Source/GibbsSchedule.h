@@ -36,6 +36,9 @@ public:
   // name for id'ing the sampler
   string _name;
 
+  // visual concept image
+  Image _concept;
+
   virtual string getType() = 0;
 protected:
   // computes the per-system intensity based on affected devices

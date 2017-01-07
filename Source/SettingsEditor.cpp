@@ -310,6 +310,9 @@ void SettingsBoolButton::setState(bool newState)
   else if (_id == "Unconstrained") {
     getGlobalSettings()->_unconstrained = newState;
   }
+  else if (_id == "px intens dist") {
+    getGlobalSettings()->_pxIntensDist = newState;
+  }
 
   refresh();
 }
@@ -340,6 +343,8 @@ bool SettingsBoolButton::getState() const
     return getGlobalSettings()->_autoCluster;
   else if (_id == "Unconstrained")
     return getGlobalSettings()->_unconstrained;
+  else if (_id == "px intens dist")
+    return getGlobalSettings()->_pxIntensDist;
 
   return false;
 }
@@ -552,6 +557,7 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsSlider("Big Color Bucket Weight", 0, 1, 0.001));
   searchComponents.add(new SettingsBoolButton("Recompute Color Weights"));
   searchComponents.add(new SettingsBoolButton("Unconstrained"));
+  searchComponents.add(new SettingsBoolButton("px intens dist"));
   _settings.addSection("Search", searchComponents);
 
 

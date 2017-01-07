@@ -504,7 +504,80 @@ IntensitySampler::~IntensitySampler()
 
 void IntensitySampler::sample(Snapshot * state)
 {
-  if (getGlobalSettings()->_unconstrained) {
+  if (getGlobalSettings()->_pxIntensDist) {
+    // the color sampler will sample by system
+    vector<float> results;
+    vector<int> constraint;
+    vector<float> sens;
+    vector<DeviceSet> systemMap;
+    auto stateData = state->getRigData();
+
+    auto systems = getRig()->getMetadataValues("system");
+
+    for (auto system : systems) {
+      DeviceSet globalSys = getRig()->select("$system=" + system);
+      DeviceSet localSys(getRig());
+      float avgIntens = 0;
+      int ct = 0;
+
+      bool noDevicesInLocal = true;
+
+      for (auto id : globalSys.getIds()) {
+        if (_devices.contains(id)) {
+          avgIntens += stateData[id]->getIntensity()->asPercent();
+          ct++;
+          noDevicesInLocal = false;
+
+          if (_intensPins.count(id) == 0) {
+            localSys = localSys.add(id);
+          }
+          // some other effect if pinned
+        }
+      }
+
+      // skip if there's nothing actually in the local set
+      // from this system
+      if (noDevicesInLocal) {
+        continue;
+      }
+
+      // calculate avg intens
+      results.push_back(avgIntens / ct);
+
+      sens.push_back((float)(_systemSensitivity[system]));
+      systemMap.push_back(localSys);
+
+      if (localSys.size() > 0) {
+        constraint.push_back(0);
+      }
+      else {
+        // pinned
+        constraint.push_back(3);
+      }
+    }
+
+    // sample
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    uniform_int_distribution<int> wr(0, _concept.getWidth());
+    uniform_int_distribution<int> hr(0, _concept.getHeight());
+
+    // this sampling method selects a random pixel, then assigns the system to that pixel value
+    for (int i = 0; i < constraint.size(); i++) {
+      if (constraint[i] == 3)
+        continue;
+
+      float br = _concept.getPixelAt(wr(gen), hr(gen)).getBrightness();
+
+      // apply color to each light in the system
+      for (string id : systemMap[i].getIds()) {
+        if (_intensPins.count(id) == 0 && stateData[id]->paramExists("intensity")) {
+          stateData[id]->getIntensity()->setValAsPercent(br);
+        }
+      }
+    }
+  }
+  else if (getGlobalSettings()->_unconstrained) {
     vector<float> results;
     vector<int> constraint;
     vector<float> sens;

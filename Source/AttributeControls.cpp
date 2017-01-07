@@ -493,6 +493,7 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
       IntensitySampler* intensSampler = new IntensitySampler(affected, r, ip, cp, i->_k, i->_meanBright, i->_mean);
       intensSampler->setBrightnessHistogram(i->_brightness);
       intensSampler->_name = i->getName().toStdString();
+      intensSampler->_concept = i->getImage();
       
       sched->addSampler((Sampler*)intensSampler);
     }
