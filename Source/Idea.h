@@ -71,6 +71,7 @@ public:
   int _k;
   float _meanBright;
   float _mean;
+  float _failRate;
   SparseHistogram _brightness;
 
   // color histogram

@@ -812,6 +812,7 @@ void Idea::updateIntensityParams()
   // num bright lights
   float pctBright = (float)ctHigh / (float)ct;
   _k = (int)ceil(pctBright * (getRig()->getMetadataValues("system").size() / 2));
+  _failRate = 1 - pctBright;
 
   _brightness = b;
 }

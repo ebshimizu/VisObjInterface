@@ -319,6 +319,10 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
       if (result == 1) {
         Snapshot* s = vectorToSnapshot(_result->_scene);
         s->loadRig(getRig());
+        
+        delete getGlobalSettings()->_rigState;
+        getGlobalSettings()->_rigState = new Snapshot(getRig());
+
         delete s;
 
         // dont populate anything, let user select what to keep
@@ -399,6 +403,13 @@ void SearchResultContainer::mouseEnter(const MouseEvent & /* event */)
 {
   _isHovered = true;
   getGlobalSettings()->_showThumbnailImg = true;
+
+  // temporarily load rig
+  Snapshot* res = vectorToSnapshot(_result->_scene);
+  res->loadRig(getRig());
+  delete res;
+  getRig()->updateOnce();
+
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
   mc->setThumbImage(_render);
   getRecorder()->log(HOVER, vectorToString(_result->_scene).toStdString());
@@ -416,6 +427,11 @@ void SearchResultContainer::mouseExit(const MouseEvent & /* event */)
 {
   _isHovered = false;
   getGlobalSettings()->_showThumbnailImg = false;
+
+  // restore rig
+  getGlobalSettings()->_rigState->loadRig(getRig());
+  getRig()->updateOnce();
+
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
   mc->repaint();
   _clusterContents->repaint();

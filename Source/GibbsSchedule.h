@@ -126,6 +126,7 @@ private:
   int _k;
   float _brightMean;
   float _mean;
+  float _sparsity;
 };
 
 class MonochromeSampler : public Sampler {

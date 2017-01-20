@@ -592,7 +592,7 @@ SettingsEditor::SettingsEditor()
   //_height = new SettingsSlider("Frame Height", 1, 2160, 1);
   //_width->_other = _height;
   //_height->_other = _width;
-  renderComponents.add(new SettingsSlider("Exposure", 0, 2, 0.01));
+  renderComponents.add(new SettingsSlider("Exposure", 0, 3, 0.01));
   renderComponents.add(new SettingsBoolButton("Grayscale Mode"));
 
 #ifdef USE_ARNOLD

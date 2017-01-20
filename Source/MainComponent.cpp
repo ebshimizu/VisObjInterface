@@ -783,10 +783,12 @@ void MainContentComponent::openRig(String fname)
       getGlobalSettings()->_freeze = Image(Image::PixelFormat::ARGB, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight, true);
       getGlobalSettings()->_freeze.clear(getGlobalSettings()->_freeze.getBounds(), Colour(0xff000000));
       getGlobalSettings()->_ideaMap.clear();
+      getGlobalSettings()->_rigState = new Snapshot(getRig());
 
       // compute sensitivity
       computeLightSensitivity();
 
+      getRig()->updateOnce();
       getAppTopLevelWindow()->setName("Lighting Attributes Interface - " + _showName);
     }
     else {
@@ -1035,6 +1037,8 @@ void MainContentComponent::arnoldRender(bool add)
   // sometimes add history item
   if (add)
     addHistory();
+
+  getRig()->updateOnce();
 }
 
 void MainContentComponent::arnoldRenderNoPopup()

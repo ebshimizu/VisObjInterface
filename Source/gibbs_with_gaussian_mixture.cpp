@@ -147,6 +147,10 @@ void GibbsSamplingGaussianMixture(std::vector<float>& result,
     {
       std::normal_distribution<float> low_gaussian(target_ml, sl);
       current_sample = low_gaussian(gen);
+
+      // chance light is just off. 
+      //if (uniform_0_1(gen) < 0.5)
+      //  current_sample = 0;
     }
 
     // Clip to [0 1]
@@ -205,6 +209,7 @@ void GibbsSamplingGaussianMixture(std::vector<float>& result,
 void GibbsSamplingGaussianMixturePrior(std::vector<float>& result,
   const std::vector<int>& c, const std::vector<float>& s, int n, int k,
   const float mh, const float ma,
+  const float sparsity,
   bool use_image_intensity,
   const float sh, const float sl)
 {
@@ -338,6 +343,10 @@ void GibbsSamplingGaussianMixturePrior(std::vector<float>& result,
     {
       std::normal_distribution<float> low_gaussian(target_ml, sl);
       current_sample = low_gaussian(gen);
+
+      //if (uniform_0_1(gen) < sparsity) {
+      //  current_sample = 0;
+      //}
     }
 
     // Clip to [0 1]

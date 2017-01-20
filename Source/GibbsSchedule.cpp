@@ -600,7 +600,7 @@ void IntensitySampler::sample(Snapshot * state)
     }
 
     // sample
-    GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), _k, _brightMean, _mean);
+    GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), _k, _brightMean, _mean, 0);
 
     // apply to snapshot
     for (int j = 0; j < results.size(); j++) {
@@ -666,7 +666,10 @@ void IntensitySampler::sample(Snapshot * state)
     }
 
     // sample
-    GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), _k, _brightMean, _mean);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    uniform_real_distribution<float> rnd(0, 1);
+    GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), _k, _brightMean, _mean, rnd(gen));
 
     // apply to snapshot
     for (int j = 0; j < results.size(); j++) {

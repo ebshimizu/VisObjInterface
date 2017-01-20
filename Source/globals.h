@@ -411,6 +411,9 @@ public:
   // updated before every search, the list of currently pinned devices
   set<string> _intensityPins;
   set<string> _colorPins;
+
+  // stores the rig state before any preview operations
+  Snapshot* _rigState;
 };
 
 // Results that eventually get returned to the UI layer

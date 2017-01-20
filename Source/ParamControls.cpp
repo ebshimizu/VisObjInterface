@@ -106,6 +106,7 @@ void FloatPropertySlider::sliderDragEnded(Slider * /* s */)
   ss << _id << ":" << _param << " value changed to " << getValue();
   getStatusBar()->setStatusMessage(ss.str());
   getRecorder()->log(ACTION, ss.str());
+  getRig()->updateOnce();
 }
 
 OrientationPropertySlider::OrientationPropertySlider(string id, string param, LumiverseOrientation * val) :
@@ -229,6 +230,8 @@ void ColorPickerButton::changeListenerCallback(ChangeBroadcaster * source)
       mc->refreshParams();
       mc->refreshAttr();
     }
+
+    getRig()->updateOnce();
   }
 }
 
@@ -298,6 +301,7 @@ ParamControls::ParamControls() : _groupColor("Group Color", true)
   _groupIntens.setSliderStyle(Slider::SliderStyle::LinearBar);
   _groupIntens.setRange(0, 100, 0.01);
   _groupIntens.setColour(Slider::ColourIds::backgroundColourId, Colour(0xff929292));
+  _groupIntens.setTextBoxIsEditable(false);
   addAndMakeVisible(_groupIntens);
 
   _groupColor.addListener(this);
@@ -462,6 +466,7 @@ Component * ParamControls::refreshComponentForCell(int rowNumber, int columnId, 
       intensSlider->setRange(0, 100, 0.01);
       intensSlider->setSliderStyle(Slider::SliderStyle::LinearBar);
       intensSlider->setColour(Slider::ColourIds::backgroundColourId, Colour(0xa0929292));
+      intensSlider->setTextBoxIsEditable(false);
       intensSlider->addListener(this);
     }
 
@@ -556,6 +561,7 @@ void ParamControls::sliderValueChanged(Slider * s)
 
   getGlobalSettings()->invalidateCache();
   getApplicationCommandManager()->invokeDirectly(command::REFRESH_ATTR, true);
+  getRig()->updateOnce();
 }
 
 void ParamControls::buttonClicked(Button * b)
