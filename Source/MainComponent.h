@@ -98,8 +98,8 @@ public:
   void createIdea(Image i, String name, IdeaType type);
 
   // shows a dialog box containing the devices affected by the selected region
-  void debugShowAffectedDevices(Rectangle<float> region);
-  DeviceSet computeAffectedDevices(Rectangle<float> region);
+  void debugShowAffectedDevices(juce::Rectangle<float> region);
+  DeviceSet computeAffectedDevices(juce::Rectangle<float> region);
 
   void setSelectedIds(DeviceSet selection);
 

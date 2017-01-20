@@ -779,7 +779,7 @@ float SparseHistogram::EMD(SparseHistogram & other)
   unsigned int n2 = (unsigned int)f2.size();
 
   Digraph di(n1, n2);
-  NetworkSimplexSimple<Digraph, float, float, unsigned int> net(di, true, n1 + n2, n1 * n2, 1000);
+  lemon::NetworkSimplexSimple<Digraph, float, float, unsigned int> net(di, true, n1 + n2, n1 * n2, 1000);
   unsigned int arcId = 0;
   for (unsigned int i = 0; i < n1; i++) {
     for (unsigned int j = 0; j < n2; j++) {

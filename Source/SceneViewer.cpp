@@ -145,18 +145,18 @@ void SceneViewer::paint (Graphics& g)
   g.fillRect(toolbar);
 
   if (getGlobalSettings()->_showThumbnailImg) {
-    g.drawImageWithin(_preview, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
+    g.drawImageWithin(_preview, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), juce::RectanglePlacement::centred);
   }
   else if (_showSelectionMode) {
-    g.drawImageWithin(_selectionRender, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
+    g.drawImageWithin(_selectionRender, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), juce::RectanglePlacement::centred);
   }
   else {
-    g.drawImageWithin(_currentRender, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
+    g.drawImageWithin(_currentRender, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), juce::RectanglePlacement::centred);
   }
 
   if (_drawMask) {
     g.setOpacity(0.5);
-    g.drawImageWithin(getGlobalSettings()->_fgMask, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
+    g.drawImageWithin(getGlobalSettings()->_fgMask, 0, _toolbarHeight, lbounds.getWidth(), lbounds.getHeight(), juce::RectanglePlacement::centred);
     g.setOpacity(1);
   }
 
@@ -168,7 +168,7 @@ void SceneViewer::paint (Graphics& g)
     Array<Point<float> > pts;
     pts.add(getWorldImageCoords(_startPoint) + Point<float>(0, (float)_toolbarHeight));
     pts.add(getWorldImageCoords(_currentPoint) + Point<float>(0, (float)_toolbarHeight));
-    Rectangle<float> region = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+    juce::Rectangle<float> region = juce::Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
 
     g.drawRect(region, 2);
 
@@ -176,7 +176,7 @@ void SceneViewer::paint (Graphics& g)
     Point<float> topLeft = getWorldImageCoords(_selectedRegion.getTopLeft());
     Point<float> bottomRight = getWorldImageCoords(_selectedRegion.getBottomRight());
 
-    g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
+    g.drawRect(juce::Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
   }
 
   if (!_hideAllBoxes) {
@@ -191,9 +191,9 @@ void SceneViewer::paint (Graphics& g)
 
       Point<float> topLeft = getWorldImageCoords(b.second.getTopLeft());
       Point<float> bottomRight = getWorldImageCoords(b.second.getBottomRight());
-      g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
+      g.drawRect(juce::Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
 
-      Rectangle<int> textBox = Rectangle<int>::leftTopRightBottom((int)topLeft.x, (int)topLeft.y + _toolbarHeight - 12, (int)bottomRight.x, (int)topLeft.y + _toolbarHeight - 2);
+      juce::Rectangle<int> textBox = juce::Rectangle<int>::leftTopRightBottom((int)topLeft.x, (int)topLeft.y + _toolbarHeight - 12, (int)bottomRight.x, (int)topLeft.y + _toolbarHeight - 2);
       g.drawFittedText(String(b.first->getName()), textBox, Justification::bottomLeft, 1);
     }
 
@@ -203,7 +203,7 @@ void SceneViewer::paint (Graphics& g)
       Array<Point<float> > pts;
       pts.add(getWorldImageCoords(_startPoint) + Point<float>(0, (float)_toolbarHeight));
       pts.add(getWorldImageCoords(_currentPoint) + Point<float>(0, (float)_toolbarHeight));
-      Rectangle<float> region = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+      juce::Rectangle<float> region = juce::Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
 
       g.drawRect(region, 2);
     }
@@ -213,9 +213,9 @@ void SceneViewer::paint (Graphics& g)
       Point<float> topLeft = getWorldImageCoords(b.getTopLeft());
       Point<float> bottomRight = getWorldImageCoords(b.getBottomRight());
 
-      g.drawRect(Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
+      g.drawRect(juce::Rectangle<float>::leftTopRightBottom(topLeft.x, topLeft.y + _toolbarHeight, bottomRight.x, bottomRight.y + _toolbarHeight), 2);
 
-      Rectangle<int> textBox = Rectangle<int>::leftTopRightBottom((int)topLeft.x, (int)topLeft.y + _toolbarHeight - 12, (int)bottomRight.x, (int)topLeft.y + _toolbarHeight - 2);
+      juce::Rectangle<int> textBox = juce::Rectangle<int>::leftTopRightBottom((int)topLeft.x, (int)topLeft.y + _toolbarHeight - 12, (int)bottomRight.x, (int)topLeft.y + _toolbarHeight - 2);
       g.drawFittedText(String(i), textBox, Justification::bottomLeft, 1);
 
       i++;
@@ -344,7 +344,7 @@ void SceneViewer::mouseDown(const MouseEvent & event)
       PopupMenu menu;
 
       DeviceSet affected;
-      Rectangle<float> region;
+      juce::Rectangle<float> region;
       if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD) {
         auto active = getGlobalSettings()->_activeIdea;
 
@@ -373,9 +373,9 @@ void SceneViewer::mouseDown(const MouseEvent & event)
       vector<Point<float> > pts;
       pts.push_back(getWorldImageCoords(region.getTopLeft()));
       pts.push_back(getWorldImageCoords(region.getBottomRight()));
-      Rectangle<float> absRegion = Rectangle<float>::findAreaContainingPoints(pts.data(), 2);
+      juce::Rectangle<float> absRegion = juce::Rectangle<float>::findAreaContainingPoints(pts.data(), 2);
       
-      Rectangle<int> loc(this->getScreenBounds().getX() + (int)absRegion.getX(),
+      juce::Rectangle<int> loc(this->getScreenBounds().getX() + (int)absRegion.getX(),
         this->getScreenBounds().getY() + (int)absRegion.getY() + _toolbarHeight,
         (int)absRegion.getWidth(), (int)absRegion.getHeight());
 
@@ -391,7 +391,7 @@ void SceneViewer::mouseDown(const MouseEvent & event)
   if (event.mods.isRightButtonDown()) {    
     // context menus
     if (getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD) {
-      // check idea rectangle
+      // check idea juce::Rectangle
       auto pt = getRelativeImageCoords(event.position);
       if (!_hideAllBoxes && getGlobalSettings()->_activeIdea != nullptr) {
         PopupMenu menu;
@@ -514,7 +514,7 @@ void SceneViewer::mouseUp(const MouseEvent & event)
       Array<Point<float> > pts;
       pts.add(_startPoint);
       pts.add(_currentPoint);
-      Rectangle<float> region = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+      juce::Rectangle<float> region = juce::Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
 
       getGlobalSettings()->_pinnedRegions.add(region);
     }
@@ -538,11 +538,11 @@ void SceneViewer::mouseDrag(const MouseEvent & event)
     pts.add(_currentPoint);
 
     if (getGlobalSettings()->_activeIdea != nullptr && getGlobalSettings()->_freezeDrawMode == DrawMode::RECT_ADD) {
-      Rectangle<float> region = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+      juce::Rectangle<float> region = juce::Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
       getGlobalSettings()->_ideaMap[getGlobalSettings()->_activeIdea] = region;
     }
     else if (getGlobalSettings()->_freezeDrawMode == DrawMode::SELECT_ONLY) {
-      _selectedRegion = Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
+      _selectedRegion = juce::Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
     }
   }
 
@@ -615,7 +615,7 @@ void SceneViewer::paint(Point<float> pt, Colour c)
   g.fillEllipse(pt.getX(), pt.getY(), _brushSize, _brushSize);
 }
 
-void SceneViewer::paintRect(Rectangle<float> pt, Colour c)
+void SceneViewer::paintRect(juce::Rectangle<float> pt, Colour c)
 {
   Graphics g(getGlobalSettings()->_freeze);
   g.setColour(c);
@@ -733,7 +733,7 @@ bool SceneViewer::isInSelectionMode()
 
 void SceneViewer::clearSelection()
 {
-  _selectedRegion = Rectangle<float>();
+  _selectedRegion = juce::Rectangle<float>();
 }
 
 SceneViewer::ParamShifter::ParamShifter(DeviceSet affected) : _affected(affected) {

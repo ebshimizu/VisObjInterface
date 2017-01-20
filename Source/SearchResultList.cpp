@@ -88,7 +88,7 @@ void SearchResultList::resized()
   int elemHeight = (int)(elemWidth * _heightRatio);
 
   // place elements into rows
-  Rectangle<int> row;
+  juce::Rectangle<int> row;
   for (int i = 0; i < _contents.size(); i++) {
     if (i % _cols == 0) {
       row = lbounds.removeFromTop(elemHeight);

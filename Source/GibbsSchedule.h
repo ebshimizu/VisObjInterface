@@ -19,7 +19,7 @@
 // Samplers are expected to be subclassed based on the needs for each sampling method.
 class Sampler {
 public:
-  Sampler(DeviceSet affectedDevices, Rectangle<float> region, set<string> intensPins, set<string> colorPins);
+  Sampler(DeviceSet affectedDevices, juce::Rectangle<float> region, set<string> intensPins, set<string> colorPins);
 
   // every sampler has to have a sample function
   virtual void sample(Snapshot* state) = 0;
@@ -28,7 +28,7 @@ public:
   virtual double score(Snapshot* state, Image& img, bool masked) = 0;
 
   // returns the affected region of the sampler
-  Rectangle<float> getRegion();
+  juce::Rectangle<float> getRegion();
 
   // returns string contining the settings and affected devices in the sampler;
   virtual string info() = 0;
@@ -48,7 +48,7 @@ protected:
   string getAffectedDevices();
 
   DeviceSet _devices;
-  Rectangle<float> _region;
+  juce::Rectangle<float> _region;
   map<string, double> _systemSensitivity;
   set<string> _intensPins;
   set<string> _colorPins;
@@ -58,7 +58,7 @@ protected:
 // Requires: list of colors (HSV format, normalized between 0-1), list of corresponding weights
 class ColorSampler : public Sampler {
 public:
-  ColorSampler(DeviceSet affectedDevices, Rectangle<float> region,
+  ColorSampler(DeviceSet affectedDevices, juce::Rectangle<float> region,
     set<string> intensPins, set<string> colorPins,
     vector<Eigen::Vector3d> colors, vector<float> weights);
   ~ColorSampler();
@@ -88,7 +88,7 @@ protected:
 // A pin sampler samples all the pinned lights.
 class PinSampler : public Sampler {
 public:
-  PinSampler(DeviceSet affectedDevices, Rectangle<float> region, set<string> intensPins, set<string> colorPins);
+  PinSampler(DeviceSet affectedDevices, juce::Rectangle<float> region, set<string> intensPins, set<string> colorPins);
   ~PinSampler();
 
   void sample(Snapshot* state) override;
@@ -105,7 +105,7 @@ public:
 // TODO: determine better intensity sampling method from image
 class IntensitySampler : public Sampler {
 public:
-  IntensitySampler(DeviceSet affectedDevices, Rectangle<float> region, set<string> intensPins, set<string> colorPins,
+  IntensitySampler(DeviceSet affectedDevices, juce::Rectangle<float> region, set<string> intensPins, set<string> colorPins,
     int k, float bm, float m);
   ~IntensitySampler();
 
@@ -131,7 +131,7 @@ private:
 
 class MonochromeSampler : public Sampler {
 public:
-  MonochromeSampler(DeviceSet affectedDevices, Rectangle<float> region, set<string> intensPins,
+  MonochromeSampler(DeviceSet affectedDevices, juce::Rectangle<float> region, set<string> intensPins,
     set<string> colorPins, Colour color);
   ~MonochromeSampler();
 
@@ -148,7 +148,7 @@ private:
 
 class TheatricalSampler : public ColorSampler {
 public:
-  TheatricalSampler(DeviceSet affectedDevices, Rectangle<float> region,
+  TheatricalSampler(DeviceSet affectedDevices, juce::Rectangle<float> region,
     set<string> intensPins, set<string> colorPins,
     vector<Eigen::Vector3d> colors, vector<float> weights);
   ~TheatricalSampler();

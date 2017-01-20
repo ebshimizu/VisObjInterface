@@ -676,7 +676,7 @@ void MainContentComponent::createIdea(Image i, String name, IdeaType type)
   _viewer->repaint();
 }
 
-void MainContentComponent::debugShowAffectedDevices(Rectangle<float> region)
+void MainContentComponent::debugShowAffectedDevices(juce::Rectangle<float> region)
 {
   // attribute controls has a function for this
   map<string, double> sens;
@@ -694,7 +694,7 @@ void MainContentComponent::debugShowAffectedDevices(Rectangle<float> region)
   AlertWindow::showMessageBox(AlertWindow::AlertIconType::InfoIcon, "Light Sensitivity within Selected Region", data);
 }
 
-DeviceSet MainContentComponent::computeAffectedDevices(Rectangle<float> region)
+DeviceSet MainContentComponent::computeAffectedDevices(juce::Rectangle<float> region)
 {
   return _attrs->computeAffectedDevices(region);
 }

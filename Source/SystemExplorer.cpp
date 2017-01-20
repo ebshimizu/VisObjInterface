@@ -139,7 +139,7 @@ void SystemExplorer::paint(Graphics & g)
   //line.removeFromRight(2);
   //g.fillRect(line);
 
-  g.drawImageWithin(_currentImg, left.getX(), left.getY(), left.getWidth(), left.getHeight(), RectanglePlacement::centred);
+  g.drawImageWithin(_currentImg, left.getX(), left.getY(), left.getWidth(), left.getHeight(), juce::RectanglePlacement::centred);
 }
 
 void SystemExplorer::resized()
@@ -217,7 +217,7 @@ void SystemExplorer::mouseDown(const MouseEvent & event)
 
     auto lbounds = getLocalBounds();
     auto left = lbounds.removeFromLeft(200);
-    Rectangle<int> loc(this->getScreenBounds().getX() + left.getX(), this->getScreenBounds().getY() + left.getY(),
+    juce::Rectangle<int> loc(this->getScreenBounds().getX() + left.getX(), this->getScreenBounds().getY() + left.getY(),
       left.getWidth(), left.getHeight());
 
     CallOutBox::launchAsynchronously(ps, loc, nullptr);
@@ -354,7 +354,7 @@ void SystemExplorer::buttonClicked(Button * b)
     auto left = lbounds.removeFromLeft(200);
     auto bot = left.removeFromBottom(24);
     auto pos = bot.removeFromRight(60);
-    Rectangle<int> loc(this->getScreenBounds().getX() + pos.getX(), this->getScreenBounds().getY() + pos.getY(),
+    juce::Rectangle<int> loc(this->getScreenBounds().getX() + pos.getX(), this->getScreenBounds().getY() + pos.getY(),
       pos.getWidth(), pos.getHeight());
 
     CallOutBox::launchAsynchronously(cs, loc, nullptr);

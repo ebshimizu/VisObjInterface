@@ -23,7 +23,7 @@ GibbsPalette::GibbsPalette(String name, Image & src) : _img(src)
 void GibbsPalette::paint(Graphics & g)
 {
   auto localb = getLocalBounds();
-  g.drawImageWithin(_img, localb.getX(), localb.getY(), localb.getWidth(), localb.getHeight(), RectanglePlacement::centred);
+  g.drawImageWithin(_img, localb.getX(), localb.getY(), localb.getWidth(), localb.getHeight(), juce::RectanglePlacement::centred);
 }
 
 void GibbsPalette::resized()
@@ -117,7 +117,7 @@ void GibbsPalletContainer::resized()
 
   // place components
   auto lbounds = getLocalBounds();
-  Rectangle<int> row;
+  juce::Rectangle<int> row;
   for (int i = 0; i < _pallets.size(); i++) {
     if (i % _cols == 0)
       row = lbounds.removeFromTop(elemHeight);

@@ -13,12 +13,12 @@
 #include "closure_over_uneven_buckets.h"
 #include "gibbs_with_gaussian_mixture.h"
 
-Sampler::Sampler(DeviceSet affectedDevices, Rectangle<float> region, set<string> intensPins, set<string> colorPins) :
+Sampler::Sampler(DeviceSet affectedDevices, juce::Rectangle<float> region, set<string> intensPins, set<string> colorPins) :
   _devices(affectedDevices), _region(region), _intensPins(intensPins), _colorPins(colorPins)
 {
 }
 
-Rectangle<float> Sampler::getRegion()
+juce::Rectangle<float> Sampler::getRegion()
 {
   return _region;
 }
@@ -27,7 +27,7 @@ void Sampler::computeSystemSensitivity()
 {
   int imgWidth = 100;
   int imgHeight = 100;
-  Rectangle<int> cropRegion = Rectangle<int>((int)(_region.getX() * imgWidth), (int)(_region.getY() * imgHeight),
+  juce::Rectangle<int> cropRegion = juce::Rectangle<int>((int)(_region.getX() * imgWidth), (int)(_region.getY() * imgHeight),
     (int)(_region.getWidth() * imgWidth), (int)(_region.getHeight() * imgHeight));
 
   _systemSensitivity.clear();
@@ -105,7 +105,7 @@ string Sampler::getAffectedDevices()
 
 // =============================================================================
 
-ColorSampler::ColorSampler(DeviceSet affectedDevices, Rectangle<float> region,
+ColorSampler::ColorSampler(DeviceSet affectedDevices, juce::Rectangle<float> region,
   set<string> intensPins, set<string> colorPins,
   vector<Eigen::Vector3d> colors, vector<float> weights) :
   Sampler(affectedDevices, region, intensPins, colorPins), _colors(colors), _weights(weights),
@@ -304,7 +304,7 @@ void ColorSampler::sample(Snapshot * state)
 double ColorSampler::score(Snapshot * /* state */, Image & img, bool masked)
 {
   // compute histogram from scaled region
-  Rectangle<int> region = Rectangle<int>((int)(_region.getX() * img.getWidth()), (int)(_region.getY() * img.getHeight()),
+  juce::Rectangle<int> region = juce::Rectangle<int>((int)(_region.getX() * img.getWidth()), (int)(_region.getY() * img.getHeight()),
     (int)(_region.getWidth() * img.getWidth()), (int)(_region.getHeight() * img.getHeight()));
   Image clipped = img.getClippedImage(region);
   Image clippedMask = getGlobalSettings()->_fgMask.rescaled(img.getWidth(), img.getHeight()).getClippedImage(region);
@@ -411,7 +411,7 @@ int ColorSampler::getClosestColorIndex(Eigen::Vector3d color)
 }
 
 // =============================================================================
-PinSampler::PinSampler(DeviceSet affectedDevice, Rectangle<float> region, set<string> intensPins, set <string> colorPins) :
+PinSampler::PinSampler(DeviceSet affectedDevice, juce::Rectangle<float> region, set<string> intensPins, set <string> colorPins) :
   Sampler(affectedDevice, region, intensPins, colorPins)
 {
 
@@ -491,7 +491,7 @@ string PinSampler::info()
 
 // =============================================================================
 
-IntensitySampler::IntensitySampler(DeviceSet affectedDevices, Rectangle<float> region,
+IntensitySampler::IntensitySampler(DeviceSet affectedDevices, juce::Rectangle<float> region,
   set<string> intensPins, set<string> colorPins, int k, float bm, float m) :
   Sampler(affectedDevices, region, intensPins, colorPins), _k(k), _brightMean(bm), _mean(m), _srcBrightness(1, { 0, 0.1f })
 {
@@ -688,7 +688,7 @@ void IntensitySampler::sample(Snapshot * state)
 double IntensitySampler::score(Snapshot * /*state*/, Image& img, bool masked)
 {
   // compute histogram from scaled region
-  Rectangle<int> region = Rectangle<int>((int)(_region.getX() * img.getWidth()), (int)(_region.getY() * img.getHeight()),
+  juce::Rectangle<int> region = juce::Rectangle<int>((int)(_region.getX() * img.getWidth()), (int)(_region.getY() * img.getHeight()),
     (int)(_region.getWidth() * img.getWidth()), (int)(_region.getHeight() * img.getHeight()));
   Image clipped = img.getClippedImage(region);
   Image clippedMask = getGlobalSettings()->_fgMask.rescaled(img.getWidth(), img.getHeight()).getClippedImage(region);
@@ -741,7 +741,7 @@ string IntensitySampler::info()
   return info.toStdString();
 }
 
-MonochromeSampler::MonochromeSampler(DeviceSet affectedDevices, Rectangle<float> region,
+MonochromeSampler::MonochromeSampler(DeviceSet affectedDevices, juce::Rectangle<float> region,
   set<string> intensPins, set<string> colorPins, Colour color) :
   Sampler(affectedDevices, region, intensPins, colorPins), _target(color)
 {
@@ -798,7 +798,7 @@ void MonochromeSampler::sample(Snapshot * state)
 double MonochromeSampler::score(Snapshot * /*state*/, Image & img, bool masked)
 {
   // compute histogram from scaled region
-  Rectangle<int> region = Rectangle<int>((int)(_region.getX() * img.getWidth()), (int)(_region.getY() * img.getHeight()),
+  juce::Rectangle<int> region = juce::Rectangle<int>((int)(_region.getX() * img.getWidth()), (int)(_region.getY() * img.getHeight()),
     (int)(_region.getWidth() * img.getWidth()), (int)(_region.getHeight() * img.getHeight()));
   Image clipped = img.getClippedImage(region);
   Image clippedMask = getGlobalSettings()->_fgMask.rescaled(img.getWidth(), img.getHeight()).getClippedImage(region);
@@ -843,7 +843,7 @@ string MonochromeSampler::info()
   return info.toStdString();
 }
 
-TheatricalSampler::TheatricalSampler(DeviceSet affectedDevices, Rectangle<float> region,
+TheatricalSampler::TheatricalSampler(DeviceSet affectedDevices, juce::Rectangle<float> region,
   set<string> intensPins, set<string> colorPins,
   vector<Eigen::Vector3d> colors, vector<float> weights) :
   ColorSampler(affectedDevices, region, intensPins, colorPins, colors, weights),

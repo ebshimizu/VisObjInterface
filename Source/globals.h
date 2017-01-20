@@ -334,7 +334,7 @@ public:
   bool _cacheUpdated;
 
   // Focus region dimensions
-  Rectangle<float> _focusBounds;
+  juce::Rectangle<float> _focusBounds;
 
   // Used by attribute searches and results to track where the scene came from
   vector<Edit*> _edits;
@@ -403,10 +403,10 @@ public:
 
   // maps ideas to areas of the stage
   // may end up being more complicated based on how sampling needs to work
-  map<shared_ptr<Idea>, Rectangle<float> > _ideaMap;
+  map<shared_ptr<Idea>, juce::Rectangle<float> > _ideaMap;
   shared_ptr<Idea> _activeIdea;
 
-  Array<Rectangle<float> > _pinnedRegions;
+  Array<juce::Rectangle<float> > _pinnedRegions;
 
   // updated before every search, the list of currently pinned devices
   set<string> _intensityPins;

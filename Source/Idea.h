@@ -133,7 +133,7 @@ private:
   TextButton _delete;
 
   // bbox representing the area of the image the idea comes from
-  Rectangle<float> _focusArea;
+  juce::Rectangle<float> _focusArea;
 
   // extra controls for viewing and changing colors.
   // Was considering making this a generic component to make resize easier, but would
@@ -167,7 +167,7 @@ private:
   // If out of bounds, clamps to [0,1]
   Point<float> localToRelativeImageCoords(Point<float> pt);
   Point<float> relativeImageCoordsToLocal(Point<float> pt);
-  Rectangle<int> relativeToAbsoluteImageRegion(Rectangle<float> rect);
+  juce::Rectangle<int> relativeToAbsoluteImageRegion(juce::Rectangle<float> rect);
 
   void initUI();
 

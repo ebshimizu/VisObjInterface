@@ -76,7 +76,7 @@ public:
   void paint(Point<float> pt, Colour c);
 
   // paint in the selected region of the image. coordinates of rect should be image space
-  void paintRect(Rectangle<float> pt, Colour c);
+  void paintRect(juce::Rectangle<float> pt, Colour c);
 
   void showSelection();
   void showSelection(DeviceSet selected);
@@ -85,7 +85,7 @@ public:
   // returns the display status of the viewer
   bool isInSelectionMode();
 
-  // clears the selection rectangle
+  // clears the selection juce::Rectangle
   void clearSelection();
   
 private:
@@ -119,7 +119,7 @@ private:
   Point<float> getAbsImageCoords(const Point<float>& pt);
 
   // region used just for selection purposes
-  Rectangle<float> _selectedRegion;
+  juce::Rectangle<float> _selectedRegion;
 
   Image _currentRender;
   Image _preview;

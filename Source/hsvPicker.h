@@ -106,7 +106,7 @@ private:
   ScopedPointer<ValSelectorComp> valSelector;
   OwnedArray<SwatchComponent> swatchComponents;
   int edgeGap;
-  Rectangle<int> previewArea;
+  juce::Rectangle<int> previewArea;
 
   void setHue(float newH);
   void setVal(float newV);

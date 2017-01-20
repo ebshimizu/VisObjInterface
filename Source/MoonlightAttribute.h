@@ -39,7 +39,7 @@ private:
   map<string, DeviceSet> _systemCache;
 
   // Bounding box for the foreground region of the image.
-  Rectangle<float> _foreground;
+  juce::Rectangle<float> _foreground;
 
   // Button for setting the foreground area
   Button* _setForegroundButton;

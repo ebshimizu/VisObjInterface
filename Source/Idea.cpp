@@ -23,7 +23,7 @@ Idea::Idea(Image src, IdeaType type) : _src(src), _type(type), _brightness(1, { 
   _selected = false;
   _isBeingDragged = false;
   _isRegionLocked = false;
-  _focusArea = Rectangle<float>::leftTopRightBottom(0, 0, 1, 1);
+  _focusArea = juce::Rectangle<float>::leftTopRightBottom(0, 0, 1, 1);
   _lock.setToggleState(_isRegionLocked, dontSendNotification);
 }
 
@@ -50,7 +50,7 @@ Idea::Idea(File srcFolder, JSONNode data) : _brightness(1, { 0, 0.1f }), _color(
 
   // bounds
   auto rectbounds = data.find("bounds");
-  _focusArea = Rectangle<float>::leftTopRightBottom((float)rectbounds->find("topX")->as_float(),
+  _focusArea = juce::Rectangle<float>::leftTopRightBottom((float)rectbounds->find("topX")->as_float(),
     (float) rectbounds->find("topY")->as_float(),
     (float) rectbounds->find("botX")->as_float(),
     (float) rectbounds->find("botY")->as_float());
@@ -113,26 +113,26 @@ void Idea::paint(Graphics & g)
     Image bw = Image(_src);
     bw.duplicateIfShared();
     bw.desaturate();
-    g.drawImageWithin(bw, lbounds.getX(), lbounds.getY(), lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
+    g.drawImageWithin(bw, lbounds.getX(), lbounds.getY(), lbounds.getWidth(), lbounds.getHeight(), juce::RectanglePlacement::centred);
   }
   else {
-    g.drawImageWithin(_src, lbounds.getX(), lbounds.getY(), lbounds.getWidth(), lbounds.getHeight(), RectanglePlacement::centred);
+    g.drawImageWithin(_src, lbounds.getX(), lbounds.getY(), lbounds.getWidth(), lbounds.getHeight(), juce::RectanglePlacement::centred);
   }
 
   g.setColour(Colour(0xffb3b3b3));
   if (_isBeingDragged) {
     // use the points
     vector<Point<float> > pts = { _firstPt, _secondPt };
-    auto select = Rectangle<float>::findAreaContainingPoints(pts.data(), 2);
+    auto select = juce::Rectangle<float>::findAreaContainingPoints(pts.data(), 2);
     g.drawRect(select, 2);
   }
   else {
-    // use the stored rectangle
+    // use the stored juce::Rectangle
     // convert the top left and bottom right to absolute coords and fit
     vector<Point<float> > pts;
     pts.push_back(relativeImageCoordsToLocal(_focusArea.getTopLeft()));
     pts.push_back(relativeImageCoordsToLocal(_focusArea.getBottomRight()));
-    auto select = Rectangle<float>::findAreaContainingPoints(pts.data(), 2);
+    auto select = juce::Rectangle<float>::findAreaContainingPoints(pts.data(), 2);
     g.drawRect(select, 2);
   }
 }
@@ -194,11 +194,11 @@ void Idea::mouseDrag(const MouseEvent & e)
 void Idea::mouseUp(const MouseEvent & e)
 {
   if (e.mods.isLeftButtonDown() && e.mods.isShiftDown() && !_isRegionLocked) {
-    // save the rectangle
+    // save the juce::Rectangle
     vector<Point<float> > pts;
     pts.push_back(localToRelativeImageCoords(_firstPt));
     pts.push_back(localToRelativeImageCoords(_secondPt));
-    _focusArea = Rectangle<float>::findAreaContainingPoints(pts.data(), 2);
+    _focusArea = juce::Rectangle<float>::findAreaContainingPoints(pts.data(), 2);
     _isBeingDragged = false;
 
     // recompute necessary idea info
@@ -466,9 +466,9 @@ Point<float> Idea::relativeImageCoordsToLocal(Point<float> pt)
   return Point<float>(x, y);
 }
 
-Rectangle<int> Idea::relativeToAbsoluteImageRegion(Rectangle<float> rect)
+juce::Rectangle<int> Idea::relativeToAbsoluteImageRegion(juce::Rectangle<float> rect)
 {
-  return Rectangle<int>((int) (rect.getX() * _src.getWidth()), (int) (rect.getY() * _src.getHeight()),
+  return juce::Rectangle<int>((int) (rect.getX() * _src.getWidth()), (int) (rect.getY() * _src.getHeight()),
     (int) (rect.getWidth() * _src.getWidth()), (int) (rect.getHeight() * _src.getHeight()));
 }
 
@@ -829,7 +829,7 @@ Idea::ColorPaletteControls::~ColorPaletteControls()
 void Idea::ColorPaletteControls::paint(Graphics & g)
 {
   if (_parent->_colors.size() > 0) {
-    // draws color rectangles
+    // draws color juce::Rectangles
     auto lbounds = getLocalBounds();
     int width = lbounds.getWidth();
 
@@ -893,7 +893,7 @@ void Idea::ColorPaletteControls::mouseDown(const MouseEvent & e)
 
       int idx = 0;
       _selectedColorId = -1;
-      Rectangle<int> selectedArea;
+      juce::Rectangle<int> selectedArea;
       for (int i = 0; i < _parent->_colors.size(); i++) {
         auto region = lbounds.removeFromLeft((int)((_parent->_weights[i] / sum) * width)).reduced(2);
 
@@ -1184,7 +1184,7 @@ void IdeaList::addIdea(Image i, String name, IdeaType type)
   newIdea->_selected = true;  
   updateActiveIdea();
 
-  getGlobalSettings()->_ideaMap[newIdea] = Rectangle<float>(0, 0, 1, 1);
+  getGlobalSettings()->_ideaMap[newIdea] = juce::Rectangle<float>(0, 0, 1, 1);
   resized();
 
   _ideaID++;
@@ -1384,7 +1384,7 @@ void IdeaList::loadPins(JSONNode pins)
   JSONNode::iterator i = pins.begin();
 
   while (i != pins.end()) {
-    getGlobalSettings()->_pinnedRegions.add(Rectangle<float>::leftTopRightBottom(
+    getGlobalSettings()->_pinnedRegions.add(juce::Rectangle<float>::leftTopRightBottom(
       (float)i->find("topX")->as_float(), (float)i->find("topY")->as_float(),
       (float)i->find("botX")->as_float(), (float)i->find("botY")->as_float()));
 
@@ -1409,8 +1409,8 @@ void IdeaList::loadIdeaMap(JSONNode ideaMap)
     }
 
     if (selected != nullptr) {
-      // create the rectangle
-      auto region = Rectangle<float>::leftTopRightBottom(
+      // create the juce::Rectangle
+      auto region = juce::Rectangle<float>::leftTopRightBottom(
         (float)i->find("topX")->as_float(), (float)i->find("topY")->as_float(),
         (float)i->find("botX")->as_float(), (float)i->find("botY")->as_float());
 

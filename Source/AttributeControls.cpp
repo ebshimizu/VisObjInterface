@@ -501,7 +501,7 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
 
   // create the pin sampler
   // note that here the region size is irrelevant and that the pins DeviceSet is also mostly irrelevant
-  Sampler* pinSampler = (Sampler*)(new PinSampler(pins, Rectangle<float>(), ip, cp));
+  Sampler* pinSampler = (Sampler*)(new PinSampler(pins, juce::Rectangle<float>(), ip, cp));
   pinSampler->_name = "Pinned";
   sched->addSampler(pinSampler);
 
@@ -626,7 +626,7 @@ void AttributeControls::initAttributes()
   getStatusBar()->setStatusMessage("Loaded " + String(numImage) + " images from " + imageDir.getFullPathName());
 }
 
-DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, double threshold)
+DeviceSet AttributeControls::computeAffectedDevices(juce::Rectangle<float> region, double threshold)
 {
   // for each device, check if the cropped sensitivity image is above a threshold
   DeviceSet affected(getRig());
@@ -634,7 +634,7 @@ DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, dou
   int width = getGlobalSettings()->_sensitivityCache.begin()->second.i100.getWidth();
   int height = getGlobalSettings()->_sensitivityCache.begin()->second.i100.getHeight();
 
-  Rectangle<int> scaledRegion = Rectangle<int>((int)(region.getX() * width), (int)(region.getY() * height),
+  juce::Rectangle<int> scaledRegion = juce::Rectangle<int>((int)(region.getX() * width), (int)(region.getY() * height),
     (int)(region.getWidth() * width), (int)(region.getHeight() * height));
 
   for (auto id : getRig()->getAllDevices().getIds()) {
@@ -679,7 +679,7 @@ DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, dou
   return affected;
 }
 
-DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, map<string, double>& debugInfo, double threshold)
+DeviceSet AttributeControls::computeAffectedDevices(juce::Rectangle<float> region, map<string, double>& debugInfo, double threshold)
 {
   // for each device, check if the cropped sensitivity image is above a threshold
   DeviceSet affected(getRig());
@@ -687,7 +687,7 @@ DeviceSet AttributeControls::computeAffectedDevices(Rectangle<float> region, map
   int width = getGlobalSettings()->_sensitivityCache.begin()->second.i100.getWidth();
   int height = getGlobalSettings()->_sensitivityCache.begin()->second.i100.getHeight();
 
-  Rectangle<int> scaledRegion = Rectangle<int>((int)(region.getX() * width), (int)(region.getY() * height),
+  juce::Rectangle<int> scaledRegion = juce::Rectangle<int>((int)(region.getX() * width), (int)(region.getY() * height),
     (int)(region.getWidth() * width), (int)(region.getHeight() * height));
 
   for (auto id : getRig()->getAllDevices().getIds()) {

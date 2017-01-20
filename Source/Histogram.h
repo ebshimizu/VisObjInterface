@@ -20,10 +20,8 @@
 #include "FastSimplex/network_simplex_simple.h"
 
 using namespace std;
-using namespace lemon;
 
-typedef FullBipartiteDigraph Digraph;
-DIGRAPH_TYPEDEFS(FullBipartiteDigraph);
+typedef lemon::FullBipartiteDigraph Digraph;
 
 // a note about all these histogram classes:
 // when it says numBins the actual number of bins in the histogram will

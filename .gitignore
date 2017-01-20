@@ -297,3 +297,5 @@ Builds/VisualStudio2015NoArnold/PaletteExtraction/*
 analysis/*
 *.par
 Builds/VisualStudio2015NoArnold/errcmaes.err
+Builds/VisualStudio2015NoArnold/idea_backup*
+Builds/VisualStudio2015NoArnold/backup.rig.json

@@ -51,7 +51,7 @@ double MoonlightAttribute::evaluateScene(Snapshot * s, Image& img)
   int fgCount = 0;
   int bgCount = 0;
 
-  Rectangle<int> fgPixelBounds;
+  juce::Rectangle<int> fgPixelBounds;
   fgPixelBounds.setWidth((int) (_foreground.getWidth() * _canonicalWidth));
   fgPixelBounds.setHeight((int) (_foreground.getHeight() * _canonicalHeight));
   fgPixelBounds.setX((int) (_foreground.getX() * _canonicalWidth));
