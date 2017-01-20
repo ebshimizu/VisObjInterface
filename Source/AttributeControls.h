@@ -165,16 +165,12 @@ private:
   PaletteControls* _vr;
   IdeaControls* _ic;
 
-  GibbsConstraintContainer* _tempConstraints;
-
   TabbedComponent _tabs;
 
-  AttributeControlsList* _container;
   ParamControls* _paramControls;
   HistoryPanel* _history;
   SettingsEditor* _settings;
 
-  Viewport* _componentView;
   Viewport* _historyViewer;
   
   TextButton* _search;

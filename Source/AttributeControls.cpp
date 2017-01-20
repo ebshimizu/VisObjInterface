@@ -194,23 +194,12 @@ map<string, AttributeControllerBase*> AttributeControlsList::getActiveAttribues(
 //==============================================================================
 AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::TabsAtRight)
 {
-  // container init
-  _container = new AttributeControlsList();
-  _container->setName("attribute list");
-  //addAndMakeVisible(_container);
-
-  _componentView = new Viewport();
-  _componentView->setViewedComponent(_container, true);
-  //addAndMakeVisible(_componentView);
-
   _paramControls = new ParamControls();
   _history = new HistoryPanel();
   _historyViewer = new Viewport();
   _historyViewer->setViewedComponent(_history, true);
 
   _settings = new SettingsEditor();
-
-  _tempConstraints = new GibbsConstraintContainer();
 
   _vr = new PaletteControls();
   _ic = new IdeaControls();
@@ -247,7 +236,6 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   _tabs.addTab("Visual Research", Colour(0xff333333), _vr, false);
   _tabs.addTab("History", Colour(0xff333333), _historyViewer, false);
   _tabs.addTab("Settings", Colour(0xff333333), _settings, false);
-  _tabs.addTab("Debug", Colour(0xff333333), _tempConstraints, false);
   _tabs.setCurrentTabIndex(0);
 
   _reset.addListener(this);
@@ -255,19 +243,16 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   _reset.setName("reset");
   addAndMakeVisible(_reset);
 
-  initAttributes();
   initPallets();
 }
 
 AttributeControls::~AttributeControls()
 {
-  delete _componentView;
   delete _search;
   delete _sort;
   delete _sortButton;
   delete _setKeyButton;
   delete _clusterButton;
-  delete _tempConstraints;
   delete _ic;
   delete _vr;
 
@@ -303,7 +288,6 @@ void AttributeControls::resized()
   _sort->setBounds(botRow2.reduced(5));
 
   _tabs.setBounds(lbounds);
-  _container->setWidth(_componentView->getMaximumVisibleWidth());
   _history->setWidth(_historyViewer->getMaximumVisibleWidth());
 
 }
@@ -315,13 +299,7 @@ void AttributeControls::refresh()
 void AttributeControls::reload()
 {
   // Delete everything and reload attributes
-  _container->removeAllControllers();
-  //initAttributes();
   initPallets();
-
-  _tempConstraints->updateBounds();
-
-  _container->runPreprocess();
 }
 
 void AttributeControls::buttonClicked(Button * b)
@@ -369,28 +347,23 @@ void AttributeControls::comboBoxChanged(ComboBox * /* b */)
 
 map<string, AttributeControllerBase*> AttributeControls::getActiveAttributes()
 {
-  return _container->getActiveAttribues();
+  return map<string, AttributeControllerBase*>();
 }
 
 void AttributeControls::deleteAllAttributes()
 {
-  _container->removeAllControllers();
 }
 
 void AttributeControls::addAttributeController(AttributeControllerBase * controller)
 {
-  controller->preProcess();
-  _container->addAttributeController(controller);
 }
 
 void AttributeControls::lockAttributeModes()
 {
-  _container->lockImageAttrs();
 }
 
 void AttributeControls::unlockAttributeModes()
 {
-  _container->unlockImageAttrs();
 }
 
 void AttributeControls::initPallets()
@@ -529,8 +502,6 @@ HistoryPanel* AttributeControls::getHistory()
 
 void AttributeControls::setColors(vector<Eigen::VectorXd> colors, double intens, vector<float> weights)
 {
-  _tempConstraints->addColors(colors, intens, weights);
-  _tempConstraints->resized();
 }
 
 void AttributeControls::refreshSettings()
@@ -579,51 +550,6 @@ void AttributeControls::updateSortMenu()
 
 void AttributeControls::initAttributes()
 {
-  // Add saturation
-  _container->addAttributeController(new SaturationAttribute(50));
-
-  // Tint
-  _container->addAttributeController(new TintAttribute());
-
-  // noire
-  _container->addAttributeController(new NoireAttribute());
-
-  // Histogram brightness
-  _container->addAttributeController(new HistogramBrightness("Brightness", 50));
-
-  // Histogram contrast
-  _container->addAttributeController(new HistogramContrast("Contrast", 255));
-
-  // Orange Blue
-  _container->addAttributeController(new OrangeBlueAttribute());
-
-  // moonlight
-  //_container->addAttributeController(new MoonlightAttribute());
-
-  // Image similarity
-  // load from local folder
-  File imageDir = getGlobalSettings()->_imageAttrLoc;
-  Array<File> imagesToLoad;
-  int numImage = imageDir.findChildFiles(imagesToLoad, 2, false, "*.png");
-
-  //LabxyHistogram gen(5, 5, 5, 3, 3, { 0, 100, -70, 70, -70, 70, 0, 1, 0, 1 }, 100);
-  //getGlobalSettings()->_metric = gen.getGroundDistances();
-
-  // Directional test for diversity
-  DirectionalTestAttribute* dt = new DirectionalTestAttribute("Directional", Image(), 0);
-  _container->addAttributeController(dt);
-
-  for (int i = 0; i < numImage; i++) {
-    String name = imagesToLoad[i].getFileNameWithoutExtension();
-    _container->addAttributeController(new ImageAttribute(name.toStdString(), imagesToLoad[i].getFullPathName().toStdString(), 50));
-
-    // TEST
-    ImageAttribute* mod = new ImageAttribute(name.toStdString() + "_directed", imagesToLoad[i].getFullPathName().toStdString(), 50);
-    mod->setStyle(Style::DIRECTIONAL);
-    _container->addAttributeController(mod);
-  }
-
-  getStatusBar()->setStatusMessage("Loaded " + String(numImage) + " images from " + imageDir.getFullPathName());
 }
 
 DeviceSet AttributeControls::computeAffectedDevices(juce::Rectangle<float> region, double threshold)
@@ -767,7 +693,6 @@ void AttributeControls::toggleAllInterface()
   _tabs.addTab("Visual Research", Colour(0xff333333), _vr, false);
   _tabs.addTab("History", Colour(0xff333333), _historyViewer, false);
   _tabs.addTab("Settings", Colour(0xff333333), _settings, false);
-  _tabs.addTab("Debug", Colour(0xff333333), _tempConstraints, false);
   _tabs.setCurrentTabIndex(0);
 }
 
