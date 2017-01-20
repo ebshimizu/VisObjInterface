@@ -456,11 +456,14 @@ void SceneViewer::mouseDown(const MouseEvent & event)
       menu.addItem(2, "Show Selection");
       menu.addItem(3, "Create View from Selection");
 
+      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+      DeviceSet affected = mc->computeAffectedDevices(_selectedRegion);
+
       PopupMenu systems;
       int i = 4;
-      auto systemNames = getRig()->getMetadataValues("system");
+      auto presentSys = affected.getAllMetadataForKey("system");
       vector<string> indexedSystems;
-      for (auto s : systemNames) {
+      for (auto s : presentSys) {
         indexedSystems.push_back(s);
         systems.addItem(i, s);
         i++;
@@ -472,9 +475,6 @@ void SceneViewer::mouseDown(const MouseEvent & event)
 
       if (result == 0)
         return;
-
-      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-      DeviceSet affected = mc->computeAffectedDevices(_selectedRegion);
 
       if (result == 1) {
         mc->setSelectedIds(affected);

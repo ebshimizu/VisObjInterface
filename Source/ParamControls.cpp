@@ -597,8 +597,12 @@ void ParamControls::buttonClicked(Button * b)
     for (auto a : getRig()->getMetadataValues("area")) {
       PopupMenu perAreaSys;
 
+      // check presence of systems
+      DeviceSet devices = getRig()->select("$area=" + a);
+      set<string> sys = devices.getAllMetadataForKey("system");
+
       // populate per-area system
-      for (auto s : getRig()->getMetadataValues("system")) {
+      for (auto s : sys) {
         perAreaSys.addItem(i, s);
         cmdMap[i] = "$area=" + a + "[$system=" + s + "]";
         i++;
