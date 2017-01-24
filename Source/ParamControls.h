@@ -113,6 +113,8 @@ public:
   void setSelectedIds(DeviceSet selection);
 
 private:
+  PopupMenu getSelectorMenu(map<int, string>& cmdOut);
+
   PropertyPanel _properties;
   StringArray _ids;
   TableListBox _table;
@@ -121,12 +123,13 @@ private:
   Slider _groupIntens;
   ColoredTextButton _groupColor;
 
-  TextButton _qsArea;
-  TextButton _qsSystem;
+  TextButton _qsAdd;
+  TextButton _qsSubtract;
   TextButton _qsNone;
   TextButton _qsAll;
   TextButton _invert;
   TextButton _render;
+  TextButton _qsOnly;
 
   // stores the most recently clicked on device's color
   Colour _recentColor;

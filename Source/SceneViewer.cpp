@@ -454,13 +454,12 @@ void SceneViewer::mouseDown(const MouseEvent & event)
 
       menu.addItem(1, "Select Devices");
       menu.addItem(2, "Show Selection");
-      menu.addItem(3, "Create View from Selection");
 
       MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
       DeviceSet affected = mc->computeAffectedDevices(_selectedRegion);
 
       PopupMenu systems;
-      int i = 4;
+      int i = 3;
       auto presentSys = affected.getAllMetadataForKey("system");
       vector<string> indexedSystems;
       for (auto s : presentSys) {
@@ -469,7 +468,23 @@ void SceneViewer::mouseDown(const MouseEvent & event)
         i++;
       }
 
-      menu.addSubMenu("Create View from Selected System", systems);
+      menu.addSubMenu("Select System", systems);
+
+      PopupMenu addSys;
+      for (auto s : presentSys) {
+        addSys.addItem(i, s);
+        i++;
+      }
+
+      menu.addSubMenu("Add System", addSys);
+
+      PopupMenu removeSys;
+      for (auto s : presentSys) {
+        removeSys.addItem(i, s);
+        i++;
+      }
+
+      menu.addSubMenu("Subtract System", removeSys);
 
       int result = menu.show();
 
@@ -482,20 +497,48 @@ void SceneViewer::mouseDown(const MouseEvent & event)
       else if (result == 2) {
         showSelection(affected);
       }
-      else if (result == 3) {
-        mc->createView(affected);
-      }
-      else if (result >= 4) {
+      else if (result >= 3 && result < 3 + presentSys.size()) {
         // filter by system
         DeviceSet filtered(getRig());
-        string sys = indexedSystems[result - 4];
+        string sys = indexedSystems[result - 3];
 
         for (auto id : affected.getIds()) {
           if (getRig()->getDevice(id)->getMetadata("system") == sys)
             filtered = filtered.add(id);
         }
+        mc->setSelectedIds(filtered);
+      }
+      else if (result >= 3 + presentSys.size() && result < 3 + presentSys.size() * 2) {
+        // add system
+        auto selected = mc->getSelectedDeviceIds();
+        DeviceSet selectedSet(getRig());
 
-        mc->createView(filtered);
+        for (auto s : selected)
+          selectedSet = selectedSet.add(s.toStdString());
+
+       string sys = indexedSystems[result - 3 - presentSys.size()];
+
+        for (auto id : affected.getIds()) {
+          if (getRig()->getDevice(id)->getMetadata("system") == sys)
+            selectedSet = selectedSet.add(id);
+        }
+        mc->setSelectedIds(selectedSet);
+      }
+      else if (result >= 3 + presentSys.size() * 2) {
+        // remove sys
+        auto selected = mc->getSelectedDeviceIds();
+        DeviceSet selectedSet(getRig());
+
+        for (auto s : selected)
+          selectedSet = selectedSet.add(s.toStdString());
+
+        string sys = indexedSystems[result - 3 - presentSys.size() * 2];
+
+        for (auto id : affected.getIds()) {
+          if (getRig()->getDevice(id)->getMetadata("system") == sys)
+            selectedSet = selectedSet.remove(id);
+        }
+        mc->setSelectedIds(selectedSet);
       }
     }
   }

@@ -307,15 +307,15 @@ ParamControls::ParamControls() : _groupColor("Group Color", true)
   _groupColor.addListener(this);
   addAndMakeVisible(_groupColor);
 
-  _qsArea.addListener(this);
-  _qsArea.setName("qsArea");
-  _qsArea.setButtonText("Area");
-  addAndMakeVisible(_qsArea);
+  _qsAdd.addListener(this);
+  _qsAdd.setName("qsAdd");
+  _qsAdd.setButtonText("Add");
+  addAndMakeVisible(_qsAdd);
 
-  _qsSystem.addListener(this);
-  _qsSystem.setName("qsSystem");
-  _qsSystem.setButtonText("System");
-  addAndMakeVisible(_qsSystem);
+  _qsSubtract.addListener(this);
+  _qsSubtract.setName("qsSubtract");
+  _qsSubtract.setButtonText("Subtract");
+  addAndMakeVisible(_qsSubtract);
 
   _qsNone.addListener(this);
   _qsNone.setName("qsNone");
@@ -336,6 +336,11 @@ ParamControls::ParamControls() : _groupColor("Group Color", true)
   _render.setName("render");
   _render.setButtonText("Render");
   addAndMakeVisible(_render);
+
+  _qsOnly.addListener(this);
+  _qsOnly.setName("qsOnly");
+  _qsOnly.setButtonText("Only");
+  addAndMakeVisible(_qsOnly);
 }
 
 ParamControls::~ParamControls()
@@ -377,8 +382,9 @@ void ParamControls::resized()
   auto bot = b.removeFromBottom(26);
   bot.removeFromLeft(80);
 
-  _qsArea.setBounds(bot.removeFromLeft(60).reduced(2));
-  _qsSystem.setBounds(bot.removeFromLeft(60).reduced(2));
+  _qsOnly.setBounds(bot.removeFromLeft(60).reduced(2));
+  _qsAdd.setBounds(bot.removeFromLeft(60).reduced(2));
+  _qsSubtract.setBounds(bot.removeFromLeft(60).reduced(2));
   _qsAll.setBounds(bot.removeFromLeft(60).reduced(2));
   _qsNone.setBounds(bot.removeFromLeft(60).reduced(2));
   _invert.setBounds(bot.removeFromLeft(60).reduced(2));
@@ -585,36 +591,19 @@ void ParamControls::buttonClicked(Button * b)
     _table.updateContent();
     _table.repaint();
   }
-  else if (b->getName() == "qsArea") {
-    // get all areas
-    auto areaSet = getRig()->getMetadataValues("area");
-    int i = 1;
-    map<int, string> cmdMap;
-
-    PopupMenu area;
-
-    // populate areas
-    for (auto a : getRig()->getMetadataValues("area")) {
-      PopupMenu perAreaSys;
-
-      // check presence of systems
-      DeviceSet devices = getRig()->select("$area=" + a);
-      set<string> sys = devices.getAllMetadataForKey("system");
-
-      // populate per-area system
-      for (auto s : sys) {
-        perAreaSys.addItem(i, s);
-        cmdMap[i] = "$area=" + a + "[$system=" + s + "]";
-        i++;
-      }
-
-      area.addSubMenu(a, perAreaSys, true, nullptr, false, i);
-      cmdMap[i] = "$area=" + a;
-
-      i++;
+  else if (b->getName() == "invert") {
+    for (int i = 0; i < _table.getNumRows(); i++) {
+      if (_table.isRowSelected(i))
+        _table.deselectRow(i);
+      else
+        _table.selectRow(i, false, false);
     }
+  }
+  else if (b->getName() == "qsOnly") {
+    map<int, string> cmdMap;
+    PopupMenu all = getSelectorMenu(cmdMap);
 
-    int result = area.showAt(&_qsArea);
+    int result = all.showAt(&_qsOnly);
 
     if (result == 0)
       return;
@@ -629,26 +618,16 @@ void ParamControls::buttonClicked(Button * b)
     _table.updateContent();
     _table.repaint();
   }
-  else if (b->getName() == "qsSystem") {
-    // get all areas
-    auto systemSet = getRig()->getMetadataValues("system");
+  else if (b->getName() == "qsAdd") {
+    map<int, string> cmdMap;
+    PopupMenu all = getSelectorMenu(cmdMap);
 
-    vector<string> systems;
-    for (auto s : systemSet)
-      systems.push_back(s);
-
-    PopupMenu m;
-    for (int i = 0; i < systems.size(); i++) {
-      m.addItem(i + 1, systems[i]);
-    }
-
-    int result = m.showAt(&_qsSystem);
+    int result = all.showAt(&_qsAdd);
 
     if (result == 0)
       return;
 
-    _table.deselectAllRows();
-    auto selected = getRig()->select("$system=" + systems[result - 1]);
+    auto selected = getRig()->select(cmdMap[result]);
     set<Device*> devices = selected.getDevices();
     for (auto d : devices) {
       _table.selectRow(_ids.indexOf(String(d->getId())), true, false);
@@ -657,12 +636,19 @@ void ParamControls::buttonClicked(Button * b)
     _table.updateContent();
     _table.repaint();
   }
-  else if (b->getName() == "invert") {
-    for (int i = 0; i < _table.getNumRows(); i++) {
-      if (_table.isRowSelected(i))
-        _table.deselectRow(i);
-      else
-        _table.selectRow(i, false, false);
+  else if (b->getName() == "qsSubtract") {
+    map<int, string> cmdMap;
+    PopupMenu all = getSelectorMenu(cmdMap);
+
+    int result = all.showAt(&_qsSubtract);
+
+    if (result == 0)
+      return;
+
+    auto selected = getRig()->select(cmdMap[result]);
+    set<Device*> devices = selected.getDevices();
+    for (auto d : devices) {
+      _table.deselectRow(_ids.indexOf(String(d->getId())));
     }
 
     _table.updateContent();
@@ -737,4 +723,57 @@ void ParamControls::setSelectedIds(DeviceSet selection)
 
   _table.updateContent();
   _table.repaint();
+}
+
+PopupMenu ParamControls::getSelectorMenu(map<int, string>& cmdOut)
+{
+  PopupMenu all;
+
+  // get all areas
+  auto areaSet = getRig()->getMetadataValues("area");
+  int i = 1;
+
+  PopupMenu area;
+
+  // populate areas
+  for (auto a : getRig()->getMetadataValues("area")) {
+    PopupMenu perAreaSys;
+
+    // check presence of systems
+    DeviceSet devices = getRig()->select("$area=" + a);
+    set<string> sys = devices.getAllMetadataForKey("system");
+
+    // populate per-area system
+    for (auto s : sys) {
+      perAreaSys.addItem(i, s);
+      cmdOut[i] = "$area=" + a + "[$system=" + s + "]";
+      i++;
+    }
+
+    area.addSubMenu(a, perAreaSys, true, nullptr, false, i);
+    cmdOut[i] = "$area=" + a;
+
+    i++;
+  }
+
+  all.addSubMenu("Area", area);
+
+  int sysStart = i;
+
+  // get systems
+  auto systemSet = getRig()->getMetadataValues("system");
+
+  vector<string> systems;
+  for (auto s : systemSet)
+    systems.push_back(s);
+
+  PopupMenu system;
+  for (int j = 0; j < systems.size(); j++) {
+    system.addItem(sysStart + j, systems[j]);
+    cmdOut[sysStart + j] = "$system=" + systems[j];
+  }
+
+  all.addSubMenu("System", system);
+
+  return all;
 }
