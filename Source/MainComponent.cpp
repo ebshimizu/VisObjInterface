@@ -132,7 +132,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::RESET_ALL, command::SAVE_IDEAS, command::LOAD_IDEAS, command::DELETE_ALL_PINS,
     command::TOGGLE_SELECT_VIEW, command::INTERFACE_OLD, command::INTERFACE_NEW, command::INTERFACE_ALL,
     command::RESET_TIMER, command::SHOW_PROMPT, command::COPY_DEVICE, command::PASTE_ALL, command::PASTE_COLOR,
-    command::PASTE_INTENS
+    command::PASTE_INTENS, command::SET_TO_FULL, command::SET_TO_OFF, command::SET_TO_WHITE
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -158,7 +158,6 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     break;
   case command::SEARCH:
     result.setInfo("Search", "Performs an exploratory search with the current attribute constraints", "Explore", 0);
-    result.addDefaultKeypress('f', ModifierKeys::commandModifier);
     break;
   case command::REFRESH_ATTR:
     result.setInfo("Refresh Attribute Controls", "Internal: refreshes the attribute control panel", "Internal", 0);
@@ -332,6 +331,18 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Paste Color", "Pastes the color only", "Edit", 0);
     result.addDefaultKeypress('v', ModifierKeys::commandModifier | ModifierKeys::altModifier);
     break;
+  case command::SET_TO_FULL:
+    result.setInfo("Set Intensity to Full", "Sets the intensity of the selected lights to 100%", "Edit", 0);
+    result.addDefaultKeypress('f', ModifierKeys::noModifiers);
+    break;
+  case command::SET_TO_OFF:
+    result.setInfo("Set Intensity to Off", "Sets the intensity of selected lights to 0", "Edit", 0);
+    result.addDefaultKeypress('g', ModifierKeys::noModifiers);
+    break;
+  case command::SET_TO_WHITE:
+    result.setInfo("Set Color to White", "Sets the color of the light to white", "Edit", 0);
+    result.addDefaultKeypress('f', ModifierKeys::commandModifier);
+    break;
   default:
     return;
   }
@@ -502,6 +513,15 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::PASTE_INTENS:
     pasteDeviceParams(set<string>({ "intensity" }));
+    break;
+  case command::SET_TO_FULL:
+    setSelectedDevicesTo(1.0f);
+    break;
+  case command::SET_TO_OFF:
+    setSelectedDevicesTo(0);
+    break;
+  case command::SET_TO_WHITE:
+    setSelectedColorTo(1, 1, 1);
     break;
   default:
     return false;
@@ -800,6 +820,26 @@ void MainContentComponent::pasteDeviceParams(set<string> paramsToPaste)
     if (paramsToPaste.count("color") > 0) {
       LumiverseTypeUtils::copyByVal(_colorCP.get(), getRig()->getDevice(did)->getColor());
     }
+  }
+
+  _attrs->refresh();
+  _attrs->repaint();
+}
+
+void MainContentComponent::setSelectedDevicesTo(float val)
+{
+  for (auto id : getSelectedDeviceIds()) {
+    getRig()->getDevice(id.toStdString())->getIntensity()->setValAsPercent(val);
+  }
+
+  _attrs->refresh();
+  _attrs->repaint();
+}
+
+void MainContentComponent::setSelectedColorTo(float r, float g, float b)
+{
+  for (auto id : getSelectedDeviceIds()) {
+    getRig()->getDevice(id.toStdString())->getColor()->setRGB(r, g, b);
   }
 
   _attrs->refresh();

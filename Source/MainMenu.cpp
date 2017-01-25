@@ -53,6 +53,10 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& /* menu
     menu.addCommandItem(cm, command::PASTE_INTENS);
     menu.addCommandItem(cm, command::PASTE_COLOR);
     menu.addSeparator();
+    menu.addCommandItem(cm, command::SET_TO_FULL);
+    menu.addCommandItem(cm, command::SET_TO_OFF);
+    menu.addCommandItem(cm, command::SET_TO_WHITE);
+    menu.addSeparator();
     menu.addCommandItem(cm, command::ARNOLD_RENDER);
     menu.addCommandItem(cm, command::TOGGLE_SELECT_VIEW);
     menu.addSeparator();

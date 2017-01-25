@@ -115,6 +115,8 @@ public:
   // copy and paste operations. Works on currently selected devices.
   void copyDeviceParams();
   void pasteDeviceParams(set<string> paramsToPaste);
+  void setSelectedDevicesTo(float val);
+  void setSelectedColorTo(float r, float g, float b);
 
 private:
   // Open a Lumiverse file

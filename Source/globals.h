@@ -64,6 +64,9 @@ enum command {
   PASTE_ALL = 0x4008,
   PASTE_INTENS = 0x4009,
   PASTE_COLOR = 0x400A,
+  SET_TO_FULL = 0x400B,
+  SET_TO_OFF = 0x400C,
+  SET_TO_WHITE = 0x400D,
 
   // Explore
   SEARCH = 0x5000,
