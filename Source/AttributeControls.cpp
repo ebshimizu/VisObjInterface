@@ -442,6 +442,15 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
     if (affected.size() == 0)
       continue;
 
+    // remove filtered devices
+    auto filter = i->getFilter();
+    auto devices = affected.getDevices();
+    for (auto data : devices) {
+      if (filter.count(data->getMetadata("system")) == 0) {
+        affected = affected.remove(data->getId());
+      }
+    }
+
     // create a sampler
     if (i->getType() == COLOR_PALETTE) {
       ColorSampler* colorSampler = new ColorSampler(affected, r, ip, cp, i->getColors(), i->getWeights());

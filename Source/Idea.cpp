@@ -14,6 +14,69 @@
 #include "KMeans.h"
 #include "hsvPicker.h"
 
+SystemFilter::SystemFilter(set<string>& filter) : _filter(filter)
+{
+  auto sys = getRig()->getMetadataValues("system");
+  for (auto s : sys) {
+    _systems.add(s);
+  }
+
+  addAndMakeVisible(_list);
+  _list.setModel(this);
+  _list.setMultipleSelectionEnabled(true);
+  _list.setClickingTogglesRowSelection(true);
+
+  for (auto s : _filter) {
+    _list.selectRow(_systems.indexOf(String(s)), false, false);
+  }
+}
+
+SystemFilter::~SystemFilter()
+{
+}
+
+int SystemFilter::getNumRows()
+{
+  return _systems.size();
+}
+
+void SystemFilter::paintListBoxItem(int rowNumber, Graphics & g, int width, int height, bool rowIsSelected)
+{
+  if (rowIsSelected)
+    g.fillAll(Colours::lightblue);
+  else
+    g.fillAll(Colour(0xffa3a3a3));
+
+  g.setColour(Colours::black);
+  g.setFont(14);
+  g.drawText(_systems[rowNumber], 2, 0, width - 4, height, Justification::centredLeft, true);
+}
+
+void SystemFilter::selectedRowsChanged(int lastRowSelected)
+{
+
+}
+
+void SystemFilter::resized()
+{
+  _list.setBounds(getLocalBounds());
+}
+
+void SystemFilter::listBoxItemClicked(int row, const MouseEvent & e)
+{
+  if (_list.isRowSelected(row)) {
+    _filter.insert(_systems[row].toStdString());
+  }
+  else {
+    _filter.erase(_systems[row].toStdString());
+  }
+}
+
+int SystemFilter::getListHeight()
+{
+  return _list.getRowHeight() * getNumRows();
+}
+
 Idea::Idea(Image src, IdeaType type) : _src(src), _type(type), _brightness(1, { 0, 0.1f }),
   _color(3, { 0, 0.05f, 0, 0.2f, 0, 0.2f })
 {
@@ -143,6 +206,7 @@ void Idea::resized()
   auto head1 = lbounds.removeFromTop(24);
   _delete.setBounds(head1.removeFromRight(24).reduced(2));
   _lock.setBounds(head1.removeFromRight(24).reduced(2));
+  _filter.setBounds(head1.removeFromRight(60).reduced(2));
   _nameEntry.setBounds(head1.reduced(2));
 
   auto top = lbounds.removeFromTop(24);
@@ -239,6 +303,13 @@ void Idea::buttonClicked(Button * b)
     parent->deleteIdea(this);
     return;
   }
+  if (b->getName() == "filter") {
+    // popup filter dialog
+    // get list of all systems
+    SystemFilter* filterComponent = new SystemFilter(_filters);
+    filterComponent->setSize(100, min(300, filterComponent->getListHeight()));
+    CallOutBox::launchAsynchronously(filterComponent, b->getScreenBounds(), nullptr);
+  }
 }
 
 void Idea::textEditorTextChanged(TextEditor & e)
@@ -251,6 +322,11 @@ void Idea::textEditorTextChanged(TextEditor & e)
       mc->repaintRenderArea();
     }
   }
+}
+
+set<string> Idea::getFilter()
+{
+  return _filters;
 }
 
 JSONNode Idea::toJSON()
@@ -496,6 +572,16 @@ void Idea::initUI()
   _nameEntry.setColour(TextEditor::ColourIds::focusedOutlineColourId, Colour(0xff606060));
   _nameEntry.setColour(TextEditor::ColourIds::highlightColourId, Colour(0xffa0a0a0));
   addAndMakeVisible(_nameEntry);
+
+  _filter.setName("filter");
+  _filter.setButtonText("Filter");
+  _filter.addListener(this);
+  addAndMakeVisible(_filter);
+
+  // add all systems to the filter to start
+  for (auto s : getRig()->getMetadataValues("system")) {
+    _filters.insert(s);
+  }
 
   _delete.setButtonText("x");
   _delete.setName("delete");

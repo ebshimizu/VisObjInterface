@@ -25,6 +25,27 @@ enum IdeaType {
 class IdeaList;
 class SparseHistogram;
 
+class SystemFilter : public Component, public ListBoxModel
+{
+public:
+  SystemFilter(set<string>& filter);
+  ~SystemFilter();
+
+  virtual int getNumRows() override;
+  virtual void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override;
+  virtual void selectedRowsChanged(int lastRowSelected) override;
+  virtual void resized() override;
+  virtual void listBoxItemClicked(int row, const MouseEvent& e) override;
+  int getListHeight();
+
+private:
+  set<string>& _filter;
+  string _id;
+  ListBox _list;
+  StringArray _systems;
+  Button* _b;
+};
+
 // the Idea class contains information to apply an idea to a particular
 // set of devices on the stage
 class Idea : public Component, public ComboBoxListener,
@@ -45,6 +66,8 @@ public:
   void comboBoxChanged(ComboBox* b) override;
   void buttonClicked(Button* b) override;
   void textEditorTextChanged(TextEditor& e) override;
+
+  set<string> getFilter();
 
   // converts the object to json
   JSONNode toJSON();
@@ -132,6 +155,9 @@ private:
   // deletes the idea and removes it from the idea list
   TextButton _delete;
 
+  // opens the filter dialog box
+  TextButton _filter;
+
   // bbox representing the area of the image the idea comes from
   juce::Rectangle<float> _focusArea;
 
@@ -157,6 +183,8 @@ private:
   vector<Eigen::Vector3d> _originalColors;
   vector<float> _weights;
   int _numColors;
+
+  set<string> _filters;
 
   // takes the current type and updates necesssary data for the Idea to function
   // skipRecompute tells updateType to only create and update UI elements, as the underlying
