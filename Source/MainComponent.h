@@ -109,6 +109,9 @@ public:
   // creates view in the explorer panel from the selected devices
   void createView(DeviceSet selection);
 
+  // removes all objectives from the list
+  void deleteAllObjectives();
+
 private:
   // Open a Lumiverse file
   void openRig();

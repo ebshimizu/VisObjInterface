@@ -82,12 +82,6 @@ Idea::Idea(Image src, IdeaType type) : _src(src), _type(type), _brightness(1, { 
 {
   initUI();
   updateType();
-
-  _selected = false;
-  _isBeingDragged = false;
-  _isRegionLocked = false;
-  _focusArea = juce::Rectangle<float>::leftTopRightBottom(0, 0, 1, 1);
-  _lock.setToggleState(_isRegionLocked, dontSendNotification);
 }
 
 Idea::Idea(File srcFolder, JSONNode data) : _brightness(1, { 0, 0.1f }), _color(3, { 0, 0.05f, 0, 0.2f, 0, 0.2f })
@@ -594,6 +588,12 @@ void Idea::initUI()
 
   _colorControls = nullptr;
   _intensControls = nullptr;
+
+  _selected = false;
+  _isBeingDragged = false;
+  _isRegionLocked = false;
+  _focusArea = juce::Rectangle<float>::leftTopRightBottom(0, 0, 1, 1);
+  _lock.setToggleState(_isRegionLocked, dontSendNotification);
 }
 
 void Idea::generateColorPalette()

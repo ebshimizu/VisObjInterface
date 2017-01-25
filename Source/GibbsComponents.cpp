@@ -53,33 +53,48 @@ void GibbsPalette::mouseDown(const MouseEvent & event)
   }
   else if (event.mods.isRightButtonDown()) {
     PopupMenu menu;
-    menu.addItem(1, "New Color Concept");
-    menu.addItem(2, "New Intensity Concept");
-    menu.addItem(3, "New Color and Intensity Concepts");
+
+    PopupMenu sub1;
+    sub1.addItem(1, "Color");
+    sub1.addItem(2, "Intensity");
+    sub1.addItem(3, "Color and Intensity");
+
+    menu.addSubMenu("Add Objective", sub1);
+
+    PopupMenu sub2;
+    sub2.addItem(4, "Color");
+    sub2.addItem(5, "Intensity");
+    sub2.addItem(6, "Color and Intensity");
+
+    menu.addSubMenu("Quick Search", sub2);
 
     int result = menu.show();
 
-    if (result == 1) {
-      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
+    MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
+    if (result > 3) {
+      mc->deleteAllObjectives();
+    }
+
+    if (result == 1 || result == 4) {
       if (mc != nullptr) {
         mc->createIdea(_img, _name, COLOR_PALETTE);
       }
     }
-    else if (result == 2) {
-      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-
+    else if (result == 2 || result == 5) {
       if (mc != nullptr) {
         mc->createIdea(_img, _name, INTENS_DIST);
       }
     }
-    else if (result == 3) {
-      MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
-
+    else if (result == 3 || result == 6) {
       if (mc != nullptr) {
         mc->createIdea(_img, _name, COLOR_PALETTE);
         mc->createIdea(_img, _name, INTENS_DIST);
       }
+    }
+
+    if (result > 3) {
+      mc->search();
     }
   }
 }

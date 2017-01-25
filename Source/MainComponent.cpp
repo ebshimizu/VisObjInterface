@@ -728,6 +728,11 @@ void MainContentComponent::createView(DeviceSet selection)
   _exp->resized();
 }
 
+void MainContentComponent::deleteAllObjectives()
+{
+  _attrs->deleteIdeas();
+}
+
 void MainContentComponent::openRig() {
   FileChooser fc("Load Show (pick a .rig.json or .playback.json file)", File::getCurrentWorkingDirectory(),
     "*.rig.json;*.playback.json", true);
