@@ -294,6 +294,7 @@ void AttributeControls::resized()
 
 void AttributeControls::refresh()
 {
+  _paramControls->refreshParams();
 }
 
 void AttributeControls::reload()

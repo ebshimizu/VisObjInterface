@@ -112,6 +112,10 @@ public:
   // removes all objectives from the list
   void deleteAllObjectives();
 
+  // copy and paste operations. Works on currently selected devices.
+  void copyDeviceParams();
+  void pasteDeviceParams(set<string> paramsToPaste);
+
 private:
   // Open a Lumiverse file
   void openRig();
@@ -201,6 +205,10 @@ private:
   ScopedPointer<AttributeSearch> _searchWorker;
 
   TooltipWindow _tips;
+
+  // copypasta data
+  shared_ptr<LumiverseFloat> _intensCP;
+  shared_ptr<LumiverseColor> _colorCP;
 
   class AutoTimer : public Timer
   {

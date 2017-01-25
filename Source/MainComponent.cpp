@@ -68,6 +68,10 @@ MainContentComponent::MainContentComponent()
   getGlobalSettings()->_freezeDrawMode = DrawMode::RECT_ADD;
 
   _autoTimer.setWorker(_searchWorker.get());
+
+  // copy data setup
+  _intensCP = shared_ptr<LumiverseFloat>(new LumiverseFloat());
+  _colorCP = shared_ptr<LumiverseColor>(new LumiverseColor(BASIC_RGB));
 }
 
 MainContentComponent::~MainContentComponent()
@@ -127,7 +131,8 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::UNLOCK_SELECTED_COLOR, command::UNLOCK_SELECTED_INTENSITY, command::RELOAD_ATTRS, command::LOAD_ATTRS,
     command::RESET_ALL, command::SAVE_IDEAS, command::LOAD_IDEAS, command::DELETE_ALL_PINS,
     command::TOGGLE_SELECT_VIEW, command::INTERFACE_OLD, command::INTERFACE_NEW, command::INTERFACE_ALL,
-    command::RESET_TIMER, command::SHOW_PROMPT
+    command::RESET_TIMER, command::SHOW_PROMPT, command::COPY_DEVICE, command::PASTE_ALL, command::PASTE_COLOR,
+    command::PASTE_INTENS
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -311,6 +316,22 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::SHOW_PROMPT:
     result.setInfo("Show Prompt", "Displays the prompt for this experiment", "Window", 0);
     break;
+  case command::COPY_DEVICE:
+    result.setInfo("Copy", "Copies the current device paramters", "Edit", 0);
+    result.addDefaultKeypress('c', ModifierKeys::commandModifier);
+    break;
+  case command::PASTE_ALL:
+    result.setInfo("Paste", "Pastes the current device parameters", "Edit", 0);
+    result.addDefaultKeypress('v', ModifierKeys::commandModifier);
+    break;
+  case command::PASTE_INTENS:
+    result.setInfo("Paste Intensity", "Pastes the intensity only", "Edit", 0);
+    result.addDefaultKeypress('v', ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+    break;
+  case command::PASTE_COLOR:
+    result.setInfo("Paste Color", "Pastes the color only", "Edit", 0);
+    result.addDefaultKeypress('v', ModifierKeys::commandModifier | ModifierKeys::altModifier);
+    break;
   default:
     return;
   }
@@ -469,6 +490,18 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::SHOW_PROMPT:
     showPrompt();
+    break;
+  case command::COPY_DEVICE:
+    copyDeviceParams();
+    break;
+  case command::PASTE_ALL:
+    pasteDeviceParams(set<string>({ "intensity", "color" }));
+    break;
+  case command::PASTE_COLOR:
+    pasteDeviceParams(set<string>({ "color" }));
+    break;
+  case command::PASTE_INTENS:
+    pasteDeviceParams(set<string>({ "intensity" }));
     break;
   default:
     return false;
@@ -731,6 +764,46 @@ void MainContentComponent::createView(DeviceSet selection)
 void MainContentComponent::deleteAllObjectives()
 {
   _attrs->deleteIdeas();
+}
+
+void MainContentComponent::copyDeviceParams()
+{
+  // retrieve selected devices
+  auto ids = getSelectedDeviceIds();
+
+  // get average values
+  float intens = 0;
+  Eigen::Vector3d color(0,0,0);
+  int count = 0;
+
+  for (auto id : ids) {
+    intens += getRig()->getDevice(id.toStdString())->getIntensity()->asPercent();
+    color += getRig()->getDevice(id.toStdString())->getColor()->getRGB();
+    count++;
+  }
+
+  _intensCP->setValAsPercent(intens / count);
+  color /= count;
+  _colorCP->setRGBRaw(color[0], color[1], color[2]);
+}
+
+void MainContentComponent::pasteDeviceParams(set<string> paramsToPaste)
+{
+  auto ids = getSelectedDeviceIds();
+
+  for (auto id : ids) {
+    string did = id.toStdString();
+
+    if (paramsToPaste.count("intensity") > 0) {
+      LumiverseTypeUtils::copyByVal(_intensCP.get(), getRig()->getDevice(did)->getIntensity());
+    }
+    if (paramsToPaste.count("color") > 0) {
+      LumiverseTypeUtils::copyByVal(_colorCP.get(), getRig()->getDevice(did)->getColor());
+    }
+  }
+
+  _attrs->refresh();
+  _attrs->repaint();
 }
 
 void MainContentComponent::openRig() {

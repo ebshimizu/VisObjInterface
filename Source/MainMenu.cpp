@@ -48,14 +48,19 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& /* menu
     menu.addCommandItem(cm, command::RELOAD_ATTRS);
   }
   else if (topLevelMenuIndex == 1) {
+    menu.addCommandItem(cm, command::COPY_DEVICE);
+    menu.addCommandItem(cm, command::PASTE_ALL);
+    menu.addCommandItem(cm, command::PASTE_INTENS);
+    menu.addCommandItem(cm, command::PASTE_COLOR);
+    menu.addSeparator();
     menu.addCommandItem(cm, command::ARNOLD_RENDER);
     menu.addCommandItem(cm, command::TOGGLE_SELECT_VIEW);
     menu.addSeparator();
     menu.addCommandItem(cm, command::RESET_ALL);
-    menu.addSeparator();
-    menu.addCommandItem(cm, command::CONSTRAINTS);
-    menu.addCommandItem(cm, command::GET_FROM_ARNOLD);
-    menu.addCommandItem(cm, command::RESET_TIMER);
+    //menu.addSeparator();
+    //menu.addCommandItem(cm, command::CONSTRAINTS);
+    //menu.addCommandItem(cm, command::GET_FROM_ARNOLD);
+    //menu.addCommandItem(cm, command::RESET_TIMER);
   }
   else if (topLevelMenuIndex == 2) {
     menu.addCommandItem(cm, command::SEARCH);
