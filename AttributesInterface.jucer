@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="eoLPJP" name="AttributesInterface" projectType="guiapp" version="0.13"
+<JUCERPROJECT id="eoLPJP" name="AttributesInterface" projectType="guiapp" version="0.14"
               bundleIdentifier="edu.cmu.cs.AttributeInterface" includeBinaryInAppConfig="1"
-              jucerVersion="4.2.4" companyName="Carnegie Mellon University"
+              jucerVersion="4.3.0" companyName="Carnegie Mellon University"
               companyWebsite="cs.cmu.edu" companyEmail="eshimizu@cs.cmu.edu">
   <MAINGROUP id="upFVKV" name="AttributesInterface">
     <GROUP id="{E33A23C0-94A8-8A6D-0624-83F1C8438329}" name="Source">
@@ -217,7 +217,7 @@
   </MAINGROUP>
   <EXPORTFORMATS>
     <VS2015 targetFolder="Builds/VisualStudio2015" externalLibraries="LumiverseCore.lib&#10;LumiverseShowControl.lib&#10;libjson.lib&#10;clp.lib&#10;ai.lib&#10;libpng16_static.lib&#10;ftd2xx.lib&#10;zlibstatic.lib&#10;IlmImf-2_2.lib&#10;Iex-2_2.lib&#10;IlmThread-2_2.lib&#10;Imath-2_2.lib&#10;IexMath-2_2.lib&#10;Half.lib"
-            toolset="">
+            toolset="" extraDefs="NOMINMAX">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        isDebug="1" optimisation="1" targetName="AttributesInterfaceDebug"
@@ -247,7 +247,7 @@
       </MODULEPATHS>
     </VS2015>
     <VS2015 targetFolder="Builds/VisualStudio2015NoArnold" externalLibraries="LumiverseCore.lib&#10;LumiverseShowControl.lib&#10;libjson.lib&#10;clp.lib&#10;libpng16_static.lib&#10;ftd2xx.lib&#10;zlibstatic.lib&#10;IlmImf-2_2.lib&#10;Iex-2_2.lib&#10;IlmThread-2_2.lib&#10;Imath-2_2.lib&#10;IexMath-2_2.lib&#10;Half.lib"
-            toolset="v140">
+            toolset="v140" extraDefs="NOMINMAX">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        isDebug="1" optimisation="1" targetName="AttributesInterface"
