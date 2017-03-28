@@ -727,6 +727,8 @@ void MainContentComponent::createIdea(Image i, String name, IdeaType type)
 {
   _attrs->addIdea(i, name, type);
   _viewer->repaint();
+
+  getRecorder()->log(ACTION, "Objective created: " + name.toStdString() + " with type " + String(type).toStdString());
 }
 
 void MainContentComponent::debugShowAffectedDevices(juce::Rectangle<float> region)

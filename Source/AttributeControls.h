@@ -20,6 +20,13 @@
 #include "GibbsComponents.h"
 #include "Idea.h"
 
+class LoggingTabbedComponent : public TabbedComponent {
+public:
+  LoggingTabbedComponent(TabbedButtonBar::Orientation orientation);
+
+  void currentTabChanged(int newCurrentTabIndex, const String& newCurrentTabName) override;
+};
+
 class DeviceSelector : public Component, public ListBoxModel
 {
 public:
@@ -165,7 +172,7 @@ private:
   PaletteControls* _vr;
   IdeaControls* _ic;
 
-  TabbedComponent _tabs;
+  LoggingTabbedComponent _tabs;
 
   ParamControls* _paramControls;
   HistoryPanel* _history;

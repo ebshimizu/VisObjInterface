@@ -13,6 +13,20 @@
 #include "AttributeControllers.h"
 #include "MainComponent.h"
 
+LoggingTabbedComponent::LoggingTabbedComponent(TabbedButtonBar::Orientation orientation) :
+  TabbedComponent(orientation)
+{
+}
+
+void LoggingTabbedComponent::currentTabChanged(int newCurrentTabIndex, const String & newCurrentTabName)
+{
+  // inject log message about which tab is visible now
+  getRecorder()->log(ACTION, "Current visible tab: " + newCurrentTabName.toStdString());
+
+  TabbedComponent::currentTabChanged(newCurrentTabIndex, newCurrentTabName);
+}
+
+
 DeviceSelector::DeviceSelector(vector<string> initialSelectedIds, function<void(vector<string>)> update) :
   _updateFunc(update)
 {
@@ -766,3 +780,4 @@ void AttributeControls::IdeaControls::resized()
   _ideaViewer->setBounds(lbounds);
   _ideas->setSize(_ideaViewer->getMaximumVisibleWidth() - _ideaViewer->getScrollBarThickness(), 0);
 }
+

@@ -534,6 +534,8 @@ void ParamControls::selectedRowsChanged(int lastRowSelected)
     _groupIntens.setValue(_recentIntens * 100, dontSendNotification);
   }
 
+  getRecorder()->log(ACTION, "Selected rows changed");
+
   repaint();
 }
 
@@ -565,6 +567,10 @@ void ParamControls::sliderValueChanged(Slider * s)
     getRig()->getDevice(s->getName().toStdString())->getIntensity()->setValAsPercent((float)s->getValue() / 100.f);
   }
 
+  stringstream ss;
+  ss << "Slider " << s->getName() << " value changed to " << s->getValue();
+  getRecorder()->log(actionType::ACTION, ss.str());
+
   getGlobalSettings()->invalidateCache();
   getApplicationCommandManager()->invokeDirectly(command::REFRESH_ATTR, true);
   getRig()->updateOnce();
@@ -584,12 +590,14 @@ void ParamControls::buttonClicked(Button * b)
     _table.deselectAllRows();
     _table.updateContent();
     _table.repaint();
+    getRecorder()->log(ACTION, "All devices deselected");
   }
   else if (b->getName() == "qsAll") {
     _table.deselectAllRows();
     _table.selectRangeOfRows(0, _ids.size() - 1);
     _table.updateContent();
     _table.repaint();
+    getRecorder()->log(ACTION, "All devices selected");
   }
   else if (b->getName() == "invert") {
     for (int i = 0; i < _table.getNumRows(); i++) {
@@ -598,6 +606,7 @@ void ParamControls::buttonClicked(Button * b)
       else
         _table.selectRow(i, false, false);
     }
+    getRecorder()->log(ACTION, "Selection inverted");
   }
   else if (b->getName() == "qsOnly") {
     map<int, string> cmdMap;
@@ -617,6 +626,8 @@ void ParamControls::buttonClicked(Button * b)
 
     _table.updateContent();
     _table.repaint();
+    
+    getRecorder()->log(ACTION, "Selected Devices: " + selected.info());
   }
   else if (b->getName() == "qsAdd") {
     map<int, string> cmdMap;
@@ -635,6 +646,8 @@ void ParamControls::buttonClicked(Button * b)
 
     _table.updateContent();
     _table.repaint();
+
+    getRecorder()->log(ACTION, "Added Devices: " + selected.info());
   }
   else if (b->getName() == "qsSubtract") {
     map<int, string> cmdMap;
@@ -653,6 +666,8 @@ void ParamControls::buttonClicked(Button * b)
 
     _table.updateContent();
     _table.repaint();
+
+    getRecorder()->log(ACTION, "Removed Devices: " + selected.info());
   }
   else if (b->getName() == "render") {
     getApplicationCommandManager()->invokeDirectly(ARNOLD_RENDER, true);
@@ -677,6 +692,8 @@ void ParamControls::changeListenerCallback(ChangeBroadcaster * source)
 
     _groupColor.setColor(_recentColor);
     getGlobalSettings()->invalidateCache();
+
+    getRecorder()->log(ACTION, "Group color set to " + _recentColor.toString().toStdString());
 
     MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 

@@ -560,7 +560,11 @@ void SceneViewer::mouseUp(const MouseEvent & event)
       juce::Rectangle<float> region = juce::Rectangle<float>::findAreaContainingPoints(pts.getRawDataPointer(), 2);
 
       getGlobalSettings()->_pinnedRegions.add(region);
+      getRecorder()->log(ACTION, "Pin Added");
     }
+  }
+  else {
+    getRecorder()->log(ACTION, "Selected region for objective " + getGlobalSettings()->_activeIdea->getName().toStdString() + " updated");
   }
 
   _startPoint = Point<float>(0, 0);
@@ -761,12 +765,15 @@ void SceneViewer::showSelection(DeviceSet selected)
   _showSelectionMode = true;
   _exitSelectView->setVisible(true);
   delete toRender;
+
+  getRecorder()->log(ACTION, "Showing only selected devices");
 }
 
 void SceneViewer::hideSelection()
 {
   _showSelectionMode = false;
   _exitSelectView->setVisible(false);
+  getRecorder()->log(ACTION, "Returning to normal scene view");
 }
 
 bool SceneViewer::isInSelectionMode()

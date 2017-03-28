@@ -1251,6 +1251,7 @@ void IdeaList::updateActiveIdea()
   }
 
   getGlobalSettings()->_activeIdea = getActiveIdea();
+  getRecorder()->log(ACTION, "Active objective set to " + getGlobalSettings()->_activeIdea->getName().toStdString());
 
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
@@ -1439,9 +1440,10 @@ void IdeaList::deleteIdea(Idea* idea)
   if (getGlobalSettings()->_activeIdea == *todelete)
     getGlobalSettings()->_activeIdea = nullptr;
 
+  getRecorder()->log(ACTION, "Objective deleted: " + todelete->get()->getName().toStdString());
   getGlobalSettings()->_ideaMap.erase(*todelete);
-
   removeChildComponent(todelete->get());
+
   _ideas.erase(todelete);
   resized();
 
@@ -1455,6 +1457,7 @@ void IdeaList::deleteIdea(Idea* idea)
 void IdeaList::deleteAllIdeas()
 {
   _ideas.clear();
+  getRecorder()->log(ACTION, "All objectives deleted");
   resized();
 }
 

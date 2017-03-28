@@ -60,7 +60,7 @@ void Recorder::log(actionType type, string message)
   snprintf(buf, 10, "%8.2f", seconds.count());
 
   _file << t << " (" << buf << ")\t" << message << "\n";
-  _file.flush();
+  //_file.flush();
 }
 
 void Recorder::resetTimer()
