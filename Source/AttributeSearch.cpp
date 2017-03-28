@@ -996,6 +996,10 @@ void AttributeSearchThread::runGibbsSampling()
   shared_ptr<SearchResult> r = shared_ptr<SearchResult>(new SearchResult());
   r->_scene = snapshotToVector(newSample);
 
+  if (getGlobalSettings()->_iterativeSystemSelect) {
+    r->_extraData["selectedSystem"] = newSample->_metadata["selectedSystem"];
+  }
+
   // run eval functions for each sampler
   _activeSchedule->score(r, newSample);
 

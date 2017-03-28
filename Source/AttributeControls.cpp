@@ -484,9 +484,11 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
 
   // create the pin sampler
   // note that here the region size is irrelevant and that the pins DeviceSet is also mostly irrelevant
-  Sampler* pinSampler = (Sampler*)(new PinSampler(pins, juce::Rectangle<float>(), ip, cp));
-  pinSampler->_name = "Pinned";
-  sched->addSampler(pinSampler);
+  if (!getGlobalSettings()->_iterativeSystemSelect) {
+    Sampler* pinSampler = (Sampler*)(new PinSampler(pins, juce::Rectangle<float>(), ip, cp));
+    pinSampler->_name = "Pinned";
+    sched->addSampler(pinSampler);
+  }
 
   // move intensity to top of stack
   sched->moveIntensityUp();

@@ -620,8 +620,18 @@ void IntensitySampler::sample(Snapshot * state)
     vector<float> sens;
     vector<DeviceSet> systemMap;
     auto stateData = state->getRigData();
+    bool freeSystemFound = false;
+    string freeSystemName = "";
 
-    auto systems = getRig()->getMetadataValues("system");
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    set<string> systemSet = getRig()->getMetadataValues("system");
+
+    vector<string> systems;
+    for (auto s : systemSet) {
+      systems.push_back(s);
+    }
+    shuffle(systems.begin(), systems.end(), gen);
 
     for (auto system : systems) {
       DeviceSet globalSys = getRig()->select("$system=" + system);
@@ -650,24 +660,33 @@ void IntensitySampler::sample(Snapshot * state)
         continue;
       }
 
-      // calculate avg intens
-      results.push_back(avgIntens / ct);
-
-      sens.push_back((float)(_systemSensitivity[system]));
-      systemMap.push_back(localSys);
-
       if (localSys.size() > 0) {
-        constraint.push_back(0);
+        if (getGlobalSettings()->_iterativeSystemSelect && freeSystemFound) {
+          continue;
+        }
+        else {
+          constraint.push_back(0);
+          freeSystemName = system;
+          freeSystemFound = true;
+
+          results.push_back(avgIntens / ct);
+
+          sens.push_back((float)(_systemSensitivity[system]));
+          systemMap.push_back(localSys);
+        }
       }
       else {
         // pinned
         constraint.push_back(3);
+
+        results.push_back(avgIntens / ct);
+
+        sens.push_back((float)(_systemSensitivity[system]));
+        systemMap.push_back(localSys);
       }
     }
 
     // sample
-    std::random_device rd;
-    std::mt19937 gen(rd());
     uniform_real_distribution<float> rnd(0, 1);
     GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), _k, _brightMean, _mean, rnd(gen));
 
@@ -681,6 +700,10 @@ void IntensitySampler::sample(Snapshot * state)
           stateData[id]->getIntensity()->setValAsPercent(intens);
         }
       }
+    }
+
+    if (getGlobalSettings()->_iterativeSystemSelect) {
+      state->_metadata["selectedSystem"] = freeSystemName;
     }
   }
 }

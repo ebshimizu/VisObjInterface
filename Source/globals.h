@@ -304,6 +304,7 @@ public:
   bool _autoCluster;            // turns on or turns off automatic cluster mode
   bool _unconstrained;          // Turns off constraints in the samplers
   bool _pxIntensDist;           // Alternate mode for intensity sampler: samples pixel distribution in image
+  bool _iterativeSystemSelect;  // A search mode that uses the objectives to guide design one system at a time
 
   int _clusterCounter;          // Index for identifying accepted samples
   int _numDisplayClusters;      // Number of clusters to display in the results

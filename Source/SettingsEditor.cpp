@@ -313,6 +313,9 @@ void SettingsBoolButton::setState(bool newState)
   else if (_id == "px intens dist") {
     getGlobalSettings()->_pxIntensDist = newState;
   }
+  else if (_id == "Iterative System Select") {
+    getGlobalSettings()->_iterativeSystemSelect = newState;
+  }
 
   refresh();
 }
@@ -345,6 +348,9 @@ bool SettingsBoolButton::getState() const
     return getGlobalSettings()->_unconstrained;
   else if (_id == "px intens dist")
     return getGlobalSettings()->_pxIntensDist;
+  else if (_id == "Iterative System Select") {
+    return getGlobalSettings()->_iterativeSystemSelect;
+  }
 
   return false;
 }
@@ -558,6 +564,7 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsBoolButton("Recompute Color Weights"));
   searchComponents.add(new SettingsBoolButton("Unconstrained"));
   searchComponents.add(new SettingsBoolButton("px intens dist"));
+  searchComponents.add(new SettingsBoolButton("Iterative System Select"));
   _settings.addSection("Search", searchComponents);
 
 
@@ -585,7 +592,7 @@ SettingsEditor::SettingsEditor()
   clusterComponents.add(new SettingsChoice("Secondary Focus Region", { "All", "Foreground", "Background" }));
   clusterComponents.add(new SettingsSlider("Mean Shift Bandwidth", 0, 20, 0.01));
   clusterComponents.add(new SettingsSlider("Spectral Bandwidth", 1e-3, 5, 0.001));
-  _settings.addSection("Clustering", clusterComponents);
+  //_settings.addSection("Clustering", clusterComponents);
 
   Array<PropertyComponent*> renderComponents;
   //_width = new SettingsSlider("Frame Width", 1, 3840, 1);

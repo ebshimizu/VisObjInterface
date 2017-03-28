@@ -334,6 +334,14 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
           mc->refreshAttr();
           //mc->populateSystemViews();
           getRecorder()->log(ACTION, "User picked scene for stage: " + getTooltip().toStdString());
+
+          if (getGlobalSettings()->_iterativeSystemSelect) {
+            DeviceSet lockSys = getRig()->select("$system=" + getSearchResult()->_extraData["selectedSystem"].toStdString());
+            for (auto d : lockSys.getIds()) {
+              lockDeviceParam(d, "intensity");
+            }
+            mc->search();
+          }
         }
       }
       else if (result == 2) {
