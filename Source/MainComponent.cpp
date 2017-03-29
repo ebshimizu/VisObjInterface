@@ -101,11 +101,11 @@ void MainContentComponent::resized()
   Component* comps2[] = { nullptr, _vbar, _attrs };
   _vertResizer.layOutComponents(comps2, 3, 0, 0, lbounds.getWidth(), lbounds.getHeight(), false, true);
 
-  Component* comps[] = { nullptr , _hbar, _search };
+  Component* comps[] = { _viewer , _hbar, _search };
   _horizResizer.layOutComponents(comps, 3, 0, 0, _vertResizer.getItemCurrentAbsoluteSize(0), lbounds.getHeight(), true, true);
 
-  Component* comps3[] = { _viewer, _vbar2, _exp };
-  _viewerSearchResizer.layOutComponents(comps3, 3, 0, 0, _vertResizer.getItemCurrentAbsoluteSize(0), _horizResizer.getItemCurrentAbsoluteSize(0), false, true);
+  //Component* comps3[] = { _viewer, _vbar2, _exp };
+  //_viewerSearchResizer.layOutComponents(comps3, 3, 0, 0, _vertResizer.getItemCurrentAbsoluteSize(0), _horizResizer.getItemCurrentAbsoluteSize(0), false, true);
 
 }
 

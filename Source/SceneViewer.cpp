@@ -564,7 +564,8 @@ void SceneViewer::mouseUp(const MouseEvent & event)
     }
   }
   else {
-    getRecorder()->log(ACTION, "Selected region for objective " + getGlobalSettings()->_activeIdea->getName().toStdString() + " updated");
+    if (getGlobalSettings()->_activeIdea != nullptr)
+      getRecorder()->log(ACTION, "Selected region for objective " + getGlobalSettings()->_activeIdea->getName().toStdString() + " updated");
   }
 
   _startPoint = Point<float>(0, 0);
