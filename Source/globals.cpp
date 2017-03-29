@@ -80,6 +80,7 @@ void lockDeviceParam(string id, string param)
     return;
 
   d->setMetadata(param + "_lock", "y");
+  getRecorder()->log(ACTION, "Pinned " + id + " parameter " + param);
 }
 
 void unlockDeviceParam(string id, string param)
@@ -90,6 +91,7 @@ void unlockDeviceParam(string id, string param)
     return;
 
   d->setMetadata(param + "_lock", "n");
+  getRecorder()->log(ACTION, "Unpinned " + id + " parameter " + param);
 }
 
 void toggleDeviceParamLock(string id, string param)
