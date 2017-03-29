@@ -423,6 +423,10 @@ PinSampler::~PinSampler()
 
 void PinSampler::sample(Snapshot * state)
 {
+  // if the setting disabling this sampler has been set, we just return without doing anything
+  if (getGlobalSettings()->_noPinWiggle)
+    return;
+
   // the pin sampler takes the pinned values and 'wiggles' them a bit, showing small
   // variations of the current state of the device parameter
   std::random_device rd;

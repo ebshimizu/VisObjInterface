@@ -316,6 +316,9 @@ void SettingsBoolButton::setState(bool newState)
   else if (_id == "Iterative System Select") {
     getGlobalSettings()->_iterativeSystemSelect = newState;
   }
+  else if (_id == "Disable Pin Adjustment") {
+    getGlobalSettings()->_noPinWiggle = newState;
+  }
 
   refresh();
 }
@@ -350,6 +353,9 @@ bool SettingsBoolButton::getState() const
     return getGlobalSettings()->_pxIntensDist;
   else if (_id == "Iterative System Select") {
     return getGlobalSettings()->_iterativeSystemSelect;
+  }
+  else if (_id == "Disable Pin Adjustment") {
+    return getGlobalSettings()->_noPinWiggle;
   }
 
   return false;
@@ -565,6 +571,7 @@ SettingsEditor::SettingsEditor()
   searchComponents.add(new SettingsBoolButton("Unconstrained"));
   searchComponents.add(new SettingsBoolButton("px intens dist"));
   searchComponents.add(new SettingsBoolButton("Iterative System Select"));
+  searchComponents.add(new SettingsBoolButton("Disable Pin Adjustment"));
   _settings.addSection("Search", searchComponents);
 
 
