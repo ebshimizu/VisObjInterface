@@ -1158,6 +1158,10 @@ void MainContentComponent::arnoldRender(bool add)
   if (add)
     addHistory();
 
+  // update the saved rig state
+  delete getGlobalSettings()->_rigState;
+  getGlobalSettings()->_rigState = new Snapshot(getRig());
+
   getRig()->updateOnce();
 }
 
