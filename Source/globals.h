@@ -67,6 +67,7 @@ enum command {
   SET_TO_FULL = 0x400B,
   SET_TO_OFF = 0x400C,
   SET_TO_WHITE = 0x400D,
+  SYNC = 0x400E,
 
   // Explore
   SEARCH = 0x5000,

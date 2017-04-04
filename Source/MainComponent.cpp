@@ -16,7 +16,7 @@
 //==============================================================================
 MainContentComponent::MainContentComponent()
 {
-  Lumiverse::Logger::setLogLevel(INFO);
+  Lumiverse::Logger::setLogLevel(LDEBUG);
   addAndMakeVisible(getStatusBar());
 
   // create log file for this session
@@ -132,7 +132,8 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::RESET_ALL, command::SAVE_IDEAS, command::LOAD_IDEAS, command::DELETE_ALL_PINS,
     command::TOGGLE_SELECT_VIEW, command::INTERFACE_OLD, command::INTERFACE_NEW, command::INTERFACE_ALL,
     command::RESET_TIMER, command::SHOW_PROMPT, command::COPY_DEVICE, command::PASTE_ALL, command::PASTE_COLOR,
-    command::PASTE_INTENS, command::SET_TO_FULL, command::SET_TO_OFF, command::SET_TO_WHITE
+    command::PASTE_INTENS, command::SET_TO_FULL, command::SET_TO_OFF, command::SET_TO_WHITE,
+    command::SYNC
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -343,6 +344,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Set Color to White", "Sets the color of the light to white", "Edit", 0);
     result.addDefaultKeypress('f', ModifierKeys::commandModifier);
     break;
+  case command::SYNC:
+    result.setInfo("Sync From Eos", "Get all intensity and color information from an ETC Eos Console", "Edit", 0);
+    break;
   default:
     return;
   }
@@ -522,6 +526,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::SET_TO_WHITE:
     setSelectedColorTo(1, 1, 1);
+    break;
+  case command::SYNC:
+    sync();
     break;
   default:
     return false;
@@ -1759,6 +1766,21 @@ void MainContentComponent::showPrompt()
   else {
     string prompt = d->getMetadata("prompt");
     AlertWindow::showMessageBox(AlertWindow::AlertIconType::InfoIcon, "Prompt", prompt);
+  }
+}
+
+void MainContentComponent::sync()
+{
+  for (auto p : getRig()->getPatches()) {
+    OscPatch* osc = dynamic_cast<OscPatch*>(p.second);
+    if (osc != nullptr) {
+      // we got an osc patch lets sync
+      osc->sync(getRig()->getDeviceRaw());
+
+      // refresh params and render
+      getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, true);
+      getApplicationCommandManager()->invokeDirectly(command::ARNOLD_RENDER, true);
+    }
   }
 }
 

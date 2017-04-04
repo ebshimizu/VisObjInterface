@@ -175,6 +175,9 @@ private:
 
   void showPrompt();
 
+  // runs a sync from an osc patch, if it exists
+  void sync();
+
   // Private vars
   File _parentDir;
   String _showName;

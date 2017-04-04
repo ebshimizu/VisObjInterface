@@ -97,7 +97,7 @@
       <HeaderFileName />
     </Midl>
     <ClCompile>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <AdditionalIncludeDirectories>..\..\JuceLibraryCode;..\..\JuceLibraryCode\modules;C:\Program Files\Lumiverse\no_arnold\include;C:\Program Files\libpng\include;C:\Program Files\zlib\include;C:\Program Files\CURL\include;C:\Program Files\CURLCPP\include;C:\Program Files\openexr\Debug\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_WINDOWS;NDEBUG;NOMINMAX;JUCER_VS2015_FD25920D=1;JUCE_APP_VERSION=0.14;JUCE_APP_VERSION_HEX=0xe00;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>

@@ -641,7 +641,7 @@ SettingsEditor::SettingsEditor()
 
 SettingsEditor::~SettingsEditor()
 {
-
+  _settings.clear();
 }
 
 void SettingsEditor::paint (Graphics& g)
