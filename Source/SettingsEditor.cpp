@@ -512,6 +512,60 @@ void SettingsButton::buttonClicked()
 			refresh();
 		}
 	}
+  if (getName() == "OSC Settings") {
+    // pop up a dialog, settings shouldn't be edited live
+    AlertWindow w("OSC Settings",
+      "",
+      AlertWindow::NoIcon);
+
+    // gather osc settings, if they exist
+    OscPatch* osc = nullptr;
+    for (auto p : getRig()->getPatches()) {
+      osc = dynamic_cast<OscPatch*>(p.second);
+      if (osc != nullptr)
+        break;
+    }
+
+    String ip = "[No OSC Patch Defined]";
+    int port = 8000;
+    int inPort = 9000;
+
+    if (osc != nullptr) {
+      ip = osc->getAddress();
+      port = osc->getPort();
+      inPort = osc->getInPort();
+    }
+
+    w.addTextEditor("IP Address", ip, "Eos IP Address");
+    w.addTextEditor("TX Port", String(port), "TX Port");
+    w.addTextEditor("RX Port", String(inPort), "RX Port");
+
+    w.addButton("Update", 1, KeyPress(KeyPress::returnKey, 0, 0));
+    w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+    if (w.runModalLoop() != 0)
+    {
+      ip = w.getTextEditor("IP Address")->getText();
+      port = w.getTextEditor("TX Port")->getText().getIntValue();
+      inPort = w.getTextEditor("RX Port")->getText().getIntValue();
+
+      if (osc != nullptr) {
+        // can't change this live
+        osc->close();
+        osc->changeAddress(ip.toStdString(), port);
+        osc->changeInPort(inPort);
+        osc->init();
+        getStatusBar()->setStatusMessage("Updated OSC settings");
+      }
+      else {
+        osc = new OscPatch(ip.toStdString(), port, ETC_EOS);
+        osc->changeInPort(inPort);
+        getRig()->addPatch("osc", (Patch*)osc);
+        osc->init();
+        getStatusBar()->setStatusMessage("Created new OSC output on " + ip + ":" + String(port));
+      }
+    }
+  }
 }
 
 String SettingsButton::getButtonText() const
@@ -519,6 +573,20 @@ String SettingsButton::getButtonText() const
 	if (getName() == "Log Directory") {
 		return getGlobalSettings()->_logRootDir;
 	}
+  if (getName() == "OSC Settings") {
+    if (getRig() == nullptr)
+      return "No Rig Loaded";
+
+    // find the osc patch if it exists
+    for (auto p : getRig()->getPatches()) {
+      OscPatch* osc = dynamic_cast<OscPatch*>(p.second);
+      if (osc != nullptr) {
+        return "TX:" + osc->getAddress() + ":" + String(osc->getPort());
+      }
+    }
+
+    return "No OSC Patch Found";
+  }
 
 	return "";
 }
@@ -634,6 +702,7 @@ SettingsEditor::SettingsEditor()
 
 	Array<PropertyComponent*> otherComponents;
 	otherComponents.add(new SettingsButton("Log Directory"));
+  otherComponents.add(new SettingsButton("OSC Settings"));
 	_settings.addSection("Other", otherComponents);
 
   addAndMakeVisible(_settings);
