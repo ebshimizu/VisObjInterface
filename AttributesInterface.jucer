@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="eoLPJP" name="AttributesInterface" projectType="guiapp" version="0.14"
+<JUCERPROJECT id="eoLPJP" name="AttributesInterface" projectType="guiapp" version="0.15.0"
               bundleIdentifier="edu.cmu.cs.AttributeInterface" includeBinaryInAppConfig="1"
               jucerVersion="4.3.0" companyName="Carnegie Mellon University"
               companyWebsite="cs.cmu.edu" companyEmail="eshimizu@cs.cmu.edu">
@@ -228,7 +228,7 @@
                        isDebug="0" optimisation="3" targetName="AttributesInterface"
                        libraryPath="C:\Program Files\Lumiverse\Release\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib&#10;C:\Program Files\CURL\lib\Release&#10;C:\Program Files\CURLCPP\lib\Release&#10;C:\Program Files\ilmbase\Release\lib&#10;C:\Program Files\openexr\Release\lib"
                        headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\Lumiverse\include\lib\arnold\include&#10;C:\Program Files\zlib\include&#10;C:\Program Files\CURL\include&#10;C:\Program Files\CURLCPP\include&#10;C:\Program Files\openexr\Release\include"
-                       useRuntimeLibDLL="1"/>
+                       useRuntimeLibDLL="1" alwaysGenerateDebugSymbols="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_video" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_video"/>
@@ -257,7 +257,8 @@
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        isDebug="0" optimisation="3" targetName="AttributesInterface"
                        useRuntimeLibDLL="1" headerPath="C:\Program Files\Lumiverse\no_arnold\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\zlib\include&#10;C:\Program Files\CURL\include&#10;C:\Program Files\CURLCPP\include&#10;C:\Program Files\openexr\Debug\include"
-                       libraryPath="C:\Program Files\Lumiverse\no_arnold\Release\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib&#10;C:\Program Files\CURL\lib\Release&#10;C:\Program Files\CURLCPP\lib\Release&#10;C:\Program Files\ilmbase\Release\lib&#10;C:\Program Files\openexr\Release\lib"/>
+                       libraryPath="C:\Program Files\Lumiverse\no_arnold\Release\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib&#10;C:\Program Files\CURL\lib\Release&#10;C:\Program Files\CURLCPP\lib\Release&#10;C:\Program Files\ilmbase\Release\lib&#10;C:\Program Files\openexr\Release\lib"
+                       alwaysGenerateDebugSymbols="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_video" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_video"/>

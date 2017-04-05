@@ -101,7 +101,8 @@ enum command {
   INTERFACE_OLD = 0x6001,
   INTERFACE_NEW = 0x6002,
   INTERFACE_ALL = 0x6003,
-  SHOW_PROMPT = 0x6004
+  SHOW_PROMPT = 0x6004,
+  ABOUT = 0x6005
 };
 
 // Flags for indicating what attributes should be considered

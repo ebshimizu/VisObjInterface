@@ -133,7 +133,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::TOGGLE_SELECT_VIEW, command::INTERFACE_OLD, command::INTERFACE_NEW, command::INTERFACE_ALL,
     command::RESET_TIMER, command::SHOW_PROMPT, command::COPY_DEVICE, command::PASTE_ALL, command::PASTE_COLOR,
     command::PASTE_INTENS, command::SET_TO_FULL, command::SET_TO_OFF, command::SET_TO_WHITE,
-    command::SYNC
+    command::SYNC, command::ABOUT
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -347,6 +347,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::SYNC:
     result.setInfo("Sync From Eos", "Get all intensity and color information from an ETC Eos Console", "Edit", 0);
     break;
+  case command::ABOUT:
+    result.setInfo("About", "About the application", "Window", 0);
+    break;
   default:
     return;
   }
@@ -529,6 +532,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::SYNC:
     sync();
+    break;
+  case command::ABOUT:
+    about();
     break;
   default:
     return false;
@@ -1782,6 +1788,13 @@ void MainContentComponent::sync()
       getApplicationCommandManager()->invokeDirectly(command::ARNOLD_RENDER, true);
     }
   }
+}
+
+void MainContentComponent::about()
+{
+  String aboutStr = "Application version " + String(ProjectInfo::versionString) + "\n";
+  aboutStr += "(c) Evan Shimizu 2015-17\nThird-party libraries used by this project include Lumiverse, JUCE, OpenEXR, zlib, oscpack, clp, and others. Contact the author of this program for full license details.";
+  AlertWindow::showMessageBox(AlertWindow::AlertIconType::NoIcon, "About", aboutStr);
 }
 
 void MainContentComponent::search()

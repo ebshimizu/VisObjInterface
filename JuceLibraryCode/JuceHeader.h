@@ -40,8 +40,8 @@
 namespace ProjectInfo
 {
     const char* const  projectName    = "AttributesInterface";
-    const char* const  versionString  = "0.14";
-    const int          versionNumber  = 0xe00;
+    const char* const  versionString  = "0.15.0";
+    const int          versionNumber  = 0xf00;
 }
 #endif
 

@@ -178,6 +178,9 @@ private:
   // runs a sync from an osc patch, if it exists
   void sync();
 
+  // opens a dialog box with some info in it
+  void about();
+
   // Private vars
   File _parentDir;
   String _showName;

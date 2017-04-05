@@ -17,7 +17,7 @@ using namespace Lumiverse;
 //==============================================================================
 StatusBar::StatusBar()
 {
-  _currentText = "Lighting Attribute Interface v" + String(JUCE_APP_VERSION);
+  _currentText = "Lighting Attribute Interface v" + String(ProjectInfo::versionString);
   _error = false;
 }
 

@@ -107,6 +107,8 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& /* menu
     menu.addCommandItem(cm, command::INTERFACE_ALL);
     menu.addSeparator();
     menu.addCommandItem(cm, command::SHOW_PROMPT);
+    menu.addSeparator();
+    menu.addCommandItem(cm, command::ABOUT);
   }
 
   return menu;
