@@ -1457,6 +1457,8 @@ void IdeaList::deleteIdea(Idea* idea)
 void IdeaList::deleteAllIdeas()
 {
   _ideas.clear();
+  getGlobalSettings()->_activeIdea = nullptr;
+  getGlobalSettings()->_ideaMap.clear();
   getRecorder()->log(ACTION, "All objectives deleted");
   resized();
 }
