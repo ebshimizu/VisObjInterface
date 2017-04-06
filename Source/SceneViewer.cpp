@@ -18,7 +18,6 @@
 RenderBackgroundThread::RenderBackgroundThread(ArnoldAnimationPatch* p, uint8* bufptr) :
   ThreadWithProgressWindow("Rendering Current Scene", true, true), _p(p), _bufptr(bufptr)
 {
-  setStatusMessage("Preparing...");
   setProgress(-1.0);
 }
 
@@ -30,24 +29,6 @@ void RenderBackgroundThread::run()
 {
   // little bit of thread inception here...
   thread r(&RenderBackgroundThread::renderLoop, this);
-
-  float prog = 0;
-  setStatusMessage("Rendering...");
-  this_thread::sleep_for(std::chrono::milliseconds(100));
-  while (prog < 1) {
-    this_thread::sleep_for(std::chrono::milliseconds(20));
-    prog = _p->getPercentage() / 100.0f;
-
-    if (threadShouldExit()) {
-      _p->forceInterrupt();
-      return;
-    }
-    
-    setProgress(prog);
-  }
-
-  setProgress(-1.0);
-  setStatusMessage("Finalizing frame...");
   r.join();
 }
 

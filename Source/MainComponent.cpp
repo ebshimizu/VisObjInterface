@@ -1777,17 +1777,7 @@ void MainContentComponent::showPrompt()
 
 void MainContentComponent::sync()
 {
-  for (auto p : getRig()->getPatches()) {
-    OscPatch* osc = dynamic_cast<OscPatch*>(p.second);
-    if (osc != nullptr) {
-      // we got an osc patch lets sync
-      osc->sync(getRig()->getDeviceRaw());
-
-      // refresh params and render
-      getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, true);
-      getApplicationCommandManager()->invokeDirectly(command::ARNOLD_RENDER, true);
-    }
-  }
+  (new SyncBackgroundThread())->runThread();
 }
 
 void MainContentComponent::about()
@@ -1901,4 +1891,44 @@ void MainContentComponent::AutoTimer::timerCallback()
     mc->stopSearch();
     mc->endAuto();
   }
+}
+
+MainContentComponent::SyncBackgroundThread::SyncBackgroundThread() :
+  ThreadWithProgressWindow("Syncing from Eos", true, false)
+{
+  setProgress(-1);
+}
+
+MainContentComponent::SyncBackgroundThread::~SyncBackgroundThread()
+{
+}
+
+void MainContentComponent::SyncBackgroundThread::run()
+{
+  for (auto p : getRig()->getPatches()) {
+    OscPatch* osc = dynamic_cast<OscPatch*>(p.second);
+    if (osc != nullptr) {
+      // we got an osc patch lets sync
+      bool res = osc->sync(getRig()->getDeviceRaw());
+
+      // refresh params and render
+      getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, true);
+      getApplicationCommandManager()->invokeDirectly(command::ARNOLD_RENDER, true);
+
+      if (res) {
+        getStatusBar()->setStatusMessage("Sync Complete");
+      }
+      else {
+        getStatusBar()->setStatusMessage("Sync Failed", true, false);
+      }
+
+      // return, if there are two osc patches (?) ignore the second
+      return;
+    }
+  }
+}
+
+void MainContentComponent::SyncBackgroundThread::threadComplete(bool userPressedCancel)
+{
+  delete this;
 }

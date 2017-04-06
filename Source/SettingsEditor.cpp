@@ -564,6 +564,8 @@ void SettingsButton::buttonClicked()
         osc->init();
         getStatusBar()->setStatusMessage("Created new OSC output on " + ip + ":" + String(port));
       }
+
+      refresh();
     }
   }
 }

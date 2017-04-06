@@ -234,6 +234,15 @@ private:
   // Indicates if the user manually stopped the search.
   bool _searchWasStopped;
 
+  class SyncBackgroundThread : public ThreadWithProgressWindow {
+  public:
+    SyncBackgroundThread();
+    ~SyncBackgroundThread();
+
+    void run();
+    void threadComplete(bool userPressedCancel);
+  };
+
   //==============================================================================
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
 };
