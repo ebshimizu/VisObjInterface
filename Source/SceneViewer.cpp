@@ -315,6 +315,10 @@ void SceneViewer::setPreview(Image prev)
 
 void SceneViewer::mouseDown(const MouseEvent & event)
 {
+  // disable drawing if everything is hidden
+  if (_hideAllBoxes)
+    return;
+
   if (_currentRender.getWidth() <= 0)
     return;
 
@@ -529,6 +533,9 @@ void SceneViewer::mouseDown(const MouseEvent & event)
 
 void SceneViewer::mouseUp(const MouseEvent & event)
 {
+  if (_hideAllBoxes)
+    return;
+
   if (_currentRender.getWidth() <= 0)
     return;
 
@@ -557,6 +564,9 @@ void SceneViewer::mouseUp(const MouseEvent & event)
 
 void SceneViewer::mouseDrag(const MouseEvent & event)
 {
+  if (_hideAllBoxes)
+    return;
+
   if (_currentRender.getWidth() <= 0)
     return;
 
