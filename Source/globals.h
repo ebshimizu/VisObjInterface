@@ -393,7 +393,7 @@ public:
 
   // Load settings from a file, which is typically in the same
   // directory as the application
-  void loadSettings(string file = "");
+  void loadSettings();
 
   // folder containing the image attributes to load
   File _imageAttrLoc;

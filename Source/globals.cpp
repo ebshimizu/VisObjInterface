@@ -312,13 +312,244 @@ void GlobalSettings::generateDefaultConstraints()
 
 void GlobalSettings::exportSettings()
 {
-  File f = File::getCurrentWorkingDirectory().getChildFile("settings.json");
+  // there are plenty of things in the globals object but here we'll
+  // only save things that are actually user-editable
+  // note that user-editable is defined as "has a branch somewhere in SettingsEditor.cpp"
+  // not not "actually shows up in the settings panel
 
   JSONNode settings;
+  settings.push_back(JSONNode("version", ProjectInfo::versionString));
+
   settings.push_back(JSONNode("thumbnailRenderSamples", _thumbnailRenderSamples));
-  settings.push_back(JSONNode("stageRenderSamples", _stageRenderSamples));
+  //settings.push_back(JSONNode("stageRenderSamples", _stageRenderSamples));
   settings.push_back(JSONNode("searchDerivDelta", _searchDerivDelta));
   settings.push_back(JSONNode("renderWidth", _renderWidth));
+  settings.push_back(JSONNode("renderHeight", _renderHeight));
+  settings.push_back(JSONNode("thumbnailScale", _thumbnailRenderScale));
+  settings.push_back(JSONNode("startChainLength", _startChainLength));
+  settings.push_back(JSONNode("clusterDistThreshold", _clusterDistThreshold));
+  settings.push_back(JSONNode("editStepSize", _editStepSize));
+  settings.push_back(JSONNode("maxMCMCIters", _maxMCMCIters));
+  settings.push_back(JSONNode("jndThreshold", _jndThreshold));
+  settings.push_back(JSONNode("clusterElemsPerRow", _clusterElemsPerRow));
+  settings.push_back(JSONNode("maxReturnedScenes", _maxReturnedScenes));
+  settings.push_back(JSONNode("T", _T));
+  settings.push_back(JSONNode("meanShiftBandwidth", _meanShiftBandwidth));
+  settings.push_back(JSONNode("meanShiftEps", _meanShiftEps));
+  settings.push_back(JSONNode("searchThreads", _searchThreads));
+  settings.push_back(JSONNode("numPrimaryClusters", _numPrimaryClusters));
+  settings.push_back(JSONNode("numSecondaryClusters", _numSecondaryClusters));
+  settings.push_back(JSONNode("spectralBandwidth", _spectralBandwidth));
+  settings.push_back(JSONNode("maxGradIters", _maxGradIters));
+  settings.push_back(JSONNode("primaryDivisiveThreshold", _primaryDivisiveThreshold));
+  settings.push_back(JSONNode("secondaryDivisibeThreshold", _secondaryDivisiveThreshold));
+  settings.push_back(JSONNode("evWeight", _evWeight));
+  settings.push_back(JSONNode("resampleTime", _resampleTime));
+  settings.push_back(JSONNode("resampleThreads", _resampleThreads));
+  settings.push_back(JSONNode("maskTolerance", _maskTolerance));
+  settings.push_back(JSONNode("repulsionConeK", _repulsionConeK));
+  settings.push_back(JSONNode("repulsionCostK", _repulsionCostK));
+  settings.push_back(JSONNode("numPairs", _numPairs));
+  settings.push_back(JSONNode("viewJndThreshold", _viewJndThreshold));
+  settings.push_back(JSONNode("thresholdDecayRate", _thresholdDecayRate));
+  settings.push_back(JSONNode("bigBucketSize", _bigBucketSize));
+
+  if (getAnimationPatch() != nullptr) {
+    CachingArnoldInterface* renderer = dynamic_cast<CachingArnoldInterface*>(getAnimationPatch()->getArnoldInterface());
+    if (renderer)
+      settings.push_back(JSONNode("exposure", renderer->getExposure()));
+  }
+
+  settings.push_back(JSONNode("exportTraces", _exportTraces));
+  settings.push_back(JSONNode("grayscaleMode", _grayscaleMode));
+  settings.push_back(JSONNode("autoRunTraceGraph", _autoRunTraceGraph));
+  settings.push_back(JSONNode("useFGMask", _useFGMask));
+  settings.push_back(JSONNode("reduceRepeatEdits", _reduceRepeatEdits));
+  settings.push_back(JSONNode("uniformEditWeights", _uniformEditWeights));
+  settings.push_back(JSONNode("randomInit", _randomInit));
+  settings.push_back(JSONNode("continuousSort", _continuousSort));
+  settings.push_back(JSONNode("useSearchStyles", _useSearchStyles));
+  settings.push_back(JSONNode("recalculateWeights", _recalculateWeights));
+  settings.push_back(JSONNode("autoCluster", _autoCluster));
+  settings.push_back(JSONNode("unconstrained", _unconstrained));
+  settings.push_back(JSONNode("pxIntensDist", _pxIntensDist));
+  settings.push_back(JSONNode("iterativeSystemSelect", _iterativeSystemSelect));
+  settings.push_back(JSONNode("noPinWiggle", _noPinWiggle));
+
+  settings.push_back(JSONNode("primaryClusterMethod", _primaryClusterMethod));
+  settings.push_back(JSONNode("primaryClusterMetric", _primaryClusterMetric));
+  settings.push_back(JSONNode("primaryFocusArea", _primaryFocusArea));
+  settings.push_back(JSONNode("secondaryClusterMethod", _secondaryClusterMethod));
+  settings.push_back(JSONNode("secondaryClusterMetric", _secondaryClusterMetric));
+  settings.push_back(JSONNode("secondaryFocusArea", _secondaryFocusArea));
+  settings.push_back(JSONNode("clusterDisplay", _clusterDisplay));
+  settings.push_back(JSONNode("searchMode", _searchMode));
+  settings.push_back(JSONNode("editSelectMode", _editSelectMode));
+  settings.push_back(JSONNode("searchDistMetric", _searchDistMetric));
+  settings.push_back(JSONNode("searchDispMetric", _searchDispMetric));
+
+  settings.push_back(JSONNode("logDirectory", _logRootDir));
+
+  File settingsFile = File::getCurrentWorkingDirectory().getChildFile("settings.json");
+
+  ofstream file;
+  file.open(settingsFile.getFullPathName().toStdString(), ios::trunc);
+  file << settings.write_formatted();
+}
+
+void GlobalSettings::loadSettings()
+{
+  File settingsFile = File::getCurrentWorkingDirectory().getChildFile("settings.json");
+
+  if (settingsFile.existsAsFile()) {
+    ifstream file;
+    file.open(settingsFile.getFullPathName().toStdString(), ios::in | ios::binary | ios::ate);
+
+    // "+ 1" for the ending
+    streamoff size = file.tellg();
+    char* memblock = new char[(unsigned int)size + 1];
+
+    file.seekg(0, ios::beg);
+
+    file.read(memblock, size);
+    file.close();
+
+    // It's not guaranteed that the following memory after memblock is blank.
+    // C-style string needs an end.
+    memblock[size] = '\0';
+
+    JSONNode n = libjson::parse(memblock);
+
+    // iterate through the node and get the data
+    for (auto it = n.begin(); it != n.end(); it++) {
+      string name = it->name();
+
+      if (name == "thumbnailRenderSamples")
+        _thumbnailRenderSamples = it->as_int();
+      else if (name == "searchDerivDelta")
+        _searchDerivDelta = it->as_float();
+      else if (name == "renderWidth")
+        _renderWidth = it->as_int();
+      else if (name == "renderHeight")
+        _renderHeight = it->as_int();
+      else if (name == "thumbnailScale")
+        _thumbnailRenderScale = it->as_float();
+      else if (name == "startChainLength")
+        _startChainLength = it->as_int();
+      else if (name == "clusterDistThreshold")
+        _clusterDistThreshold = it->as_float();
+      else if (name == "editStepSize")
+        _editStepSize = it->as_float();
+      else if (name == "maxMCMCIters")
+        _maxMCMCIters = it->as_int();
+      else if (name == "jndThreshold")
+        _jndThreshold = it->as_float();
+      else if (name == "clusterElemsPerRow")
+        _clusterElemsPerRow = it->as_int();
+      else if (name == "maxReturnedScenes")
+        _maxReturnedScenes = it->as_int();
+      else if (name == "T")
+        _T = it->as_float();
+      else if (name == "meanShiftBandwidth")
+        _meanShiftBandwidth = it->as_float();
+      else if (name == "meanShiftEps")
+        _meanShiftEps = it->as_float();
+      else if (name == "numPrimaryClusters")
+        _numPrimaryClusters = it->as_int();
+      else if (name == "numSecondaryClusters")
+        _numSecondaryClusters = it->as_int();
+      else if (name == "spectralBandwidth")
+        _spectralBandwidth = it->as_float();
+      else if (name == "maxGradIters")
+        _maxGradIters = it->as_int();
+      else if (name == "primaryDivisiveThreshold")
+        _primaryDivisiveThreshold = it->as_float();
+      else if (name == "secondaryDivisiveThreshold")
+        _secondaryDivisiveThreshold = it->as_float();
+      else if (name == "evWeight")
+        _evWeight = it->as_float();
+      else if (name == "resampleTime")
+        _resampleTime = it->as_int();
+      else if (name == "resampleThreads")
+        _resampleThreads = it->as_int();
+      else if (name == "maskTolerance")
+        _maskTolerance = it->as_float();
+      else if (name == "repulsionConeK")
+        _repulsionConeK = it->as_float();
+      else if (name == "repulsionCostK")
+        _repulsionCostK = it->as_float();
+      else if (name == "numPairs")
+        _numPairs = it->as_int();
+      else if (name == "viewJndThreshold")
+        _viewJndThreshold = it->as_float();
+      else if (name == "thresholdDecayRate")
+        _thresholdDecayRate = it->as_float();
+      else if (name == "bigBucketSize")
+        _bigBucketSize = it->as_float();
+      else if (name == "exposure") {
+        // exposure is actually stored in the lumiverse config
+        //CachingArnoldInterface* renderer = dynamic_cast<CachingArnoldInterface*>(getAnimationPatch()->getArnoldInterface());
+        //if (renderer)
+        //  renderer->setExposure(it->as_float());
+      }
+      else if (name == "exportTraces")
+        _exportTraces = it->as_bool();
+      else if (name == "grayscaleMode")
+        _grayscaleMode = it->as_bool();
+      else if (name == "autoRunTraceGraph")
+        _autoRunTraceGraph = it->as_bool();
+      else if (name == "useFGMask")
+        _useFGMask = it->as_bool();
+      else if (name == "reduceRepeatEdits")
+        _reduceRepeatEdits = it->as_bool();
+      else if (name == "uniformEditWeights")
+        _uniformEditWeights = it->as_bool();
+      else if (name == "randomInit")
+        _randomInit = it->as_bool();
+      else if (name == "continuousSort")
+        _continuousSort = it->as_bool();
+      else if (name == "useSearchStyles")
+        _useSearchStyles = it->as_bool();
+      else if (name == "recalculateWeights")
+        _recalculateWeights = it->as_bool();
+      else if (name == "autoCluster")
+        _autoCluster = it->as_bool();
+      else if (name == "unconstrained")
+        _unconstrained = it->as_bool();
+      else if (name == "pxIntensDist")
+        _pxIntensDist = it->as_bool();
+      else if (name == "iterativeSystemSelect")
+        _iterativeSystemSelect = it->as_bool();
+      else if (name == "noPinWiggle")
+        _noPinWiggle = it->as_bool();
+      else if (name == "primaryClusterMethod")
+        _primaryClusterMethod = (ClusterMethod)it->as_int();
+      else if (name == "primaryClusterMetric")
+        _primaryClusterMetric = (DistanceMetric)it->as_int();
+      else if (name == "primaryFocusArea")
+        _primaryFocusArea = (FocusArea)it->as_int();
+      else if (name == "secondaryClusterMethod")
+        _secondaryClusterMethod = (ClusterMethod)it->as_int();
+      else if (name == "secondaryClusterMetric")
+        _secondaryClusterMetric = (DistanceMetric)it->as_int();
+      else if (name == "secondaryFocusArea")
+        _secondaryFocusArea = (FocusArea)it->as_int();
+      else if (name == "clusterDisplay")
+        _clusterDisplay = (ClusterDisplayMode)it->as_int();
+      else if (name == "searchMode")
+        _searchMode = (SearchMode)it->as_int();
+      else if (name == "editSelectMode")
+        _editSelectMode = (EditSelectMode)it->as_int();
+      else if (name == "searchDistMetric")
+        _searchDistMetric = (DistanceMetric)it->as_int();
+      else if (name == "searchDispMetric")
+        _searchDispMetric = (DistanceMetric)it->as_int();
+      else if (name == "logDirectory")
+        _logRootDir = string(it->as_string());
+    }
+
+    delete memblock;
+  }
 }
 
 Rig* getRig() {
@@ -377,6 +608,9 @@ GlobalSettings * getGlobalSettings()
 {
   if (_globalSettings == nullptr) {
     _globalSettings = new GlobalSettings();
+
+    // check for existence of settings file and load if available
+    _globalSettings->loadSettings();
   }
 
   return _globalSettings;

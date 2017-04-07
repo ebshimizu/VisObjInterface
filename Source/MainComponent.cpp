@@ -76,6 +76,8 @@ MainContentComponent::MainContentComponent()
 
 MainContentComponent::~MainContentComponent()
 {
+  getGlobalSettings()->exportSettings();
+
   if (_constraintWindow != nullptr)
     delete _constraintWindow;
 
