@@ -282,10 +282,10 @@ bool SearchResultsContainer::addNewResult(shared_ptr<SearchResult> r, int callin
     Image img = Image(Image::ARGB, width, height, true);
     uint8* bufptr = Image::BitmapData(img, Image::BitmapData::readWrite).getPixelPointer(0, 0);
 
-    Snapshot* s = vectorToSnapshot(r->_scene);
+    //Snapshot* s = vectorToSnapshot(r->_scene);
     
     auto renderStart = chrono::high_resolution_clock::now();
-    p->renderSingleFrameToBuffer(s->getDevices(), bufptr, width, height);
+    p->renderSingleFrameToBuffer(r->_snapshot->getDevices(), bufptr, width, height);
     getGlobalSettings()->_timings[callingThreadId]._addResultRenderTime += chrono::duration<float>(chrono::high_resolution_clock::now() - renderStart).count();
 
     newResult->setImage(img);
@@ -330,7 +330,7 @@ bool SearchResultsContainer::addNewResult(shared_ptr<SearchResult> r, int callin
       uint8* fullBufptr = Image::BitmapData(fullSizeImg, Image::BitmapData::readWrite).getPixelPointer(0, 0);
 
       renderStart = chrono::high_resolution_clock::now();
-      p->renderSingleFrameToBuffer(s->getDevices(), fullBufptr, width, height);
+      p->renderSingleFrameToBuffer(r->_snapshot->getDevices(), fullBufptr, width, height);
       getGlobalSettings()->_timings[callingThreadId]._addResultRenderTime += chrono::duration<float>(chrono::high_resolution_clock::now() - renderStart).count();
 
       newResult->setImage(fullSizeImg);
@@ -365,7 +365,7 @@ bool SearchResultsContainer::addNewResult(shared_ptr<SearchResult> r, int callin
     }
 
     getGlobalSettings()->_timings[callingThreadId]._addResultTime += chrono::duration<float>(chrono::high_resolution_clock::now() - start).count();
-    delete s;
+    //delete s;
     return !earlyExit;
   }
 }

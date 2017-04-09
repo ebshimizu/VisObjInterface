@@ -418,16 +418,18 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
   
   // gather pinned devices
   DeviceSet pins;
-  set<string> ip, cp;
+  set<string> ip, cp, pp;
+  map<string, vector<string>> angles; // this is discarded for now
 
   // gather regions of pinned devices
   for (auto p : getGlobalSettings()->_pinnedRegions) {
-    pins = pins.add(computeAffectedDevices(p));
+    pins = pins.add(computeAffectedDevices(p, angles));
   }
 
   for (auto id : pins.getIds()) {
     ip.insert(id);
     cp.insert(id);
+    pp.insert(id);
   }
 
   // manual pins
@@ -437,10 +439,16 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
 
     if (isDeviceParamLocked(id, "color"))
       cp.insert(id);
+
+    if (isDeviceParamLocked(id, "pan"))
+      pp.insert(id);
   }
 
   // gather all the samplers from the ideas
   for (auto i : _ic->_ideas->getIdeas()) {
+    // focus palettes
+    map<string, vector<string>> fp;
+
     // not every idea has a corresponding region on the stage
     if (getGlobalSettings()->_ideaMap.count(i) == 0)
       continue;
@@ -450,7 +458,7 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
     auto r = getGlobalSettings()->_ideaMap[i];
 
     // compute affected devices
-    DeviceSet affected = computeAffectedDevices(i);
+    DeviceSet affected = computeAffectedDevices(i, fp);
     
     // don't do anything with things that have a zero-size selection,
     // can cause problems with evaluating scores n stuff
@@ -467,6 +475,8 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
     }
 
     // create a sampler
+    // the only sampler in this system that actually cares about the moving light position
+    // is the intensity sampler.
     if (i->getType() == COLOR_PALETTE) {
       ColorSampler* colorSampler = new ColorSampler(affected, r, ip, cp, i->getColors(), i->getWeights());
       colorSampler->_name = i->getName().toStdString();
@@ -491,6 +501,7 @@ GibbsSchedule* AttributeControls::getGibbsSchedule()
       intensSampler->setBrightnessHistogram(i->_brightness);
       intensSampler->_name = i->getName().toStdString();
       intensSampler->_concept = i->getImage();
+      intensSampler->setFocusPalettes(fp, pp);
       
       sched->addSampler((Sampler*)intensSampler);
     }
@@ -631,6 +642,112 @@ DeviceSet AttributeControls::computeAffectedDevices(juce::Rectangle<float> regio
   return affected;
 }
 
+
+DeviceSet AttributeControls::computeAffectedDevices(juce::Rectangle<float> region, map<string, vector<string>>& activeMLPalettes, double threshold)
+{
+  // for each device, check if the cropped sensitivity image is above a threshold
+  DeviceSet affected(getRig());
+  activeMLPalettes.clear();
+
+  int width, height;
+  if (getGlobalSettings()->_sensitivityCache.size() == 0) {
+    width = getGlobalSettings()->_mlSensCache.begin()->second.begin()->second.i100.getWidth();
+    height = getGlobalSettings()->_mlSensCache.begin()->second.begin()->second.i100.getHeight();
+  }
+  else {
+    width = getGlobalSettings()->_sensitivityCache.begin()->second.i100.getWidth();
+    height = getGlobalSettings()->_sensitivityCache.begin()->second.i100.getHeight();
+  }
+
+  juce::Rectangle<int> scaledRegion = juce::Rectangle<int>((int)(region.getX() * width), (int)(region.getY() * height),
+    (int)(region.getWidth() * width), (int)(region.getHeight() * height));
+
+  for (auto id : getRig()->getAllDevices().getIds()) {
+    auto fp = getRig()->getDevice(id)->getFocusPaletteNames();
+    if (fp.size() > 0) {
+      // for focus palettes, we want to figure out which positions of the light can be active
+      // in this next sampling step
+      for (auto p : fp) {
+        sensCache cache = getGlobalSettings()->_mlSensCache[id][p];
+        Image i100Crop = cache.i100.getClippedImage(scaledRegion);
+
+        // iterate through, count number of pixels that are at or above the 50th percentile
+        int numBright = 0;
+
+        int num85 = 0;
+        int num95 = 0;
+
+        for (int y = 0; y < i100Crop.getHeight(); y++) {
+          for (int x = 0; x < i100Crop.getWidth(); x++) {
+            if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.avgVal) {
+              numBright++;
+            }
+            if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.data["85pct"]) {
+              num85++;
+            }
+            if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.data["95pct"]) {
+              num95++;
+            }
+          }
+        }
+
+        // does the light cover the bbox?
+        float coverageRatio = (float)(num85) / (i100Crop.getHeight() * i100Crop.getWidth());
+
+        // is the light contained in the bbox?
+        float contentsRatio = (float)(num85) / cache.data["85pct_ct"];
+
+        // is there a particularly bright spot in the bbox?
+        float highlight = num95 / cache.data["95pct_ct"];
+
+        if (coverageRatio > 0.25 || contentsRatio > 0.50 || highlight > 0.05) {
+          affected = affected.add(id);
+          activeMLPalettes[id].push_back(p);
+        }
+      }
+    }
+    else {
+      // compute sensitivity from cache cropped from bounding box
+      sensCache cache = getGlobalSettings()->_sensitivityCache[id];
+      Image i100Crop = cache.i100.getClippedImage(scaledRegion);
+
+      // iterate through, count number of pixels that are at or above the 50th percentile
+      int numBright = 0;
+
+      int num85 = 0;
+      int num95 = 0;
+
+      for (int y = 0; y < i100Crop.getHeight(); y++) {
+        for (int x = 0; x < i100Crop.getWidth(); x++) {
+          if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.avgVal) {
+            numBright++;
+          }
+          if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.data["85pct"]) {
+            num85++;
+          }
+          if (i100Crop.getPixelAt(x, y).getBrightness() >= cache.data["95pct"]) {
+            num95++;
+          }
+        }
+      }
+
+      // does the light cover the bbox?
+      float coverageRatio = (float)(num85) / (i100Crop.getHeight() * i100Crop.getWidth());
+
+      // is the light contained in the bbox?
+      float contentsRatio = (float)(num85) / cache.data["85pct_ct"];
+
+      // is there a particularly bright spot in the bbox?
+      float highlight = num95 / cache.data["95pct_ct"];
+
+      if (coverageRatio > 0.25 || contentsRatio > 0.50 || highlight > 0.05) {
+        affected = affected.add(id);
+      }
+    }
+  }
+
+  return affected;
+}
 DeviceSet AttributeControls::computeAffectedDevices(juce::Rectangle<float> region, map<string, double>& debugInfo, double threshold)
 {
   // for each device, check if the cropped sensitivity image is above a threshold
@@ -692,6 +809,11 @@ DeviceSet AttributeControls::computeAffectedDevices(juce::Rectangle<float> regio
 DeviceSet AttributeControls::computeAffectedDevices(shared_ptr<Idea> idea, double threshold)
 {
   return computeAffectedDevices(getGlobalSettings()->_ideaMap[idea], threshold);
+}
+
+DeviceSet AttributeControls::computeAffectedDevices(shared_ptr<Idea> idea, map<string, vector<string>>& activeMLPalettes, double threshold)
+{
+  return computeAffectedDevices(getGlobalSettings()->_ideaMap[idea], activeMLPalettes, threshold);
 }
 
 void AttributeControls::toggleOldInterface()

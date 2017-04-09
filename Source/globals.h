@@ -412,6 +412,9 @@ public:
 
   map<string, sensCache> _sensitivityCache;
 
+  // structure for storing cache data for moving lights
+  map<string, map<string, sensCache>> _mlSensCache;
+
   // maps ideas to areas of the stage
   // may end up being more complicated based on how sampling needs to work
   map<shared_ptr<Idea>, juce::Rectangle<float> > _ideaMap;
@@ -440,6 +443,7 @@ public:
   double _objFuncVal;
   unsigned int _sampleNo;
   chrono::time_point<chrono::high_resolution_clock> _creationTime;
+  Snapshot* _snapshot;
 
   // Paired with a vector of cluster centers, indicates which cluster the result belongs to.
   unsigned long _cluster;

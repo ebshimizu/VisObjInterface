@@ -74,6 +74,21 @@ private:
 	ColoredTextButton* _button;
 };
 
+class PaletteButton : public TextButton, public Button::Listener
+{
+public:
+  PaletteButton(string id, vector<string> palettes);
+
+  virtual void buttonClicked(Button* b) override;
+  void updatePalettes(string id, vector<string> palettes);
+
+private:
+  void setText();
+
+  string _id;
+  Device* _d;
+  vector<string> _palettes;
+};
 
 //==============================================================================
 /*

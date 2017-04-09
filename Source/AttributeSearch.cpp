@@ -995,6 +995,7 @@ void AttributeSearchThread::runGibbsSampling()
   // now that we have the sample, apply the usual display criteria to it
   shared_ptr<SearchResult> r = shared_ptr<SearchResult>(new SearchResult());
   r->_scene = snapshotToVector(newSample);
+  r->_snapshot = newSample;
 
   if (getGlobalSettings()->_iterativeSystemSelect) {
     r->_extraData["selectedSystem"] = newSample->_metadata["selectedSystem"];
@@ -1010,6 +1011,7 @@ void AttributeSearchThread::runGibbsSampling()
   data._editName = "GIBBS SAMPLE";
   data._accepted = true;
   data._scene = r->_scene;
+  //data._snapshot = newSample;
   data._timeStamp = chrono::high_resolution_clock::now();
 
   r->_extraData["Thread"] = String(_id);
@@ -1017,7 +1019,7 @@ void AttributeSearchThread::runGibbsSampling()
   r->_creationTime = chrono::high_resolution_clock::now();
 
   // at this point all the data has been saved in the search result
-  delete newSample;
+  //delete newSample;
   delete currentState;
 
   // send scene to the results area. may chose to not use the scene

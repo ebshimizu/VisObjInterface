@@ -102,7 +102,6 @@ public:
 
 // an intensity sampler samples a target average intensity and peak intensity
 // using a few priors at the moment
-// TODO: determine better intensity sampling method from image
 class IntensitySampler : public Sampler {
 public:
   IntensitySampler(DeviceSet affectedDevices, juce::Rectangle<float> region, set<string> intensPins, set<string> colorPins,
@@ -114,6 +113,7 @@ public:
   double score(Snapshot* state, Image& img, bool masked) override;
 
   void setBrightnessHistogram(SparseHistogram b);
+  void setFocusPalettes(map<string, vector<string>> fp, set<string> pp);
 
   string info() override;
   string getType() { return "intensity"; }
@@ -127,6 +127,8 @@ private:
   float _brightMean;
   float _mean;
   float _sparsity;
+  map<string, vector<string>> _availableFocusPalettes;
+  set<string> _focusPins;
 };
 
 class MonochromeSampler : public Sampler {

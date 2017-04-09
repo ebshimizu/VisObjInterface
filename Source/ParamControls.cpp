@@ -277,6 +277,56 @@ void ColorPickerButton::refresh()
 	_button->repaint();
 }
 
+PaletteButton::PaletteButton(string id, vector<string> palettes) :
+  _id(id), _d(getRig()->getDevice(id)), _palettes(palettes)
+{
+  setName(id + "_fp");
+  setText();
+  addListener(this);
+}
+
+void PaletteButton::buttonClicked(Button * b)
+{
+  PopupMenu p;
+  
+  int i = 1;
+  for (auto s : _palettes) {
+    p.addItem(i, s);
+    i++;
+  }
+
+  int res = p.show();
+  if (res > 0) {
+    string selected = _palettes[res - 1];
+    _d->setFocusPalette(selected);
+    
+    getRecorder()->log(ACTION, _id + " set to focus palette " + selected);
+    setText();
+
+    getApplicationCommandManager()->invokeDirectly(command::ARNOLD_RENDER, true);
+  }
+}
+
+void PaletteButton::updatePalettes(string id, vector<string> palettes)
+{
+  _id = id;
+  _d = getRig()->getDevice(id);
+  _palettes = palettes;
+  setText();
+}
+
+void PaletteButton::setText()
+{
+  FocusPalette* fp = _d->closestPalette();
+  if (fp != nullptr) {
+    setButtonText(fp->_name + " : (" + String(fp->_pan) + "," + String(fp->_tilt) + ")");
+  }
+  else {
+    setButtonText("[No Focus Palette]");
+  }
+}
+
+
 //==============================================================================
 ParamControls::ParamControls() : _groupColor("Group Color", true)
 {
@@ -291,7 +341,8 @@ ParamControls::ParamControls() : _groupColor("Group Color", true)
   _table.getHeader().addColumn("IL", 3, 20, TableHeaderComponent::ColumnPropertyFlags::notSortable | TableHeaderComponent::ColumnPropertyFlags::notResizable);
   _table.getHeader().addColumn("Color", 4, 100, TableHeaderComponent::ColumnPropertyFlags::notSortable);
   _table.getHeader().addColumn("CL", 5, 20, TableHeaderComponent::ColumnPropertyFlags::notSortable | TableHeaderComponent::ColumnPropertyFlags::notResizable);
-
+  _table.getHeader().addColumn("Position", 6, 100, TableHeaderComponent::ColumnPropertyFlags::notSortable);
+  _table.getHeader().addColumn("PL", 7, 20, TableHeaderComponent::ColumnPropertyFlags::notResizable | TableHeaderComponent::ColumnPropertyFlags::notResizable);
 
   _table.setMultipleSelectionEnabled(true);
   _table.setColour(ListBox::ColourIds::backgroundColourId, Colour(0xff333333));
@@ -460,6 +511,15 @@ void ParamControls::paintCell(Graphics & g, int rowNumber, int columnId, int wid
     g.setColour(Colours::white);
     g.drawRect(2, 2, width - 2, height - 2, 1);
   }
+  else if (columnId == 7) {
+    // same as other locks, but for position param
+    if (isDeviceParamLocked(_ids[rowNumber].toStdString(), "pan")) {
+      g.setColour(Colours::white);
+      g.fillRect(2, 2, width - 2, height - 2);
+    }
+    g.setColour(Colours::white);
+    g.drawRect(2, 2, width - 2, height - 2, 1);
+  }
 }
 
 Component * ParamControls::refreshComponentForCell(int rowNumber, int columnId, bool /* isRowSelected */, Component * existingComponentToUpdate)
@@ -498,6 +558,26 @@ Component * ParamControls::refreshComponentForCell(int rowNumber, int columnId, 
     }
 
     button->changeId(id);
+    return button;
+  }
+  if (columnId == 6) {
+    PaletteButton* button = static_cast<PaletteButton*>(existingComponentToUpdate);
+
+    string id = _ids[rowNumber].toStdString();
+    auto fps = getRig()->getDevice(id)->getFocusPaletteNames();
+
+    if (fps.size() == 0) {
+      if (existingComponentToUpdate != nullptr)
+        delete existingComponentToUpdate;
+
+      return nullptr;
+    }
+
+    if (button == nullptr) {
+      button = new PaletteButton(id, fps);
+    }
+
+    button->updatePalettes(id, fps);
     return button;
   }
 
@@ -548,6 +628,12 @@ void ParamControls::cellClicked(int rowNumber, int columnId, const MouseEvent & 
   }
   else if (columnId == 5) {
     toggleDeviceParamLock(_ids[rowNumber].toStdString(), "color");
+    _table.updateContent();
+    repaint();
+  }
+  else if (columnId == 7) {
+    // lock the position things
+    toggleDeviceParamLock(_ids[rowNumber].toStdString(), "pan");
     _table.updateContent();
     repaint();
   }
@@ -794,3 +880,4 @@ PopupMenu ParamControls::getSelectorMenu(map<int, string>& cmdOut)
 
   return all;
 }
+

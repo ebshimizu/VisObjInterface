@@ -55,7 +55,9 @@ void SearchResultBlender::sliderValueChanged(Slider * s)
   Eigen::VectorXd interp = (1 - a) * _base + a * _target->_scene;
 
   // Update rig
+  // TODO: This is incompatible with moving lights, the blender has been disabled in this version
   Snapshot* newScene = vectorToSnapshot(interp);
+  
   newScene->loadRig(getRig());
   delete newScene;
 
@@ -238,8 +240,8 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
       if (result == 0)
         return;
 
-      Snapshot* s = vectorToSnapshot(_result->_scene);
-      auto sd = s->getRigData();
+      //Snapshot* s = vectorToSnapshot(_result->_scene);
+      auto sd = _result->_snapshot->getRigData();
 
       if (result == 1) {
         for (auto d : _selected.getDevices()) {
@@ -317,13 +319,13 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
       const int result = m.show();
 
       if (result == 1) {
-        Snapshot* s = vectorToSnapshot(_result->_scene);
-        s->loadRig(getRig());
+        //Snapshot* s = vectorToSnapshot(_result->_scene);
+        _result->_snapshot->loadRig(getRig());
         
         delete getGlobalSettings()->_rigState;
         getGlobalSettings()->_rigState = new Snapshot(getRig());
 
-        delete s;
+        //delete s;
 
         // dont populate anything, let user select what to keep
         MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
@@ -345,55 +347,56 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
         }
       }
       else if (result == 2) {
-        Snapshot* s = vectorToSnapshot(_result->_scene);
+        //Snapshot* s = vectorToSnapshot(_result->_scene);
 
         MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
         if (mc != nullptr) {
-          mc->transferSelected(s, getRig()->getAllDevices(), false);
+          mc->transferSelected(_result->_snapshot, getRig()->getAllDevices(), false);
           mc->refreshParams();
           mc->refreshAttr();
           mc->redrawResults();
         }
 
-        delete s;
+        //delete s;
       }
       else if (result == 3) {
-        Snapshot* s = vectorToSnapshot(_result->_scene);
+        //Snapshot* s = vectorToSnapshot(_result->_scene);
 
         MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
         if (mc != nullptr) {
-          mc->transferSelected(s);
+          mc->transferSelected(_result->_snapshot);
           mc->refreshParams();
           mc->refreshAttr();
           mc->redrawResults();
         }
 
-        delete s;
+        //delete s;
       }
       else {
         string query = commands[result];
-        Snapshot* s = vectorToSnapshot(_result->_scene);
+        //Snapshot* s = vectorToSnapshot(_result->_scene);
 
         MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
 
         if (mc != nullptr) {
-          mc->transferSelected(s, getRig()->select(query));
+          mc->transferSelected(_result->_snapshot, getRig()->select(query));
           mc->refreshParams();
           mc->refreshAttr();
           mc->redrawResults();
         }
 
-        delete s;
+        //delete s;
       }
     }
   }
   else if (event.mods.isLeftButtonDown() && event.mods.isCommandDown()) {
     // popup window to allow blending of current scene with search scene
-    SearchResultBlender* popupComponent = new SearchResultBlender(_result.get());
-    popupComponent->setSize(300, 45);
-    CallOutBox::launchAsynchronously(popupComponent, getScreenBounds(), nullptr);
+    // disabled in this build due to no one using it and also compatibility issues with the moving lights
+    //SearchResultBlender* popupComponent = new SearchResultBlender(_result.get());
+    //popupComponent->setSize(300, 45);
+    //CallOutBox::launchAsynchronously(popupComponent, getScreenBounds(), nullptr);
   }
   else if (event.mods.isLeftButtonDown()) {
     if (isClusterCenter()) {
@@ -413,9 +416,9 @@ void SearchResultContainer::mouseEnter(const MouseEvent & /* event */)
   getGlobalSettings()->_showThumbnailImg = true;
 
   // temporarily load rig
-  Snapshot* res = vectorToSnapshot(_result->_scene);
-  res->loadRig(getRig());
-  delete res;
+  //Snapshot* res = vectorToSnapshot(_result->_scene);
+  _result->_snapshot->loadRig(getRig());
+  //delete res;
   getRig()->updateOnce();
 
   MainContentComponent* mc = dynamic_cast<MainContentComponent*>(getAppMainContentWindow()->getContentComponent());
@@ -977,8 +980,8 @@ SearchResultContainer::FullThumbRenderThread::~FullThumbRenderThread()
 
 void SearchResultContainer::FullThumbRenderThread::run()
 {
-  Snapshot* scene = vectorToSnapshot(_parent->_result->_scene);
-  Image full = renderImage(scene, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
+  //Snapshot* scene = vectorToSnapshot(_parent->_result->_scene);
+  Image full = renderImage(_parent->_result->_snapshot, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
 
   _parent->_render = full;
   _parent->_fullResAvailable = true;

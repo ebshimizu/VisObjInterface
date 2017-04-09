@@ -618,7 +618,7 @@ void IntensitySampler::sample(Snapshot * state)
     }
   }
   else {
-    // the color sampler will sample by system
+    // the sampler will sample by system
     vector<float> results;
     vector<int> constraint;
     vector<float> sens;
@@ -629,6 +629,21 @@ void IntensitySampler::sample(Snapshot * state)
 
     std::random_device rd;
     std::mt19937 gen(rd());
+
+    // for moving lights, select a focus palette for them to use at random, if unpinned
+    for (auto fp : _availableFocusPalettes) {
+      if (_focusPins.count(fp.first) == 0) {
+        // unpinned
+        uniform_int_distribution<int> dist(0, fp.second.size() - 1);
+        stateData[fp.first]->setFocusPalette(fp.second[dist(gen)]);
+      }
+    }
+
+    // and that should actually be it for focus palettes. From this point on in the sampler,
+    // the light functions as a normal single position lighting fixture. Since the focus palette
+    // also updates the metadata for the fixture in question, the sampler should have no problem
+    // properly categorizing and handling that light.
+
     set<string> systemSet = getRig()->getMetadataValues("system");
 
     vector<string> systems;
@@ -758,6 +773,12 @@ double IntensitySampler::score(Snapshot * /*state*/, Image& img, bool masked)
 void IntensitySampler::setBrightnessHistogram(SparseHistogram b)
 {
   _srcBrightness = b;
+}
+
+void IntensitySampler::setFocusPalettes(map<string, vector<string>> fp, set<string> pp)
+{
+  _availableFocusPalettes = fp;
+  _focusPins = pp;
 }
 
 string IntensitySampler::info()

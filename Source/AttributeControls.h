@@ -134,8 +134,10 @@ public:
 
   // returns a set of devices that affect the idea's selected region
   DeviceSet computeAffectedDevices(juce::Rectangle<float> region, double threshold = 0.01);
+  DeviceSet computeAffectedDevices(juce::Rectangle<float> region, map<string, vector<string>>& activeMLPalettes, double threshold = 0.01);
   DeviceSet computeAffectedDevices(juce::Rectangle<float> region, map<string, double>& debugInfo, double threshold = 0.01);
   DeviceSet computeAffectedDevices(shared_ptr<Idea> idea, double threshold = 0.01);
+  DeviceSet computeAffectedDevices(shared_ptr<Idea> idea, map<string, vector<string>>& activeMLPalettes, double threshold = 0.01);
 
   void toggleOldInterface();
   void toggleNewInterface();

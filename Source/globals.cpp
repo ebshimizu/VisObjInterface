@@ -19,15 +19,20 @@ static Recorder* _recorder;
 static GlobalSettings* _globalSettings;
 static map<int, DeviceSet> _bins;
 
-SearchResult::SearchResult() { }
+SearchResult::SearchResult() {
+  _snapshot = nullptr;
+}
 
 SearchResult::SearchResult(const SearchResult & other) :
   _scene(other._scene), _editHistory(other._editHistory), _objFuncVal(other._objFuncVal),
   _sampleNo(other._sampleNo), _cluster(other._cluster)
 {
+  _snapshot = new Snapshot(*(other._snapshot));
 }
 
 SearchResult::~SearchResult() {
+  if (_snapshot != nullptr)
+    delete _snapshot;
 }
 
 ApplicationCommandManager* getApplicationCommandManager() {
@@ -806,6 +811,10 @@ void computeLightSensitivity()
   auto tmpData = tmp->getRigData();
 
   for (auto active : devices.getIds()) {
+    // process moving lights separately
+    if (tmpData[active]->getFocusPaletteNames().size() > 0)
+      continue;
+
     // render image at 50% with just that device
     for (auto id : devices.getIds()) {
       if (id == active) {
@@ -890,7 +899,108 @@ void computeLightSensitivity()
     }
 
     getGlobalSettings()->_sensitivityCache[active] = cache;
-    getGlobalSettings()->_sensitivity[active] = diff / (base.getHeight() * base.getWidth()) * 100;
+    //getGlobalSettings()->_sensitivity[active] = diff / (base.getHeight() * base.getWidth()) * 100;
+  }
+
+  // moving lights
+  for (auto active : devices.getIds()) {
+    // we already processed static lights
+    if (tmpData[active]->getFocusPaletteNames().size() == 0)
+      continue;
+
+    // render image at 50% with just that device
+    for (auto id : devices.getIds()) {
+      if (id == active) {
+        tmpData[id]->getIntensity()->setValAsPercent(0.5);
+
+        if (tmpData[id]->paramExists("color")) {
+          tmpData[id]->setColorRGBRaw("color", 1, 1, 1);
+        }
+      }
+      else {
+        tmpData[id]->setIntensity(0);
+      }
+    }
+
+    auto angles = tmpData[active]->getFocusPaletteNames();
+    for (auto& a : angles) {
+      // set the focus palette
+      tmpData[active]->setFocusPalette(a);
+      tmpData[active]->getIntensity()->setValAsPercent(0.5);
+
+      // proceed as normal
+      sensCache cache;
+
+      // render
+      Image base = renderImage(tmp, imgWidth, imgHeight);
+      cache.i50 = base;
+
+      // adjust to 51%
+      tmpData[active]->getIntensity()->setValAsPercent(0.51f);
+
+      // render
+      Image brighter = renderImage(tmp, imgWidth, imgHeight);
+      cache.i51 = brighter;
+
+      // render a 100% image
+      tmpData[active]->getIntensity()->setValAsPercent(1.0f);
+      Image brightest = renderImage(tmp, imgWidth, imgHeight);
+      cache.i100 = brightest;
+      cache.maxBr = 0;
+      Histogram1D bhist(100);
+
+      // calculate avg per-pixel brightness difference
+      double diff = 0;
+      int ct = 0;
+      float sum = 0;
+
+      for (int y = 0; y < base.getHeight(); y++) {
+        for (int x = 0; x < base.getWidth(); x++) {
+          diff += brighter.getPixelAt(x, y).getBrightness() - base.getPixelAt(x, y).getBrightness();
+
+          float brightpx = brightest.getPixelAt(x, y).getBrightness();
+
+          if (brightpx > 0.02) {
+            ct++;
+            sum += brightpx;
+            bhist.addValToBin(brightpx);
+          }
+          if (brightpx > cache.maxBr) {
+            cache.maxBr = brightpx;
+          }
+        }
+      }
+
+      // average of all non-zero pixels
+      cache.avgVal = sum / ct;
+      cache.numAboveAvg = 0;
+      cache.numMaxBr = 0;
+      cache.data["85pct"] = bhist.percentile(85);
+      cache.data["85pct_ct"] = 0;
+      cache.data["95pct"] = bhist.percentile(95);
+      cache.data["95pct_ct"] = 0;
+
+      for (int y = 0; y < base.getHeight(); y++) {
+        for (int x = 0; x < base.getWidth(); x++) {
+          if (brightest.getPixelAt(x, y).getBrightness() > cache.avgVal)
+            cache.numAboveAvg++;
+
+          if (brightest.getPixelAt(x, y).getBrightness() > cache.maxBr * 0.9) {
+            cache.numMaxBr++;
+          }
+
+          if (brightest.getPixelAt(x, y).getBrightness() > cache.data["85pct"]) {
+            cache.data["85pct_ct"] += 1;
+          }
+          if (brightest.getPixelAt(x, y).getBrightness() > cache.data["95pct"]) {
+            cache.data["95pct_ct"] += 1;
+          }
+        }
+      }
+
+      getGlobalSettings()->_mlSensCache[active][a] = cache;
+      //getGlobalSettings()->_sensitivity[active] = diff / (base.getHeight() * base.getWidth()) * 100;
+    }
   }
 
   // systems
