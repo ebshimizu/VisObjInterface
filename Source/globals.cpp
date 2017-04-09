@@ -698,6 +698,7 @@ GlobalSettings::GlobalSettings()
   _unconstrained = false;
   _pxIntensDist = false;
   _noPinWiggle = false;
+  _iterativeSystemSelect = false;
 
   _imageAttrLoc = File::getCurrentWorkingDirectory().getChildFile("image_attributes");
   _tempDir = File::getCurrentWorkingDirectory().getChildFile("tmp");
