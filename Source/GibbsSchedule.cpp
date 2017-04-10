@@ -500,6 +500,8 @@ IntensitySampler::IntensitySampler(DeviceSet affectedDevices, juce::Rectangle<fl
   Sampler(affectedDevices, region, intensPins, colorPins), _k(k), _brightMean(bm), _mean(m), _srcBrightness(1, { 0, 0.1f })
 {
   computeSystemSensitivity();
+  std::random_device rd;
+  _rng = mt19937(rd());
 }
 
 IntensitySampler::~IntensitySampler()
@@ -627,15 +629,16 @@ void IntensitySampler::sample(Snapshot * state)
     bool freeSystemFound = false;
     string freeSystemName = "";
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    //std::random_device rd;
+    //std::mt19937 gen(rd());
 
     // for moving lights, select a focus palette for them to use at random, if unpinned
     for (auto fp : _availableFocusPalettes) {
       if (_focusPins.count(fp.first) == 0) {
         // unpinned
         uniform_int_distribution<int> dist(0, fp.second.size() - 1);
-        stateData[fp.first]->setFocusPalette(fp.second[dist(gen)]);
+        int idx = dist(_rng);
+        stateData[fp.first]->setFocusPalette(fp.second[idx]);
       }
     }
 
@@ -650,7 +653,7 @@ void IntensitySampler::sample(Snapshot * state)
     for (auto s : systemSet) {
       systems.push_back(s);
     }
-    shuffle(systems.begin(), systems.end(), gen);
+    shuffle(systems.begin(), systems.end(), _rng);
 
     for (auto system : systems) {
       DeviceSet globalSys = getRig()->select("$system=" + system);
@@ -707,7 +710,7 @@ void IntensitySampler::sample(Snapshot * state)
 
     // sample
     uniform_real_distribution<float> rnd(0, 1);
-    GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), _k, _brightMean, _mean, rnd(gen));
+    GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), _k, _brightMean, _mean, rnd(_rng));
 
     // apply to snapshot
     for (int j = 0; j < results.size(); j++) {

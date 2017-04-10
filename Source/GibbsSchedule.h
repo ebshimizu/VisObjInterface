@@ -129,6 +129,7 @@ private:
   float _sparsity;
   map<string, vector<string>> _availableFocusPalettes;
   set<string> _focusPins;
+  std::mt19937 _rng;
 };
 
 class MonochromeSampler : public Sampler {

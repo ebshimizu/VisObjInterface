@@ -24,7 +24,7 @@ Eigen::VectorXd snapshotToVector(Snapshot * s)
   // Param order: Intensity, polar, azimuth, R, G, B, Softness (penumbra angle)
   // Device order: Alphabetical
   auto& devices = s->getRigData();
-  int numFeats = 7;
+  int numFeats = 9;
   Eigen::VectorXd features;
   features.resize(numFeats * devices.size());
   
@@ -58,6 +58,16 @@ Eigen::VectorXd snapshotToVector(Snapshot * s)
     else
       features[base + 6] = 0;
 
+    if (d.second->paramExists("pan"))
+      features[base + 7] = d.second->getParam<LumiverseOrientation>("pan")->asPercent();
+    else
+      features[base + 7] = 0;
+    
+    if (d.second->paramExists("tilt"))
+      features[base + 8] = d.second->getParam<LumiverseOrientation>("tilt")->asPercent();
+    else
+      features[base + 8] = 0;
+
     idx++;
   }
 
@@ -75,7 +85,7 @@ Snapshot * vectorToSnapshot(Eigen::VectorXd v)
 void vectorToExistingSnapshot(Eigen::VectorXd source, Snapshot& dest)
 {
 	auto devices = dest.getRigData();
-	int numFeats = 7;
+	int numFeats = 9;
 
 	int idx = 0;
 
@@ -96,6 +106,12 @@ void vectorToExistingSnapshot(Eigen::VectorXd source, Snapshot& dest)
 
 		if (d.second->paramExists("penumbraAngle"))
 			d.second->getParam<LumiverseFloat>("penumbraAngle")->setValAsPercent((float) source[base + 6]);
+
+    if (d.second->paramExists("pan"))
+      d.second->getParam<LumiverseOrientation>("pan")->setValAsPercent((float)source[base + 7]);
+
+    if (d.second->paramExists("tilt"))
+      d.second->getParam<LumiverseOrientation>("tilt")->setValAsPercent((float)source[base + 8]);
 
 		idx++;
 	}
