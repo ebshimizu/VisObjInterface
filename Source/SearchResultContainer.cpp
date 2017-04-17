@@ -318,6 +318,9 @@ void SearchResultContainer::mouseDown(const MouseEvent & event)
 
       const int result = m.show();
 
+      if (result == 0)
+        return;
+
       if (result == 1) {
         //Snapshot* s = vectorToSnapshot(_result->_scene);
         _result->_snapshot->loadRig(getRig());

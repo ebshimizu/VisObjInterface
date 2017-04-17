@@ -554,7 +554,8 @@ void MainContentComponent::addHistory()
 
   Snapshot* current = new Snapshot(getRig());
   r->_scene = snapshotToVector(current);
-  delete current;
+  r->_snapshot = current;
+  //delete current;
 
   // also save to disk in temporary file in case app crashes
   getRig()->save(File::getCurrentWorkingDirectory().getChildFile("backup.rig.json").getFullPathName().toStdString(), true);
