@@ -386,9 +386,16 @@ void AttributeControls::initPallets()
   _vr->_palettes->clearPallets();
   File imageDir = getGlobalSettings()->_imageAttrLoc;
   Array<File> imagesToLoad;
-  int numImage = imageDir.findChildFiles(imagesToLoad, 2, false, "*.png");
+  int numImage = imageDir.findChildFiles(imagesToLoad, 2, false);
 
   for (int i = 0; i < numImage; i++) {
+    String ext = imagesToLoad[i].getFileExtension();
+    ext = ext.toLowerCase();
+
+    // if its not a png or jpg continue
+    if (!(ext == ".png" || ext == ".jpg" || ext == ".jpeg"))
+      continue;
+
     String name = imagesToLoad[i].getFileNameWithoutExtension();
     String filepath = imagesToLoad[i].getFullPathName();
 
@@ -396,11 +403,20 @@ void AttributeControls::initPallets()
     FileInputStream in(img);
 
     if (in.openedOk()) {
-      // load image
-      PNGImageFormat pngReader;
-      Image originalImg = pngReader.decodeImage(in);
+      if (ext == ".png") {
+        // load image
+        PNGImageFormat pngReader;
+        Image originalImg = pngReader.decodeImage(in);
 
-      _vr->_palettes->addPallet(new GibbsPalette(name, originalImg));
+        _vr->_palettes->addPallet(new GibbsPalette(name, originalImg));
+      }
+      else if (ext == ".jpg" || ext == ".jpeg") {
+        // it's a jpg
+        JPEGImageFormat jpgReader;
+        Image originalImg = jpgReader.decodeImage(in);
+
+        _vr->_palettes->addPallet(new GibbsPalette(name, originalImg));
+      }
       
       getRecorder()->log(SYSTEM, "Loaded image " + name.toStdString());
     }

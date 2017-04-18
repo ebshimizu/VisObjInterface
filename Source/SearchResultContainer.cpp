@@ -122,7 +122,7 @@ void SearchResultContainer::regenToolTip()
 
 void SearchResultContainer::paint (Graphics& g)
 {
-  if (_isHovered) {
+  if (isMouseOver()) {
     g.fillAll(Colours::lightyellow);
   }
   else if (_isMostRecent) {

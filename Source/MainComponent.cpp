@@ -16,7 +16,7 @@
 //==============================================================================
 MainContentComponent::MainContentComponent()
 {
-  Lumiverse::Logger::setLogLevel(LDEBUG);
+  Lumiverse::Logger::setLogLevel(INFO);
   addAndMakeVisible(getStatusBar());
 
   // create log file for this session
