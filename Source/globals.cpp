@@ -394,6 +394,7 @@ void GlobalSettings::exportSettings()
   settings.push_back(JSONNode("searchDispMetric", _searchDispMetric));
 
   settings.push_back(JSONNode("logDirectory", _logRootDir));
+  settings.push_back(JSONNode("imageDirectory", _imageAttrLoc.getFullPathName().toStdString()));
 
   File settingsFile = File::getCurrentWorkingDirectory().getChildFile("settings.json");
 
@@ -551,6 +552,8 @@ void GlobalSettings::loadSettings()
         _searchDispMetric = (DistanceMetric)it->as_int();
       else if (name == "logDirectory")
         _logRootDir = string(it->as_string());
+      else if (name == "imageDirectory")
+        _imageAttrLoc = File(it->as_string());
     }
 
     delete memblock;
