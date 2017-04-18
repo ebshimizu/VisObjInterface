@@ -57,7 +57,6 @@ enum command {
   // Edit
   SETTINGS = 0x4000,
   GET_FROM_ARNOLD = 0x4003,
-  CONSTRAINTS = 0x4004,
   RESET_ALL = 0x4005,
   RESET_TIMER = 0x4006,
   COPY_DEVICE = 0x4007,
@@ -195,6 +194,13 @@ enum GibbsConstraint {
 enum GibbsParam {
   GINTENSITY,
   GCOLOR
+};
+
+enum ConstraintType {
+  KEY,
+  EXCLUDE,
+  RELATIVE_BRIGHTNESS,
+  SATURATION_RANGE
 };
 
 struct Timing {

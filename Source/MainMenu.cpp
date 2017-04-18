@@ -63,7 +63,6 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& /* menu
     menu.addCommandItem(cm, command::RESET_ALL);
     menu.addSeparator();
     menu.addCommandItem(cm, command::SYNC);
-    //menu.addCommandItem(cm, command::CONSTRAINTS);
     //menu.addCommandItem(cm, command::GET_FROM_ARNOLD);
     //menu.addCommandItem(cm, command::RESET_TIMER);
   }

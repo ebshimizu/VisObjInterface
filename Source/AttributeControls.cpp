@@ -217,6 +217,7 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
 
   _vr = new PaletteControls();
   _ic = new IdeaControls();
+  _ce = new ConstraintEditor();
 
   // button controls
   _search = new TextButton("Search", "Perform a search with the current attribute constraints");
@@ -246,6 +247,7 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   addAndMakeVisible(_tabs);
   //_tabs.addTab("Attributes", Colour(0xff333333), _componentView, true);
   _tabs.addTab("Lights", Colour(0xff333333), _paramControls, false);
+  _tabs.addTab("Constraints", Colour(0xff333333), _ce, false);
   _tabs.addTab("Concepts", Colour(0xff333333), _ic, false);
   _tabs.addTab("Visual Research", Colour(0xff333333), _vr, false);
   _tabs.addTab("History", Colour(0xff333333), _historyViewer, false);
@@ -269,6 +271,7 @@ AttributeControls::~AttributeControls()
   delete _clusterButton;
   delete _ic;
   delete _vr;
+  delete _ce;
 
   delete _paramControls;
   delete _historyViewer;

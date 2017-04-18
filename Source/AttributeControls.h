@@ -19,6 +19,7 @@
 #include "AttributeControllerBase.h"
 #include "GibbsComponents.h"
 #include "Idea.h"
+#include "ConstraintEditor.h"
 
 class LoggingTabbedComponent : public TabbedComponent {
 public:
@@ -173,6 +174,7 @@ private:
 
   PaletteControls* _vr;
   IdeaControls* _ic;
+  ConstraintEditor* _ce;
 
   LoggingTabbedComponent _tabs;
 

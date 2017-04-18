@@ -78,9 +78,6 @@ MainContentComponent::~MainContentComponent()
 {
   getGlobalSettings()->exportSettings();
 
-  if (_constraintWindow != nullptr)
-    delete _constraintWindow;
-
   _searchWorker->stop();
 
   getRecorder()->log(SYSTEM, "Interface shutting down.");
@@ -128,7 +125,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::SAVE_RENDER, command::GET_FROM_ARNOLD, command::STOP_SEARCH, command::GET_NEW_RESULTS,
     command::UPDATE_NUM_THREADS, command::SAVE_RESULTS, command::LOAD_RESULTS, command::LOAD_TRACES,
     command::PICK_TRACE, command::OPEN_MASK, command::SAVE_CLUSTERS, command::LOAD_CLUSTERS, command::REFRESH_SETTINGS,
-    command::CONSTRAINTS, command::START_AUTO, command::END_AUTO, command::LOCK_ALL_SELECTED,
+    command::START_AUTO, command::END_AUTO, command::LOCK_ALL_SELECTED,
     command::LOCK_SELECTED_INTENSITY, command::LOCK_SELECTED_COLOR, command::UNLOCK_ALL_SELECTED,
     command::UNLOCK_SELECTED_COLOR, command::UNLOCK_SELECTED_INTENSITY, command::RELOAD_ATTRS, command::LOAD_ATTRS,
     command::RESET_ALL, command::SAVE_IDEAS, command::LOAD_IDEAS, command::DELETE_ALL_PINS,
@@ -248,9 +245,6 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
 	case command::REFRESH_SETTINGS:
 		result.setInfo("Refresh Settings", "Refreshes the settings window", "Internal", 0);
 		break;
-  case command::CONSTRAINTS:
-    result.setInfo("Constraints Editor", "Adjust the constraints on search parameters", "Explore", 0);
-    break;
   case command::START_AUTO:
     result.setInfo("Start Automatic Command", "Internal: Start search based on command line arguments", "Internal", 0);
     break;
@@ -445,9 +439,6 @@ bool MainContentComponent::perform(const InvocationInfo & info)
 	case command::LOAD_CLUSTERS:
 		loadClusters();
 		break;
-  case command::CONSTRAINTS:
-    openConstraints();
-    break;
 	case command::REFRESH_SETTINGS:
     _attrs->refreshSettings();
     break;
@@ -909,10 +900,6 @@ void MainContentComponent::openRig(String fname)
       _showName = selected.getFileName();
       getGlobalSettings()->_showName = _showName;
 
-      // initialize consistency constraints
-      if (_constraintWindow != nullptr)
-        delete _constraintWindow;
-
       getGlobalSettings()->_constraints.clear();
       getGlobalSettings()->generateDefaultConstraints();
       getGlobalSettings()->_showThumbnailImg = false;
@@ -1187,22 +1174,6 @@ void MainContentComponent::arnoldRenderNoPopup()
 
   // may want to clean this part up a bit, maybe trigger on mouse up
   addHistory();
-}
-
-void MainContentComponent::openConstraints()
-{
-  if (_constraintWindow != nullptr)
-    return;
-
-  _constraintWindow = new ConstraintWindow();
-  juce::Rectangle<int> area(50, 50, 800, 300);
-
-  _constraintWindow->setBounds(area);
-
-  _constraintWindow->setResizable(true, false);
-  _constraintWindow->setUsingNativeTitleBar(true);
-  _constraintWindow->setVisible(true);
-
 }
 
 void MainContentComponent::lockAllColor()

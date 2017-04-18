@@ -138,9 +138,6 @@ private:
   // Initializes the components in the interface after loading a rig
   void loadComponents();
 
-  // Opens the constraints window
-  void openConstraints();
-
   // parameter locking
   void lockAllColor();
   void lockAllIntensity();
@@ -206,8 +203,6 @@ private:
   ScopedPointer<AttributeControls> _attrs;
   ScopedPointer<SceneViewer> _viewer;
   ScopedPointer<ExplorerPanel> _exp;
-
-  SafePointer<ConstraintWindow> _constraintWindow;
 
   // Search object
   ScopedPointer<AttributeSearch> _searchWorker;

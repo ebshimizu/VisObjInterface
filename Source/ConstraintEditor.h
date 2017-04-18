@@ -14,147 +14,116 @@
 #include "globals.h"
 #include "ColoredTextButton.h"
 
-class ConstraintDeviceSelector : public Component, public ListBoxModel
+// Constraint Components provide an interface to edit relative constraints for the given search
+class ConstraintComponent : public Component, public ButtonListener
 {
 public:
-  ConstraintDeviceSelector(string id, Button* b);
-  ~ConstraintDeviceSelector();
+  ConstraintComponent(ConstraintType t, int id, Component* parent);
+  ~ConstraintComponent();
 
-  virtual int getNumRows() override;
-  virtual void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override;
-  virtual void selectedRowsChanged(int lastRowSelected) override;
+  virtual void paint(Graphics& g) override;
   virtual void resized() override;
-  int getListHeight();
 
-private:
-  string _id;
-  ListBox _list;
-  StringArray _deviceIds;
-  Button* _b;
+  ConstraintType getType();
+  int getId();
+
+  virtual void buttonClicked(Button* b) override;
+
+protected:
+  PopupMenu getSelectorMenu(map<int, string>& cmdOut);
+  void showDeviceSelectMenu(Button* b, DeviceSet& d);
+
+  String deviceSetToString(DeviceSet& d);
+
+  ConstraintType _t;
+  int _id;
+
+  TextButton _deleteButton;
+  Component* _parent;
 };
 
-class ConstraintParameterSelector : public Component, public ListBoxModel
+class KeyConstraint : public ConstraintComponent, public ButtonListener
 {
 public:
-  ConstraintParameterSelector(string id, Button* b);
-  ~ConstraintParameterSelector();
+  KeyConstraint(int id, Component* parent);
+  ~KeyConstraint();
 
-  virtual int getNumRows() override;
-  virtual void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override;
-  virtual void selectedRowsChanged(int lastRowSelected) override;
+  virtual void paint(Graphics& g) override;
   virtual void resized() override;
-  int getListHeight();
+
+  virtual void buttonClicked(Button* b) override;
 
 private:
-  string _id;
-  ListBox _list;
-  Button* _b;
+  void updateButtonText();
+
+  TextButton _deviceSelector;
+  ToggleButton _exclusiveButton;
+
+  DeviceSet _affected;
+  bool _exclusive;
 };
 
-class ConstraintEditor : public Component, public TableListBoxModel, public ButtonListener
+class ExcludeConstraint : public ConstraintComponent, public ButtonListener, public ComboBoxListener {
+public:
+  ExcludeConstraint(int id, Component* parent);
+  ~ExcludeConstraint();
+
+  virtual void paint(Graphics& g) override;
+  virtual void resized() override;
+
+  virtual void buttonClicked(Button* b) override;
+  void comboBoxChanged(ComboBox* b) override;
+
+private:
+  void updateButtonText();
+
+  TextButton _deviceSelector;
+  ComboBox _mode;
+
+  bool _turnOff;
+  DeviceSet _affected;
+};
+
+class ConstraintContainer : public Component
+{
+public:
+  ConstraintContainer();
+  ~ConstraintContainer();
+
+  void resized() override;
+  void paint(Graphics& g) override;
+
+  void addConstraint(ConstraintComponent* c);
+  void deleteConstraint(int id);
+  void deleteAllConstraints();
+
+  void setWidth(int width);
+
+  Array<ConstraintComponent*> _constraints;
+};
+
+class ConstraintEditor : public Component, public ButtonListener
 {
 public:
   ConstraintEditor();
   ~ConstraintEditor();
 
-  int getNumRows() override;
-  void paintRowBackground(Graphics& g, int rowNumber, int width, int height, bool rowIsSelected) override;
-  void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override;
-  void sortOrderChanged(int newSortColumnId, bool isForwards) override;
-  Component* refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, Component* existingComponentToUpdate) override;
-  void reload();
+  void paint(Graphics& g) override;
+  void resized() override;
+
+  void addConstraint(ConstraintType t);
+  void deleteConstraint(int id);
+  void deleteAllConstraints();
+  map<ConstraintType, vector<ConstraintComponent*> > getConstraintData();
+
   void buttonClicked(Button* b) override;
 
-  void resized() override;
-
-  class ConstraintScopeComponent : public Component, private ComboBoxListener
-  {
-  public:
-    ConstraintScopeComponent();
-    ~ConstraintScopeComponent();
-
-    void resized() override;
-    void setTargetConstraint(string id);
-    void comboBoxChanged(ComboBox* b) override;
-
-  private:
-    ComboBox _box;
-    string _id;
-  };
-
-  class ConstraintDevicesComponent : public Component, private ButtonListener
-  {
-  public:
-    ConstraintDevicesComponent();
-    ~ConstraintDevicesComponent();
-
-    void resized() override;
-    void setTargetConstraint(string id);
-    void buttonClicked(Button* b) override;
-    void updateButtonText();
-
-  private:
-    string _id;
-    TextButton _button;
-  };
-
-  class ConstraintParamsComponent : public Component, private ButtonListener
-  {
-  public:
-    ConstraintParamsComponent();
-    ~ConstraintParamsComponent();
-
-    void resized() override;
-    void setTargetConstraint(string id);
-    void buttonClicked(Button* b) override;
-    void updateButtonText();
-
-  private:
-    string _id;
-    TextButton _button;
-  };
-
-  class ConstraintDeleteComponent : public Component, private ButtonListener
-  {
-  public:
-    ConstraintDeleteComponent(ConstraintEditor* parent);
-    ~ConstraintDeleteComponent();
-
-    void resized() override;
-    void setTargetConstraint(string id);
-    void buttonClicked(Button* b) override;
-    
-  private:
-    string _id;
-    ColoredTextButton _button;
-    ConstraintEditor* _parent;
-  };
-
 private:
-  TableListBox _table;
-  Font _font;
-  TextButton _newConstraint;
-  TextButton _resetConstraints;
-  TextButton _clearConstraints;
-
-  StringArray _ids;
+  int _id;
+  Viewport* _vp;
+  ConstraintContainer* _cc;
+  
+  TextButton _addButton;
 };
-
-class ConstraintWindow : public DocumentWindow
-{
-public:
-  ConstraintWindow();
-  ~ConstraintWindow();
-
-  void resized() override;
-
-  void closeButtonPressed() override;
-
-private:
-  ScopedPointer<ConstraintEditor> _constraintEditor;
-
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConstraintWindow);
-};
-
 
 #endif  // CONSTRAINTEDITOR_H_INCLUDED
