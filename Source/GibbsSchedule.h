@@ -39,6 +39,9 @@ public:
   // visual concept image
   Image _concept;
 
+  // constraints
+  ConstraintData _constraints;
+
   virtual string getType() = 0;
 protected:
   // computes the per-system intensity based on affected devices
@@ -192,6 +195,9 @@ public:
   
   // makes sure intensity samplers happen first.
   void moveIntensityUp();
+
+  // copies over the constraint data to each sampler
+  void addConstraints(ConstraintData cd);
 
 private:
   default_random_engine _gen;

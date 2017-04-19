@@ -248,8 +248,8 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   //_tabs.addTab("Attributes", Colour(0xff333333), _componentView, true);
   _tabs.addTab("Lights", Colour(0xff333333), _paramControls, false);
   _tabs.addTab("Constraints", Colour(0xff333333), _ce, false);
-  _tabs.addTab("Concepts", Colour(0xff333333), _ic, false);
   _tabs.addTab("Visual Research", Colour(0xff333333), _vr, false);
+  _tabs.addTab("Concepts", Colour(0xff333333), _ic, false);
   _tabs.addTab("History", Colour(0xff333333), _historyViewer, false);
   _tabs.addTab("Settings", Colour(0xff333333), _settings, false);
   _tabs.setCurrentTabIndex(0);
@@ -554,6 +554,11 @@ ParamControls * AttributeControls::getParamController()
 HistoryPanel* AttributeControls::getHistory()
 {
   return _history;
+}
+
+ConstraintData AttributeControls::getConstraintData()
+{
+  return _ce->getConstraintData();
 }
 
 void AttributeControls::setColors(vector<Eigen::VectorXd> colors, double intens, vector<float> weights)

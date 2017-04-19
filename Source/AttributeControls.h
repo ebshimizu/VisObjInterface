@@ -118,6 +118,9 @@ public:
   // Gets the history controller
   HistoryPanel* getHistory();
 
+  // Gets the constraint data from the controls
+  ConstraintData getConstraintData();
+
   // sets colors in the palettes
   void setColors(vector<Eigen::VectorXd> colors, double intens, vector<float> weights);
 

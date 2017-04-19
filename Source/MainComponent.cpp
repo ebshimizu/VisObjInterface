@@ -1770,6 +1770,7 @@ void MainContentComponent::search()
 
   if (getGlobalSettings()->_searchMode == GIBBS_SAMPLING) {
     GibbsSchedule* state = _attrs->getGibbsSchedule();
+    state->addConstraints(_attrs->getConstraintData());
     _attrs->updateSortMenu();
 
     _searchWorker->setState(new Snapshot(getRig()), state);

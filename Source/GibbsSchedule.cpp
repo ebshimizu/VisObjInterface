@@ -1139,3 +1139,10 @@ void GibbsSchedule::moveIntensityUp()
   }
 }
 
+void GibbsSchedule::addConstraints(ConstraintData cd)
+{
+  for (auto s : _samplers) {
+    s->_constraints = cd;
+  }
+}
+

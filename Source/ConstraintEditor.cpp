@@ -455,8 +455,8 @@ SaturationConstraint::SaturationConstraint(int id, Component* parent) :
 
   _satSlider.setName("ratio");
   _satSlider.setRange(0, 1, 0.01);
-  _satSlider.setMinAndMaxValues(0, 1);
   _satSlider.setSliderStyle(Slider::SliderStyle::TwoValueHorizontal);
+  _satSlider.setMinAndMaxValues(0, 1);
   _satSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, false, 0, 0);
   _satSlider.setPopupDisplayEnabled(true, nullptr);
   addAndMakeVisible(_satSlider);
@@ -658,11 +658,17 @@ ConstraintEditor::~ConstraintEditor()
 
 void ConstraintEditor::paint(Graphics & g)
 {
+  g.setColour(Colours::white);
+  g.setFont(16);
+
+  auto b = getLocalBounds();
+  g.drawFittedText("Constraints", b.removeFromTop(30).reduced(2), Justification::centred, 1);
 }
 
 void ConstraintEditor::resized()
 {
   auto b = getLocalBounds();
+  b.removeFromTop(30);
 
   auto lower = b.removeFromBottom(30);
   _addButton.setBounds(lower.removeFromRight(120).reduced(2));
