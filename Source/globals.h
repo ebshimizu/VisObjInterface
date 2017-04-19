@@ -239,6 +239,26 @@ struct sensCache {
   map<string, float> data;
 };
 
+// Contains raw constraint information.
+// This is usually processed separately by the respective samplers
+struct ConstraintData {
+  DeviceSet _keyLights;
+  bool _keyLightsAreExclusive;  // true if any of the key light constraints are exclusive
+
+  DeviceSet _excludeIgnore;
+  DeviceSet _excludeTurnOff;
+
+  // these sets will be disjoint. If a light is in both source and target,
+  // it will be taken out of target and left in source.
+  vector<DeviceSet> _relativeSources;
+  vector<DeviceSet> _relativeTargets;
+  vector<float> _relativeRatios;
+
+  vector<DeviceSet> _satTargets;
+  vector<float> _satMin;
+  vector<float> _satMax;
+};
+
 // A container for various things that the entire application may want to access
 // TODO: at some point, have this load from a file
 class GlobalSettings

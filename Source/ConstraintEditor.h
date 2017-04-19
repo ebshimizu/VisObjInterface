@@ -53,7 +53,6 @@ public:
 
   virtual void buttonClicked(Button* b) override;
 
-private:
   void updateButtonText();
 
   TextButton _deviceSelector;
@@ -74,7 +73,6 @@ public:
   virtual void buttonClicked(Button* b) override;
   void comboBoxChanged(ComboBox* b) override;
 
-private:
   void updateButtonText();
 
   TextButton _deviceSelector;
@@ -82,6 +80,49 @@ private:
 
   bool _turnOff;
   DeviceSet _affected;
+};
+
+class RelativeConstraint : public ConstraintComponent, public ButtonListener, public SliderListener {
+public:
+  RelativeConstraint(int id, Component* parent);
+  ~RelativeConstraint();
+
+  virtual void paint(Graphics& g) override;
+  virtual void resized() override;
+
+  virtual void buttonClicked(Button* b) override;
+  void sliderValueChanged(Slider* s) override;
+
+  void updateButtonText();
+
+  TextButton _sourceSelector;
+  TextButton _targetSelector;
+  Slider _ratioSlider;
+
+  DeviceSet _source;
+  DeviceSet _target;
+  float _ratio;
+};
+
+class SaturationConstraint : public ConstraintComponent, public SliderListener, public ButtonListener {
+public:
+  SaturationConstraint(int id, Component* parent);
+  ~SaturationConstraint();
+
+  virtual void paint(Graphics& g) override;
+  virtual void resized() override;
+
+  virtual void buttonClicked(Button* b) override;
+  void sliderValueChanged(Slider* s) override;
+
+  void updateButtonText();
+
+  TextButton _deviceSelector;
+  Slider _satSlider;
+
+  DeviceSet _affected;
+  float _min;
+  float _max;
 };
 
 class ConstraintContainer : public Component
@@ -98,6 +139,7 @@ public:
   void deleteAllConstraints();
 
   void setWidth(int width);
+  ConstraintData getConstraintData();
 
   Array<ConstraintComponent*> _constraints;
 };
@@ -114,7 +156,7 @@ public:
   void addConstraint(ConstraintType t);
   void deleteConstraint(int id);
   void deleteAllConstraints();
-  map<ConstraintType, vector<ConstraintComponent*> > getConstraintData();
+  ConstraintData getConstraintData();
 
   void buttonClicked(Button* b) override;
 
@@ -124,6 +166,7 @@ private:
   ConstraintContainer* _cc;
   
   TextButton _addButton;
+  TextButton _deleteAllButton;
 };
 
 #endif  // CONSTRAINTEDITOR_H_INCLUDED

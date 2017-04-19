@@ -30,7 +30,7 @@ void ConstraintComponent::paint(Graphics & g)
   auto b = getLocalBounds();
   
   g.setColour(Colours::white);
-  g.setFont(14);
+  g.setFont(16);
 
   String text = "Type: ";
   
@@ -164,7 +164,21 @@ void ConstraintComponent::showDeviceSelectMenu(Button * b, DeviceSet& d)
   }
   else if (result == 3) {
     // custom query
-    // popup window here or something
+    AlertWindow w("Custom Query",
+      "Enter a Lumiverse Selection Query.",
+      AlertWindow::QuestionIcon);
+
+    w.addTextEditor("query", "", "Query");
+
+    w.addButton("Select", 1, KeyPress(KeyPress::returnKey, 0, 0));
+    w.addButton("Cancel", 0, KeyPress(KeyPress::escapeKey, 0, 0));
+
+    if (w.runModalLoop() != 0) // is they picked 'go'
+    {
+      // this is the item they selected
+      auto query = w.getTextEditorContents("query");
+      d = getRig()->select(query.toStdString());
+    }
   }
   else {
     // preset query
@@ -284,7 +298,7 @@ void ExcludeConstraint::paint(Graphics & g)
   auto mode = b.removeFromTop(30);
 
   g.setColour(Colours::white);
-  g.setFont(12);
+  g.setFont(14);
   g.drawFittedText("Exclusion Mode", mode.removeFromLeft(100), Justification::centred, 1);
 }
 
@@ -336,6 +350,173 @@ void ExcludeConstraint::updateButtonText()
   _deviceSelector.setButtonText(deviceSetToString(_affected));
 }
 
+RelativeConstraint::RelativeConstraint(int id, Component* parent) :
+  ConstraintComponent(RELATIVE_BRIGHTNESS, id, parent)
+{
+  _sourceSelector.setName("source");
+  _sourceSelector.setButtonText("[No Devices Selected]");
+  _sourceSelector.addListener(this);
+  addAndMakeVisible(_sourceSelector);
+  
+  _targetSelector.setName("target");
+  _targetSelector.setButtonText("[No Devices Selected]");
+  _targetSelector.addListener(this);
+  addAndMakeVisible(_targetSelector);
+
+  _ratioSlider.setName("ratio");
+  _ratioSlider.setRange(0, 2, 0.01);
+  _ratioSlider.setValue(1);
+  _ratioSlider.setSliderStyle(Slider::SliderStyle::LinearHorizontal);
+  _ratioSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 80, 26);
+  addAndMakeVisible(_ratioSlider);
+}
+
+RelativeConstraint::~RelativeConstraint()
+{
+}
+
+void RelativeConstraint::paint(Graphics & g)
+{
+  ConstraintComponent::paint(g);
+
+  g.setColour(Colours::white);
+  g.setFont(14);
+
+  auto b = getLocalBounds();
+  b.removeFromTop(30);
+
+  auto row1 = b.removeFromTop(30).reduced(2);
+  g.drawFittedText("Source", row1.removeFromLeft(80), Justification::centred, 1);
+
+  auto row2 = b.removeFromTop(30).reduced(2);
+  g.drawFittedText("Target", row2.removeFromLeft(80), Justification::centred, 1);
+
+  auto row3 = b.removeFromTop(30).reduced(2);
+  g.drawFittedText("Ratio", row3.removeFromLeft(80), Justification::centred, 1);
+}
+
+void RelativeConstraint::resized()
+{
+  ConstraintComponent::resized();
+
+  auto b = getLocalBounds();
+  b.removeFromTop(30);
+
+  auto row1 = b.removeFromTop(30).reduced(2);
+  row1.removeFromLeft(80);
+  _sourceSelector.setBounds(row1);
+  
+  auto row2 = b.removeFromTop(30).reduced(2);
+  row2.removeFromLeft(80);
+  _targetSelector.setBounds(row2);
+
+  auto row3 = b.removeFromTop(30).reduced(2);
+  row3.removeFromLeft(80);
+  _ratioSlider.setBounds(row3);
+}
+
+void RelativeConstraint::buttonClicked(Button * b)
+{
+  // process parent events first
+  if (b->getName() == "x") {
+    ConstraintComponent::buttonClicked(b);
+    return;
+  }
+
+  if (b->getName() == "source") {
+    showDeviceSelectMenu(b, _source);
+    updateButtonText();
+  }
+  else if (b->getName() == "target") {
+    showDeviceSelectMenu(b, _target);
+    updateButtonText();
+  }
+}
+
+void RelativeConstraint::sliderValueChanged(Slider * s)
+{
+  // only one slider is attached to this so
+  _ratio = s->getValue();
+}
+
+void RelativeConstraint::updateButtonText()
+{
+  _sourceSelector.setButtonText(deviceSetToString(_source));
+  _targetSelector.setButtonText(deviceSetToString(_target));
+}
+
+SaturationConstraint::SaturationConstraint(int id, Component* parent) :
+  ConstraintComponent(SATURATION_RANGE, id, parent)
+{
+  _deviceSelector.setName("select");
+  _deviceSelector.setButtonText("[No Devices Selected]");
+  _deviceSelector.addListener(this);
+  addAndMakeVisible(_deviceSelector);
+
+  _satSlider.setName("ratio");
+  _satSlider.setRange(0, 1, 0.01);
+  _satSlider.setMinAndMaxValues(0, 1);
+  _satSlider.setSliderStyle(Slider::SliderStyle::TwoValueHorizontal);
+  _satSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, false, 0, 0);
+  _satSlider.setPopupDisplayEnabled(true, nullptr);
+  addAndMakeVisible(_satSlider);
+}
+
+SaturationConstraint::~SaturationConstraint()
+{
+}
+
+void SaturationConstraint::paint(Graphics & g)
+{
+  ConstraintComponent::paint(g);
+  auto b = getLocalBounds();
+  b.removeFromTop(60);
+
+  auto row1 = b.removeFromTop(30).reduced(2);
+  g.setColour(Colours::white);
+  g.setFont(14);
+  g.drawFittedText("Saturation", row1.removeFromLeft(80), Justification::centred, 1);
+}
+
+void SaturationConstraint::resized()
+{
+  ConstraintComponent::resized();
+  auto b = getLocalBounds();
+  b.removeFromTop(30);
+
+  _deviceSelector.setBounds(b.removeFromTop(30).reduced(2));
+
+  auto row1 = b.removeFromTop(30).reduced(2);
+  row1.removeFromLeft(80);
+  _satSlider.setBounds(row1);
+}
+
+void SaturationConstraint::buttonClicked(Button * b)
+{
+  // process parent events first
+  if (b->getName() == "x") {
+    ConstraintComponent::buttonClicked(b);
+    return;
+  }
+
+  if (b->getName() == "select") {
+    // bring up the selection menu and do the selection. Since this gets replicated
+    // across devices, the function to do this is in the base class
+    showDeviceSelectMenu(b, _affected);
+    updateButtonText();
+  }
+}
+
+void SaturationConstraint::sliderValueChanged(Slider * s)
+{
+  _min = s->getMinValue();
+  _max = s->getMaxValue();
+}
+
+void SaturationConstraint::updateButtonText()
+{
+  _deviceSelector.setButtonText(deviceSetToString(_affected));
+}
 
 ConstraintContainer::ConstraintContainer() {
 }
@@ -398,12 +579,68 @@ void ConstraintContainer::setWidth(int width)
   setBounds(0, 0, width, getHeight());
 }
 
+ConstraintData ConstraintContainer::getConstraintData()
+{
+  ConstraintData cd;
+  cd._keyLightsAreExclusive = false;
+
+  for (auto c : _constraints) {
+    ConstraintType t = c->getType();
+
+    // it could be a switch but I'm not a huge fan
+    if (t == KEY) {
+      // all key lights get placed into the same device set. If any of the
+      // key light constraints are exclusive, the entire set is
+      // please just use one key light constraint thanks
+      KeyConstraint* kc = (KeyConstraint*)c;
+
+      cd._keyLights = cd._keyLights.add(kc->_affected);
+      cd._keyLightsAreExclusive |= kc->_exclusive;
+    }
+    else if (t == EXCLUDE) {
+      // Exclude gets placed into two different sets depending on if they
+      // are ignored or actively turned off
+      ExcludeConstraint* ec = (ExcludeConstraint*)c;
+
+      if (ec->_turnOff) {
+        cd._excludeTurnOff = cd._excludeTurnOff.add(ec->_affected);
+      }
+      else {
+        cd._excludeIgnore = cd._excludeIgnore.add(ec->_affected);
+      }
+    }
+    else if (t == RELATIVE_BRIGHTNESS) {
+      // just start appending stuff
+      RelativeConstraint* rc = (RelativeConstraint*)c;
+
+      cd._relativeSources.push_back(rc->_source);
+      cd._relativeTargets.push_back(rc->_target);
+      cd._relativeRatios.push_back(rc->_ratio);
+    }
+    else if (t == SATURATION_RANGE) {
+      // also start appending things
+      SaturationConstraint* sc = (SaturationConstraint*)c;
+
+      cd._satTargets.push_back(sc->_affected);
+      cd._satMin.push_back(sc->_min);
+      cd._satMax.push_back(sc->_max);
+    }
+  }
+
+  return cd;
+}
+
 ConstraintEditor::ConstraintEditor() : _id(0)
 {
   _addButton.setName("add");
   _addButton.setButtonText("Add Constraint");
   _addButton.addListener(this);
   addAndMakeVisible(_addButton);
+
+  _deleteAllButton.setName("deleteAll");
+  _deleteAllButton.setButtonText("Delete All");
+  _deleteAllButton.addListener(this);
+  addAndMakeVisible(_deleteAllButton);
   
   _cc = new ConstraintContainer();
   _vp = new Viewport();
@@ -428,7 +665,8 @@ void ConstraintEditor::resized()
   auto b = getLocalBounds();
 
   auto lower = b.removeFromBottom(30);
-  _addButton.setBounds(lower.removeFromRight(150).reduced(2));
+  _addButton.setBounds(lower.removeFromRight(120).reduced(2));
+  _deleteAllButton.setBounds(lower.removeFromRight(120).reduced(2));
 
   _vp->setBounds(b);
   _cc->setWidth(getWidth() - _vp->getScrollBarThickness());
@@ -446,10 +684,10 @@ void ConstraintEditor::addConstraint(ConstraintType t)
     c = (ConstraintComponent*)(new ExcludeConstraint(_id, (Component*)this));
     break;
   case RELATIVE_BRIGHTNESS:
-    //_constraints.add((ConstraintComponent*)(new KeyConstraint(_id)));
+    c = (ConstraintComponent*)(new RelativeConstraint(_id, (Component*)this));
     break;
   case SATURATION_RANGE:
-    //_constraints.add((ConstraintComponent*)(new KeyConstraint(_id)));
+    c = (ConstraintComponent*)(new SaturationConstraint(_id, (Component*)this));
     break;
   default:
     break;
@@ -471,6 +709,12 @@ void ConstraintEditor::deleteAllConstraints()
   _cc->deleteAllConstraints();
 }
 
+ConstraintData ConstraintEditor::getConstraintData()
+{
+  // time to collect everything into a single structure to send to the samplers
+  return _cc->getConstraintData();
+}
+
 void ConstraintEditor::buttonClicked(Button * b)
 {
   if (b->getName() == "add") {
@@ -487,5 +731,9 @@ void ConstraintEditor::buttonClicked(Button * b)
       return;
 
     addConstraint((ConstraintType)(res - 1));
+  }
+  if (b->getName() == "deleteAll") {
+    // no warning, yolo
+    deleteAllConstraints();
   }
 }
