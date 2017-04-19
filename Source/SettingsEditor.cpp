@@ -313,9 +313,6 @@ void SettingsBoolButton::setState(bool newState)
   else if (_id == "px intens dist") {
     getGlobalSettings()->_pxIntensDist = newState;
   }
-  else if (_id == "Iterative System Select") {
-    getGlobalSettings()->_iterativeSystemSelect = newState;
-  }
   else if (_id == "Disable Pin Adjustment") {
     getGlobalSettings()->_noPinWiggle = newState;
   }
@@ -351,9 +348,6 @@ bool SettingsBoolButton::getState() const
     return getGlobalSettings()->_unconstrained;
   else if (_id == "px intens dist")
     return getGlobalSettings()->_pxIntensDist;
-  else if (_id == "Iterative System Select") {
-    return getGlobalSettings()->_iterativeSystemSelect;
-  }
   else if (_id == "Disable Pin Adjustment") {
     return getGlobalSettings()->_noPinWiggle;
   }

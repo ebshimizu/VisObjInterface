@@ -378,7 +378,6 @@ void GlobalSettings::exportSettings()
   settings.push_back(JSONNode("autoCluster", _autoCluster));
   settings.push_back(JSONNode("unconstrained", _unconstrained));
   settings.push_back(JSONNode("pxIntensDist", _pxIntensDist));
-  settings.push_back(JSONNode("iterativeSystemSelect", _iterativeSystemSelect));
   settings.push_back(JSONNode("noPinWiggle", _noPinWiggle));
 
   settings.push_back(JSONNode("primaryClusterMethod", _primaryClusterMethod));
@@ -524,8 +523,6 @@ void GlobalSettings::loadSettings()
         _unconstrained = it->as_bool();
       else if (name == "pxIntensDist")
         _pxIntensDist = it->as_bool();
-      else if (name == "iterativeSystemSelect")
-        _iterativeSystemSelect = it->as_bool();
       else if (name == "noPinWiggle")
         _noPinWiggle = it->as_bool();
       else if (name == "primaryClusterMethod")
@@ -701,7 +698,6 @@ GlobalSettings::GlobalSettings()
   _unconstrained = false;
   _pxIntensDist = false;
   _noPinWiggle = false;
-  _iterativeSystemSelect = false;
 
   _imageAttrLoc = File::getCurrentWorkingDirectory().getChildFile("image_attributes");
   _tempDir = File::getCurrentWorkingDirectory().getChildFile("tmp");

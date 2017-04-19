@@ -1013,10 +1013,6 @@ void AttributeSearchThread::runGibbsSampling()
   r->_scene = snapshotToVector(newSample);
   r->_snapshot = newSample;
 
-  if (getGlobalSettings()->_iterativeSystemSelect) {
-    r->_extraData["selectedSystem"] = newSample->_metadata["selectedSystem"];
-  }
-
   // run eval functions for each sampler
   _activeSchedule->score(r, newSample);
 

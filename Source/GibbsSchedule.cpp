@@ -683,19 +683,14 @@ void IntensitySampler::sample(Snapshot * state)
       }
 
       if (localSys.size() > 0) {
-        if (getGlobalSettings()->_iterativeSystemSelect && freeSystemFound) {
-          continue;
-        }
-        else {
-          constraint.push_back(0);
-          freeSystemName = system;
-          freeSystemFound = true;
+        constraint.push_back(0);
+        freeSystemName = system;
+        freeSystemFound = true;
 
-          results.push_back(avgIntens / ct);
+        results.push_back(avgIntens / ct);
 
-          sens.push_back((float)(_systemSensitivity[system]));
-          systemMap.push_back(localSys);
-        }
+        sens.push_back((float)(_systemSensitivity[system]));
+        systemMap.push_back(localSys);
       }
       else {
         // pinned
@@ -722,10 +717,6 @@ void IntensitySampler::sample(Snapshot * state)
           stateData[id]->getIntensity()->setValAsPercent(intens);
         }
       }
-    }
-
-    if (getGlobalSettings()->_iterativeSystemSelect) {
-      state->_metadata["selectedSystem"] = freeSystemName;
     }
   }
 }
