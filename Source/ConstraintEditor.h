@@ -42,7 +42,7 @@ protected:
   Component* _parent;
 };
 
-class KeyConstraint : public ConstraintComponent, public ButtonListener
+class KeyConstraint : public ConstraintComponent
 {
 public:
   KeyConstraint(int id, Component* parent);
@@ -62,7 +62,7 @@ public:
   bool _exclusive;
 };
 
-class ExcludeConstraint : public ConstraintComponent, public ButtonListener, public ComboBoxListener {
+class ExcludeConstraint : public ConstraintComponent, public ComboBoxListener {
 public:
   ExcludeConstraint(int id, Component* parent);
   ~ExcludeConstraint();
@@ -82,7 +82,7 @@ public:
   DeviceSet _affected;
 };
 
-class RelativeConstraint : public ConstraintComponent, public ButtonListener, public SliderListener {
+class RelativeConstraint : public ConstraintComponent, public SliderListener {
 public:
   RelativeConstraint(int id, Component* parent);
   ~RelativeConstraint();
@@ -104,7 +104,7 @@ public:
   float _ratio;
 };
 
-class SaturationConstraint : public ConstraintComponent, public SliderListener, public ButtonListener {
+class SaturationConstraint : public ConstraintComponent, public SliderListener {
 public:
   SaturationConstraint(int id, Component* parent);
   ~SaturationConstraint();

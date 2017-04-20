@@ -626,8 +626,7 @@ void IntensitySampler::sample(Snapshot * state)
     vector<float> sens;
     vector<DeviceSet> systemMap;
     auto stateData = state->getRigData();
-    bool freeSystemFound = false;
-    string freeSystemName = "";
+    int keyLightCount = 0;
 
     //std::random_device rd;
     //std::mt19937 gen(rd());
@@ -649,12 +648,19 @@ void IntensitySampler::sample(Snapshot * state)
 
     set<string> systemSet = getRig()->getMetadataValues("system");
 
+    // randomize system order
     vector<string> systems;
     for (auto s : systemSet) {
       systems.push_back(s);
     }
     shuffle(systems.begin(), systems.end(), _rng);
 
+    // we now need to divide the lights up into a few different groups.
+    // With constraints, we need the following:
+    // - List of unconstrained lights
+    // - List of Key Lights
+    // - List of pinned lights
+    // - List of excluded lights and what to do with them (ignore or turn off)
     for (auto system : systems) {
       DeviceSet globalSys = getRig()->select("$system=" + system);
       DeviceSet localSys(getRig());
@@ -683,14 +689,80 @@ void IntensitySampler::sample(Snapshot * state)
       }
 
       if (localSys.size() > 0) {
-        constraint.push_back(0);
-        freeSystemName = system;
-        freeSystemFound = true;
+        // now divide the local system into the required groups if any constraints exist
+        DeviceSet unconstrained(getRig());
+        DeviceSet key(getRig());
+        DeviceSet excludedOff(getRig());
+        DeviceSet excludedIgnore(getRig());
 
-        results.push_back(avgIntens / ct);
+        for (auto id : localSys.getIds()) {
+          if (_constraints._keyLights.contains(id)) {
+            key = key.add(id);
+          }
+          else if (_constraints._excludeIgnore.contains(id)) {
+            excludedIgnore = excludedIgnore.add(id);
+          }
+          else if (_constraints._excludeTurnOff.contains(id)) {
+            excludedOff = excludedOff.add(id);
+          }
+          else {
+            unconstrained = unconstrained.add(id);
+          }
+        }
 
-        sens.push_back((float)(_systemSensitivity[system]));
-        systemMap.push_back(localSys);
+        // unconstrained
+        if (unconstrained.size() > 0) {
+          constraint.push_back(0);
+          
+          float avg = 0;
+          for (auto d : unconstrained.getDevices())
+            avg += d->getIntensity()->asPercent();
+          avg /= unconstrained.size();
+
+          results.push_back(avg);
+
+          // this is an estimate, since we're dividing up this system according to constraints now
+          sens.push_back((float)(_systemSensitivity[system]));
+          systemMap.push_back(unconstrained);
+        }
+
+        // key lights
+        if (key.size() > 0) {
+          constraint.push_back(1);
+
+          float avg = 0;
+          for (auto d : key.getDevices())
+            avg += d->getIntensity()->asPercent();
+          avg /= key.size();
+
+          results.push_back(avg);
+          sens.push_back((float)(_systemSensitivity[system]));
+          systemMap.push_back(key);
+          keyLightCount++;
+        }
+
+        // excluded off
+        if (excludedOff.size() > 0) {
+          // these do not get added to the sampler, and are turned off here
+          for (auto d : excludedOff.getDevices()) {
+            stateData[d->getId()]->setIntensity(0);
+          }
+        }
+
+        // excluded on
+        if (excludedIgnore.size() > 0) {
+          // functionally, these are pinned lights
+          constraint.push_back(3);
+
+          float avg = 0;
+          for (auto d : excludedIgnore.getDevices())
+            avg += d->getIntensity()->asPercent();
+          avg /= excludedIgnore.size();
+
+          results.push_back(avg);
+          sens.push_back((float)(_systemSensitivity[system]));
+          systemMap.push_back(excludedIgnore);
+        }
       }
       else {
         // pinned
@@ -703,9 +775,15 @@ void IntensitySampler::sample(Snapshot * state)
       }
     }
 
+    // check if key lights are to be used exclusively
+    int k = _k;
+    if (_constraints._keyLightsAreExclusive) {
+      k = keyLightCount;  // should be equal to the number of 1 constraints in the constraint vector
+    }
+
     // sample
     uniform_real_distribution<float> rnd(0, 1);
-    GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), _k, _brightMean, _mean, rnd(_rng));
+    GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), k, _brightMean, _mean, rnd(_rng));
 
     // apply to snapshot
     for (int j = 0; j < results.size(); j++) {

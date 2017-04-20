@@ -627,6 +627,12 @@ ConstraintData ConstraintContainer::getConstraintData()
     }
   }
 
+  // resolve conflicts
+  // if there's a device in both key and exclude, we put it in key
+  // if there's a device as a source or target for relative brightness, we just kinda let it do its thing
+  cd._excludeTurnOff = cd._excludeTurnOff.remove(cd._keyLights);
+  cd._excludeIgnore = cd._excludeTurnOff.remove(cd._keyLights);
+
   return cd;
 }
 
