@@ -354,12 +354,12 @@ RelativeConstraint::RelativeConstraint(int id, Component* parent) :
   ConstraintComponent(RELATIVE_BRIGHTNESS, id, parent)
 {
   _sourceSelector.setName("source");
-  _sourceSelector.setButtonText("[No Devices Selected]");
+  _sourceSelector.setButtonText("[No System Selected]");
   _sourceSelector.addListener(this);
   addAndMakeVisible(_sourceSelector);
   
   _targetSelector.setName("target");
-  _targetSelector.setButtonText("[No Devices Selected]");
+  _targetSelector.setButtonText("[No System Selected]");
   _targetSelector.addListener(this);
   addAndMakeVisible(_targetSelector);
 
@@ -368,6 +368,7 @@ RelativeConstraint::RelativeConstraint(int id, Component* parent) :
   _ratioSlider.setValue(1);
   _ratioSlider.setSliderStyle(Slider::SliderStyle::LinearHorizontal);
   _ratioSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 80, 26);
+  _ratioSlider.addListener(this);
   addAndMakeVisible(_ratioSlider);
 }
 
@@ -423,12 +424,27 @@ void RelativeConstraint::buttonClicked(Button * b)
     return;
   }
 
-  if (b->getName() == "source") {
-    showDeviceSelectMenu(b, _source);
-    updateButtonText();
-  }
-  else if (b->getName() == "target") {
-    showDeviceSelectMenu(b, _target);
+  if (b->getName() == "source" || b->getName() == "target") {
+    PopupMenu m;
+    vector<string> systems;
+    int i = 1;
+    for (auto sys : getRig()->getMetadataValues("system")) {
+      m.addItem(i, sys);
+      systems.push_back(sys);
+      i++;
+    }
+
+    int result = m.showAt(b);
+
+    if (result == 0)
+      return;
+    else {
+      if (b->getName() == "source")
+        _source = systems[result - 1];
+      else if (b->getName() == "target")
+        _target = systems[result - 1];
+    }
+
     updateButtonText();
   }
 }
@@ -441,8 +457,15 @@ void RelativeConstraint::sliderValueChanged(Slider * s)
 
 void RelativeConstraint::updateButtonText()
 {
-  _sourceSelector.setButtonText(deviceSetToString(_source));
-  _targetSelector.setButtonText(deviceSetToString(_target));
+  if (_source == "")
+    _sourceSelector.setButtonText("[No System Selected]");
+  else
+    _sourceSelector.setButtonText("System: " + _source);
+
+  if (_target == "")
+    _targetSelector.setButtonText("[No System Selected]");
+  else
+    _targetSelector.setButtonText("System: " + _target);
 }
 
 SaturationConstraint::SaturationConstraint(int id, Component* parent) :
@@ -613,9 +636,7 @@ ConstraintData ConstraintContainer::getConstraintData()
       // just start appending stuff
       RelativeConstraint* rc = (RelativeConstraint*)c;
 
-      cd._relativeSources.push_back(rc->_source);
-      cd._relativeTargets.push_back(rc->_target);
-      cd._relativeRatios.push_back(rc->_ratio);
+      cd._relative[rc->_source] = pair<string, float>(rc->_target, rc->_ratio);
     }
     else if (t == SATURATION_RANGE) {
       // also start appending things
@@ -631,7 +652,7 @@ ConstraintData ConstraintContainer::getConstraintData()
   // if there's a device in both key and exclude, we put it in key
   // if there's a device as a source or target for relative brightness, we just kinda let it do its thing
   cd._excludeTurnOff = cd._excludeTurnOff.remove(cd._keyLights);
-  cd._excludeIgnore = cd._excludeTurnOff.remove(cd._keyLights);
+  cd._excludeIgnore = cd._excludeIgnore.remove(cd._keyLights);
 
   return cd;
 }

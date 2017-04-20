@@ -99,8 +99,8 @@ public:
   TextButton _targetSelector;
   Slider _ratioSlider;
 
-  DeviceSet _source;
-  DeviceSet _target;
+  string _source;
+  string _target;
   float _ratio;
 };
 

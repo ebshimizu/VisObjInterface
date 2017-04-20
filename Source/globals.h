@@ -248,11 +248,7 @@ struct ConstraintData {
   DeviceSet _excludeIgnore;
   DeviceSet _excludeTurnOff;
 
-  // these sets will be disjoint. If a light is in both source and target,
-  // it will be taken out of target and left in source.
-  vector<DeviceSet> _relativeSources;
-  vector<DeviceSet> _relativeTargets;
-  vector<float> _relativeRatios;
+  map<string, pair<string, float>> _relative;
 
   vector<DeviceSet> _satTargets;
   vector<float> _satMin;

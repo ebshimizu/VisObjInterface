@@ -55,4 +55,22 @@ void GibbsSamplingGaussianMixturePrior(std::vector<float>& result,
   bool use_image_intensity = true,
   const float sh = 0.1,
   const float sl = 0.05);
+
+// gibbs sampler that takes dependent lights into account
+// handles new constraint option 4 - dependent
+// how option 4 works is that once the sampler encounters an index that
+// defines the value of another light, it will immediately assign the proper value
+// to that light and update the internal parameters. It will then continue sampling.
+void GibbsSamplingGaussianMixturePrior(std::vector<float>& result,
+  const std::vector<int>& c,
+  const std::vector<float>& s,
+  const int n,
+  const int k,
+  const float mh,
+  const float ma,
+  const float sparsity,
+  map<int, pair<int, float>> rel,
+  bool use_image_intensity = true,
+  const float sh = 0.1,
+  const float sl = 0.05);
 #endif
