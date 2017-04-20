@@ -482,6 +482,7 @@ SaturationConstraint::SaturationConstraint(int id, Component* parent) :
   _satSlider.setMinAndMaxValues(0, 1);
   _satSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, false, 0, 0);
   _satSlider.setPopupDisplayEnabled(true, nullptr);
+  _satSlider.addListener(this);
   addAndMakeVisible(_satSlider);
 }
 

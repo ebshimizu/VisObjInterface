@@ -298,6 +298,21 @@ void ColorSampler::sample(Snapshot * state)
         }
       }
     }
+
+    // adjust the saturation constrained devices
+    for (int i = 0; i < _constraints._satTargets.size(); i++) {
+      DeviceSet s = _constraints._satTargets[i];
+
+      for (auto id : s.getIds()) {
+        if (_devices.contains(id)) {
+          // clamp saturation
+          auto hsv = stateData[id]->getColor()->getHSV();
+
+          float sat = Lumiverse::clamp(hsv[1], _constraints._satMin[i], _constraints._satMax[i]);
+          stateData[id]->setColorHSV("color", hsv[0], sat, hsv[2]);
+        }
+      }
+    }
   }
 }
 
