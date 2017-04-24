@@ -122,6 +122,9 @@ public:
   string getType() { return "intensity"; }
 
 private:
+  // compute data that doesn't change between sampling runs
+  void preProcess();
+
   // for computing the score, the histogram of the idea
   SparseHistogram _srcBrightness;
 
@@ -133,6 +136,16 @@ private:
   map<string, vector<string>> _availableFocusPalettes;
   set<string> _focusPins;
   std::mt19937 _rng;
+
+  // parameters pre-computed for each sampler for speed
+  vector<float> _results;
+  vector<int> _constraint;
+  vector<float> _sens;
+  vector<DeviceSet> _systemMap;
+  map<int, pair<int, float>> _rel;
+  bool _preProcessComplete;
+  int _keyLightCount;
+  DeviceSet _excludedOff;
 };
 
 class MonochromeSampler : public Sampler {

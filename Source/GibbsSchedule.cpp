@@ -512,11 +512,14 @@ string PinSampler::info()
 
 IntensitySampler::IntensitySampler(DeviceSet affectedDevices, juce::Rectangle<float> region,
   set<string> intensPins, set<string> colorPins, int k, float bm, float m) :
-  Sampler(affectedDevices, region, intensPins, colorPins), _k(k), _brightMean(bm), _mean(m), _srcBrightness(1, { 0, 0.1f })
+  Sampler(affectedDevices, region, intensPins, colorPins), _k(k), _brightMean(bm),
+  _mean(m), _srcBrightness(1, { 0, 0.1f }), _preProcessComplete(false)
 {
   computeSystemSensitivity();
   std::random_device rd;
   _rng = mt19937(rd());
+
+  preProcess();
 }
 
 IntensitySampler::~IntensitySampler()
@@ -636,15 +639,7 @@ void IntensitySampler::sample(Snapshot * state)
   }
   else {
     // the sampler will sample by system
-    vector<float> results;
-    vector<int> constraint;
-    vector<float> sens;
-    vector<DeviceSet> systemMap;
     auto stateData = state->getRigData();
-    int keyLightCount = 0;
-
-    //std::random_device rd;
-    //std::mt19937 gen(rd());
 
     // for moving lights, select a focus palette for them to use at random, if unpinned
     for (auto fp : _availableFocusPalettes) {
@@ -661,208 +656,52 @@ void IntensitySampler::sample(Snapshot * state)
     // also updates the metadata for the fixture in question, the sampler should have no problem
     // properly categorizing and handling that light.
 
-    set<string> systemSet = getRig()->getMetadataValues("system");
+    // results is written to, so we'll need some local memory
+    vector<float> results;
+    results.resize(_results.size());
 
-    // determine if there are systems to use for relative constraints
-    map<string, string> relTarget;
-    for (auto c : _constraints._relative) {
-      // reverses the map
-      relTarget[c.second.first] = c.first;
-    }
-
-    // randomize system order
-    vector<string> systems;
-    for (auto s : systemSet) {
-      systems.push_back(s);
-    }
-    shuffle(systems.begin(), systems.end(), _rng);
-
-    // data structure for relative constraints
-    // [src index] : ([target index],[factor])
-    map<int, pair<int, float>> rel;
-    vector<string> sysNames;
-
-    // we now need to divide the lights up into a few different groups.
-    // With constraints, we need the following:
-    // - List of unconstrained lights
-    // - List of Key Lights
-    // - List of pinned lights
-    // - List of excluded lights and what to do with them (ignore or turn off)
-    // - List of targeted lights for a particular system
-    // Relative constraints cause some problems with the systems here and are included in
-    // the sampler in an attempt to have them actually part of the sampling process. They will
-    // be attached to the first sub-system found and will estimate their value off of that.
-    for (auto system : systems) {
-      DeviceSet globalSys = getRig()->select("$system=" + system);
-      DeviceSet localSys(getRig());
-      float avgIntens = 0;
-      int ct = 0;
-      
-      bool relAdded = false;
-      bool noDevicesInLocal = true;
-
-      for (auto id : globalSys.getIds()) {
-        if (_devices.contains(id)) {
-          avgIntens += stateData[id]->getIntensity()->asPercent();
-          ct++;
-          noDevicesInLocal = false;
-
-          if (_intensPins.count(id) == 0) {
-            localSys = localSys.add(id);
-          }
-          // some other effect if pinned
-        }
-      }
-
-      // skip if there's nothing actually in the local set
-      // from this system
-      if (noDevicesInLocal) {
-        continue;
-      }
-
-      if (localSys.size() > 0) {
-        // if this is a relative constraint target we do something different
-        if (relTarget.count(system) > 0) {
-          constraint.push_back(4);
-          results.push_back(avgIntens / ct);
-          systemMap.push_back(localSys);
-          sens.push_back(_systemSensitivity[system]);
-          sysNames.push_back(system);
-        }
-        else {
-          // now divide the local system into the required groups if any constraints exist
-          DeviceSet unconstrained(getRig());
-          DeviceSet key(getRig());
-          DeviceSet excludedOff(getRig());
-          DeviceSet excludedIgnore(getRig());
-
-          for (auto id : localSys.getIds()) {
-            if (_constraints._keyLights.contains(id)) {
-              key = key.add(id);
-            }
-            else if (_constraints._excludeIgnore.contains(id)) {
-              excludedIgnore = excludedIgnore.add(id);
-            }
-            else if (_constraints._excludeTurnOff.contains(id)) {
-              excludedOff = excludedOff.add(id);
-            }
-            else {
-              unconstrained = unconstrained.add(id);
-            }
-          }
-
-          // key lights
-          if (key.size() > 0) {
-            constraint.push_back(1);
-
-            float avg = 0;
-            for (auto d : key.getDevices())
-              avg += d->getIntensity()->asPercent();
-            avg /= key.size();
-
-            results.push_back(avg);
-            sens.push_back((float)(_systemSensitivity[system]));
-            systemMap.push_back(key);
-            sysNames.push_back(system);
-            keyLightCount++;
-          }
-
-          // unconstrained
-          if (unconstrained.size() > 0) {
-            constraint.push_back(0);
-
-            float avg = 0;
-            for (auto d : unconstrained.getDevices())
-              avg += d->getIntensity()->asPercent();
-            avg /= unconstrained.size();
-
-            results.push_back(avg);
-
-            // this is an estimate, since we're dividing up this system according to constraints now
-            sens.push_back((float)(_systemSensitivity[system]));
-            systemMap.push_back(unconstrained);
-            sysNames.push_back(system);
-          }
-
-          // excluded off
-          if (excludedOff.size() > 0) {
-            // these do not get added to the sampler, and are turned off here
-            for (auto d : excludedOff.getDevices()) {
-              stateData[d->getId()]->setIntensity(0);
-            }
-          }
-
-          // excluded on
-          if (excludedIgnore.size() > 0) {
-            // functionally, these are pinned lights
-            constraint.push_back(3);
-
-            float avg = 0;
-            for (auto d : excludedIgnore.getDevices())
-              avg += d->getIntensity()->asPercent();
-            avg /= excludedIgnore.size();
-
-            results.push_back(avg);
-            sens.push_back((float)(_systemSensitivity[system]));
-            systemMap.push_back(excludedIgnore);
-            sysNames.push_back(system);
-          }
-        }
-      }
-      else {
-        // pinned
-        constraint.push_back(3);
-
-        results.push_back(avgIntens / ct);
-
-        sens.push_back((float)(_systemSensitivity[system]));
-        systemMap.push_back(localSys);
-        sysNames.push_back(system);
-      }
-    }
-
-    // link up dependent light references
+    // we've precomputed most things in the constructor, but we need to get the average intensity for each group
+    // as well as turn off excluded devices (if any)
     for (int i = 0; i < results.size(); i++) {
-      if (constraint[i] == 4) {
-        // find the index of the FIRST entry in results that has the source system name
-        int j;
-        for (j = 0; j < results.size(); j++) {
-          if (sysNames[j] == relTarget[sysNames[i]])
-            break;
-        }
+      DeviceSet sysDevices = _systemMap[i];
+      float avg = 0;
 
-        // nothing actually found
-        if (j == results.size())
-          continue;
-
-        // src index maps to target index and factor
-        rel[j] = pair<int, float>(i, _constraints._relative[relTarget[sysNames[i]]].second);
+      for (auto id : sysDevices.getIds()) {
+        avg += stateData[id]->getIntensity()->asPercent();
       }
+
+      results[i] = avg / sysDevices.size();
+    }
+
+    for (auto id : _excludedOff.getIds()) {
+      stateData[id]->setIntensity(0);
     }
 
     // check if key lights are to be used exclusively
     int k = _k;
     if (_constraints._keyLightsAreExclusive) {
-      k = keyLightCount;  // should be equal to the number of 1 constraints in the constraint vector
+      k = _keyLightCount;  // should be equal to the number of 1 constraints in the constraint vector
     }
+
+    // randomize order of results vector? shouldn't have to, unconstrained values get shuffled anyway
 
     // sample
     uniform_real_distribution<float> rnd(0, 1);
     if (_constraints._relative.size() > 0) {
-      GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), k, _brightMean, _mean, rnd(_rng), rel);
+      GibbsSamplingGaussianMixturePrior(results, _constraint, _sens, (int)results.size(), k, _brightMean, _mean, rnd(_rng), _rel);
     }
     else {
-      GibbsSamplingGaussianMixturePrior(results, constraint, sens, (int)results.size(), k, _brightMean, _mean, rnd(_rng));
+      GibbsSamplingGaussianMixturePrior(results, _constraint, _sens, (int)results.size(), k, _brightMean, _mean, rnd(_rng));
     }
 
     // apply to snapshot
     for (int j = 0; j < results.size(); j++) {
-      if (constraint[j] == 4)
+      if (_constraint[j] == 4)
         continue;
 
       float intens = results[j];
       // apply color to each light in the system
-      for (string id : systemMap[j].getIds()) {
+      for (string id : _systemMap[j].getIds()) {
         if (_intensPins.count(id) == 0 && stateData[id]->paramExists("intensity")) {
           stateData[id]->getIntensity()->setValAsPercent(intens);
         }
@@ -969,6 +808,176 @@ string IntensitySampler::info()
   info << "Average: " << _mean << ", Bright: " << _brightMean << ", Bright Lights: " << _k << "\n";
   info << "Devices: " << getAffectedDevices();
   return info.toStdString();
+}
+
+void IntensitySampler::preProcess()
+{
+  if (_preProcessComplete)
+    return;
+
+  // compute common data. this function creates the constraint vector,
+  // results vector, stores data about the systems involved, and handles constraints.
+  // Since this data does not change from run to run, we should only
+  // need to run this once.
+  // note that the results vector gets filled in during every search, but we only need to compute
+  // average intensity, and since we already have the groups, it's easy
+  set<string> systemSet = getRig()->getMetadataValues("system");
+  _keyLightCount = 0;
+  _excludedOff = DeviceSet(getRig());
+
+  // determine if there are systems to use for relative constraints
+  map<string, string> relTarget;
+  for (auto c : _constraints._relative) {
+    // reverses the map
+    relTarget[c.second.first] = c.first;
+  }
+
+  vector<string> systems;
+  for (auto s : systemSet) {
+    systems.push_back(s);
+  }
+
+  // data structure for relative constraints
+  // [src index] : ([target index],[factor])
+  vector<string> sysNames;
+
+  // we now need to divide the lights up into a few different groups.
+  // With constraints, we need the following:
+  // - List of unconstrained lights
+  // - List of Key Lights
+  // - List of pinned lights
+  // - List of excluded lights and what to do with them (ignore or turn off)
+  // - List of targeted lights for a particular system
+  // Relative constraints cause some problems with the systems here and are included in
+  // the sampler in an attempt to have them actually part of the sampling process. They will
+  // be attached to the first sub-system found and will estimate their value off of that.
+  for (auto system : systems) {
+    DeviceSet globalSys = getRig()->select("$system=" + system);
+    DeviceSet localSys(getRig());
+
+    bool relAdded = false;
+    bool noDevicesInLocal = true;
+
+    for (auto id : globalSys.getIds()) {
+      if (_devices.contains(id)) {
+        noDevicesInLocal = false;
+
+        if (_intensPins.count(id) == 0) {
+          localSys = localSys.add(id);
+        }
+        // some other effect if pinned
+      }
+    }
+
+    // skip if there's nothing actually in the local set
+    // from this system
+    if (noDevicesInLocal) {
+      continue;
+    }
+
+    if (localSys.size() > 0) {
+      // if this is a relative constraint target we do something different
+      if (relTarget.count(system) > 0) {
+        _constraint.push_back(4);
+        _results.push_back(0);
+        _systemMap.push_back(localSys);
+        _sens.push_back(_systemSensitivity[system]);
+        sysNames.push_back(system);
+      }
+      else {
+        // now divide the local system into the required groups if any constraints exist
+        DeviceSet unconstrained(getRig());
+        DeviceSet key(getRig());
+        DeviceSet excludedOff(getRig());
+        DeviceSet excludedIgnore(getRig());
+
+        for (auto id : localSys.getIds()) {
+          if (_constraints._keyLights.contains(id)) {
+            key = key.add(id);
+          }
+          else if (_constraints._excludeIgnore.contains(id)) {
+            excludedIgnore = excludedIgnore.add(id);
+          }
+          else if (_constraints._excludeTurnOff.contains(id)) {
+            excludedOff = excludedOff.add(id);
+          }
+          else {
+            unconstrained = unconstrained.add(id);
+          }
+        }
+
+        // key lights
+        if (key.size() > 0) {
+          _constraint.push_back(1);
+          _results.push_back(0);
+          _sens.push_back((float)(_systemSensitivity[system]));
+          _systemMap.push_back(key);
+          sysNames.push_back(system);
+          _keyLightCount++;
+        }
+
+        // unconstrained
+        if (unconstrained.size() > 0) {
+          _constraint.push_back(0);
+          _results.push_back(0);
+          // this is an estimate, since we're dividing up this system according to constraints now
+          _sens.push_back((float)(_systemSensitivity[system]));
+          _systemMap.push_back(unconstrained);
+          sysNames.push_back(system);
+        }
+
+        // excluded off
+        if (excludedOff.size() > 0) {
+          _excludedOff = _excludedOff.add(excludedOff);
+        }
+
+        // excluded on
+        if (excludedIgnore.size() > 0) {
+          // functionally, these are pinned lights
+          _constraint.push_back(3);
+          _results.push_back(0);
+          _sens.push_back((float)(_systemSensitivity[system]));
+          _systemMap.push_back(excludedIgnore);
+          sysNames.push_back(system);
+        }
+      }
+    }
+    else {
+      // pinned
+      _constraint.push_back(3);
+      _results.push_back(0);
+      _sens.push_back((float)(_systemSensitivity[system]));
+      _systemMap.push_back(localSys);
+      sysNames.push_back(system);
+    }
+  }
+
+  // link up dependent light references
+  for (int i = 0; i < _results.size(); i++) {
+    if (_constraint[i] == 4) {
+      // find the index of the FIRST entry in results that has the source system name
+      int j;
+      for (j = 0; j < _results.size(); j++) {
+        if (sysNames[j] == relTarget[sysNames[i]])
+          break;
+      }
+
+      // nothing actually found
+      if (j == _results.size())
+        continue;
+
+      // src index maps to target index and factor
+      _rel[j] = pair<int, float>(i, _constraints._relative[relTarget[sysNames[i]]].second);
+    }
+  }
+
+  // check if key lights are to be used exclusively
+  int k = _k;
+  if (_constraints._keyLightsAreExclusive) {
+    k = _keyLightCount;  // should be equal to the number of 1 constraints in the constraint vector
+  }
+
+  _preProcessComplete = true;
 }
 
 MonochromeSampler::MonochromeSampler(DeviceSet affectedDevices, juce::Rectangle<float> region,
