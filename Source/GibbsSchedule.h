@@ -121,9 +121,10 @@ public:
   string info() override;
   string getType() { return "intensity"; }
 
-private:
   // compute data that doesn't change between sampling runs
   void preProcess();
+
+private:
 
   // for computing the score, the histogram of the idea
   SparseHistogram _srcBrightness;
@@ -211,6 +212,9 @@ public:
 
   // copies over the constraint data to each sampler
   void addConstraints(ConstraintData cd);
+
+  // runs preprocessing if necessary
+  void init();
 
 private:
   default_random_engine _gen;

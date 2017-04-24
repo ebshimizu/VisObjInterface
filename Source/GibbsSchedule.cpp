@@ -518,8 +518,6 @@ IntensitySampler::IntensitySampler(DeviceSet affectedDevices, juce::Rectangle<fl
   computeSystemSensitivity();
   std::random_device rd;
   _rng = mt19937(rd());
-
-  preProcess();
 }
 
 IntensitySampler::~IntensitySampler()
@@ -1333,6 +1331,16 @@ void GibbsSchedule::addConstraints(ConstraintData cd)
 {
   for (auto s : _samplers) {
     s->_constraints = cd;
+  }
+}
+
+void GibbsSchedule::init()
+{
+  for (auto s : _samplers) {
+    if (s->getType() == "intensity") {
+      IntensitySampler* is = dynamic_cast<IntensitySampler*>(s);
+      is->preProcess();
+    }
   }
 }
 
