@@ -468,11 +468,11 @@ void GlobalSettings::loadSettings()
       else if (name == "maxGradIters")
         _maxGradIters = it->as_int();
       else if (name == "primaryDivisiveThreshold")
-        _primaryDivisiveThreshold = it->as_float();
+        _primaryDivisiveThreshold = (float)it->as_float();
       else if (name == "secondaryDivisiveThreshold")
-        _secondaryDivisiveThreshold = it->as_float();
+        _secondaryDivisiveThreshold = (float)it->as_float();
       else if (name == "evWeight")
-        _evWeight = it->as_float();
+        _evWeight = (float)it->as_float();
       else if (name == "resampleTime")
         _resampleTime = it->as_int();
       else if (name == "resampleThreads")

@@ -52,7 +52,7 @@ void SystemFilter::paintListBoxItem(int rowNumber, Graphics & g, int width, int 
   g.drawText(_systems[rowNumber], 2, 0, width - 4, height, Justification::centredLeft, true);
 }
 
-void SystemFilter::selectedRowsChanged(int lastRowSelected)
+void SystemFilter::selectedRowsChanged(int /* lastRowSelected */)
 {
 
 }
@@ -62,7 +62,7 @@ void SystemFilter::resized()
   _list.setBounds(getLocalBounds());
 }
 
-void SystemFilter::listBoxItemClicked(int row, const MouseEvent & e)
+void SystemFilter::listBoxItemClicked(int row, const MouseEvent & /*e*/)
 {
   if (_list.isRowSelected(row)) {
     _filter.insert(_systems[row].toStdString());

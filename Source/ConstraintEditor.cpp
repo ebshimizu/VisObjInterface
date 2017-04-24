@@ -561,7 +561,7 @@ void ConstraintContainer::resized()
   }
 }
 
-void ConstraintContainer::paint(Graphics & g)
+void ConstraintContainer::paint(Graphics & /*g*/)
 {
 }
 
@@ -708,7 +708,7 @@ void ConstraintEditor::resized()
 
 void ConstraintEditor::addConstraint(ConstraintType t)
 {
-  ConstraintComponent* c;
+  ConstraintComponent* c = nullptr;
 
   switch (t) {
   case KEY:
@@ -726,6 +726,9 @@ void ConstraintEditor::addConstraint(ConstraintType t)
   default:
     break;
   }
+
+  if (c == nullptr)
+    return;
 
   c->setBounds(0, 0, getLocalBounds().getWidth(), 150);
   _cc->addConstraint(c);
@@ -752,7 +755,6 @@ ConstraintData ConstraintEditor::getConstraintData()
 void ConstraintEditor::buttonClicked(Button * b)
 {
   if (b->getName() == "add") {
-    // TODO: Use popup menu instead of hardcoded single type
     PopupMenu options;
     options.addItem(1, "Key Light");
     options.addItem(2, "Exclude Lights");

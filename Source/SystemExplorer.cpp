@@ -65,20 +65,20 @@ void SystemExplorer::addNewResult(shared_ptr<SearchResultContainer> result)
   // SHORT CIRCUIT BECAUSE THIS ELEMENT IS NOW HIDDEN
   return;
 
-  auto nr = shared_ptr<SearchResultContainer>(new SearchResultContainer(shared_ptr<SearchResult>(result->getSearchResult())));
-  nr->setSystem(_selected);
+  //auto nr = shared_ptr<SearchResultContainer>(new SearchResultContainer(shared_ptr<SearchResult>(result->getSearchResult())));
+  //nr->setSystem(_selected);
 
-  // check similarity before adding, if too similar, reject
-  // we check similarity against L2 parameter norm filtered by active devices
-  for (auto r : _container->_results) {
-    if (filteredDist(r, nr) < _distThreshold)
-      return;
-  }
+  //// check similarity before adding, if too similar, reject
+  //// we check similarity against L2 parameter norm filtered by active devices
+  //for (auto r : _container->_results) {
+  //  if (filteredDist(r, nr) < _distThreshold)
+  //    return;
+  //}
 
-  _container->addAndMakeVisible(nr.get());
-  updateSingleImage(nr);
-  _container->_results.add(nr);
-  resized();
+  //_container->addAndMakeVisible(nr.get());
+  //updateSingleImage(nr);
+  //_container->_results.add(nr);
+  //resized();
 }
 
 void SystemExplorer::updateAllImages(Snapshot* rigState)
