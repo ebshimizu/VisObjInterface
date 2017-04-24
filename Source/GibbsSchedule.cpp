@@ -1264,18 +1264,20 @@ void GibbsSchedule::deleteSamplers()
 
 void GibbsSchedule::score(shared_ptr<SearchResult> result, Snapshot* state)
 {
-  int width = getGlobalSettings()->_renderWidth;
-  int height = getGlobalSettings()->_renderHeight;
-  Image render = renderImage(state, (int)(getGlobalSettings()->_thumbnailRenderScale * width),
-    (int)(getGlobalSettings()->_thumbnailRenderScale * height));
+  return;
 
-  for (auto s : _samplers) {
-    if (s->_name == "Pinned")
-      continue;
+  //int width = getGlobalSettings()->_renderWidth;
+  //int height = getGlobalSettings()->_renderHeight;
+  //Image render = renderImage(state, (int)(getGlobalSettings()->_thumbnailRenderScale * width),
+  //  (int)(getGlobalSettings()->_thumbnailRenderScale * height));
 
-    result->_extraFuncs[s->_name] = s->score(state, render, false);
-    result->_extraFuncs[s->_name + " - foreground"] = s->score(state, render, true);
-  }
+  //for (auto s : _samplers) {
+  //  if (s->_name == "Pinned")
+  //    continue;
+
+  //  result->_extraFuncs[s->_name] = s->score(state, render, false);
+  //  result->_extraFuncs[s->_name + " - foreground"] = s->score(state, render, true);
+  //}
 }
 
 Snapshot * GibbsSchedule::sample(Snapshot * state)

@@ -226,7 +226,7 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
 
   _sortButton = new TextButton("Sort", "Sort the search results according to the selected sort method");
   _sortButton->addListener(this);
-  addAndMakeVisible(_sortButton);
+  //addAndMakeVisible(_sortButton);
 
   _setKeyButton = new TextButton("Key Lights", "Sets Key Lights used for Clustering");
   _setKeyButton->addListener(this);
@@ -241,7 +241,7 @@ AttributeControls::AttributeControls() : _tabs(TabbedButtonBar::Orientation::Tab
   _sort->addListener(this);
   _sort->setEditableText(false);
   _sort->setSelectedId(0);
-  addAndMakeVisible(_sort);
+  //addAndMakeVisible(_sort);
 
   // tab setup
   addAndMakeVisible(_tabs);
@@ -295,14 +295,14 @@ void AttributeControls::resized()
 
   auto botBounds = lbounds.removeFromBottom(30);
   _search->setBounds(botBounds.removeFromRight(80).reduced(5));
-  _sortButton->setBounds(botBounds.removeFromRight(80).reduced(5));
+  //_sortButton->setBounds(botBounds.removeFromRight(80).reduced(5));
   _reset.setBounds(botBounds.removeFromRight(80).reduced(5));
   //_clusterButton->setBounds(botBounds.removeFromRight(80).reduced(5));
   //_setKeyButton->setBounds(botBounds.removeFromRight(80).reduced(5));
 
   auto botRow2 = lbounds.removeFromBottom(30);
   botRow2.removeFromLeft(80);
-  _sort->setBounds(botRow2.reduced(5));
+  //_sort->setBounds(botRow2.reduced(5));
 
   _tabs.setBounds(lbounds);
   _history->setWidth(_historyViewer->getMaximumVisibleWidth());
