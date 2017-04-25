@@ -92,6 +92,8 @@ PopupMenu ConstraintComponent::getSelectorMenu(map<int, string>& cmdOut)
   i++;
   all.addItem(i, "Custom Query...");
   i++;
+  all.addItem(i, "Use Eos Selection");
+  i++;
 
   PopupMenu area;
 
@@ -178,6 +180,27 @@ void ConstraintComponent::showDeviceSelectMenu(Button * b, DeviceSet& d)
       // this is the item they selected
       auto query = w.getTextEditorContents("query");
       d = getRig()->select(query.toStdString());
+    }
+  }
+  else if (result == 4) {
+    // Eos selection
+    // find an OSC patch
+    auto patches = getRig()->getPatches();
+
+    for (auto p : patches) {
+      // use first found OSC patch
+      if (p.second->getType() == "osc") {
+        set<int> channels = dynamic_cast<OscPatch*>(p.second)->getEosSelection();
+
+        // put channels into device set.
+        DeviceSet ds(getRig());
+        for (auto chan : channels) {
+          ds = ds.add(chan);
+        }
+
+        d = ds;
+        return;
+      }
     }
   }
   else {

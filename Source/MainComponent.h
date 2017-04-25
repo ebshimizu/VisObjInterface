@@ -118,6 +118,8 @@ public:
   void setSelectedDevicesTo(float val);
   void setSelectedColorTo(float r, float g, float b);
 
+  void getEosSelection();
+
 private:
   // Open a Lumiverse file
   void openRig();

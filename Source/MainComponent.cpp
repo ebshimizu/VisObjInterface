@@ -132,7 +132,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::TOGGLE_SELECT_VIEW, command::INTERFACE_OLD, command::INTERFACE_NEW, command::INTERFACE_ALL,
     command::RESET_TIMER, command::SHOW_PROMPT, command::COPY_DEVICE, command::PASTE_ALL, command::PASTE_COLOR,
     command::PASTE_INTENS, command::SET_TO_FULL, command::SET_TO_OFF, command::SET_TO_WHITE,
-    command::SYNC, command::ABOUT
+    command::SYNC, command::ABOUT, command::SYNC_SELECT
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -346,6 +346,10 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
   case command::ABOUT:
     result.setInfo("About", "About the application", "Window", 0);
     break;
+  case command::SYNC_SELECT:
+    result.setInfo("Get Eos Selection", "Selects the channel numbers selected by Eos", "Edit", 0);
+    result.addDefaultKeypress('e', ModifierKeys::noModifiers);
+    break;
   default:
     return;
   }
@@ -528,6 +532,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::ABOUT:
     about();
+    break;
+  case command::SYNC_SELECT:
+    getEosSelection();
     break;
   default:
     return false;
@@ -853,6 +860,29 @@ void MainContentComponent::setSelectedColorTo(float r, float g, float b)
 
   _attrs->refresh();
   _attrs->repaint();
+}
+
+void MainContentComponent::getEosSelection()
+{
+  // find an OSC patch
+  auto patches = getRig()->getPatches();
+
+  for (auto p : patches) {
+    // use first found OSC patch
+    if (p.second->getType() == "osc") {
+      set<int> channels = dynamic_cast<OscPatch*>(p.second)->getEosSelection();
+
+      // put channels into device set.
+      DeviceSet ds(getRig());
+      for (auto chan : channels) {
+        ds = ds.add(chan);
+      }
+
+      // set selection in params
+      _attrs->getParamController()->setSelectedIds(ds);
+      break;
+    }
+  }
 }
 
 void MainContentComponent::openRig() {
