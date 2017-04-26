@@ -1483,6 +1483,40 @@ void SearchResultsContainer::setExplorerPanel(ExplorerPanel * exp)
   _exp = exp;
 }
 
+void SearchResultsContainer::saveTopLevelResults()
+{
+  // folder selection menus n stuff
+  FileChooser fc("Image Export Directory",
+    File::getCurrentWorkingDirectory(), "", true);
+
+  if (fc.browseForDirectory())
+  {
+    File folder = fc.getResult();
+    String fileBaseName = folder.getFileName();
+    
+    // export top level clusters
+    int i = 0;
+    for (auto c : _unclusteredResults->getAllResults()) {
+      File img = folder.getChildFile(fileBaseName + "_" + String(c->getSearchResult()->_sampleNo) + ".png");
+      FileOutputStream os(img);
+      PNGImageFormat pngif;
+
+      // full re-render
+      auto p = getAnimationPatch();
+      Image highRes = Image(Image::ARGB, getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight, true);
+      uint8* bufptr = Image::BitmapData(highRes, Image::BitmapData::readWrite).getPixelPointer(0, 0);
+      p->setDims(getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
+
+      getAnimationPatch()->renderSingleFrameToBuffer(c->getSearchResult()->_snapshot->getDevices(), bufptr,
+        getGlobalSettings()->_renderWidth, getGlobalSettings()->_renderHeight);
+
+      pngif.writeImageToStream(highRes, os);
+
+      i++;
+    }
+  }
+}
+
 void SearchResultsContainer::writeMetadata(std::ofstream &statsFile, SearchMetadata &md)
 {
 	statsFile << "Cluster mode: " << md._mode << "\n";

@@ -97,6 +97,7 @@ PopupMenu MainMenu::getMenuForIndex(int topLevelMenuIndex, const String& /* menu
   else if (topLevelMenuIndex == 3) {
     menu.addCommandItem(cm, command::SAVE_RESULTS);
     menu.addCommandItem(cm, command::LOAD_RESULTS);
+    menu.addCommandItem(cm, command::SAVE_TOP_LEVEL_RESULTS);
     menu.addSeparator();
     menu.addCommandItem(cm, command::LOAD_TRACES);
     menu.addCommandItem(cm, command::PICK_TRACE);

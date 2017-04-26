@@ -132,7 +132,7 @@ void MainContentComponent::getAllCommands(Array<CommandID>& commands)
     command::TOGGLE_SELECT_VIEW, command::INTERFACE_OLD, command::INTERFACE_NEW, command::INTERFACE_ALL,
     command::RESET_TIMER, command::SHOW_PROMPT, command::COPY_DEVICE, command::PASTE_ALL, command::PASTE_COLOR,
     command::PASTE_INTENS, command::SET_TO_FULL, command::SET_TO_OFF, command::SET_TO_WHITE,
-    command::SYNC, command::ABOUT, command::SYNC_SELECT
+    command::SYNC, command::ABOUT, command::SYNC_SELECT, command::SAVE_TOP_LEVEL_RESULTS
   };
 
   commands.addArray(ids, numElementsInArray(ids));
@@ -350,6 +350,9 @@ void MainContentComponent::getCommandInfo(CommandID commandID, ApplicationComman
     result.setInfo("Get Eos Selection", "Selects the channel numbers selected by Eos", "Edit", 0);
     result.addDefaultKeypress('e', ModifierKeys::noModifiers);
     break;
+  case command::SAVE_TOP_LEVEL_RESULTS:
+    result.setInfo("Save Top Result Images...", "Saves the top displayed results in the result set.", "Analyze", 0);
+    break;
   default:
     return;
   }
@@ -535,6 +538,9 @@ bool MainContentComponent::perform(const InvocationInfo & info)
     break;
   case command::SYNC_SELECT:
     getEosSelection();
+    break;
+  case command::SAVE_TOP_LEVEL_RESULTS:
+    _search->getContainer()->saveTopLevelResults();
     break;
   default:
     return false;

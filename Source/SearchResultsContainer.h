@@ -149,6 +149,9 @@ public:
   void updateAllImages();
   void setExplorerPanel(ExplorerPanel* exp);
 
+  // saves renders of the top level results to the specified folder
+  void saveTopLevelResults();
+
 private:
   // All results contains every result in the container. It should only be deleted at the top
   // level of the container hierarchy, which looks like:
