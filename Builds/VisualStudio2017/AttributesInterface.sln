@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2015
+# Visual Studio 2017
 
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AttributesInterface - App", "AttributesInterface_App.vcxproj", "{495D5CC1-8832-F01D-6958-9C3036AD2C44}"
 EndProject

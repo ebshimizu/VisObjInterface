@@ -8,7 +8,7 @@
     <key>CFBundleIconFile</key>
     <string></string>
     <key>CFBundleIdentifier</key>
-    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <string>edu.cmu.cs.AttributeInterface</string>
     <key>CFBundleName</key>
     <string>AttributesInterface</string>
     <key>CFBundleDisplayName</key>
@@ -22,7 +22,7 @@
     <key>CFBundleVersion</key>
     <string>0.17.1</string>
     <key>NSHumanReadableCopyright</key>
-    <string>Carnegie Mellon University</string>
+    <string></string>
     <key>NSHighResolutionCapable</key>
     <true/>
   </dict>
