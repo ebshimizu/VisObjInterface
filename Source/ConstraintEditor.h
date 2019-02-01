@@ -15,7 +15,7 @@
 #include "ColoredTextButton.h"
 
 // Constraint Components provide an interface to edit relative constraints for the given search
-class ConstraintComponent : public Component, public ButtonListener
+class ConstraintComponent : public Component, public Button::Listener
 {
 public:
   ConstraintComponent(ConstraintType t, int id, Component* parent);
@@ -62,7 +62,7 @@ public:
   bool _exclusive;
 };
 
-class ExcludeConstraint : public ConstraintComponent, public ComboBoxListener {
+class ExcludeConstraint : public ConstraintComponent, public ComboBox::Listener {
 public:
   ExcludeConstraint(int id, Component* parent);
   ~ExcludeConstraint();
@@ -82,7 +82,7 @@ public:
   DeviceSet _affected;
 };
 
-class RelativeConstraint : public ConstraintComponent, public SliderListener {
+class RelativeConstraint : public ConstraintComponent, public Slider::Listener {
 public:
   RelativeConstraint(int id, Component* parent);
   ~RelativeConstraint();
@@ -104,7 +104,7 @@ public:
   float _ratio;
 };
 
-class SaturationConstraint : public ConstraintComponent, public SliderListener {
+class SaturationConstraint : public ConstraintComponent, public Slider::Listener {
 public:
   SaturationConstraint(int id, Component* parent);
   ~SaturationConstraint();
@@ -144,7 +144,7 @@ public:
   Array<ConstraintComponent*> _constraints;
 };
 
-class ConstraintEditor : public Component, public ButtonListener
+class ConstraintEditor : public Component, public Button::Listener
 {
 public:
   ConstraintEditor();

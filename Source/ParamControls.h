@@ -15,7 +15,7 @@
 #include "globals.h"
 #include "ColoredTextButton.h"
 
-class FloatPropertySlider : public SliderPropertyComponent
+class FloatPropertySlider : public SliderPropertyComponent, protected Slider::Listener
 {
 public:
   FloatPropertySlider(string id, string param, LumiverseFloat* val);
@@ -34,7 +34,7 @@ private:
   string _param;
 };
 
-class OrientationPropertySlider : public SliderPropertyComponent
+class OrientationPropertySlider : public SliderPropertyComponent, protected Slider::Listener
 {
 public:
   OrientationPropertySlider(string id, string param, LumiverseOrientation* val);

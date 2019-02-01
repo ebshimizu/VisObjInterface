@@ -28,7 +28,7 @@ png_set_sig_bytes(png_structrp png_ptr, int num_bytes)
 {
    png_debug(1, "in png_set_sig_bytes");
 
-   if (png_ptr == NULL)
+if (png_ptr == NULL)
       return;
 
    if (num_bytes > 8)
@@ -2863,7 +2863,7 @@ png_ascii_from_fp(png_const_structrp png_ptr, png_charp ascii, png_size_t size,
                   fp = 0; /* Guarantees termination below. */
                }
 
-               if (d == 0)
+               if (d == 0.0)
                {
                   ++czero;
                   if (cdigits == 0) ++clead;

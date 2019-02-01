@@ -476,7 +476,7 @@ void SystemExplorer::toggleIntensPin()
   }
 
   _intensPin.setToggleState(_isIntensPinned, dontSendNotification);
-  getRecorder()->log(ACTION, "Intensity lock for " + getName().toStdString() + " set to " + String(_isIntensPinned).toStdString());
+  getRecorder()->log(ACTION, "Intensity lock for " + getName().toStdString() + " set to ");
   getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, true);
 }
 
@@ -503,7 +503,7 @@ void SystemExplorer::toggleColorPin()
   }
 
   _colorPin.setToggleState(_isColorPinned, dontSendNotification);
-  getRecorder()->log(ACTION, "Color lock for " + getName().toStdString() + " set to " + String(_isColorPinned).toStdString());
+  getRecorder()->log(ACTION, "Color lock for " + getName().toStdString() + " set to ");
   getApplicationCommandManager()->invokeDirectly(command::REFRESH_PARAMS, true);
 }
 
@@ -725,7 +725,7 @@ void SystemExplorer::SystemExplorerResults::resized()
   }
 }
 
-SystemExplorer::ParamShifter::ParamShifter(SliderListener* listener)
+SystemExplorer::ParamShifter::ParamShifter(Slider::Listener* listener)
 {
   _intens.setName("intens shift");
   _hue.setName("hue shift");

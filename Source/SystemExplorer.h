@@ -21,8 +21,8 @@ class SearchResultsContainer;
 // In each explorer, the specified system is displayed with all other locked lights
 // in the rig. When a result is chosen, the specified system is locked and all other
 // views are updated
-class SystemExplorer : public Component, public ComboBoxListener, public ButtonListener,
-  public SliderListener, public ChangeListener
+class SystemExplorer : public Component, public ComboBox::Listener, public Button::Listener,
+  public Slider::Listener, public ChangeListener
 {
 public:
   SystemExplorer(string name, string system);
@@ -99,7 +99,7 @@ private:
 
   class ParamShifter : public Component {
   public:
-    ParamShifter(SliderListener* listener);
+    ParamShifter(Slider::Listener* listener);
 
     void resized() override;
     void paint(Graphics& g) override;
@@ -143,7 +143,7 @@ private:
   double _distThreshold;
 };
 
-class SystemExplorerContainer : public Component, public ButtonListener
+class SystemExplorerContainer : public Component, public Button::Listener
 {
 public:
   SystemExplorerContainer(SearchResultsContainer* c);
@@ -188,7 +188,7 @@ private:
   };
 };
 
-class ExplorerPanel : public Component, public ButtonListener
+class ExplorerPanel : public Component, public Button::Listener
 {
 public:
   ExplorerPanel();

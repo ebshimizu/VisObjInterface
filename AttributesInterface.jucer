@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="eoLPJP" name="AttributesInterface" projectType="guiapp" version="0.17.1"
               bundleIdentifier="edu.cmu.cs.AttributeInterface" includeBinaryInAppConfig="1"
-              jucerVersion="4.3.1" companyName="Carnegie Mellon University"
+              jucerVersion="5.4.1" companyName="Carnegie Mellon University"
               companyWebsite="cs.cmu.edu" companyEmail="eshimizu@cs.cmu.edu">
   <MAINGROUP id="upFVKV" name="AttributesInterface">
     <GROUP id="{E33A23C0-94A8-8A6D-0624-83F1C8438329}" name="Source">
@@ -231,19 +231,19 @@
                        useRuntimeLibDLL="1" alwaysGenerateDebugSymbols="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_video" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_video"/>
-        <MODULEPATH id="juce_opengl" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_opengl"/>
-        <MODULEPATH id="juce_gui_extra" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_gui_extra"/>
-        <MODULEPATH id="juce_gui_basics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_gui_basics"/>
-        <MODULEPATH id="juce_graphics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_graphics"/>
-        <MODULEPATH id="juce_events" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_events"/>
-        <MODULEPATH id="juce_data_structures" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_data_structures"/>
-        <MODULEPATH id="juce_cryptography" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_cryptography"/>
-        <MODULEPATH id="juce_core" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_core"/>
-        <MODULEPATH id="juce_audio_processors" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_audio_processors"/>
-        <MODULEPATH id="juce_audio_formats" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_audio_formats"/>
-        <MODULEPATH id="juce_audio_devices" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_audio_devices"/>
-        <MODULEPATH id="juce_audio_basics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_audio_basics"/>
+        <MODULEPATH id="juce_video" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_opengl" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_cryptography" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_basics" path="..\juce-5.4.1-windows\JUCE\modules"/>
       </MODULEPATHS>
     </VS2015>
     <VS2015 targetFolder="Builds/VisualStudio2015NoArnold" externalLibraries="LumiverseCore.lib&#10;LumiverseShowControl.lib&#10;libjson.lib&#10;clp.lib&#10;libpng16_static.lib&#10;ftd2xx.lib&#10;zlibstatic.lib&#10;IlmImf-2_2.lib&#10;Iex-2_2.lib&#10;IlmThread-2_2.lib&#10;Imath-2_2.lib&#10;IexMath-2_2.lib&#10;Half.lib"
@@ -261,19 +261,19 @@
                        alwaysGenerateDebugSymbols="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_video" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_video"/>
-        <MODULEPATH id="juce_opengl" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_opengl"/>
-        <MODULEPATH id="juce_gui_extra" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_gui_extra"/>
-        <MODULEPATH id="juce_gui_basics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_gui_basics"/>
-        <MODULEPATH id="juce_graphics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_graphics"/>
-        <MODULEPATH id="juce_events" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_events"/>
-        <MODULEPATH id="juce_data_structures" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_data_structures"/>
-        <MODULEPATH id="juce_cryptography" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_cryptography"/>
-        <MODULEPATH id="juce_core" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_core"/>
-        <MODULEPATH id="juce_audio_processors" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_audio_processors"/>
-        <MODULEPATH id="juce_audio_formats" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_audio_formats"/>
-        <MODULEPATH id="juce_audio_devices" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_audio_devices"/>
-        <MODULEPATH id="juce_audio_basics" path="..\..\..\..\..\..\Documents\GitHub\JUCE\modules\juce_audio_basics"/>
+        <MODULEPATH id="juce_video" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_opengl" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_cryptography" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_basics" path="..\juce-5.4.1-windows\JUCE\modules"/>
       </MODULEPATHS>
     </VS2015>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="LumiverseCore&#10;LumiverseShowControl&#10;libjson&#10;clp&#10;png&#10;z&#10;IlmImf-2_2&#10;Iex-2_2&#10;IlmThread-2_2&#10;Imath-2_2&#10;IexMath-2_2&#10;Half">
@@ -284,38 +284,64 @@
                        osxSDK="10.10 SDK" osxCompatibility="10.10 SDK"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_video" path="../JUCE/modules/juce_video"/>
-        <MODULEPATH id="juce_opengl" path="../JUCE/modules/juce_opengl"/>
-        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules/juce_gui_extra"/>
-        <MODULEPATH id="juce_gui_basics" path="../JUCE/modules/juce_gui_basics"/>
-        <MODULEPATH id="juce_graphics" path="../JUCE/modules/juce_graphics"/>
-        <MODULEPATH id="juce_events" path="../JUCE/modules/juce_events"/>
-        <MODULEPATH id="juce_data_structures" path="../JUCE/modules/juce_data_structures"/>
-        <MODULEPATH id="juce_cryptography" path="../JUCE/modules/juce_cryptography"/>
-        <MODULEPATH id="juce_core" path="../JUCE/modules/juce_core"/>
-        <MODULEPATH id="juce_audio_processors" path="../JUCE/modules/juce_audio_processors"/>
-        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules/juce_audio_formats"/>
-        <MODULEPATH id="juce_audio_devices" path="../JUCE/modules/juce_audio_devices"/>
+        <MODULEPATH id="juce_video" path="../JUCE/modules/juce_audio_basics"/>
+        <MODULEPATH id="juce_opengl" path="../JUCE/modules/juce_audio_basics"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules/juce_audio_basics"/>
+        <MODULEPATH id="juce_gui_basics" path="../JUCE/modules/juce_audio_basics"/>
+        <MODULEPATH id="juce_graphics" path="../JUCE/modules/juce_audio_basics"/>
+        <MODULEPATH id="juce_events" path="../JUCE/modules/juce_audio_basics"/>
+        <MODULEPATH id="juce_data_structures" path="../JUCE/modules/juce_audio_basics"/>
+        <MODULEPATH id="juce_cryptography" path="../JUCE/modules/juce_audio_basics"/>
+        <MODULEPATH id="juce_core" path="../JUCE/modules/juce_audio_basics"/>
+        <MODULEPATH id="juce_audio_processors" path="../JUCE/modules/juce_audio_basics"/>
+        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules/juce_audio_basics"/>
+        <MODULEPATH id="juce_audio_devices" path="../JUCE/modules/juce_audio_basics"/>
         <MODULEPATH id="juce_audio_basics" path="../JUCE/modules/juce_audio_basics"/>
       </MODULEPATHS>
     </XCODE_MAC>
+    <VS2017 targetFolder="Builds/VisualStudio2017" externalLibraries="LumiverseCore.lib&#10;LumiverseShowControl.lib&#10;libjson.lib&#10;clp.lib&#10;libpng16_static.lib&#10;ftd2xx.lib&#10;zlibstatic.lib&#10;IlmImf-2_2.lib&#10;Iex-2_2.lib&#10;IlmThread-2_2.lib&#10;Imath-2_2.lib&#10;IexMath-2_2.lib&#10;Half.lib"
+            extraDefs="NOMINMAX">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\zlib\include&#10;C:\Program Files\CURL\include&#10;C:\Program Files\CURLCPP\include&#10;C:\Program Files\openexr\Debug\include"
+                       libraryPath="C:\Program Files\Lumiverse\Debug\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib&#10;C:\Program Files\CURL\lib\Debug&#10;C:\Program Files\CURLCPP\lib\Debug&#10;C:\Program Files\ilmbase\Debug\lib&#10;C:\Program Files\openexr\Debug\lib"
+                       defines="NOMINMAX"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="C:\Program Files\Lumiverse\include&#10;C:\Program Files\libpng\include&#10;C:\Program Files\zlib\include&#10;C:\Program Files\CURL\include&#10;C:\Program Files\CURLCPP\include&#10;C:\Program Files\openexr\Debug\include"
+                       libraryPath="C:\Program Files\Lumiverse\Release\lib&#10;C:\Program Files\libpng\lib&#10;C:\Program Files\zlib\lib&#10;C:\Program Files\CURL\lib\Release&#10;C:\Program Files\CURLCPP\lib\Release&#10;C:\Program Files\ilmbase\lib&#10;C:\Program Files\openexr\lib"
+                       defines="NOMINMAX"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_video" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_opengl" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_cryptography" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="..\juce-5.4.1-windows\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_basics" path="..\juce-5.4.1-windows\JUCE\modules\juce_audio_basics"/>
+      </MODULEPATHS>
+    </VS2017>
   </EXPORTFORMATS>
   <MODULES>
-    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_core" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_events" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="1"/>
-    <MODULE id="juce_video" showAllCode="1" useLocalCopy="1"/>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_video" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
   </MODULES>
-  <JUCEOPTIONS JUCE_INCLUDE_ZLIB_CODE="enabled"/>
+  <JUCEOPTIONS JUCE_INCLUDE_ZLIB_CODE="1"/>
   <LIVE_SETTINGS>
     <WINDOWS/>
   </LIVE_SETTINGS>

@@ -48,8 +48,8 @@ private:
 
 // the Idea class contains information to apply an idea to a particular
 // set of devices on the stage
-class Idea : public Component, public ComboBoxListener,
-  public ButtonListener, public TextEditorListener
+class Idea : public Component, public ComboBox::Listener,
+  public Button::Listener, public TextEditor::Listener
 {
 public:
   Idea(Image src, IdeaType type = COLOR_PALETTE);
@@ -119,7 +119,7 @@ private:
     bool _rightClickMenuEnabled;
   };
 
-  class IntensityPaletteControls : public Component, public SliderListener {
+  class IntensityPaletteControls : public Component, public Slider::Listener {
   public:
     IntensityPaletteControls(Idea* parent);
     ~IntensityPaletteControls();

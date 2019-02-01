@@ -10,8 +10,7 @@
 
 */
 
-#ifndef __APPHEADERFILE_EOLPJP__
-#define __APPHEADERFILE_EOLPJP__
+#pragma once
 
 #include "AppConfig.h"
 
@@ -40,9 +39,8 @@
 namespace ProjectInfo
 {
     const char* const  projectName    = "AttributesInterface";
+    const char* const  companyName    = "Carnegie Mellon University";
     const char* const  versionString  = "0.17.1";
     const int          versionNumber  = 0x1101;
 }
 #endif
-
-#endif   // __APPHEADERFILE_EOLPJP__

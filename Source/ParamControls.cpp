@@ -319,7 +319,7 @@ void PaletteButton::setText()
 {
   FocusPalette* fp = _d->closestPalette();
   if (fp != nullptr) {
-    setButtonText(fp->_name + " : (" + String(fp->_pan) + "," + String(fp->_tilt) + ")");
+    setButtonText(fp->_name + " : (" + String(fp->_pan).toStdString() + "," + String(fp->_tilt).toStdString() + ")");
   }
   else {
     setButtonText("[No Focus Palette]");

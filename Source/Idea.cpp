@@ -1101,7 +1101,7 @@ Idea::IntensityPaletteControls::IntensityPaletteControls(Idea* parent) :
   _binSize.setName("bin size");
   _binSize.setSliderStyle(Slider::SliderStyle::LinearHorizontal);
   _binSize.addListener(this);
-  _binSize.setPopupDisplayEnabled(true, nullptr);
+  _binSize.setPopupDisplayEnabled(true, false, nullptr);
   _binSize.setTextBoxStyle(Slider::NoTextBox, true, 0, 0);
   addAndMakeVisible(_binSize);
 
@@ -1110,7 +1110,7 @@ Idea::IntensityPaletteControls::IntensityPaletteControls(Idea* parent) :
   _k.setName("k");
   _k.setSliderStyle(Slider::SliderStyle::LinearHorizontal);
   _k.addListener(this);
-  _k.setPopupDisplayEnabled(true, nullptr);
+  _k.setPopupDisplayEnabled(true, false, nullptr);
   _k.setTextBoxStyle(Slider::NoTextBox, true, 0, 0);
   addAndMakeVisible(_k);
 
@@ -1118,7 +1118,7 @@ Idea::IntensityPaletteControls::IntensityPaletteControls(Idea* parent) :
   _means.setSliderStyle(Slider::SliderStyle::TwoValueHorizontal);
   _means.setMinAndMaxValues(_parent->_mean, _parent->_meanBright, dontSendNotification);
   _means.setName("mean");
-  _means.setPopupDisplayEnabled(true, nullptr);
+  _means.setPopupDisplayEnabled(true, false, nullptr);
   _means.addListener(this);
   _means.setTextBoxStyle(Slider::NoTextBox, true, 0, 0);
   addAndMakeVisible(_means);

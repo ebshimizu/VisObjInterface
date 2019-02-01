@@ -756,7 +756,7 @@ void MainContentComponent::debugShowAffectedDevices(juce::Rectangle<float> regio
   for (auto d : sens) {
     if (i % 3 == 0)
       data += "\n";
-    data += d.first + ": " + String(d.second) + " ";
+    data += String(d.first) + ": " + String(d.second) + " ";
     i++;
   }
  
@@ -1360,12 +1360,12 @@ void MainContentComponent::startAuto()
   File logFolder;
   if (getGlobalSettings()->_commandLineArgs.count("outputFolderName") > 0) {
     getGlobalSettings()->_logRootDir = logFolder.getCurrentWorkingDirectory().
-      getChildFile(String(getGlobalSettings()->_logRootDir + "/" + getGlobalSettings()->_commandLineArgs["outputFolderName"])).
+      getChildFile(String(getGlobalSettings()->_logRootDir + "/" + getGlobalSettings()->_commandLineArgs["outputFolderName"].toStdString())).
       getFullPathName().toStdString();
   }
   else {
     getGlobalSettings()->_logRootDir = logFolder.getCurrentWorkingDirectory().
-      getChildFile(String(getGlobalSettings()->_logRootDir + "/" + String(getGlobalSettings()->_searchMode))).
+      getChildFile(String(getGlobalSettings()->_logRootDir) + "/" + String(getGlobalSettings()->_searchMode)).
       getFullPathName().toStdString();
   }
 

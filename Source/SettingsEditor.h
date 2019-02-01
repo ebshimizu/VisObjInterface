@@ -14,7 +14,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "globals.h"
 
-class SettingsSlider : public SliderPropertyComponent
+class SettingsSlider : public SliderPropertyComponent, protected Slider::Listener
 {
 public:
   SettingsSlider(string id, double min, double max, double step);

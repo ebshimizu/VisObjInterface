@@ -820,7 +820,7 @@ void SearchResultsContainer::loadTrace(int selected)
     r->_objFuncVal = sample._f;
 
     auto newResult = shared_ptr<SearchResultContainer>(new SearchResultContainer(r));
-    newResult->setTooltip("Edit: " + sample._editName + "\nAttribute Value: " + String(sample._f) + "\nAcceptance Chance: " + String(sample._a));
+    newResult->setTooltip("Edit: " + sample._editName + "\nAttribute Value: " + String(sample._f).toStdString() + "\nAcceptance Chance: " + String(sample._a).toStdString());
     
     // render
     auto p = getAnimationPatch();

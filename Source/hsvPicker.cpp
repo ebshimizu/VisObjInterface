@@ -284,7 +284,7 @@ public:
     {
         const Colour c (owner.getSwatchColour (index));
 
-        g.fillCheckerBoard (getLocalBounds(), 6, 6,
+        g.fillCheckerBoard (getLocalBounds().toType<float>(), 6, 6,
                             Colour (0xffdddddd).overlaidWith (c),
                             Colour (0xffffffff).overlaidWith (c));
     }
@@ -463,7 +463,7 @@ void HSVPicker::paint (Graphics& g)
 
     const Colour currentColour (getCurrentColour());
 
-    g.fillCheckerBoard (previewArea, 10, 10,
+    g.fillCheckerBoard (previewArea.toType<float>(), 10, 10,
                         Colour (0xffdddddd).overlaidWith (currentColour),
                         Colour (0xffffffff).overlaidWith (currentColour));
 

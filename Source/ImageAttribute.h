@@ -31,7 +31,7 @@ private:
   Image _img;
 };
 
-class ImageAttribute : public HistogramAttribute, public ComboBoxListener
+class ImageAttribute : public HistogramAttribute, public ComboBox::Listener
 {
 public:
   enum Mode {

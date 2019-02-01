@@ -259,7 +259,7 @@ double SettingsSlider::getValue() const
 
 void SettingsSlider::sliderValueChanged(Slider * s)
 {
-  SliderPropertyComponent::sliderValueChanged(s);
+  //Slider::Listener::sliderValueChanged(s);
   
   getRecorder()->log(SYSTEM, _id + " set to " + String(s->getValue()).toStdString());
 }
@@ -577,7 +577,7 @@ String SettingsButton::getButtonText() const
     for (auto p : getRig()->getPatches()) {
       OscPatch* osc = dynamic_cast<OscPatch*>(p.second);
       if (osc != nullptr) {
-        return "TX:" + osc->getAddress() + ":" + String(osc->getPort());
+        return "TX:" + String(osc->getAddress()) + ":" + String(osc->getPort());
       }
     }
 

@@ -219,7 +219,7 @@ String ConstraintComponent::deviceSetToString(DeviceSet & d)
   }
   else {
     for (int i = 0; i < ids.size(); i++) {
-      sel += ids[i];
+      sel += String(ids[i]);
 
       if (i != ids.size() - 1)
         sel += ", ";
@@ -504,7 +504,7 @@ SaturationConstraint::SaturationConstraint(int id, Component* parent) :
   _satSlider.setSliderStyle(Slider::SliderStyle::TwoValueHorizontal);
   _satSlider.setMinAndMaxValues(0, 1);
   _satSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, false, 0, 0);
-  _satSlider.setPopupDisplayEnabled(true, nullptr);
+  _satSlider.setPopupDisplayEnabled(true, false, nullptr);
   _satSlider.addListener(this);
   addAndMakeVisible(_satSlider);
 }

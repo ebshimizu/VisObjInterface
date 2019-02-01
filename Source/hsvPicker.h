@@ -11,7 +11,7 @@
   This color picker shows a HSV view of the color space with H and S being
   plotted on a polar grid, and V being a slider of the right
 */
-class  HSVPicker : public Component, public ChangeBroadcaster, protected SliderListener
+class  HSVPicker : public Component, public ChangeBroadcaster, protected Slider::Listener
 {
 public:
 

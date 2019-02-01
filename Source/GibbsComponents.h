@@ -72,8 +72,8 @@ private:
 // This component is a color constraint on the gibbs sampler. 
 // Takes a set of devices and applies the specified color pallet constraint to the
 // devices
-class GibbsColorConstraint : public Component, public ButtonListener,
-  public ChangeListener, public TextEditorListener
+class GibbsColorConstraint : public Component, protected Button::Listener,
+  public ChangeListener, public TextEditor::Listener
 {
 public:
   GibbsColorConstraint();
@@ -102,7 +102,7 @@ private:
   TextEditor _weightInput;
 };
 
-class GibbsConstraintContainer : public Component, public SliderListener, public ButtonListener, public ComboBoxListener
+class GibbsConstraintContainer : public Component, public Slider::Listener, public Button::Listener, public ComboBox::Listener
 {
 public:
   GibbsConstraintContainer();

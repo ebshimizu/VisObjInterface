@@ -36,7 +36,7 @@ private:
 //==============================================================================
 /*
 */
-class SceneViewer    : public Component, public ButtonListener
+class SceneViewer    : public Component, public Button::Listener
 {
 public:
   SceneViewer();
@@ -89,7 +89,7 @@ public:
   void clearSelection();
   
 private:
-  class ParamShifter : public Component, public SliderListener {
+  class ParamShifter : public Component, public Slider::Listener {
   public:
     ParamShifter(DeviceSet affected);
     ~ParamShifter();

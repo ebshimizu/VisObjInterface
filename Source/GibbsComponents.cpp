@@ -258,7 +258,7 @@ GibbsConstraintContainer::GibbsConstraintContainer()
   _intens.addListener(this);
   _intens.setRange(0, 1);
   _intens.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, false, 0, 0);
-  _intens.setPopupDisplayEnabled(true, nullptr);
+  _intens.setPopupDisplayEnabled(true, false, nullptr);
   addAndMakeVisible(_intens);
 
   _numLights.setName("bright");
